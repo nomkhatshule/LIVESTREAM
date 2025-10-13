@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { AgoraLiveLogo } from '@/components/icons';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Clapperboard, Users, Tv } from 'lucide-react';
+import { Search, Clapperboard, Tv } from 'lucide-react';
 import UserNav from '@/components/auth/user-nav';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -18,20 +18,20 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center">
-        <div className="mr-4 hidden md:flex">
+      <div className="container flex h-16 items-center justify-between">
+        <div className="flex items-center">
           <Link href="/" className="mr-6 flex items-center space-x-2">
             <AgoraLiveLogo className="h-6 w-6" />
             <span className="hidden font-bold sm:inline-block font-headline">
               AgoraLive
             </span>
           </Link>
-          <nav className="flex items-center space-x-6 text-sm font-medium">
+          <nav className="flex items-center space-x-4 text-sm font-medium">
             <Link
               href="/"
               className={cn(
-                "transition-colors hover:text-foreground/80",
-                pathname === '/' ? "text-foreground" : "text-foreground/60"
+                'transition-colors hover:text-foreground/80',
+                pathname === '/' ? 'text-foreground' : 'text-foreground/60'
               )}
             >
               Discover
@@ -39,36 +39,41 @@ export default function Header() {
             <Link
               href="/feed"
               className={cn(
-                "transition-colors hover:text-foreground/80 flex items-center",
-                pathname.startsWith('/feed') ? "text-foreground" : "text-foreground/60"
+                'flex items-center transition-colors hover:text-foreground/80',
+                pathname.startsWith('/feed')
+                  ? 'text-foreground'
+                  : 'text-foreground/60'
               )}
             >
-             <Tv className="h-4 w-4 mr-1.5"/>
+              <Tv className="mr-1.5 h-4 w-4" />
               For You
             </Link>
-             <Link
+            <Link
               href="#"
-              className="transition-colors hover:text-foreground/80 text-foreground/60"
+              className="hidden sm:block transition-colors hover:text-foreground/80 text-foreground/60"
             >
               Following
             </Link>
           </nav>
         </div>
-        
-        <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
-          <div className="w-full flex-1 md:w-auto md:flex-none">
+
+        <div className="flex flex-1 items-center justify-end space-x-2">
+          <div className="hidden sm:block w-full flex-1 md:w-auto md:flex-none">
             <form>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="search"
                   placeholder="Search streams..."
-                  className="pl-9 w-full md:w-80"
+                  className="pl-9 w-full md:w-64"
                 />
               </div>
             </form>
           </div>
-          <nav className="flex items-center space-x-2">
+          <nav className="flex items-center space-x-1">
+             <Button variant="ghost" size="icon" className="sm:hidden">
+              <Search className="h-5 w-5" />
+            </Button>
             <Button variant="ghost" size="icon" aria-label="Start streaming">
               <Clapperboard className="h-5 w-5" />
             </Button>
