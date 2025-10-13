@@ -5,7 +5,7 @@ import Chat from '@/components/broadcast/chat';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Heart, Share2, Users, Bell, Star, MessageCircle, MoreVertical } from 'lucide-react';
+import { Heart, Share2, Bell, Star, MessageCircle, MoreVertical } from 'lucide-react';
 
 export default function BroadcastPage({ params }: { params: { id: string } }) {
   const broadcast = broadcasts.find((b) => b.id === params.id);

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Broadcast } from '@/lib/data';
 import { Button } from '@/components/ui/button';
-import { Maximize, Mic, MicOff, Minimize, Video, VideoOff, Volume2, VolumeX, Play, Pause } from 'lucide-react';
+import { Maximize, Mic, MicOff, Minimize, Video, VideoOff, Volume2, VolumeX, Play, Pause, Users } from 'lucide-react';
 
 interface VideoPlayerProps {
   broadcast: Broadcast;
@@ -100,7 +100,7 @@ export default function VideoPlayer({ broadcast }: VideoPlayerProps) {
        )}
 
        <div className="absolute top-4 right-4 z-10">
-         <Button variant="ghost" size="icon" onClick={toggleMute} className="text-white hover:bg-white/20 rounded-full">
+         <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); toggleMute(); }} className="text-white hover:bg-white/20 rounded-full">
             {isMuted ? <VolumeX className="h-6 w-6" /> : <Volume2 className="h-6 w-6" />}
          </Button>
       </div>
