@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { Broadcast } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Maximize, Mic, MicOff, Minimize, Video, VideoOff, Volume2, VolumeX, Play, Pause, Users, User } from 'lucide-react';
-import AgoraRTC, { IAgoraRTCClient, ICameraVideoTrack, IMicrophoneAudioTrack } from 'agora-rtc-sdk-ng';
+import type { IAgoraRTCClient, ICameraVideoTrack, IMicrophoneAudioTrack } from 'agora-rtc-sdk-ng';
 import { useUser } from '@/firebase';
 
 interface VideoPlayerProps {
@@ -29,10 +29,47 @@ export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerPr
   useEffect(() => {
     if (!appId || !videoRef.current || !currentUser) return;
 
-    const client = AgoraRTC.createClient({ mode: 'live', codec: 'vp8' });
-    clientRef.current = client;
+    let AgoraRTC: any;
+    let client: IAgoraRTCClient;
 
-    const joinChannel = async () => {
+    const init = async () => {
+      AgoraRTC = (await import('agora-rtc-sdk-ng')).default;
+      client = AgoraRTC.createClient({ mode: 'live', codec: 'vp8' });
+      clientRef.current = client;
+
+      const handleUserPublished = async (user: any, mediaType: 'video' | 'audio') => {
+        await client.subscribe(user, mediaType);
+        if (mediaType === 'video') {
+          setRemoteUsers(prev => [...prev, user]);
+          const remoteVideoTrack = user.videoTrack;
+          
+          let playerContainer = document.getElementById(user.uid);
+          if (!playerContainer) {
+            playerContainer = document.createElement('div');
+            playerContainer.id = user.uid.toString();
+            playerContainer.style.width = '100%';
+            playerContainer.style.height = '100%';
+            playerContainer.style.position = 'absolute';
+            videoRef.current?.append(playerContainer);
+          }
+          
+          remoteVideoTrack.play(playerContainer);
+        }
+      };
+
+      const handleUserUnpublished = (user: any, mediaType: 'video' | 'audio') => {
+         if (mediaType === 'video') {
+           setRemoteUsers(prev => prev.filter(u => u.uid !== user.uid));
+           const playerContainer = document.getElementById(user.uid);
+           if (playerContainer) {
+               playerContainer.remove();
+           }
+         }
+      };
+
+      client.on('user-published', handleUserPublished);
+      client.on('user-unpublished', handleUserUnpublished);
+
       try {
         await client.join(appId, broadcast.id, null, isHost ? currentUser.uid : null);
         
@@ -56,55 +93,18 @@ export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerPr
       }
     };
 
-    const handleUserPublished = async (user, mediaType) => {
-      await client.subscribe(user, mediaType);
-      if (mediaType === 'video') {
-        setRemoteUsers(prev => [...prev, user]);
-        const remoteVideoTrack = user.videoTrack;
-        
-        // Ensure the player container for the remote user is created and added
-        let playerContainer = document.getElementById(user.uid);
-        if (!playerContainer) {
-          playerContainer = document.createElement('div');
-          playerContainer.id = user.uid.toString();
-          playerContainer.style.width = '100%';
-          playerContainer.style.height = '100%';
-          playerContainer.style.position = 'absolute';
-          videoRef.current?.append(playerContainer);
-        }
-        
-        remoteVideoTrack.play(playerContainer);
-      }
-    };
-
-    const handleUserUnpublished = (user, mediaType) => {
-       if (mediaType === 'video') {
-         setRemoteUsers(prev => prev.filter(u => u.uid !== user.uid));
-         const playerContainer = document.getElementById(user.uid);
-         if (playerContainer) {
-             playerContainer.remove();
-         }
-       }
-    };
-
-    client.on('user-published', handleUserPublished);
-    client.on('user-unpublished', handleUserUnpublished);
-
-    joinChannel();
+    init();
 
     return () => {
       localVideoTrackRef.current?.close();
       localAudioTrackRef.current?.close();
-      client.leave();
-      client.off('user-published', handleUserPublished);
-      client.off('user-unpublished', handleUserUnpublished);
+      clientRef.current?.leave();
+      // It's safer to remove all listeners if the client exists
+      clientRef.current?.removeAllListeners();
     };
   }, [broadcast.id, isHost, currentUser]);
   
   const toggleMute = () => {
-      // For viewers, this can mute the remote audio. For hosts, their own mic.
-      // This example focuses on viewers muting the stream.
-      // A full implementation would need to manage remote track mute state.
       setIsMuted(!isMuted);
   };
 
@@ -125,10 +125,12 @@ export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerPr
 
 
       <div className="absolute top-4 left-4 z-10 flex items-center gap-2">
-        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-600 text-white">
+        {broadcast.isLive && (
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-600 text-white">
             <span className="w-2 h-2 mr-2 bg-white rounded-full animate-pulse"></span>
             LIVE
           </span>
+        )}
          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-black/50 text-white gap-1.5">
             <Users className="h-4 w-4" />
             {Intl.NumberFormat('en-US', { notation: 'compact' }).format(broadcast.viewers + remoteUsers.length)}
