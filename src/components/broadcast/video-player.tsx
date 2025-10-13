@@ -18,6 +18,8 @@ export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerPr
   const { user: currentUser } = useUser();
   const videoRef = useRef<HTMLDivElement>(null);
   const clientRef = useRef<IAgoraRTCClient>();
+  const localVideoTrackRef = useRef<ICameraVideoTrack | null>(null);
+  const localAudioTrackRef = useRef<IMicrophoneAudioTrack | null>(null);
   
   const [isMuted, setIsMuted] = useState(!isHost);
   const [isVideoEnabled, setIsVideoEnabled] = useState(isHost);
@@ -38,8 +40,14 @@ export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerPr
           client.setClientRole('host');
           const audioTrack = await AgoraRTC.createMicrophoneAudioTrack();
           const videoTrack = await AgoraRTC.createCameraVideoTrack();
+          
+          localAudioTrackRef.current = audioTrack;
+          localVideoTrackRef.current = videoTrack;
+
           videoTrack.play(videoRef.current!);
           await client.publish([audioTrack, videoTrack]);
+          setIsVideoEnabled(true);
+          setIsAudioEnabled(true);
         } else {
           client.setClientRole('audience');
         }
@@ -53,21 +61,29 @@ export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerPr
       if (mediaType === 'video') {
         setRemoteUsers(prev => [...prev, user]);
         const remoteVideoTrack = user.videoTrack;
-        const playerContainer = document.createElement('div');
-        playerContainer.id = user.uid.toString();
-        playerContainer.style.width = '100%';
-        playerContainer.style.height = '100%';
-        playerContainer.style.position = 'absolute';
-        videoRef.current?.append(playerContainer);
+        
+        // Ensure the player container for the remote user is created and added
+        let playerContainer = document.getElementById(user.uid);
+        if (!playerContainer) {
+          playerContainer = document.createElement('div');
+          playerContainer.id = user.uid.toString();
+          playerContainer.style.width = '100%';
+          playerContainer.style.height = '100%';
+          playerContainer.style.position = 'absolute';
+          videoRef.current?.append(playerContainer);
+        }
+        
         remoteVideoTrack.play(playerContainer);
       }
     };
 
-    const handleUserUnpublished = (user) => {
-      setRemoteUsers(prev => prev.filter(u => u.uid !== user.uid));
-       const playerContainer = document.getElementById(user.uid);
-       if (playerContainer) {
-           playerContainer.remove();
+    const handleUserUnpublished = (user, mediaType) => {
+       if (mediaType === 'video') {
+         setRemoteUsers(prev => prev.filter(u => u.uid !== user.uid));
+         const playerContainer = document.getElementById(user.uid);
+         if (playerContainer) {
+             playerContainer.remove();
+         }
        }
     };
 
@@ -77,6 +93,8 @@ export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerPr
     joinChannel();
 
     return () => {
+      localVideoTrackRef.current?.close();
+      localAudioTrackRef.current?.close();
       client.leave();
       client.off('user-published', handleUserPublished);
       client.off('user-unpublished', handleUserUnpublished);
@@ -84,17 +102,23 @@ export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerPr
   }, [broadcast.id, isHost, currentUser]);
   
   const toggleMute = () => {
+      // For viewers, this can mute the remote audio. For hosts, their own mic.
+      // This example focuses on viewers muting the stream.
+      // A full implementation would need to manage remote track mute state.
       setIsMuted(!isMuted);
   };
 
   return (
     <div className="absolute inset-0 w-full h-full">
-      <div ref={videoRef} className="w-full h-full object-cover" />
+      <div ref={videoRef} className="w-full h-full bg-black">
+        {/* The video track will be injected here by Agora */}
+      </div>
 
       {!isHost && remoteUsers.length === 0 && (
-         <div className="absolute inset-0 flex items-center justify-center bg-black">
+         <div className="absolute inset-0 flex items-center justify-center bg-black/80">
             <div className="text-center text-white">
-                <p className="text-lg">Waiting for the host to start the stream...</p>
+                <p className="text-lg font-semibold">Stream Offline</p>
+                <p className="text-muted-foreground">Waiting for the host to start the broadcast...</p>
             </div>
         </div>
       )}
