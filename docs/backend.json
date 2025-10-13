@@ -40,6 +40,42 @@
         "email",
         "createdAt"
       ]
+    },
+    "ChatMessage": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Chat Message",
+      "type": "object",
+      "description": "Represents a single message in a broadcast chat.",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The ID of the user who sent the message."
+        },
+        "username": {
+          "type": "string",
+          "description": "The username of the user who sent the message."
+        },
+        "userAvatar": {
+          "type": "string",
+          "description": "URL of the user's avatar.",
+          "format": "uri"
+        },
+        "message": {
+          "type": "string",
+          "description": "The content of the chat message."
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "The server timestamp when the message was created.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "userId",
+        "username",
+        "message",
+        "timestamp"
+      ]
     }
   },
   "auth": {
@@ -62,6 +98,26 @@
             {
               "name": "userId",
               "description": "The Firebase Authentication UID of the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/broadcasts/{broadcastId}/messages/{messageId}",
+        "definition": {
+          "entityName": "ChatMessage",
+          "schema": {
+            "$ref": "#/backend/entities/ChatMessage"
+          },
+          "description": "Stores chat messages for a specific broadcast.",
+          "params": [
+            {
+              "name": "broadcastId",
+              "description": "The ID of the broadcast."
+            },
+            {
+              "name": "messageId",
+              "description": "The ID of the chat message."
             }
           ]
         }

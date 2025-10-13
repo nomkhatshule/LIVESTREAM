@@ -1,20 +1,18 @@
 'use client';
 import { Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useUser, useDoc, useFirestore, useUserDocument, updateDocumentNonBlocking } from '@/firebase';
-import { doc } from 'firebase/firestore';
-import { useEffect, useState, useMemo } from 'react';
+import { useUser, useDoc, useFirestore, useUserDocument, updateDocumentNonBlocking, addDocumentNonBlocking, useCollection } from '@/firebase';
+import { doc, collection, serverTimestamp, query, orderBy, limit } from 'firebase/firestore';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Mic, MicOff, Video, VideoOff, ScreenShare, ScreenShareOff, X, Users, MessageCircle, Send, Smile, FlipHorizontal, MessageCircleOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
-import ChatMessageItem from '@/components/broadcast/chat-message';
 import VideoPlayer from '@/components/broadcast/video-player';
-import type { Broadcast } from '@/lib/data';
-import { users, chatMessages as initialMessages } from '@/lib/data';
-import type { ChatMessage } from '@/lib/data';
+import type { Broadcast, ChatMessage } from '@/lib/data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useMemoFirebase } from '@/firebase';
 
 
 function LiveStudio() {
@@ -25,6 +23,7 @@ function LiveStudio() {
     const { user, isUserLoading } = useUser();
     const { userDocument: hostUserDocument, isDocLoading: isHostDocLoading } = useUserDocument();
     const { toast } = useToast();
+    const scrollAreaRef = useRef<HTMLDivElement>(null);
 
     // State for controls
     const [isAudioEnabled, setIsAudioEnabled] = useState(true);
@@ -32,18 +31,28 @@ function LiveStudio() {
     const [isScreenSharing, setIsScreenSharing] = useState(false);
 
     // Chat state
-    const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
     const [newMessage, setNewMessage] = useState('');
     const [isChatVisible, setIsChatVisible] = useState(true);
-
-
+    
     // Memoize the doc reference
-    const broadcastDocRef = useMemo(() => {
+    const broadcastDocRef = useMemoFirebase(() => {
         if (!broadcastId) return undefined;
         return doc(firestore, 'broadcasts', broadcastId);
     }, [broadcastId, firestore]);
 
+    // Memoize the chat collection query
+    const messagesQuery = useMemoFirebase(() => {
+        if (!broadcastId) return undefined;
+        return query(
+            collection(firestore, `broadcasts/${broadcastId}/messages`),
+            orderBy('timestamp', 'asc'),
+            limit(100) // Limit to the last 100 messages
+        );
+    }, [broadcastId, firestore]);
+
     const { data: broadcastData, isLoading: isBroadcastLoading } = useDoc<any>(broadcastDocRef);
+    const { data: messages, isLoading: areMessagesLoading } = useCollection<ChatMessage>(messagesQuery);
+
 
     // Mock broadcast object for the VideoPlayer
     const liveBroadcast: Broadcast = useMemo(() => {
@@ -88,15 +97,26 @@ function LiveStudio() {
               title: "Broadcast Ended",
               description: "This broadcast has ended.",
           });
-          updateDocumentNonBlocking(broadcastDocRef, { isLive: false });
+          if(broadcastDocRef) {
+            updateDocumentNonBlocking(broadcastDocRef, { isLive: false });
+          }
           router.push('/');
       }
     }, [broadcastData, isBroadcastLoading, router, toast, broadcastDocRef]);
 
+    useEffect(() => {
+        // Auto-scroll to the bottom of the chat
+        if (scrollAreaRef.current) {
+            const scrollableView = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
+            if (scrollableView) {
+                scrollableView.scrollTop = scrollableView.scrollHeight;
+            }
+        }
+    }, [messages]);
+
 
     const handleEndBroadcast = async () => {
         if (broadcastDocRef) {
-            // Set isLive to false to mark the broadcast as over.
             updateDocumentNonBlocking(broadcastDocRef, { isLive: false });
         }
         router.push('/');
@@ -104,20 +124,19 @@ function LiveStudio() {
 
     const handleSendMessage = (e: React.FormEvent) => {
         e.preventDefault();
-        if (newMessage.trim() === '' || !hostUserDocument || !user) return;
+        if (newMessage.trim() === '' || !user || !hostUserDocument || !broadcastId) return;
 
-        const message: ChatMessage = {
-            id: `msg-${Date.now()}`,
-            user: {
-                name: hostUserDocument.username || user.displayName || 'Host',
-                avatarUrl: hostUserDocument.profilePicture || user.photoURL || '',
-                avatarHint: 'person portrait',
-            },
-            message: newMessage,
-            timestamp: 'Just now',
+        const messagesCollectionRef = collection(firestore, 'broadcasts', broadcastId, 'messages');
+        
+        const messagePayload: Omit<ChatMessage, 'id' | 'timestamp'> & { timestamp: any } = {
+          userId: user.uid,
+          username: hostUserDocument.username || user.displayName || 'Anonymous',
+          userAvatar: hostUserDocument.profilePicture || user.photoURL || '',
+          message: newMessage,
+          timestamp: serverTimestamp(),
         };
 
-        setMessages((prev) => [...prev, message]);
+        addDocumentNonBlocking(messagesCollectionRef, messagePayload);
         setNewMessage('');
     };
 
@@ -163,16 +182,16 @@ function LiveStudio() {
             {/* Layer 3: Interaction Zone */}
             <div className="absolute bottom-0 left-0 right-0 z-10 p-4 flex flex-col justify-end bg-gradient-to-t from-black/70 to-transparent h-2/5">
                 {isChatVisible && (
-                    <ScrollArea className="h-full max-h-[250px] pr-4">
+                    <ScrollArea className="h-full max-h-[250px] pr-4" ref={scrollAreaRef}>
                         <div className="flex flex-col gap-3">
-                            {messages.map((msg) => (
+                            {messages && messages.map((msg) => (
                                 <div key={msg.id} className="flex items-start gap-3 text-sm text-white bg-black/20 p-2 rounded-lg max-w-xs sm:max-w-sm">
                                     <Avatar className="h-6 w-6 border-2 border-primary">
-                                        <AvatarImage src={msg.user.avatarUrl} alt={msg.user.name} />
-                                        <AvatarFallback>{msg.user.name.charAt(0)}</AvatarFallback>
+                                        <AvatarImage src={msg.userAvatar} alt={msg.username} />
+                                        <AvatarFallback>{msg.username.charAt(0)}</AvatarFallback>
                                     </Avatar>
                                     <div className="flex-1">
-                                        <span className="font-bold text-primary mr-1.5">{msg.user.name}:</span>
+                                        <span className="font-bold text-primary mr-1.5">{msg.username}:</span>
                                         <p className="break-words inline">{msg.message}</p>
                                     </div>
                                 </div>

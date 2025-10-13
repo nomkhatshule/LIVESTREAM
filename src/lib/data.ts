@@ -1,4 +1,5 @@
 import placeholderData from './placeholder-images.json';
+import type { Timestamp } from 'firebase/firestore';
 
 const { placeholderImages } = placeholderData;
 
@@ -34,13 +35,11 @@ export type Category = {
 
 export type ChatMessage = {
   id: string;
-  user: {
-    name: string;
-    avatarUrl: string;
-    avatarHint: string;
-  };
+  userId: string;
+  username: string;
+  userAvatar: string;
   message: string;
-  timestamp: string;
+  timestamp: Timestamp | string | null;
 };
 
 export const users: User[] = [
@@ -216,7 +215,8 @@ export const categories = [
 ];
 
 
-export const chatMessages: ChatMessage[] = [
+export const chatMessages: any[] = [
+  // This is now legacy mock data. The live page will use Firestore.
   {
     id: 'msg-1',
     user: { name: 'ChattyCathy', avatarUrl: findImage('avatar-3'), avatarHint: findImageHint('avatar-3') },
@@ -228,23 +228,5 @@ export const chatMessages: ChatMessage[] = [
     user: { name: 'LurkerLuke', avatarUrl: findImage('avatar-4'), avatarHint: findImageHint('avatar-4') },
     message: 'First time here, great stream!',
     timestamp: '2m ago',
-  },
-  {
-    id: 'msg-3',
-    user: { name: 'StreamFan101', avatarUrl: findImage('avatar-5'), avatarHint: findImageHint('avatar-5') },
-    message: 'Can you play that one song again?',
-    timestamp: '1m ago',
-  },
-  {
-    id: 'msg-4',
-    user: { name: 'Bob', avatarUrl: findImage('avatar-2'), avatarHint: findImageHint('avatar-2') },
-    message: 'LOL that was a close one!',
-    timestamp: '30s ago',
-  },
-    {
-    id: 'msg-5',
-    user: { name: 'Alice', avatarUrl: findImage('avatar-1'), avatarHint: findImageHint('avatar-1') },
-    message: 'The quality is so crisp!',
-    timestamp: '10s ago',
   },
 ];
