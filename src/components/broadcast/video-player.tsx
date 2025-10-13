@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Broadcast } from '@/lib/data';
 import { Button } from '@/components/ui/button';
-import { Maximize, Mic, MicOff, Minimize, Video, VideoOff, Volume2, VolumeX, Play, Pause, Users, User } from 'lucide-react';
+import { Maximize, Mic, MicOff, Minimize, Video, VideoOff, Volume2, VolumeX, Play, Pause, Users } from 'lucide-react';
 import type { IAgoraRTCClient, ICameraVideoTrack, IMicrophoneAudioTrack } from 'agora-rtc-sdk-ng';
 import { useUser } from '@/firebase';
 
@@ -75,8 +75,7 @@ export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerPr
         
         if (isHost) {
           client.setClientRole('host');
-          const audioTrack = await AgoraRTC.createMicrophoneAudioTrack();
-          const videoTrack = await AgoraRTC.createCameraVideoTrack();
+          const [audioTrack, videoTrack] = await AgoraRTC.createMicrophoneAndCameraTracks();
           
           localAudioTrackRef.current = audioTrack;
           localVideoTrackRef.current = videoTrack;
@@ -106,6 +105,13 @@ export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerPr
   
   const toggleMute = () => {
       setIsMuted(!isMuted);
+      if (remoteUsers.length > 0) {
+        remoteUsers.forEach(user => {
+            if (user.audioTrack) {
+                user.audioTrack.setVolume(isMuted ? 100 : 0);
+            }
+        });
+      }
   };
 
   return (
