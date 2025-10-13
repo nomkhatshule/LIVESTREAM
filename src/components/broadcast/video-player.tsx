@@ -130,15 +130,8 @@ export default function VideoPlayer({
             localAudioTrackRef.current = localTracks[0];
             localVideoTrackRef.current = localTracks[1];
             
-            // Wait for the videoRef to be available
             if (videoRef.current) {
-                videoRef.current.innerHTML = ''; // Clear previous content like "offline" message
-                const hostPlayerContainer = document.createElement('div');
-                hostPlayerContainer.id = `player-${uid}`;
-                hostPlayerContainer.style.width = '100%';
-                hostPlayerContainer.style.height = '100%';
-                videoRef.current.append(hostPlayerContainer);
-                localTracks[1].play(hostPlayerContainer);
+                localTracks[1].play(videoRef.current);
             }
 
             await client.publish(localTracks);
