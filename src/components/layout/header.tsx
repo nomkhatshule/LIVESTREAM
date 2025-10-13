@@ -4,10 +4,18 @@ import Link from 'next/link';
 import { AgoraLiveLogo } from '@/components/icons';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Clapperboard, Users } from 'lucide-react';
+import { Search, Clapperboard, Users, Tv } from 'lucide-react';
 import UserNav from '@/components/auth/user-nav';
+import { usePathname } from 'next/navigation';
+import { cn } from '@/lib/utils';
 
 export default function Header() {
+  const pathname = usePathname();
+
+  if (pathname.startsWith('/feed')) {
+    return null; // Hide header on the feed page
+  }
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center">
@@ -21,11 +29,24 @@ export default function Header() {
           <nav className="flex items-center space-x-6 text-sm font-medium">
             <Link
               href="/"
-              className="transition-colors hover:text-foreground/80 text-foreground"
+              className={cn(
+                "transition-colors hover:text-foreground/80",
+                pathname === '/' ? "text-foreground" : "text-foreground/60"
+              )}
             >
               Discover
             </Link>
             <Link
+              href="/feed"
+              className={cn(
+                "transition-colors hover:text-foreground/80 flex items-center",
+                pathname.startsWith('/feed') ? "text-foreground" : "text-foreground/60"
+              )}
+            >
+             <Tv className="h-4 w-4 mr-1.5"/>
+              For You
+            </Link>
+             <Link
               href="#"
               className="transition-colors hover:text-foreground/80 text-foreground/60"
             >

@@ -5,7 +5,7 @@ import Chat from '@/components/broadcast/chat';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Heart, Share2, Users, Bell, Star } from 'lucide-react';
+import { Heart, Share2, Users, Bell, Star, MessageCircle, MoreVertical } from 'lucide-react';
 
 export default function BroadcastPage({ params }: { params: { id: string } }) {
   const broadcast = broadcasts.find((b) => b.id === params.id);
@@ -15,47 +15,58 @@ export default function BroadcastPage({ params }: { params: { id: string } }) {
   }
 
   return (
-    <div className="flex flex-col lg:flex-row h-[calc(100vh-4rem)]">
-      <div className="flex-1 flex flex-col bg-black">
-        <VideoPlayer broadcast={broadcast} />
-        <div className="p-4 bg-card text-card-foreground border-t">
-          <div className="flex flex-col sm:flex-row justify-between">
-            <div className="flex items-start mb-4 sm:mb-0">
-              <Avatar className="h-14 w-14 mr-4 border-2 border-primary">
+    <div className="relative h-[calc(100vh-4rem)] w-full bg-black snap-start">
+      <VideoPlayer broadcast={broadcast} />
+      
+      <div className="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/50 to-transparent">
+         {/* Header can go here if needed, for now it's clean */}
+      </div>
+
+      {/* Overlay for information and actions */}
+      <div className="absolute bottom-0 left-0 right-0 p-4 pb-8 bg-gradient-to-t from-black/70 to-transparent text-white">
+        <div className="flex items-end justify-between">
+          {/* Left side: Broadcaster Info & Title */}
+          <div className="flex-1 mr-8">
+            <div className="flex items-center mb-2">
+              <Avatar className="h-10 w-10 mr-3 border-2 border-primary">
                 <AvatarImage src={broadcast.user.avatarUrl} alt={broadcast.user.name} data-ai-hint={broadcast.user.avatarHint} />
                 <AvatarFallback>{broadcast.user.name.charAt(0)}</AvatarFallback>
               </Avatar>
               <div>
-                <h1 className="text-xl font-bold font-headline">{broadcast.title}</h1>
-                <p className="font-semibold text-primary">{broadcast.user.name}</p>
-                <div className="flex items-center text-sm text-muted-foreground mt-1">
-                  <Users className="h-4 w-4 mr-1.5" />
-                  <span>{Intl.NumberFormat('en-US').format(broadcast.viewers)} viewers</span>
-                  <span className="mx-2">·</span>
-                  <Badge variant="secondary">{broadcast.category}</Badge>
+                <p className="font-bold text-lg">{broadcast.user.name}</p>
+                <div className="flex items-center gap-2">
+                  <Button size="sm" className="h-7 text-xs px-2.5 bg-primary">Follow</Button>
+                  <Button size="sm" variant="secondary" className="h-7 text-xs px-2.5">Subscribe <Star className="ml-1.5 h-3 w-3" /></Button>
                 </div>
               </div>
             </div>
-            <div className="flex items-start space-x-2 shrink-0">
-              <Button variant="outline">
-                <Heart className="h-4 w-4 mr-2" />
-                Follow
-              </Button>
-              <Button variant="outline">
-                <Bell className="h-4 w-4 mr-2" />
-                Subscribe
-              </Button>
-               <Button variant="outline">
-                <Share2 className="h-4 w-4 mr-2" />
-                Share
-              </Button>
+            <h1 className="text-lg font-semibold mb-1">{broadcast.title}</h1>
+            <div className="flex items-center gap-2 flex-wrap">
+              {broadcast.tags.map(tag => (
+                <Badge key={tag} variant="secondary" className="bg-white/20 border-transparent text-white text-xs">{tag}</Badge>
+              ))}
             </div>
+          </div>
+          
+          {/* Right side: Action Buttons */}
+          <div className="flex flex-col items-center space-y-5">
+            <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full bg-white/20 hover:bg-white/30 text-white flex flex-col">
+              <Heart className="h-7 w-7" />
+              <span className="text-xs mt-1">1.2k</span>
+            </Button>
+            <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full bg-white/20 hover:bg-white/30 text-white flex flex-col">
+              <MessageCircle className="h-7 w-7" />
+               <span className="text-xs mt-1">203</span>
+            </Button>
+            <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full bg-white/20 hover:bg-white/30 text-white">
+              <Share2 className="h-7 w-7" />
+            </Button>
+             <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full bg-white/20 hover:bg-white/30 text-white">
+              <MoreVertical className="h-7 w-7" />
+            </Button>
           </div>
         </div>
       </div>
-      <aside className="w-full lg:w-96 bg-card border-l flex flex-col">
-        <Chat />
-      </aside>
     </div>
   );
 }

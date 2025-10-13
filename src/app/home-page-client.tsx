@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Clapperboard } from 'lucide-react';
+import Link from 'next/link';
 
 interface HomePageClientProps {
   liveBroadcasts: Broadcast[];
@@ -46,9 +47,11 @@ export default function HomePageClient({
             <p className="text-xl text-primary-foreground/90 max-w-2xl mb-8 drop-shadow-md">
                 Discover live streams from creators around the world, or go live and share your passion.
             </p>
-            <Button size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90">
-                <Clapperboard className="mr-2 h-5 w-5" />
-                Start Streaming Now
+            <Button size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90" asChild>
+                <Link href="/feed">
+                    <Clapperboard className="mr-2 h-5 w-5" />
+                    Watch Now
+                </Link>
             </Button>
          </div>
       </section>
