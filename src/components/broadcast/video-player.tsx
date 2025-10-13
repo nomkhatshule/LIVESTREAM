@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { Broadcast } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Mic, MicOff, Video, VideoOff, Volume2, VolumeX, Users, AlertCircle, ScreenShare, ScreenShareOff, X, FlipHorizontal } from 'lucide-react';
-import type { IAgoraRTCClient, ICameraVideoTrack, IMicrophoneAudioTrack, IAgoraRTC, IRemoteVideoTrack, IScreenVideoTrack } from 'agora-rtc-sdk-ng';
+import type { IAgoraRTCClient, ICameraVideoTrack, IMicrophoneAudioTrack, IAgoraRTC, IRemoteVideoTrack, IScreenVideoTrack, UID } from 'agora-rtc-sdk-ng';
 import { useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -92,7 +92,6 @@ export default function VideoPlayer({
             remotePlayerContainer.style.height = '100%';
             remotePlayerContainer.style.position = 'absolute';
             if (videoRef.current) {
-                // Ensure we don't wipe out the container if we are just adding another track
                 if (!document.getElementById(remotePlayerContainer.id)) {
                     videoRef.current.append(remotePlayerContainer);
                 }
@@ -129,13 +128,11 @@ export default function VideoPlayer({
             localAudioTrackRef.current = localTracks[0];
             localVideoTrackRef.current = localTracks[1];
             if(videoRef.current) {
-                // Make sure host can see their own video
                 localTracks[1].play(videoRef.current);
             }
             await client.publish(localTracks);
           } catch(permError) {
               console.error('Failed to get camera/mic permissions', permError);
-              // The create page handles permissions, so we should not show an error here
           }
         } else {
           client.setClientRole('audience');
@@ -170,6 +167,58 @@ export default function VideoPlayer({
     }
   }, [isAudioEnabled, isHost]);
 
+  // Effect for screen sharing
+  useEffect(() => {
+      const handleScreenShare = async () => {
+          if (!isHost || !clientRef.current || !AgoraRTC || !localVideoTrackRef.current) return;
+          
+          const client = clientRef.current;
+
+          if (isScreenSharing) {
+              try {
+                  // Unpublish camera track
+                  await client.unpublish(localVideoTrackRef.current);
+                  
+                  // Create and publish screen track
+                  const screenTrack = await AgoraRTC.createScreenVideoTrack({}, "auto");
+                  screenVideoTrackRef.current = screenTrack;
+                  
+                  // Handle user stopping screen share from browser controls
+                  screenTrack.on("track-ended", async () => {
+                      await client.unpublish(screenTrack);
+                      screenTrack.close();
+                      screenVideoTrackRef.current = null;
+                      // Re-publish camera track
+                      if (localVideoTrackRef.current) {
+                          await client.publish(localVideoTrackRef.current);
+                      }
+                  });
+
+                  await client.publish(screenTrack);
+                  
+              } catch (error) {
+                  console.error("Screen sharing failed:", error);
+                  toast({ variant: 'destructive', title: "Screen Share Failed", description: "Could not start screen sharing."})
+                  // Re-publish camera if screen share fails
+                  await client.publish(localVideoTrackRef.current);
+              }
+          } else { // Stopping screen share
+              if (screenVideoTrackRef.current) {
+                  await client.unpublish(screenVideoTrackRef.current);
+                  screenVideoTrackRef.current.close();
+                  screenVideoTrackRef.current = null;
+                  // Re-publish camera track
+                  if (localVideoTrackRef.current) {
+                      await client.publish(localVideoTrackRef.current);
+                  }
+              }
+          }
+      };
+
+      handleScreenShare();
+      
+  }, [isScreenSharing, isHost, toast]);
+
 
   const toggleMute = () => {
       setIsMuted(!isMuted);
@@ -198,8 +247,6 @@ export default function VideoPlayer({
             </div>
         </div>
       )}
-
-      {/* UI overlays are now handled by the parent live/page.tsx or broadcast/[id]/page.tsx */}
       
       {showAudienceUI && (
         <>

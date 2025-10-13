@@ -209,10 +209,7 @@ function LiveStudio() {
                  <Button variant={isVideoEnabled ? "secondary" : "destructive"} size="icon" className="rounded-full h-12 w-12" onClick={() => setIsVideoEnabled(prev => !prev)}>
                     {isVideoEnabled ? <Video className="h-6 w-6"/> : <VideoOff className="h-6 w-6"/>}
                 </Button>
-                 <Button variant="secondary" size="icon" className="rounded-full h-12 w-12">
-                    <FlipHorizontal className="h-6 w-6"/>
-                </Button>
-                 <Button variant="secondary" size="icon" className="rounded-full h-12 w-12" onClick={() => setIsScreenSharing(prev => !prev)}>
+                 <Button variant={isScreenSharing ? "primary" : "secondary"} size="icon" className="rounded-full h-12 w-12" onClick={() => setIsScreenSharing(prev => !prev)}>
                     {isScreenSharing ? <ScreenShareOff className="h-6 w-6"/> : <ScreenShare className="h-6 w-6"/>}
                 </Button>
             </div>
