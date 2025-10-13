@@ -64,7 +64,6 @@ export default function VideoPlayer({
   
   const [isMuted, setIsMuted] = useState(!isHost);
   const [remoteUsers, setRemoteUsers] = useState<any[]>([]);
-  const [hasPermission, setHasPermission] = useState(false);
   const [isConnecting, setIsConnecting] = useState(true);
 
   // Effect for Agora Connection (both host and audience)
@@ -137,10 +136,8 @@ export default function VideoPlayer({
                 localTracks[1].play(videoRef.current);
             }
             await client.publish(localTracks);
-            setHasPermission(true);
           } catch(permError) {
               console.error('Failed to get camera/mic permissions', permError);
-              setHasPermission(false);
               toast({
                   variant: 'destructive',
                   title: 'Permissions Denied',
@@ -199,18 +196,6 @@ export default function VideoPlayer({
       <div ref={videoRef} className="w-full h-full">
         {/* Host self-view or remote user video is injected here */}
       </div>
-
-       {isHost && !hasPermission && (
-         <div className="absolute inset-0 flex items-center justify-center bg-black/80 p-4">
-            <Alert variant="destructive" className="max-w-md">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Camera & Mic Access Required</AlertTitle>
-              <AlertDescription>
-                To start your broadcast, please allow camera and microphone access in your browser settings, then refresh the page.
-              </AlertDescription>
-            </Alert>
-        </div>
-      )}
 
       {showOfflineMessage && (
          <div className="absolute inset-0 flex items-center justify-center bg-black/80">
