@@ -174,7 +174,21 @@ function LiveStudio() {
                 </div>
             </div>
             
-            {/* Layer 4: Core Stream Controls have been removed as requested */}
+            {/* Layer 4: Core Stream Controls */}
+            <div className="absolute bottom-24 sm:bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3 p-2 bg-black/40 rounded-full backdrop-blur-sm">
+                <Button variant={isAudioEnabled ? "secondary" : "destructive"} size="icon" className="rounded-full h-12 w-12" onClick={() => setIsAudioEnabled(prev => !prev)}>
+                    {isAudioEnabled ? <Mic className="h-6 w-6"/> : <MicOff className="h-6 w-6"/>}
+                </Button>
+                 <Button variant={isVideoEnabled ? "secondary" : "destructive"} size="icon" className="rounded-full h-12 w-12" onClick={() => setIsVideoEnabled(prev => !prev)}>
+                    {isVideoEnabled ? <Video className="h-6 w-6"/> : <VideoOff className="h-6 w-6"/>}
+                </Button>
+                 <Button variant="secondary" size="icon" className="rounded-full h-12 w-12">
+                    <FlipHorizontal className="h-6 w-6"/>
+                </Button>
+                 <Button variant="secondary" size="icon" className="rounded-full h-12 w-12" onClick={() => setIsScreenSharing(prev => !prev)}>
+                    {isScreenSharing ? <ScreenShareOff className="h-6 w-6"/> : <ScreenShare className="h-6 w-6"/>}
+                </Button>
+            </div>
         </div>
     );
 }
