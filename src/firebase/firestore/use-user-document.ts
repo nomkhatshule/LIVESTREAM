@@ -5,7 +5,14 @@ import { doc } from 'firebase/firestore';
 import { useFirestore } from '..';
 import { useDoc } from './use-doc';
 import { useMemo } from 'react';
-import type { User } from '@/lib/data'; // We can reuse this type
+
+// Define a more flexible User profile type
+export interface UserProfile {
+  username?: string;
+  bio?: string;
+  profilePicture?: string;
+  // any other fields that might be on the user document
+}
 
 /**
  * A hook to fetch the Firestore document for the currently authenticated user.
@@ -20,7 +27,7 @@ export function useUserDocument() {
     return doc(firestore, `users/${user.uid}`);
   }, [user, isUserLoading, firestore]);
 
-  const { data, isLoading, error } = useDoc<User>(userDocRef);
+  const { data, isLoading, error } = useDoc<UserProfile>(userDocRef);
 
   return {
     userDocument: data,
@@ -42,7 +49,7 @@ export function useUserDocumentById(userId: string | undefined) {
         return doc(firestore, `users/${userId}`);
     }, [userId, firestore]);
 
-    const { data, isLoading, error } = useDoc<User>(userDocRef);
+    const { data, isLoading, error } = useDoc<UserProfile>(userDocRef);
 
     return {
         userDocument: data,

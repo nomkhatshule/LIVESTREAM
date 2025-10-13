@@ -1,7 +1,7 @@
 'use client';
 import { Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useUser, useDoc, useFirestore } from '@/firebase';
+import { useUser, useDoc, useFirestore, useUserDocument } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { useEffect, useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
@@ -21,6 +21,7 @@ function LiveStudio() {
     const broadcastId = searchParams.get('id');
     const firestore = useFirestore();
     const { user, isUserLoading } = useUser();
+    const { userDocument: hostUserDocument, isDocLoading: isHostDocLoading } = useUserDocument();
     const { toast } = useToast();
 
     // State for controls
@@ -42,8 +43,17 @@ function LiveStudio() {
     const { data: broadcastData, isLoading: isBroadcastLoading } = useDoc<any>(broadcastDocRef);
 
     // Mock broadcast object for the VideoPlayer
-    const mockBroadcast: Broadcast = useMemo(() => {
-        const hostUser = users.find(u => u.id === broadcastData?.hostId) || users[0];
+    const liveBroadcast: Broadcast = useMemo(() => {
+        const hostUser = {
+            id: user?.uid || 'host',
+            name: hostUserDocument?.username || user?.displayName || 'Host',
+            avatarUrl: hostUserDocument?.profilePicture || user?.photoURL || '',
+            avatarHint: 'person portrait',
+            bio: hostUserDocument?.bio || '',
+            interests: [],
+            watchHistory: []
+        };
+        
         return {
             id: broadcastId || 'live-broadcast',
             title: broadcastData?.title || 'Live Stream',
@@ -55,7 +65,7 @@ function LiveStudio() {
             isLive: true,
             tags: broadcastData?.tags || ['Live'],
         };
-    }, [broadcastId, broadcastData]);
+    }, [broadcastId, broadcastData, user, hostUserDocument]);
 
     useEffect(() => {
         if (!isUserLoading && !user) {
@@ -77,15 +87,14 @@ function LiveStudio() {
 
     const handleSendMessage = (e: React.FormEvent) => {
         e.preventDefault();
-        if (newMessage.trim() === '') return;
+        if (newMessage.trim() === '' || !hostUserDocument) return;
 
-        const currentUser = users[0]; // Simulate current user
         const message: ChatMessage = {
             id: `msg-${Date.now()}`,
             user: {
-                name: currentUser.name,
-                avatarUrl: currentUser.avatarUrl,
-                avatarHint: currentUser.avatarHint,
+                name: hostUserDocument.username || 'Host',
+                avatarUrl: hostUserDocument.profilePicture || '',
+                avatarHint: 'person portrait',
             },
             message: newMessage,
             timestamp: 'Just now',
@@ -95,7 +104,7 @@ function LiveStudio() {
         setNewMessage('');
     };
 
-    if (isUserLoading || isBroadcastLoading) {
+    if (isUserLoading || isBroadcastLoading || isHostDocLoading) {
         return <div className="h-screen w-full flex items-center justify-center bg-black text-white">Loading Studio...</div>;
     }
     
@@ -109,7 +118,7 @@ function LiveStudio() {
             {/* Layer 1: Video Feed */}
             <div className="absolute inset-0 z-0">
                 <VideoPlayer
-                    broadcast={mockBroadcast}
+                    broadcast={liveBroadcast}
                     isHost={true}
                     isAudioEnabled={isAudioEnabled}
                     isVideoEnabled={isVideoEnabled}
@@ -126,7 +135,7 @@ function LiveStudio() {
                     </span>
                     <span className="inline-flex items-center text-sm font-medium gap-1.5">
                         <Users className="h-4 w-4" />
-                        {mockBroadcast.viewers}
+                        {liveBroadcast.viewers}
                     </span>
                 </div>
                  <Button variant="destructive" size="sm" onClick={handleEndBroadcast}>
