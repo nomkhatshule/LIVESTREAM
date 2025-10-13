@@ -16,10 +16,6 @@ interface VideoPlayerProps {
   isAudioEnabled?: boolean;
   isVideoEnabled?: boolean;
   isScreenSharing?: boolean;
-  toggleAudio?: () => void;
-  toggleVideo?: () => void;
-  handleScreenShare?: () => void;
-  flipCamera?: () => void;
 }
 
 const appId = process.env.NEXT_PUBLIC_AGORA_APP_ID || '';
@@ -49,10 +45,6 @@ export default function VideoPlayer({
     isAudioEnabled,
     isVideoEnabled,
     isScreenSharing,
-    toggleAudio,
-    toggleVideo,
-    handleScreenShare,
-    flipCamera,
 }: VideoPlayerProps) {
   const { user: currentUser, isUserLoading } = useUser();
   const videoRef = useRef<HTMLDivElement>(null);
@@ -100,8 +92,10 @@ export default function VideoPlayer({
             remotePlayerContainer.style.height = '100%';
             remotePlayerContainer.style.position = 'absolute';
             if (videoRef.current) {
-                videoRef.current.innerHTML = ''; // Clear any placeholder
-                videoRef.current.append(remotePlayerContainer);
+                // Ensure we don't wipe out the container if we are just adding another track
+                if (!document.getElementById(remotePlayerContainer.id)) {
+                    videoRef.current.append(remotePlayerContainer);
+                }
             }
             user.videoTrack.play(remotePlayerContainer);
             setRemoteUsers(prev => [...prev.filter(u => u.uid !== user.uid), user]);
@@ -135,6 +129,7 @@ export default function VideoPlayer({
             localAudioTrackRef.current = localTracks[0];
             localVideoTrackRef.current = localTracks[1];
             if(videoRef.current) {
+                // Make sure host can see their own video
                 localTracks[1].play(videoRef.current);
             }
             await client.publish(localTracks);
