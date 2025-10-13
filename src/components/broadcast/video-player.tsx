@@ -22,13 +22,13 @@ const appId = process.env.NEXT_PUBLIC_AGORA_APP_ID || '';
 let AgoraRTC: IAgoraRTC | null = null;
 
 
-async function fetchToken(channelName: string, uid: number): Promise<string> {
+async function fetchToken(channelName: string, account: string): Promise<string> {
     const response = await fetch('/api/agora/token', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ channelName, uid }),
+        body: JSON.stringify({ channelName, account }),
     });
     if (!response.ok) {
         const errorBody = await response.json();
@@ -37,18 +37,6 @@ async function fetchToken(channelName: string, uid: number): Promise<string> {
     const data = await response.json();
     return data.token;
 }
-
-// Basic hash function to convert a string UID to a number.
-// This is a simple way to ensure the UID is an integer for the token server.
-const stringToIntegerUid = (s: string) => {
-    let hash = 0;
-    for (let i = 0; i < s.length; i++) {
-        const char = s.charCodeAt(i);
-        hash = (hash << 5) - hash + char;
-        hash = hash & hash; // Convert to 32bit integer
-    }
-    return Math.abs(hash);
-};
 
 
 export default function VideoPlayer({ 
@@ -100,7 +88,7 @@ export default function VideoPlayer({
         if (mediaType === 'video') {
             const remotePlayerContainer = document.createElement('div');
             remotePlayerContainer.id = `player-${user.uid}`;
-            remotePlayerContainer.className = 'w-full h-full absolute';
+            remotePlayerContainer.className = 'w-full h-full absolute top-0 left-0';
             
             if (playerRef.current) {
                 // Remove any previous remote player for this user
@@ -130,10 +118,11 @@ export default function VideoPlayer({
       client.on('user-unpublished', handleUserUnpublished);
 
       try {
-        const uid = stringToIntegerUid(currentUser.uid);
-        const token = await fetchToken(broadcast.id, uid);
+        // Use the string UID (account) for both token fetching and joining
+        const account = currentUser.uid;
+        const token = await fetchToken(broadcast.id, account);
 
-        await client.join(appId, broadcast.id, token, uid);
+        await client.join(appId, broadcast.id, token, account);
         
         if (isHost) {
           client.setClientRole('host');
@@ -143,7 +132,11 @@ export default function VideoPlayer({
             localVideoTrackRef.current = localTracks[1];
             
             if (playerRef.current) {
-                localTracks[1].play(playerRef.current);
+                const localPlayerContainer = document.createElement('div');
+                localPlayerContainer.id = `local-player-${account}`;
+                localPlayerContainer.className = 'w-full h-full absolute top-0 left-0';
+                playerRef.current.append(localPlayerContainer);
+                localTracks[1].play(localPlayerContainer);
             }
 
             await client.publish(localTracks);
@@ -257,7 +250,7 @@ export default function VideoPlayer({
 
   return (
     <div className="absolute inset-0 w-full h-full bg-black">
-      <div ref={playerRef} className="w-full h-full overflow-hidden">
+      <div ref={playerRef} className="w-full h-full overflow-hidden relative">
         {/* Host self-view or remote user video is injected here */}
       </div>
 
