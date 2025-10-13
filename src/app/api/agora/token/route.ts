@@ -4,11 +4,17 @@ import { RtcTokenBuilder, RtcRole } from 'agora-token';
 export async function POST(request: Request) {
   const { channelName, uid } = await request.json();
 
-  if (!channelName || !uid) {
+  if (!channelName || uid === undefined) {
     return NextResponse.json({ error: 'channelName and uid are required' }, { status: 400 });
   }
 
-  // Reading the correctly named environment variable
+  // UID must be a number for the token builder library we are using.
+  const numericUid = Number(uid);
+  if (isNaN(numericUid)) {
+      return NextResponse.json({ error: 'UID must be a number' }, { status: 400 });
+  }
+
+
   const appId = process.env.NEXT_PUBLIC_AGORA_APP_ID;
   const appCertificate = process.env.AGORA_APP_CERTIFICATE;
 
@@ -26,7 +32,7 @@ export async function POST(request: Request) {
       appId,
       appCertificate,
       channelName,
-      uid,
+      numericUid, // Use the numeric UID
       role,
       privilegeExpiredTs
     );

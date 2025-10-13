@@ -22,7 +22,7 @@ const appId = process.env.NEXT_PUBLIC_AGORA_APP_ID || '';
 let AgoraRTC: IAgoraRTC | null = null;
 
 
-async function fetchToken(channelName: string, uid: number | string): Promise<string> {
+async function fetchToken(channelName: string, uid: number): Promise<string> {
     const response = await fetch('/api/agora/token', {
         method: 'POST',
         headers: {
@@ -38,6 +38,18 @@ async function fetchToken(channelName: string, uid: number | string): Promise<st
     return data.token;
 }
 
+// Basic hash function to convert a string UID to a number.
+// This is a simple way to ensure the UID is an integer for the token server.
+const stringToIntegerUid = (s: string) => {
+    let hash = 0;
+    for (let i = 0; i < s.length; i++) {
+        const char = s.charCodeAt(i);
+        hash = (hash << 5) - hash + char;
+        hash = hash & hash; // Convert to 32bit integer
+    }
+    return Math.abs(hash);
+};
+
 
 export default function VideoPlayer({ 
     broadcast, 
@@ -47,7 +59,7 @@ export default function VideoPlayer({
     isScreenSharing,
 }: VideoPlayerProps) {
   const { user: currentUser, isUserLoading } = useUser();
-  const videoRef = useRef<HTMLDivElement>(null);
+  const playerRef = useRef<HTMLDivElement>(null);
   const clientRef = useRef<IAgoraRTCClient>();
   const localVideoTrackRef = useRef<ICameraVideoTrack | null>(null);
   const localAudioTrackRef = useRef<IMicrophoneAudioTrack | null>(null);
@@ -88,15 +100,15 @@ export default function VideoPlayer({
         if (mediaType === 'video') {
             const remotePlayerContainer = document.createElement('div');
             remotePlayerContainer.id = `player-${user.uid}`;
-            remotePlayerContainer.style.width = '100%';
-            remotePlayerContainer.style.height = '100%';
-            remotePlayerContainer.style.position = 'absolute';
-            if (videoRef.current) {
-                // Clear previous remote users before appending
-                Array.from(videoRef.current.children).forEach(child => {
-                    if(child.id.startsWith('player-')) child.remove();
-                });
-                videoRef.current.append(remotePlayerContainer);
+            remotePlayerContainer.className = 'w-full h-full absolute';
+            
+            if (playerRef.current) {
+                // Remove any previous remote player for this user
+                const existingPlayer = document.getElementById(remotePlayerContainer.id);
+                if (existingPlayer) {
+                    existingPlayer.remove();
+                }
+                playerRef.current.append(remotePlayerContainer);
             }
             user.videoTrack.play(remotePlayerContainer);
             setRemoteUsers(prev => [...prev.filter(u => u.uid !== user.uid), user]);
@@ -118,7 +130,7 @@ export default function VideoPlayer({
       client.on('user-unpublished', handleUserUnpublished);
 
       try {
-        const uid = currentUser.uid;
+        const uid = stringToIntegerUid(currentUser.uid);
         const token = await fetchToken(broadcast.id, uid);
 
         await client.join(appId, broadcast.id, token, uid);
@@ -130,8 +142,8 @@ export default function VideoPlayer({
             localAudioTrackRef.current = localTracks[0];
             localVideoTrackRef.current = localTracks[1];
             
-            if (videoRef.current) {
-                localTracks[1].play(videoRef.current);
+            if (playerRef.current) {
+                localTracks[1].play(playerRef.current);
             }
 
             await client.publish(localTracks);
@@ -245,7 +257,7 @@ export default function VideoPlayer({
 
   return (
     <div className="absolute inset-0 w-full h-full bg-black">
-      <div ref={videoRef} className="w-full h-full">
+      <div ref={playerRef} className="w-full h-full overflow-hidden">
         {/* Host self-view or remote user video is injected here */}
       </div>
 
