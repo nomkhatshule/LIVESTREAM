@@ -11,7 +11,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface VideoPlayerProps {
   broadcast: Broadcast;
-  isHost?: boolean;
+  isHost: boolean;
 }
 
 const appId = process.env.NEXT_PUBLIC_AGORA_APP_ID || '';
@@ -35,8 +35,8 @@ async function fetchToken(channelName: string, uid: number | string): Promise<st
 }
 
 
-export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerProps) {
-  const { user: currentUser } = useUser();
+export default function VideoPlayer({ broadcast, isHost: isHostFromUrl }: VideoPlayerProps) {
+  const { user: currentUser, isUserLoading } = useUser();
   const videoRef = useRef<HTMLDivElement>(null);
   const clientRef = useRef<IAgoraRTCClient>();
   const localVideoTrackRef = useRef<ICameraVideoTrack | null>(null);
@@ -45,12 +45,15 @@ export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerPr
 
   const { toast } = useToast();
   
-  const [isMuted, setIsMuted] = useState(!isHost);
-  const [isVideoEnabled, setIsVideoEnabled] = useState(isHost);
-  const [isAudioEnabled, setIsAudioEnabled] = useState(isHost);
+  const [isMuted, setIsMuted] = useState(!isHostFromUrl);
+  const [isVideoEnabled, setIsVideoEnabled] = useState(false);
+  const [isAudioEnabled, setIsAudioEnabled] = useState(false);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [remoteUsers, setRemoteUsers] = useState<any[]>([]);
   const [hasCameraPermission, setHasCameraPermission] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(true);
+
+  const isHost = isHostFromUrl && currentUser?.uid === broadcast.user.id;
 
   // Effect for Hosts: Initialize local media immediately for preview
   useEffect(() => {
@@ -99,13 +102,23 @@ export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerPr
 
   // Effect for Agora Connection (both host and audience)
   useEffect(() => {
-    if (!appId || !currentUser) return;
-    // For hosts, wait for local media to be ready before connecting
-    if (isHost && !hasCameraPermission && !localVideoTrackRef.current) return;
+    if (isUserLoading || !appId || !currentUser) return;
+    
+    // For hosts, wait for local media to be ready before connecting.
+    if (isHost && !hasCameraPermission && !localVideoTrackRef.current) {
+       // Still waiting for permissions or media initialization, don't connect yet.
+       if (!hasCameraPermission) {
+         // This block prevents non-hosts from getting stuck if host permission is denied.
+         setIsConnecting(false);
+       }
+       return;
+    }
+
 
     let client: IAgoraRTCClient;
 
     const init = async () => {
+      setIsConnecting(true);
       try {
         if (!AgoraRTC) {
            AgoraRTC = (await import('agora-rtc-sdk-ng')).default;
@@ -113,6 +126,7 @@ export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerPr
       } catch (error) {
         console.error("Failed to load Agora SDK", error);
         toast({ variant: 'destructive', title: "Could not load streaming service."});
+        setIsConnecting(false);
         return;
       }
 
@@ -173,6 +187,8 @@ export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerPr
       } catch (error) {
         console.error('Failed to join channel or fetch token', error);
         toast({ variant: 'destructive', title: 'Connection Failed', description: 'Could not connect to the broadcast.'});
+      } finally {
+        setIsConnecting(false);
       }
     };
 
@@ -183,7 +199,7 @@ export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerPr
       clientRef.current?.leave();
       clientRef.current?.removeAllListeners();
     };
-  }, [broadcast.id, isHost, currentUser, hasCameraPermission, toast]);
+  }, [broadcast.id, isHost, currentUser, hasCameraPermission, toast, isUserLoading]);
   
   const toggleMute = () => {
       setIsMuted(!isMuted);
@@ -252,13 +268,18 @@ export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerPr
     }
   };
 
+  const showHostUI = isHost;
+  const showAudienceUI = !isHost;
+  const showOfflineMessage = showAudienceUI && remoteUsers.length === 0 && !isConnecting;
+
+
   return (
     <div className="absolute inset-0 w-full h-full">
       <div ref={videoRef} className="w-full h-full bg-black">
         {/* Agora video track is injected here */}
       </div>
 
-       {isHost && !hasCameraPermission && (
+       {showHostUI && !hasCameraPermission && (
          <div className="absolute inset-0 flex items-center justify-center bg-black/80 p-4">
             <Alert variant="destructive" className="max-w-md">
               <AlertCircle className="h-4 w-4" />
@@ -270,7 +291,7 @@ export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerPr
         </div>
       )}
 
-      {!isHost && remoteUsers.length === 0 && (
+      {showOfflineMessage && (
          <div className="absolute inset-0 flex items-center justify-center bg-black/80">
             <div className="text-center text-white">
                 <p className="text-lg font-semibold">Stream Offline</p>
@@ -294,14 +315,14 @@ export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerPr
       </div>
 
        <div className="absolute top-4 right-4 z-10">
-         {!isHost && (
+         {showAudienceUI && (
             <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); toggleMute(); }} className="text-white hover:bg-white/20 rounded-full">
                 {isMuted ? <VolumeX className="h-6 w-6" /> : <Volume2 className="h-6 w-6" />}
             </Button>
          )}
       </div>
 
-      {isHost && (
+      {showHostUI && (
         <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-10 flex items-center gap-4 p-2 bg-black/40 rounded-full">
             <Button variant={isAudioEnabled ? "secondary" : "destructive"} size="icon" onClick={toggleAudio} className="rounded-full h-12 w-12">
                 {isAudioEnabled ? <Mic className="h-6 w-6" /> : <MicOff className="h-6 w-6" />}
