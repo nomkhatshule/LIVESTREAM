@@ -8,9 +8,11 @@ import { Search, Clapperboard, Tv } from 'lucide-react';
 import UserNav from '@/components/auth/user-nav';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export default function Header() {
   const pathname = usePathname();
+  const isMobile = useIsMobile();
 
   if (pathname.startsWith('/feed')) {
     return null; // Hide header on the feed page
@@ -48,32 +50,37 @@ export default function Header() {
               <Tv className="mr-1.5 h-4 w-4" />
               For You
             </Link>
-            <Link
-              href="#"
-              className="hidden sm:block transition-colors hover:text-foreground/80 text-foreground/60"
-            >
-              Following
-            </Link>
+            {!isMobile && (
+              <Link
+                href="#"
+                className="transition-colors hover:text-foreground/80 text-foreground/60"
+              >
+                Following
+              </Link>
+            )}
           </nav>
         </div>
 
         <div className="flex flex-1 items-center justify-end space-x-2">
-          <div className="hidden sm:block w-full flex-1 md:w-auto md:flex-none">
-            <form>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Search streams..."
-                  className="pl-9 w-full md:w-64"
-                />
-              </div>
-            </form>
-          </div>
-          <nav className="flex items-center space-x-1">
-             <Button variant="ghost" size="icon" className="sm:hidden">
+          {!isMobile ? (
+            <div className="w-full flex-1 md:w-auto md:flex-none">
+              <form>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="search"
+                    placeholder="Search streams..."
+                    className="pl-9 w-full md:w-64"
+                  />
+                </div>
+              </form>
+            </div>
+          ) : (
+             <Button variant="ghost" size="icon">
               <Search className="h-5 w-5" />
             </Button>
+          )}
+          <nav className="flex items-center space-x-1">
             <Button variant="ghost" size="icon" aria-label="Start streaming">
               <Clapperboard className="h-5 w-5" />
             </Button>
