@@ -129,18 +129,18 @@ export default function VideoPlayer({
             localTracks = await AgoraRTC.createMicrophoneAndCameraTracks();
             localAudioTrackRef.current = localTracks[0];
             localVideoTrackRef.current = localTracks[1];
-
-            // Create a player container for the host
-            const hostPlayerContainer = document.createElement('div');
-            hostPlayerContainer.id = `player-${uid}`;
-            hostPlayerContainer.style.width = '100%';
-            hostPlayerContainer.style.height = '100%';
-            if(videoRef.current) {
-                videoRef.current.innerHTML = ''; // Clear previous content
-                videoRef.current.append(hostPlayerContainer);
-            }
             
-            localTracks[1].play(hostPlayerContainer);
+            // Wait for the videoRef to be available
+            if (videoRef.current) {
+                videoRef.current.innerHTML = ''; // Clear previous content like "offline" message
+                const hostPlayerContainer = document.createElement('div');
+                hostPlayerContainer.id = `player-${uid}`;
+                hostPlayerContainer.style.width = '100%';
+                hostPlayerContainer.style.height = '100%';
+                videoRef.current.append(hostPlayerContainer);
+                localTracks[1].play(hostPlayerContainer);
+            }
+
             await client.publish(localTracks);
           } catch(permError) {
               console.error('Failed to get camera/mic permissions', permError);
