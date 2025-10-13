@@ -1,0 +1,72 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the AgoraLive platform.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user."
+        },
+        "username": {
+          "type": "string",
+          "description": "The user's username."
+        },
+        "email": {
+          "type": "string",
+          "description": "The user's email address.",
+          "format": "email"
+        },
+        "profilePicture": {
+          "type": "string",
+          "description": "URL of the user's profile picture.",
+          "format": "uri"
+        },
+        "bio": {
+          "type": "string",
+          "description": "A short biography of the user."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the user account was created.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "username",
+        "email",
+        "createdAt"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profile information. The userId is equal to the Firebase Authentication UID. Enables path-based ownership.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The Firebase Authentication UID of the user."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "This Firestore structure is designed to support the AgoraLive application, prioritizing security, scalability, and debuggability. It leverages path-based ownership for user data and authorization independence through data denormalization. The structure facilitates secure `list` operations via structural segregation and the membership map model for collaborative entities.\n\n**User Authentication and Profiles:** Each user has a dedicated document under `/users/{userId}`. This collection stores user profile information. This utilizes path-based ownership. \n\n**Authorization Independence:** This design avoids hierarchical authorization dependencies by using path-based ownership for user data. Security rules can directly validate `request.auth.uid` against the document path without needing to perform `get()` operations on parent documents. All documents in a collection share the same security requirements, enabling secure `list` operations. The membership map pattern provides a scalable and debuggable way to manage access control."
+  }
+}

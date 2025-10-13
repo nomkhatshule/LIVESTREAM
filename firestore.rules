@@ -1,0 +1,82 @@
+/**
+ * @file Firestore Security Rules for AgoraLive.
+ *
+ * @core_philosophy This ruleset enforces a strict user-ownership model for user profiles.
+ *   Each user can only create, read, update, and delete their own profile data.
+ *   Unauthenticated access is not permitted.
+ * @data_structure User profiles are stored under `/users/{userId}`, where `{userId}`
+ *   matches the Firebase Authentication UID.
+ * @key_security_decisions
+ *   - User listing is explicitly denied to protect user privacy.
+ *   - All write operations require a valid, authenticated user.
+ *   - Data consistency between the path (`userId`) and the document (`id`) is enforced.
+ *
+ * @denormalization_for_authorization The `id` field within the user document is
+ *   used to enforce ownership, avoiding the need for additional reads to determine
+ *   the user's ID. This is achieved by validating that `request.auth.uid` matches
+ *   both the `userId` in the path and the `id` field in the document.
+ *
+ * @structural_segregation There is no data stored that is both private and public.
+ *   All data is stored in the `/users/{userId}` collection which are only exposed
+ *   to authenticated users.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * @description Defines the security rules for the `/users/{userId}` collection.
+     *   These rules enforce strict user-ownership, allowing users to only manage their own profiles.
+     * @path /users/{userId}
+     * @allow (create) - User with UID 'user_abc' can create a profile with id: 'user_abc'.
+     *   request.auth.uid: 'user_abc', request.resource.data.id: 'user_abc'
+     * @allow (get) - User with UID 'user_abc' can get their profile at /users/user_abc.
+     *   request.auth.uid: 'user_abc'
+     * @allow (update) - User with UID 'user_abc' can update their profile at /users/user_abc.
+     *   request.auth.uid: 'user_abc'
+     * @allow (delete) - User with UID 'user_abc' can delete their profile at /users/user_abc.
+     *   request.auth.uid: 'user_abc'
+     * @deny (create) - User with UID 'user_def' cannot create a profile for 'user_abc'.
+     *   request.auth.uid: 'user_def', request.resource.data.id: 'user_abc'
+     * @deny (get) - User with UID 'user_def' cannot get the profile at /users/user_abc.
+     *   request.auth.uid: 'user_def'
+     * @deny (update) - User with UID 'user_def' cannot update the profile at /users/user_abc.
+     *   request.auth.uid: 'user_def'
+     * @deny (delete) - User with UID 'user_def' cannot delete the profile at /users/user_abc.
+     *   request.auth.uid: 'user_def'
+     * @principle Enforces document ownership for all operations. Validates data
+     *   consistency between the path and the document's `id` field.
+     */
+    match /users/{userId} {
+      // Helper function to check if the user is signed in
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      // Helper function to check if the user is the owner of the document
+      function isOwner(userId) {
+        return isSignedIn() && request.auth.uid == userId;
+      }
+
+      // Helper function to check if the user is the existing owner of the document.
+      function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+      }
+
+      // Allow a user to read their own profile
+      allow get: if isOwner(userId);
+
+      // Deny listing of all users
+      allow list: if false;
+
+      // Allow a user to create their own profile if the userId matches the authenticated user's UID
+      allow create: if isOwner(userId) && request.resource.data.id == request.auth.uid;
+
+      // Allow a user to update their own profile if they are the owner and the id field is immutable
+      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+
+      // Allow a user to delete their own profile if they are the owner
+      allow delete: if isExistingOwner(userId);
+    }
+  }
+}
