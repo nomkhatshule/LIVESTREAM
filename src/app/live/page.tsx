@@ -1,7 +1,7 @@
 'use client';
 import { Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useUser, useDoc, useFirestore, useUserDocument } from '@/firebase';
+import { useUser, useDoc, useFirestore, useUserDocument, updateDocumentNonBlocking } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { useEffect, useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
@@ -44,7 +44,7 @@ function LiveStudio() {
 
     // Mock broadcast object for the VideoPlayer
     const liveBroadcast: Broadcast = useMemo(() => {
-        const hostUser = {
+        const hostInfo = {
             id: user?.uid || 'host',
             name: hostUserDocument?.username || user?.displayName || 'Host',
             avatarUrl: hostUserDocument?.profilePicture || user?.photoURL || '',
@@ -57,12 +57,12 @@ function LiveStudio() {
         return {
             id: broadcastId || 'live-broadcast',
             title: broadcastData?.title || 'Live Stream',
-            user: hostUser,
+            user: hostInfo,
             thumbnailUrl: '',
             thumbnailHint: '',
             viewers: broadcastData?.viewers || 0,
             category: broadcastData?.category || '',
-            isLive: true,
+            isLive: broadcastData?.isLive ?? true,
             tags: broadcastData?.tags || ['Live'],
         };
     }, [broadcastId, broadcastData, user, hostUserDocument]);
@@ -78,22 +78,35 @@ function LiveStudio() {
         }
     }, [user, isUserLoading, router, toast]);
 
+    // Redirect if broadcast is no longer live
+    useEffect(() => {
+      if (!isBroadcastLoading && !liveBroadcast.isLive) {
+          toast({
+              title: "Broadcast Ended",
+              description: "This broadcast has ended.",
+          });
+          router.push('/');
+      }
+    }, [liveBroadcast.isLive, isBroadcastLoading, router, toast]);
+
 
     const handleEndBroadcast = async () => {
-        // Here you would add logic to update the broadcast document in Firestore
-        // and properly leave the Agora channel.
+        if (broadcastDocRef) {
+            // Set isLive to false to mark the broadcast as over.
+            updateDocumentNonBlocking(broadcastDocRef, { isLive: false });
+        }
         router.push('/');
     };
 
     const handleSendMessage = (e: React.FormEvent) => {
         e.preventDefault();
-        if (newMessage.trim() === '' || !hostUserDocument) return;
+        if (newMessage.trim() === '' || !hostUserDocument || !user) return;
 
         const message: ChatMessage = {
             id: `msg-${Date.now()}`,
             user: {
-                name: hostUserDocument.username || 'Host',
-                avatarUrl: hostUserDocument.profilePicture || '',
+                name: hostUserDocument.username || user.displayName || 'Host',
+                avatarUrl: hostUserDocument.profilePicture || user.photoURL || '',
                 avatarHint: 'person portrait',
             },
             message: newMessage,
@@ -201,3 +214,5 @@ export default function LivePage() {
         </Suspense>
     )
 }
+
+    
