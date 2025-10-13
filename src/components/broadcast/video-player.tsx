@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Broadcast } from '@/lib/data';
 import { Button } from '@/components/ui/button';
-import { Mic, MicOff, Video, VideoOff, Volume2, VolumeX, Users, AlertCircle, ScreenShare, ScreenShareOff, X } from 'lucide-react';
+import { Mic, MicOff, Video, VideoOff, Volume2, VolumeX, Users, AlertCircle, ScreenShare, ScreenShareOff, X, FlipHorizontal } from 'lucide-react';
 import type { IAgoraRTCClient, ICameraVideoTrack, IMicrophoneAudioTrack, IAgoraRTC, IRemoteVideoTrack, IScreenVideoTrack } from 'agora-rtc-sdk-ng';
 import { useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
@@ -19,6 +19,7 @@ interface VideoPlayerProps {
   toggleAudio?: () => void;
   toggleVideo?: () => void;
   handleScreenShare?: () => void;
+  flipCamera?: () => void;
 }
 
 const appId = process.env.NEXT_PUBLIC_AGORA_APP_ID || '';
@@ -50,7 +51,8 @@ export default function VideoPlayer({
     isScreenSharing,
     toggleAudio,
     toggleVideo,
-    handleScreenShare
+    handleScreenShare,
+    flipCamera,
 }: VideoPlayerProps) {
   const { user: currentUser, isUserLoading } = useUser();
   const videoRef = useRef<HTMLDivElement>(null);
@@ -138,11 +140,7 @@ export default function VideoPlayer({
             await client.publish(localTracks);
           } catch(permError) {
               console.error('Failed to get camera/mic permissions', permError);
-              toast({
-                  variant: 'destructive',
-                  title: 'Permissions Denied',
-                  description: 'Camera and microphone access is required to host a stream. Please enable permissions and refresh.'
-              });
+              // The create page handles permissions, so we should not show an error here
           }
         } else {
           client.setClientRole('audience');
