@@ -1,5 +1,5 @@
 'use client';
-import { broadcasts } from '@/lib/data';
+import { broadcasts, users } from '@/lib/data';
 import { notFound, useSearchParams, useParams } from 'next/navigation';
 import VideoPlayer from '@/components/broadcast/video-player';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -7,14 +7,32 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Heart, Share2, Star, MessageCircle, MoreVertical } from 'lucide-react';
 import { useUser } from '@/firebase';
+import type { Broadcast } from '@/lib/data';
 
 export default function BroadcastPage() {
   const params = useParams();
-  const { id } = params;
-  const broadcast = broadcasts.find((b) => b.id === id);
+  const { id } = params as { id: string };
   const { user } = useUser();
   const searchParams = useSearchParams();
-  const isHost = searchParams.get('host') === 'true' && user?.uid === broadcast?.user.id;
+  const isHost = searchParams.get('host') === 'true';
+
+  let broadcast: Broadcast | undefined = broadcasts.find((b) => b.id === id);
+  
+  // If no broadcast is found and the user is the host, create a temporary one.
+  if (!broadcast && isHost && user) {
+    const hostUser = users.find(u => u.id === user.uid) || users[0];
+    broadcast = {
+      id: id,
+      title: `My Live Stream`,
+      user: hostUser,
+      thumbnailUrl: 'https://picsum.photos/seed/newstream/600/400',
+      thumbnailHint: 'live broadcast',
+      viewers: 0,
+      category: 'Talk Show',
+      isLive: true,
+      tags: ['New', 'Live'],
+    };
+  }
 
   if (!broadcast) {
     notFound();
@@ -22,7 +40,7 @@ export default function BroadcastPage() {
 
   return (
     <div className="relative h-[calc(100vh-4rem)] w-full bg-black snap-start">
-      <VideoPlayer broadcast={broadcast} isHost={isHost} />
+      <VideoPlayer broadcast={broadcast} isHost={isHost && user?.uid === broadcast?.user.id} />
       
       <div className="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/50 to-transparent">
          {/* Header can go here if needed, for now it's clean */}
