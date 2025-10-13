@@ -14,6 +14,22 @@ interface VideoPlayerProps {
 
 const appId = process.env.NEXT_PUBLIC_AGORA_APP_ID || '';
 
+async function fetchToken(channelName: string, uid: number | string): Promise<string> {
+    const response = await fetch('/api/agora/token', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ channelName, uid }),
+    });
+    if (!response.ok) {
+        throw new Error('Failed to fetch token');
+    }
+    const data = await response.json();
+    return data.token;
+}
+
+
 export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerProps) {
   const { user: currentUser } = useUser();
   const videoRef = useRef<HTMLDivElement>(null);
@@ -71,7 +87,10 @@ export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerPr
       client.on('user-unpublished', handleUserUnpublished);
 
       try {
-        await client.join(appId, broadcast.id, null, isHost ? currentUser.uid : null);
+        const uid = isHost ? currentUser.uid : null;
+        const token = await fetchToken(broadcast.id, uid || 0);
+
+        await client.join(appId, broadcast.id, token, uid);
         
         if (isHost) {
           client.setClientRole('host');
@@ -88,7 +107,7 @@ export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerPr
           client.setClientRole('audience');
         }
       } catch (error) {
-        console.error('Failed to join channel', error);
+        console.error('Failed to join channel or fetch token', error);
       }
     };
 
@@ -98,7 +117,6 @@ export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerPr
       localVideoTrackRef.current?.close();
       localAudioTrackRef.current?.close();
       clientRef.current?.leave();
-      // It's safer to remove all listeners if the client exists
       clientRef.current?.removeAllListeners();
     };
   }, [broadcast.id, isHost, currentUser]);
