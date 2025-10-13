@@ -31,7 +31,9 @@ const nextConfig: NextConfig = {
     ],
   },
   env: {
-    NEXT_PUBLIC_AGORA_APP_ID: process.env.AGORA_APP_ID,
+    // This was the source of the error. Next.js only exposes env vars prefixed with NEXT_PUBLIC_
+    // to the browser. The browser code was looking for a variable that didn't exist.
+    NEXT_PUBLIC_AGORA_APP_ID: process.env.NEXT_PUBLIC_AGORA_APP_ID,
     AGORA_APP_CERTIFICATE: process.env.AGORA_APP_CERTIFICATE,
   },
 };

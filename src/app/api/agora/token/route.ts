@@ -8,6 +8,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'channelName and uid are required' }, { status: 400 });
   }
 
+  // Reading the correctly named environment variable
   const appId = process.env.NEXT_PUBLIC_AGORA_APP_ID;
   const appCertificate = process.env.AGORA_APP_CERTIFICATE;
 
