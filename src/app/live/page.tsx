@@ -14,6 +14,8 @@ import VideoPlayer from '@/components/broadcast/video-player';
 import type { Broadcast } from '@/lib/data';
 import { users, chatMessages as initialMessages } from '@/lib/data';
 import type { ChatMessage } from '@/lib/data';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+
 
 function LiveStudio() {
     const router = useRouter();
@@ -161,9 +163,15 @@ function LiveStudio() {
                 <ScrollArea className="h-full max-h-[250px] pr-4">
                     <div className="flex flex-col gap-3">
                          {messages.map((msg) => (
-                            <div key={msg.id} className="flex items-start gap-2 text-sm text-white bg-black/20 p-2 rounded-lg max-w-xs sm:max-w-sm">
-                                <span className="font-bold text-primary">{msg.user.name}:</span>
-                                <p className="break-words">{msg.message}</p>
+                            <div key={msg.id} className="flex items-start gap-3 text-sm text-white bg-black/20 p-2 rounded-lg max-w-xs sm:max-w-sm">
+                                <Avatar className="h-6 w-6 border-2 border-primary">
+                                    <AvatarImage src={msg.user.avatarUrl} alt={msg.user.name} />
+                                    <AvatarFallback>{msg.user.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1">
+                                    <span className="font-bold text-primary mr-1.5">{msg.user.name}:</span>
+                                    <p className="break-words inline">{msg.message}</p>
+                                </div>
                             </div>
                         ))}
                     </div>
