@@ -181,19 +181,17 @@ function LiveStudio() {
                     </ScrollArea>
                 )}
                 <div className="mt-4 flex items-center gap-2">
-                    {isChatVisible && (
-                        <form onSubmit={handleSendMessage} className="relative flex-1">
-                            <Input
-                                placeholder="Add a comment..."
-                                value={newMessage}
-                                onChange={(e) => setNewMessage(e.target.value)}
-                                className="bg-black/50 border-white/20 text-white placeholder:text-gray-400 pr-10"
-                            />
-                            <Button variant="ghost" size="icon" type="submit" className="absolute inset-y-0 right-0 text-white">
-                                <Send className="h-5 w-5"/>
-                            </Button>
-                        </form>
-                    )}
+                    <form onSubmit={handleSendMessage} className="relative flex-1">
+                        <Input
+                            placeholder="Add a comment..."
+                            value={newMessage}
+                            onChange={(e) => setNewMessage(e.target.value)}
+                            className="bg-black/50 border-white/20 text-white placeholder:text-gray-400 pr-10"
+                        />
+                        <Button variant="ghost" size="icon" type="submit" className="absolute inset-y-0 right-0 text-white">
+                            <Send className="h-5 w-5"/>
+                        </Button>
+                    </form>
                     <Button variant="ghost" size="icon" className="text-white bg-black/50 rounded-full h-10 w-10">
                         <Smile className="h-5 w-5" />
                     </Button>
@@ -230,5 +228,3 @@ export default function LivePage() {
         </Suspense>
     )
 }
-
-    
