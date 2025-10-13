@@ -27,10 +27,8 @@ export default function UserNav() {
   
   const getStreamLink = () => {
     if (!user) return '/login';
-    // This is a simplified way to create a new broadcast for the demo.
-    // In a real app, you'd have a proper "create broadcast" flow.
-    const newBroadcastId = `broadcast-${user.uid.slice(0, 5)}`;
-    return `/broadcast/${newBroadcastId}?host=true`;
+    // Navigate to the create page for a proper setup flow.
+    return '/broadcast/create';
   }
 
   if (isUserLoading) {
