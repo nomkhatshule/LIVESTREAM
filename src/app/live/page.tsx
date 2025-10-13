@@ -88,9 +88,10 @@ function LiveStudio() {
               title: "Broadcast Ended",
               description: "This broadcast has ended.",
           });
+          updateDocumentNonBlocking(broadcastDocRef, { isLive: false });
           router.push('/');
       }
-    }, [broadcastData, isBroadcastLoading, router, toast]);
+    }, [broadcastData, isBroadcastLoading, router, toast, broadcastDocRef]);
 
 
     const handleEndBroadcast = async () => {
@@ -162,39 +163,37 @@ function LiveStudio() {
             {/* Layer 3: Interaction Zone */}
             <div className="absolute bottom-0 left-0 right-0 z-10 p-4 flex flex-col justify-end bg-gradient-to-t from-black/70 to-transparent h-2/5">
                 {isChatVisible && (
-                    <>
-                        <ScrollArea className="h-full max-h-[250px] pr-4">
-                            <div className="flex flex-col gap-3">
-                                {messages.map((msg) => (
-                                    <div key={msg.id} className="flex items-start gap-3 text-sm text-white bg-black/20 p-2 rounded-lg max-w-xs sm:max-w-sm">
-                                        <Avatar className="h-6 w-6 border-2 border-primary">
-                                            <AvatarImage src={msg.user.avatarUrl} alt={msg.user.name} />
-                                            <AvatarFallback>{msg.user.name.charAt(0)}</AvatarFallback>
-                                        </Avatar>
-                                        <div className="flex-1">
-                                            <span className="font-bold text-primary mr-1.5">{msg.user.name}:</span>
-                                            <p className="break-words inline">{msg.message}</p>
-                                        </div>
+                    <ScrollArea className="h-full max-h-[250px] pr-4">
+                        <div className="flex flex-col gap-3">
+                            {messages.map((msg) => (
+                                <div key={msg.id} className="flex items-start gap-3 text-sm text-white bg-black/20 p-2 rounded-lg max-w-xs sm:max-w-sm">
+                                    <Avatar className="h-6 w-6 border-2 border-primary">
+                                        <AvatarImage src={msg.user.avatarUrl} alt={msg.user.name} />
+                                        <AvatarFallback>{msg.user.name.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex-1">
+                                        <span className="font-bold text-primary mr-1.5">{msg.user.name}:</span>
+                                        <p className="break-words inline">{msg.message}</p>
                                     </div>
-                                ))}
-                            </div>
-                        </ScrollArea>
-                        <div className="mt-4 flex items-center gap-2">
-                            <form onSubmit={handleSendMessage} className="relative flex-1">
-                                <Input
-                                    placeholder="Add a comment..."
-                                    value={newMessage}
-                                    onChange={(e) => setNewMessage(e.target.value)}
-                                    className="bg-black/50 border-white/20 text-white placeholder:text-gray-400 pr-10"
-                                />
-                                <Button variant="ghost" size="icon" type="submit" className="absolute inset-y-0 right-0 text-white">
-                                    <Send className="h-5 w-5"/>
-                                </Button>
-                            </form>
+                                </div>
+                            ))}
                         </div>
-                    </>
+                    </ScrollArea>
                 )}
-                 <div className="flex items-center justify-end gap-2 mt-2">
+                <div className="mt-4 flex items-center gap-2">
+                    {isChatVisible && (
+                        <form onSubmit={handleSendMessage} className="relative flex-1">
+                            <Input
+                                placeholder="Add a comment..."
+                                value={newMessage}
+                                onChange={(e) => setNewMessage(e.target.value)}
+                                className="bg-black/50 border-white/20 text-white placeholder:text-gray-400 pr-10"
+                            />
+                            <Button variant="ghost" size="icon" type="submit" className="absolute inset-y-0 right-0 text-white">
+                                <Send className="h-5 w-5"/>
+                            </Button>
+                        </form>
+                    )}
                     <Button variant="ghost" size="icon" className="text-white bg-black/50 rounded-full h-10 w-10">
                         <Smile className="h-5 w-5" />
                     </Button>
@@ -231,7 +230,5 @@ export default function LivePage() {
         </Suspense>
     )
 }
-
-    
 
     
