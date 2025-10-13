@@ -8,42 +8,54 @@ import { Badge } from '@/components/ui/badge';
 import { Heart, Share2, Star, MessageCircle, MoreVertical } from 'lucide-react';
 import { useUser, useUserDocument } from '@/firebase';
 import type { Broadcast } from '@/lib/data';
-import HostView from '@/components/broadcast/host-view';
+import { useDoc, useFirestore } from '@/firebase';
+import { doc } from 'firebase/firestore';
+import { useMemo } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
+
 
 export default function BroadcastPage() {
   const params = useParams();
   const { id } = params as { id: string };
   const { user } = useUser();
-  const { userDocument } = useUserDocument();
-  const searchParams = useSearchParams();
-  const isHost = searchParams.get('host') === 'true' && user?.uid === id.replace('broadcast-','').slice(0,5);
+  const firestore = useFirestore();
 
-  let broadcast: Broadcast | undefined = broadcasts.find((b) => b.id === id);
-  
-  // If no broadcast is found and the user is the host, create a temporary one.
-  if (!broadcast && isHost && user) {
-    const hostUser = users.find(u => u.id === user.uid) || users[0];
-    broadcast = {
+  const broadcastDocRef = useMemo(() => {
+    if (!id) return undefined;
+    // The document ID in Firestore is just the ID, not prefixed.
+    return doc(firestore, 'broadcasts', id);
+  }, [id, firestore]);
+
+  const { data: broadcastData, isLoading: isBroadcastLoading } = useDoc<any>(broadcastDocRef);
+
+  const broadcast: Broadcast | undefined = useMemo(() => {
+    if (!broadcastData) {
+        // Fallback to mock data if firestore data not available
+        return broadcasts.find((b) => b.id === id);
+    }
+    const hostUser = users.find(u => u.id === broadcastData.hostId) || users[0];
+    return {
       id: id,
-      title: `My Live Stream`,
-      user: { ...hostUser, name: userDocument?.username || user.displayName || 'Anonymous User' },
-      thumbnailUrl: 'https://picsum.photos/seed/newstream/600/400',
-      thumbnailHint: 'live broadcast',
-      viewers: 0,
-      category: 'Talk Show',
-      isLive: true,
-      tags: ['New', 'Live'],
+      title: broadcastData.title,
+      user: { ...hostUser, name: broadcastData.hostName, avatarUrl: broadcastData.hostAvatar },
+      thumbnailUrl: '', // Not needed on live view
+      thumbnailHint: '',
+      viewers: broadcastData.viewers || 0,
+      category: broadcastData.category,
+      isLive: broadcastData.isLive,
+      tags: broadcastData.tags || [],
     };
+  }, [broadcastData, id]);
+
+
+  if (isBroadcastLoading) {
+    return <BroadcastSkeleton />;
   }
 
   if (!broadcast) {
     notFound();
   }
   
-  if (isHost) {
-    return <HostView broadcast={broadcast} />;
-  }
-
   return (
     <div className="relative h-[calc(100vh-4rem)] w-full bg-black snap-start">
       <VideoPlayer broadcast={broadcast} isHost={false} />
@@ -94,6 +106,36 @@ export default function BroadcastPage() {
              <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full bg-white/20 hover:bg-white/30 text-white">
               <MoreVertical className="h-7 w-7" />
             </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BroadcastSkeleton() {
+  return (
+    <div className="relative h-[calc(100vh-4rem)] w-full bg-black">
+      <div className="absolute bottom-0 left-0 right-0 p-4 pb-8 bg-gradient-to-t from-black/70 to-transparent text-white">
+        <div className="flex items-end justify-between">
+          <div className="flex-1 mr-8 space-y-3">
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-10 w-10 rounded-full" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-7 w-32" />
+              </div>
+            </div>
+            <Skeleton className="h-5 w-3/4" />
+            <div className="flex gap-2">
+              <Skeleton className="h-5 w-16" />
+              <Skeleton className="h-5 w-16" />
+            </div>
+          </div>
+          <div className="flex flex-col items-center space-y-5">
+            <Skeleton className="h-12 w-12 rounded-full" />
+            <Skeleton className="h-12 w-12 rounded-full" />
+            <Skeleton className="h-12 w-12 rounded-full" />
           </div>
         </div>
       </div>
