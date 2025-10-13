@@ -13,12 +13,13 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { CreditCard, LogOut, PlusCircle, Settings, User as UserIcon } from 'lucide-react';
-import { useAuth, useUser } from '@/firebase';
+import { useAuth, useUser, useUserDocument } from '@/firebase';
 import { signOut } from 'firebase/auth';
 
 export default function UserNav() {
   const auth = useAuth();
   const { user, isUserLoading } = useUser();
+  const { userDocument, isDocLoading } = useUserDocument();
 
   const handleLogout = () => {
     signOut(auth);
@@ -43,21 +44,23 @@ export default function UserNav() {
       </Button>
     );
   }
+  
+  const displayName = isDocLoading ? '' : (userDocument?.username || user.displayName || 'Anonymous User');
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-9 w-9">
-            {user.photoURL && <AvatarImage src={user.photoURL} alt={user.displayName || 'User'} />}
-            <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
+            {user.photoURL && <AvatarImage src={user.photoURL} alt={displayName} />}
+            <AvatarFallback>{displayName?.charAt(0).toUpperCase()}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none font-headline">{user.displayName || 'Anonymous User'}</p>
+            <p className="text-sm font-medium leading-none font-headline">{displayName}</p>
             <p className="text-xs leading-none text-muted-foreground">
               {user.email}
             </p>
@@ -65,9 +68,11 @@ export default function UserNav() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem>
-            <UserIcon className="mr-2 h-4 w-4" />
-            <span>Profile</span>
+          <DropdownMenuItem asChild>
+            <Link href="/profile">
+              <UserIcon className="mr-2 h-4 w-4" />
+              <span>Profile</span>
+            </Link>
           </DropdownMenuItem>
           <DropdownMenuItem>
             <CreditCard className="mr-2 h-4 w-4" />

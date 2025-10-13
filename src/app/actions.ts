@@ -5,6 +5,7 @@ import {
   type PersonalizedBroadcastRecommendationsInput,
   type PersonalizedBroadcastRecommendationsOutput,
 } from '@/ai/flows/personalized-broadcast-recommendations';
+import { revalidatePath } from 'next/cache';
 
 export async function getPersonalizedRecommendations(
   input: PersonalizedBroadcastRecommendationsInput
@@ -21,4 +22,11 @@ export async function getPersonalizedRecommendations(
     // Return a default or empty state in case of an error.
     return { recommendations: [] };
   }
+}
+
+// This server action is now only responsible for revalidating the cache.
+// The database operation is moved to the client.
+export async function revalidateProfilePaths() {
+  revalidatePath('/profile');
+  revalidatePath('/');
 }

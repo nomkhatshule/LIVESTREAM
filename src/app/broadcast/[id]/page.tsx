@@ -24,7 +24,7 @@ export default function BroadcastPage() {
     broadcast = {
       id: id,
       title: `My Live Stream`,
-      user: hostUser,
+      user: { ...hostUser, name: user.displayName || 'Anonymous User' },
       thumbnailUrl: 'https://picsum.photos/seed/newstream/600/400',
       thumbnailHint: 'live broadcast',
       viewers: 0,

@@ -5,12 +5,17 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import type { Broadcast } from '@/lib/data';
 import { Users } from 'lucide-react';
+import { useUserDocumentById } from '@/firebase';
+import { Skeleton } from './ui/skeleton';
 
 interface BroadcastCardProps {
   broadcast: Broadcast;
 }
 
 export default function BroadcastCard({ broadcast }: BroadcastCardProps) {
+  const { userDocument, isDocLoading } = useUserDocumentById(broadcast.user.id);
+  const username = userDocument?.username || broadcast.user.name;
+
   return (
     <Link href={`/broadcast/${broadcast.id}`} className="group">
       <Card className="overflow-hidden transition-all hover:shadow-lg hover:-translate-y-1">
@@ -42,18 +47,22 @@ export default function BroadcastCard({ broadcast }: BroadcastCardProps) {
               <Avatar className="h-10 w-10 border-2 border-primary">
                 <AvatarImage
                   src={broadcast.user.avatarUrl}
-                  alt={broadcast.user.name}
+                  alt={username}
                   data-ai-hint={broadcast.user.avatarHint}
                 />
-                <AvatarFallback>{broadcast.user.name.charAt(0)}</AvatarFallback>
+                <AvatarFallback>{username.charAt(0)}</AvatarFallback>
               </Avatar>
               <div className="flex-1">
                 <h3 className="font-bold font-headline leading-tight truncate group-hover:text-primary transition-colors">
                   {broadcast.title}
                 </h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {broadcast.user.name}
-                </p>
+                {isDocLoading ? (
+                   <Skeleton className="h-4 w-24 mt-1" />
+                ) : (
+                   <p className="text-sm text-muted-foreground mt-1">
+                    {username}
+                  </p>
+                )}
                 <div className="mt-2 flex flex-wrap gap-2">
                     <Badge variant="secondary">{broadcast.category}</Badge>
                     {broadcast.tags.slice(0, 2).map(tag => (
