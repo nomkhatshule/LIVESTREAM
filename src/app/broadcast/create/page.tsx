@@ -12,9 +12,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { categories } from '@/lib/data';
+import { categories, users } from '@/lib/data';
 import { useUser } from '@/firebase';
-import { addDoc, collection } from 'firebase/firestore';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { Video, Loader, AlertCircle } from 'lucide-react';
@@ -82,9 +82,27 @@ export default function CreateBroadcastPage() {
     }
     setIsSubmitting(true);
     try {
-      // In a real app, we'd save this to a 'broadcasts' collection
-      const newBroadcastId = `broadcast-${user.uid.slice(0, 5)}`;
-      router.push(`/broadcast/${newBroadcastId}?host=true`);
+      // In a real app, you would have a 'broadcasts' collection.
+      // We will simulate this by adding a document to a mock collection.
+      const broadcastsCollection = collection(firestore, 'broadcasts');
+      
+      // Find a mock user to associate with the broadcast
+      const hostUser = users.find(u => u.id === user.uid) || users[0];
+
+      const newBroadcastDoc = await addDoc(broadcastsCollection, {
+        title: title,
+        category: category,
+        hostId: user.uid,
+        hostName: hostUser.name,
+        hostAvatar: hostUser.avatarUrl,
+        isLive: true,
+        viewers: 0,
+        createdAt: serverTimestamp(),
+        tags: ['New', 'Live'], // Default tags
+      });
+
+      // Navigate to the new dedicated live page with the broadcast ID
+      router.push(`/live?id=${newBroadcastDoc.id}`);
 
     } catch (error) {
       console.error('Error creating broadcast:', error);

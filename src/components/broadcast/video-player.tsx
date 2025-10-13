@@ -13,12 +13,12 @@ import { useRouter } from 'next/navigation';
 interface VideoPlayerProps {
   broadcast: Broadcast;
   isHost: boolean;
-  isAudioEnabled: boolean;
-  isVideoEnabled: boolean;
-  isScreenSharing: boolean;
-  toggleAudio: () => void;
-  toggleVideo: () => void;
-  handleScreenShare: () => void;
+  isAudioEnabled?: boolean;
+  isVideoEnabled?: boolean;
+  isScreenSharing?: boolean;
+  toggleAudio?: () => void;
+  toggleVideo?: () => void;
+  handleScreenShare?: () => void;
 }
 
 const appId = process.env.NEXT_PUBLIC_AGORA_APP_ID || '';
@@ -64,86 +64,15 @@ export default function VideoPlayer({
   
   const [isMuted, setIsMuted] = useState(!isHost);
   const [remoteUsers, setRemoteUsers] = useState<any[]>([]);
-  const [hasCameraPermission, setHasCameraPermission] = useState(false);
+  const [hasPermission, setHasPermission] = useState(false);
   const [isConnecting, setIsConnecting] = useState(true);
-
-  // This internal state is needed for the VideoPlayer's own UI logic, like the mute button
-  const [_isVideoEnabled, _setIsVideoEnabled] = useState(isHost);
-  const [_isAudioEnabled, _setIsAudioEnabled] = useState(isHost);
-
-
-  const internalToggleVideo = async () => {
-    if(localVideoTrackRef.current) {
-        await localVideoTrackRef.current.setEnabled(!_isVideoEnabled);
-        _setIsVideoEnabled(!_isVideoEnabled);
-        toggleVideo(); // Notify parent
-    }
-  }
-
-  const internalToggleAudio = async () => {
-      if(localAudioTrackRef.current) {
-          await localAudioTrackRef.current.setEnabled(!_isAudioEnabled);
-          _setIsAudioEnabled(!_isAudioEnabled);
-          toggleAudio(); // Notify parent
-      }
-  }
-
-  const handleEndBroadcast = async () => {
-    screenVideoTrackRef.current?.close();
-    localVideoTrackRef.current?.close();
-    localAudioTrackRef.current?.close();
-    await clientRef.current?.leave();
-    router.push('/');
-  }
-
-  // Effect for Hosts: Initialize local media immediately for preview
-  useEffect(() => {
-    if (!isHost || typeof window === 'undefined') return;
-
-    let videoTrack: ICameraVideoTrack | null = null;
-    let audioTrack: IMicrophoneAudioTrack | null = null;
-
-    const initHostMedia = async () => {
-        try {
-            if (!AgoraRTC) {
-                AgoraRTC = (await import('agora-rtc-sdk-ng')).default;
-            }
-            // Request both tracks, even if only one is used initially
-            [audioTrack, videoTrack] = await AgoraRTC.createMicrophoneAndCameraTracks();
-            
-            localAudioTrackRef.current = audioTrack;
-            localVideoTrackRef.current = videoTrack;
-            
-            setHasCameraPermission(true);
-
-            if (videoRef.current) {
-                videoTrack.play(videoRef.current);
-            }
-        } catch (permError) {
-            console.error('Failed to get camera/mic permissions', permError);
-            setHasCameraPermission(false);
-            toast({
-                variant: 'destructive',
-                title: 'Permissions Denied',
-                description: 'Camera and microphone access is required to host a stream. Please enable permissions and refresh.'
-            });
-        }
-    };
-    
-    initHostMedia();
-
-    // Cleanup local tracks on component unmount
-    return () => {
-        videoTrack?.close();
-        audioTrack?.close();
-    };
-  }, [isHost, toast]);
 
   // Effect for Agora Connection (both host and audience)
   useEffect(() => {
-    if (isUserLoading || !appId || !currentUser || (isHost && !hasCameraPermission) ) return;
+    if (isUserLoading || !appId || !currentUser) return;
     
     let client: IAgoraRTCClient;
+    let localTracks: [IMicrophoneAudioTrack, ICameraVideoTrack] | null = null;
 
     const init = async () => {
       setIsConnecting(true);
@@ -164,42 +93,29 @@ export default function VideoPlayer({
       const handleUserPublished = async (user: any, mediaType: 'video' | 'audio') => {
         await client.subscribe(user, mediaType);
         if (mediaType === 'video') {
-          setRemoteUsers(prev => [...prev.filter(u => u.uid !== user.uid), user]);
-          const remoteVideoTrack = user.videoTrack;
-          
-          let playerContainer = document.getElementById(`user-player-${user.uid}`);
-          if (!playerContainer && videoRef.current) {
-            playerContainer = document.createElement('div');
-            playerContainer.id = `user-player-${user.uid}`;
-            playerContainer.style.width = '100%';
-            playerContainer.style.height = '100%';
-            playerContainer.style.position = 'absolute';
-            playerContainer.style.top = '0';
-            playerContainer.style.left = '0';
-
-            // For audience, we want the remote video to be the main view.
-            if (!isHost) {
-                videoRef.current.innerHTML = ''; // Clear any existing content
-                videoRef.current.append(playerContainer);
+            const remotePlayerContainer = document.createElement('div');
+            remotePlayerContainer.id = `player-${user.uid}`;
+            remotePlayerContainer.style.width = '100%';
+            remotePlayerContainer.style.height = '100%';
+            remotePlayerContainer.style.position = 'absolute';
+            if (videoRef.current) {
+                videoRef.current.innerHTML = ''; // Clear any placeholder
+                videoRef.current.append(remotePlayerContainer);
             }
-          }
-          if(playerContainer){
-            remoteVideoTrack.play(playerContainer);
-          }
+            user.videoTrack.play(remotePlayerContainer);
+            setRemoteUsers(prev => [...prev.filter(u => u.uid !== user.uid), user]);
         }
          if (mediaType === 'audio') {
           user.audioTrack.play();
         }
       };
 
-      const handleUserUnpublished = (user: any, mediaType: 'video' | 'audio') => {
-         if (mediaType === 'video') {
-           setRemoteUsers(prev => prev.filter(u => u.uid !== user.uid));
-           const playerContainer = document.getElementById(`user-player-${user.uid}`);
-           if (playerContainer) {
-               playerContainer.remove();
-           }
+      const handleUserUnpublished = (user: any) => {
+         const playerContainer = document.getElementById(`player-${user.uid}`);
+         if (playerContainer) {
+             playerContainer.remove();
          }
+         setRemoteUsers(prev => prev.filter(u => u.uid !== user.uid));
       };
 
       client.on('user-published', handleUserPublished);
@@ -213,8 +129,23 @@ export default function VideoPlayer({
         
         if (isHost) {
           client.setClientRole('host');
-          if (localAudioTrackRef.current && localVideoTrackRef.current) {
-             await client.publish([localAudioTrackRef.current, localVideoTrackRef.current]);
+          try {
+            localTracks = await AgoraRTC.createMicrophoneAndCameraTracks();
+            localAudioTrackRef.current = localTracks[0];
+            localVideoTrackRef.current = localTracks[1];
+            if(videoRef.current) {
+                localTracks[1].play(videoRef.current);
+            }
+            await client.publish(localTracks);
+            setHasPermission(true);
+          } catch(permError) {
+              console.error('Failed to get camera/mic permissions', permError);
+              setHasPermission(false);
+              toast({
+                  variant: 'destructive',
+                  title: 'Permissions Denied',
+                  description: 'Camera and microphone access is required to host a stream. Please enable permissions and refresh.'
+              });
           }
         } else {
           client.setClientRole('audience');
@@ -230,12 +161,26 @@ export default function VideoPlayer({
     init();
 
     return () => {
+      localTracks?.forEach(track => track.close());
       screenVideoTrackRef.current?.close();
       clientRef.current?.leave();
       clientRef.current?.removeAllListeners();
     };
-  }, [broadcast.id, isHost, currentUser, hasCameraPermission, toast, isUserLoading]);
+  }, [broadcast.id, isHost, currentUser, toast, isUserLoading]);
   
+  useEffect(() => {
+    if (isHost && localVideoTrackRef.current) {
+      localVideoTrackRef.current.setEnabled(isVideoEnabled ?? true);
+    }
+  }, [isVideoEnabled, isHost]);
+
+  useEffect(() => {
+    if (isHost && localAudioTrackRef.current) {
+      localAudioTrackRef.current.setEnabled(isAudioEnabled ?? true);
+    }
+  }, [isAudioEnabled, isHost]);
+
+
   const toggleMute = () => {
       setIsMuted(!isMuted);
       remoteUsers.forEach(user => {
@@ -245,7 +190,6 @@ export default function VideoPlayer({
       });
   };
 
-  const showHostUI = isHost;
   const showAudienceUI = !isHost;
   const showOfflineMessage = showAudienceUI && remoteUsers.length === 0 && !isConnecting;
 
@@ -256,7 +200,7 @@ export default function VideoPlayer({
         {/* Host self-view or remote user video is injected here */}
       </div>
 
-       {showHostUI && !hasCameraPermission && (
+       {isHost && !hasPermission && (
          <div className="absolute inset-0 flex items-center justify-center bg-black/80 p-4">
             <Alert variant="destructive" className="max-w-md">
               <AlertCircle className="h-4 w-4" />
@@ -277,46 +221,28 @@ export default function VideoPlayer({
         </div>
       )}
 
-
-      <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
-        {broadcast.isLive && (
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-600 text-white animate-pulse">
-            <span className="w-2 h-2 mr-2 bg-white rounded-full"></span>
-            LIVE
-          </span>
-        )}
-         <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-black/50 text-white gap-1.5">
-            <Users className="h-4 w-4" />
-            {Intl.NumberFormat('en-US', { notation: 'compact' }).format(broadcast.viewers + remoteUsers.length)}
-          </span>
-          {showHostUI && (
-            <Button variant="destructive" size="sm" onClick={handleEndBroadcast}>
-                <X className="h-4 w-4 mr-1.5"/> End
-            </Button>
-          )}
-      </div>
-
-       <div className="absolute top-4 left-4 z-10">
-         {showAudienceUI && (
-            <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); toggleMute(); }} className="text-white hover:bg-white/20 rounded-full">
-                {isMuted ? <VolumeX className="h-6 w-6" /> : <Volume2 className="h-6 w-6" />}
-            </Button>
-         )}
-      </div>
-
-      {showHostUI && (
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 flex items-center gap-4 p-2 bg-black/40 rounded-full">
-            <Button variant={isAudioEnabled ? "secondary" : "destructive"} size="icon" onClick={internalToggleAudio} className="rounded-full h-12 w-12">
-                {isAudioEnabled ? <Mic className="h-6 w-6" /> : <MicOff className="h-6 w-6" />}
-            </Button>
-            <Button variant={isVideoEnabled && !isScreenSharing ? "secondary" : "destructive"} size="icon" onClick={internalToggleVideo} disabled={isScreenSharing} className="rounded-full h-12 w-12">
-                {isVideoEnabled && !isScreenSharing ? <Video className="h-6 w-6" /> : <VideoOff className="h-6 w-6" />}
-            </Button>
-             <Button variant={isScreenSharing ? "primary" : "secondary"} size="icon" onClick={handleScreenShare} className="rounded-full h-12 w-12">
-                {isScreenSharing ? <ScreenShareOff className="h-6 w-6" /> : <ScreenShare className="h-6 w-6" />}
-            </Button>
-        </div>
+      {/* UI overlays are now handled by the parent live/page.tsx or broadcast/[id]/page.tsx */}
+      
+      {showAudienceUI && (
+        <>
+            <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-600 text-white animate-pulse">
+                    <span className="w-2 h-2 mr-2 bg-white rounded-full"></span>
+                    LIVE
+                </span>
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-black/50 text-white gap-1.5">
+                    <Users className="h-4 w-4" />
+                    {Intl.NumberFormat('en-US', { notation: 'compact' }).format(broadcast.viewers + remoteUsers.length)}
+                </span>
+            </div>
+            <div className="absolute top-4 left-4 z-10">
+                <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); toggleMute(); }} className="text-white hover:bg-white/20 rounded-full">
+                    {isMuted ? <VolumeX className="h-6 w-6" /> : <Volume2 className="h-6 w-6" />}
+                </Button>
+            </div>
+        </>
       )}
+
     </div>
   );
 }
