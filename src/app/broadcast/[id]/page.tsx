@@ -6,13 +6,14 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Heart, Share2, Star, MessageCircle, MoreVertical } from 'lucide-react';
-import { useUser } from '@/firebase';
+import { useUser, useUserDocument } from '@/firebase';
 import type { Broadcast } from '@/lib/data';
 
 export default function BroadcastPage() {
   const params = useParams();
   const { id } = params as { id: string };
   const { user } = useUser();
+  const { userDocument } = useUserDocument();
   const searchParams = useSearchParams();
   const isHost = searchParams.get('host') === 'true';
 
@@ -24,7 +25,7 @@ export default function BroadcastPage() {
     broadcast = {
       id: id,
       title: `My Live Stream`,
-      user: { ...hostUser, name: user.displayName || 'Anonymous User' },
+      user: { ...hostUser, name: userDocument?.username || user.displayName || 'Anonymous User' },
       thumbnailUrl: 'https://picsum.photos/seed/newstream/600/400',
       thumbnailHint: 'live broadcast',
       viewers: 0,
