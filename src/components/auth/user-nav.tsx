@@ -24,6 +24,14 @@ export default function UserNav() {
     signOut(auth);
   };
   
+  const getStreamLink = () => {
+    if (!user) return '/login';
+    // This is a simplified way to create a new broadcast for the demo.
+    // In a real app, you'd have a proper "create broadcast" flow.
+    const newBroadcastId = `broadcast-${user.uid.slice(0, 5)}`;
+    return `/broadcast/${newBroadcastId}?host=true`;
+  }
+
   if (isUserLoading) {
      return <div className="h-8 w-8 rounded-full bg-muted animate-pulse" />;
   }
@@ -69,9 +77,11 @@ export default function UserNav() {
             <Settings className="mr-2 h-4 w-4" />
             <span>Settings</span>
           </DropdownMenuItem>
-          <DropdownMenuItem>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            <span>Start a stream</span>
+          <DropdownMenuItem asChild>
+            <Link href={getStreamLink()}>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              <span>Start a stream</span>
+            </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
