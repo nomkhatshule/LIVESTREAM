@@ -1,16 +1,17 @@
 'use client';
 import { broadcasts } from '@/lib/data';
-import { notFound, useSearchParams } from 'next/navigation';
+import { notFound, useSearchParams, useParams } from 'next/navigation';
 import VideoPlayer from '@/components/broadcast/video-player';
-import Chat from '@/components/broadcast/chat';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Heart, Share2, Bell, Star, MessageCircle, MoreVertical } from 'lucide-react';
+import { Heart, Share2, Star, MessageCircle, MoreVertical } from 'lucide-react';
 import { useUser } from '@/firebase';
 
-export default function BroadcastPage({ params }: { params: { id: string } }) {
-  const broadcast = broadcasts.find((b) => b.id === params.id);
+export default function BroadcastPage() {
+  const params = useParams();
+  const { id } = params;
+  const broadcast = broadcasts.find((b) => b.id === id);
   const { user } = useUser();
   const searchParams = useSearchParams();
   const isHost = searchParams.get('host') === 'true' && user?.uid === broadcast?.user.id;
