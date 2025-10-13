@@ -3,108 +3,119 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Broadcast } from '@/lib/data';
 import { Button } from '@/components/ui/button';
-import { Maximize, Mic, MicOff, Minimize, Video, VideoOff, Volume2, VolumeX, Play, Pause, Users } from 'lucide-react';
+import { Maximize, Mic, MicOff, Minimize, Video, VideoOff, Volume2, VolumeX, Play, Pause, Users, User } from 'lucide-react';
+import AgoraRTC, { IAgoraRTCClient, ICameraVideoTrack, IMicrophoneAudioTrack } from 'agora-rtc-sdk-ng';
+import { useUser } from '@/firebase';
 
 interface VideoPlayerProps {
   broadcast: Broadcast;
+  isHost?: boolean;
 }
 
-export default function VideoPlayer({ broadcast }: VideoPlayerProps) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [isMuted, setIsMuted] = useState(true);
-  const [isPlaying, setIsPlaying] = useState(true);
+const appId = process.env.NEXT_PUBLIC_AGORA_APP_ID || '';
 
-  // In a real application, this is where you would initialize the Agora client
-  // and join the channel to receive the live stream.
+export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerProps) {
+  const { user: currentUser } = useUser();
+  const videoRef = useRef<HTMLDivElement>(null);
+  const clientRef = useRef<IAgoraRTCClient>();
+  
+  const [isMuted, setIsMuted] = useState(!isHost);
+  const [isVideoEnabled, setIsVideoEnabled] = useState(isHost);
+  const [isAudioEnabled, setIsAudioEnabled] = useState(isHost);
+  const [remoteUsers, setRemoteUsers] = useState<any[]>([]);
+
   useEffect(() => {
-    // 1. Initialize Agora RTC client
-    // const client = AgoraRTC.createClient({ mode: 'live', codec: 'vp8' });
-    
-    // 2. Set user role to 'audience'
-    // client.setClientRole('audience');
+    if (!appId || !videoRef.current || !currentUser) return;
 
-    // 3. Join the channel with App ID, channel name, and token
-    // client.join(appId, broadcast.id, token, broadcast.user.id);
+    const client = AgoraRTC.createClient({ mode: 'live', codec: 'vp8' });
+    clientRef.current = client;
 
-    // 4. Listen for 'user-published' event to get the remote stream
-    // client.on('user-published', (user, mediaType) => {
-    //   client.subscribe(user, mediaType).then(() => {
-    //     if (mediaType === 'video' && videoRef.current) {
-    //       user.videoTrack.play(videoRef.current);
-    //     }
-    //   });
-    // });
-
-    console.log(`Joining broadcast channel: ${broadcast.id}`);
-    
-    // For demonstration, let's play a placeholder video
-    if (videoRef.current) {
-      videoRef.current.play().catch(error => console.error("Video autoplay was prevented:", error));
-    }
-
-
-    // Cleanup on component unmount
-    return () => {
-      // client.leave();
-      console.log(`Leaving broadcast channel: ${broadcast.id}`);
+    const joinChannel = async () => {
+      try {
+        await client.join(appId, broadcast.id, null, isHost ? currentUser.uid : null);
+        
+        if (isHost) {
+          client.setClientRole('host');
+          const audioTrack = await AgoraRTC.createMicrophoneAudioTrack();
+          const videoTrack = await AgoraRTC.createCameraVideoTrack();
+          videoTrack.play(videoRef.current!);
+          await client.publish([audioTrack, videoTrack]);
+        } else {
+          client.setClientRole('audience');
+        }
+      } catch (error) {
+        console.error('Failed to join channel', error);
+      }
     };
-  }, [broadcast.id]);
+
+    const handleUserPublished = async (user, mediaType) => {
+      await client.subscribe(user, mediaType);
+      if (mediaType === 'video') {
+        setRemoteUsers(prev => [...prev, user]);
+        const remoteVideoTrack = user.videoTrack;
+        const playerContainer = document.createElement('div');
+        playerContainer.id = user.uid.toString();
+        playerContainer.style.width = '100%';
+        playerContainer.style.height = '100%';
+        playerContainer.style.position = 'absolute';
+        videoRef.current?.append(playerContainer);
+        remoteVideoTrack.play(playerContainer);
+      }
+    };
+
+    const handleUserUnpublished = (user) => {
+      setRemoteUsers(prev => prev.filter(u => u.uid !== user.uid));
+       const playerContainer = document.getElementById(user.uid);
+       if (playerContainer) {
+           playerContainer.remove();
+       }
+    };
+
+    client.on('user-published', handleUserPublished);
+    client.on('user-unpublished', handleUserUnpublished);
+
+    joinChannel();
+
+    return () => {
+      client.leave();
+      client.off('user-published', handleUserPublished);
+      client.off('user-unpublished', handleUserUnpublished);
+    };
+  }, [broadcast.id, isHost, currentUser]);
   
   const toggleMute = () => {
       setIsMuted(!isMuted);
-      if(videoRef.current) {
-          videoRef.current.muted = !isMuted;
-      }
   };
 
-  const togglePlay = () => {
-    if (videoRef.current) {
-        if(isPlaying) {
-            videoRef.current.pause();
-        } else {
-            videoRef.current.play();
-        }
-        setIsPlaying(!isPlaying);
-    }
-  }
-
   return (
-    <div className="absolute inset-0 w-full h-full" onClick={togglePlay}>
-      {/* Mock video, in a real app this would be the stream */}
-      <video 
-        ref={videoRef}
-        src="https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4" 
-        loop
-        muted={isMuted}
-        playsInline
-        className="w-full h-full object-cover"
-      />
+    <div className="absolute inset-0 w-full h-full">
+      <div ref={videoRef} className="w-full h-full object-cover" />
+
+      {!isHost && remoteUsers.length === 0 && (
+         <div className="absolute inset-0 flex items-center justify-center bg-black">
+            <div className="text-center text-white">
+                <p className="text-lg">Waiting for the host to start the stream...</p>
+            </div>
+        </div>
+      )}
+
 
       <div className="absolute top-4 left-4 z-10 flex items-center gap-2">
-        {broadcast.isLive && (
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-600 text-white">
+        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-600 text-white">
             <span className="w-2 h-2 mr-2 bg-white rounded-full animate-pulse"></span>
             LIVE
           </span>
-        )}
          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-black/50 text-white gap-1.5">
             <Users className="h-4 w-4" />
-            {Intl.NumberFormat('en-US', { notation: 'compact' }).format(broadcast.viewers)}
+            {Intl.NumberFormat('en-US', { notation: 'compact' }).format(broadcast.viewers + remoteUsers.length)}
           </span>
       </div>
-
-       {!isPlaying && (
-          <div className="absolute inset-0 flex items-center justify-center">
-             <Play className="h-20 w-20 text-white/70" />
-          </div>
-       )}
 
        <div className="absolute top-4 right-4 z-10">
          <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); toggleMute(); }} className="text-white hover:bg-white/20 rounded-full">
             {isMuted ? <VolumeX className="h-6 w-6" /> : <Volume2 className="h-6 w-6" />}
          </Button>
       </div>
-
     </div>
   );
 }

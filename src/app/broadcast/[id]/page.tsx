@@ -1,14 +1,19 @@
+'use client';
 import { broadcasts } from '@/lib/data';
-import { notFound } from 'next/navigation';
+import { notFound, useSearchParams } from 'next/navigation';
 import VideoPlayer from '@/components/broadcast/video-player';
 import Chat from '@/components/broadcast/chat';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Heart, Share2, Bell, Star, MessageCircle, MoreVertical } from 'lucide-react';
+import { useUser } from '@/firebase';
 
 export default function BroadcastPage({ params }: { params: { id: string } }) {
   const broadcast = broadcasts.find((b) => b.id === params.id);
+  const { user } = useUser();
+  const searchParams = useSearchParams();
+  const isHost = searchParams.get('host') === 'true' && user?.uid === broadcast?.user.id;
 
   if (!broadcast) {
     notFound();
@@ -16,7 +21,7 @@ export default function BroadcastPage({ params }: { params: { id: string } }) {
 
   return (
     <div className="relative h-[calc(100vh-4rem)] w-full bg-black snap-start">
-      <VideoPlayer broadcast={broadcast} />
+      <VideoPlayer broadcast={broadcast} isHost={isHost} />
       
       <div className="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/50 to-transparent">
          {/* Header can go here if needed, for now it's clean */}

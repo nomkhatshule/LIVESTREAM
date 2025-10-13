@@ -9,10 +9,20 @@ import UserNav from '@/components/auth/user-nav';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useUser } from '@/firebase';
 
 export default function Header() {
   const pathname = usePathname();
   const isMobile = useIsMobile();
+  const { user } = useUser();
+
+  const getStreamLink = () => {
+    if (!user) return '/login';
+    // This is a simplified way to create a new broadcast for the demo.
+    // In a real app, you'd have a proper "create broadcast" flow.
+    const newBroadcastId = `broadcast-${user.uid.slice(0, 5)}`;
+    return `/broadcast/${newBroadcastId}?host=true`;
+  }
 
   if (pathname.startsWith('/feed')) {
     return null; // Hide header on the feed page
@@ -62,8 +72,7 @@ export default function Header() {
         </div>
 
         <div className="flex flex-1 items-center justify-end space-x-2">
-          {!isMobile ? (
-            <div className="w-full flex-1 md:w-auto md:flex-none">
+          <div className={cn("w-full flex-1 md:w-auto md:flex-none", { "hidden sm:block": isMobile })}>
               <form>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -75,14 +84,14 @@ export default function Header() {
                 </div>
               </form>
             </div>
-          ) : (
-             <Button variant="ghost" size="icon">
+           <Button variant="ghost" size="icon" className="sm:hidden">
               <Search className="h-5 w-5" />
             </Button>
-          )}
           <nav className="flex items-center space-x-1">
-            <Button variant="ghost" size="icon" aria-label="Start streaming">
-              <Clapperboard className="h-5 w-5" />
+            <Button variant="ghost" size="icon" aria-label="Start streaming" asChild>
+              <Link href={getStreamLink()}>
+                <Clapperboard className="h-5 w-5" />
+              </Link>
             </Button>
             <UserNav />
           </nav>
