@@ -3,12 +3,11 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Broadcast } from '@/lib/data';
 import { Button } from '@/components/ui/button';
-import { Mic, MicOff, Video, VideoOff, Volume2, VolumeX, Users, AlertCircle } from 'lucide-react';
-import type { IAgoraRTCClient, ICameraVideoTrack, IMicrophoneAudioTrack, IAgoraRTC } from 'agora-rtc-sdk-ng';
+import { Mic, MicOff, Video, VideoOff, Volume2, VolumeX, Users, AlertCircle, ScreenShare, ScreenShareOff } from 'lucide-react';
+import type { IAgoraRTCClient, ICameraVideoTrack, IMicrophoneAudioTrack, IAgoraRTC, IRemoteVideoTrack, IScreenVideoTrack } from 'agora-rtc-sdk-ng';
 import { useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-
 
 interface VideoPlayerProps {
   broadcast: Broadcast;
@@ -42,15 +41,16 @@ export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerPr
   const clientRef = useRef<IAgoraRTCClient>();
   const localVideoTrackRef = useRef<ICameraVideoTrack | null>(null);
   const localAudioTrackRef = useRef<IMicrophoneAudioTrack | null>(null);
+  const screenVideoTrackRef = useRef<IScreenVideoTrack | null>(null);
+
   const { toast } = useToast();
   
   const [isMuted, setIsMuted] = useState(!isHost);
   const [isVideoEnabled, setIsVideoEnabled] = useState(isHost);
   const [isAudioEnabled, setIsAudioEnabled] = useState(isHost);
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [remoteUsers, setRemoteUsers] = useState<any[]>([]);
   const [hasCameraPermission, setHasCameraPermission] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false);
-
 
   // Effect for Hosts: Initialize local media immediately for preview
   useEffect(() => {
@@ -64,6 +64,7 @@ export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerPr
             if (!AgoraRTC) {
                 AgoraRTC = (await import('agora-rtc-sdk-ng')).default;
             }
+            // Request both tracks, even if only one is used initially
             [audioTrack, videoTrack] = await AgoraRTC.createMicrophoneAndCameraTracks();
             
             localAudioTrackRef.current = audioTrack;
@@ -100,7 +101,7 @@ export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerPr
   useEffect(() => {
     if (!appId || !currentUser) return;
     // For hosts, wait for local media to be ready before connecting
-    if (isHost && !hasCameraPermission && localVideoTrackRef.current === null) return;
+    if (isHost && !hasCameraPermission && !localVideoTrackRef.current) return;
 
     let client: IAgoraRTCClient;
 
@@ -178,7 +179,7 @@ export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerPr
     init();
 
     return () => {
-      // Local tracks are cleaned up in their own effect
+      screenVideoTrackRef.current?.close();
       clientRef.current?.leave();
       clientRef.current?.removeAllListeners();
     };
@@ -188,7 +189,7 @@ export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerPr
       setIsMuted(!isMuted);
       remoteUsers.forEach(user => {
           if (user.audioTrack) {
-              user.audioTrack.setVolume(isMuted ? 0 : 100);
+              user.audioTrack.setVolume(isMuted ? 100 : 0);
           }
       });
   };
@@ -206,6 +207,50 @@ export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerPr
           setIsAudioEnabled(!isAudioEnabled);
       }
   }
+
+  const handleScreenShare = async () => {
+    if (!clientRef.current || !AgoraRTC) return;
+    
+    if (isScreenSharing) { // Stop screen sharing
+      try {
+        await clientRef.current.unpublish(screenVideoTrackRef.current!);
+        screenVideoTrackRef.current?.close();
+        screenVideoTrackRef.current = null;
+        
+        if (localVideoTrackRef.current) {
+          await clientRef.current.publish(localVideoTrackRef.current);
+          if (videoRef.current) {
+              // Ensure camera preview restarts
+              localVideoTrackRef.current.play(videoRef.current);
+          }
+        }
+        setIsScreenSharing(false);
+      } catch (e) {
+        console.error('Failed to stop screen sharing', e);
+        toast({variant: 'destructive', title: 'Could not stop screen sharing.'});
+      }
+    } else { // Start screen sharing
+      try {
+        const screenTrack = await AgoraRTC.createScreenVideoTrack({}, "auto");
+        screenVideoTrackRef.current = screenTrack;
+        
+        if (localVideoTrackRef.current) {
+          await clientRef.current.unpublish(localVideoTrackRef.current);
+        }
+        
+        await clientRef.current.publish(screenTrack);
+        
+        // Listen for the user to stop sharing via the browser's native UI
+        screenTrack.on("track-ended", handleScreenShare);
+
+        setIsScreenSharing(true);
+      } catch (e) {
+        console.error('Failed to start screen sharing', e);
+        toast({variant: 'destructive', title: 'Screen sharing failed', description: 'Please ensure you have granted permissions.'});
+        setIsScreenSharing(false); // Reset state
+      }
+    }
+  };
 
   return (
     <div className="absolute inset-0 w-full h-full">
@@ -261,8 +306,11 @@ export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerPr
             <Button variant={isAudioEnabled ? "secondary" : "destructive"} size="icon" onClick={toggleAudio} className="rounded-full h-12 w-12">
                 {isAudioEnabled ? <Mic className="h-6 w-6" /> : <MicOff className="h-6 w-6" />}
             </Button>
-            <Button variant={isVideoEnabled ? "secondary" : "destructive"} size="icon" onClick={toggleVideo} className="rounded-full h-12 w-12">
-                {isVideoEnabled ? <Video className="h-6 w-6" /> : <VideoOff className="h-6 w-6" />}
+            <Button variant={isVideoEnabled && !isScreenSharing ? "secondary" : "destructive"} size="icon" onClick={toggleVideo} disabled={isScreenSharing} className="rounded-full h-12 w-12">
+                {isVideoEnabled && !isScreenSharing ? <Video className="h-6 w-6" /> : <VideoOff className="h-6 w-6" />}
+            </Button>
+             <Button variant={isScreenSharing ? "primary" : "secondary"} size="icon" onClick={handleScreenShare} className="rounded-full h-12 w-12">
+                {isScreenSharing ? <ScreenShareOff className="h-6 w-6" /> : <ScreenShare className="h-6 w-6" />}
             </Button>
         </div>
       )}
