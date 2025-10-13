@@ -1,3 +1,100 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "avatar-1",
+      "description": "User avatar 1",
+      "imageUrl": "https://picsum.photos/seed/avatar1/200/200",
+      "imageHint": "person portrait"
+    },
+    {
+      "id": "avatar-2",
+      "description": "User avatar 2",
+      "imageUrl": "https://picsum.photos/seed/avatar2/200/200",
+      "imageHint": "person portrait"
+    },
+    {
+      "id": "avatar-3",
+      "description": "User avatar 3",
+      "imageUrl": "https://picsum.photos/seed/avatar3/200/200",
+      "imageHint": "person portrait"
+    },
+    {
+      "id": "avatar-4",
+      "description": "User avatar 4",
+      "imageUrl": "https://picsum.photos/seed/avatar4/200/200",
+      "imageHint": "person portrait"
+    },
+    {
+      "id": "avatar-5",
+      "description": "User avatar 5",
+      "imageUrl": "https://picsum.photos/seed/avatar5/200/200",
+      "imageHint": "person portrait"
+    },
+    {
+      "id": "broadcast-1",
+      "description": "Broadcast thumbnail for gaming",
+      "imageUrl": "https://picsum.photos/seed/game1/600/400",
+      "imageHint": "video game"
+    },
+    {
+      "id": "broadcast-2",
+      "description": "Broadcast thumbnail for music",
+      "imageUrl": "https://picsum.photos/seed/music1/600/400",
+      "imageHint": "concert dj"
+    },
+    {
+      "id": "broadcast-3",
+      "description": "Broadcast thumbnail for cooking",
+      "imageUrl": "https://picsum.photos/seed/cook1/600/400",
+      "imageHint": "kitchen food"
+    },
+    {
+      "id": "broadcast-4",
+      "description": "Broadcast thumbnail for art",
+      "imageUrl": "https://picsum.photos/seed/art1/600/400",
+      "imageHint": "painting easel"
+    },
+    {
+      "id": "broadcast-5",
+      "description": "Broadcast thumbnail for coding",
+      "imageUrl": "https://picsum.photos/seed/code1/600/400",
+      "imageHint": "code screen"
+    },
+    {
+      "id": "broadcast-6",
+      "description": "Broadcast thumbnail for travel",
+      "imageUrl": "https://picsum.photos/seed/travel1/600/400",
+      "imageHint": "mountain landscape"
+    },
+    {
+      "id": "broadcast-7",
+      "description": "Broadcast thumbnail for talk show",
+      "imageUrl": "https://picsum.photos/seed/talk1/600/400",
+      "imageHint": "podcast microphone"
+    },
+    {
+      "id": "broadcast-8",
+      "description": "Broadcast thumbnail for fitness",
+      "imageUrl": "https://picsum.photos/seed/fitness1/600/400",
+      "imageHint": "yoga gym"
+    },
+    {
+      "id": "broadcast-9",
+      "description": "Broadcast thumbnail for another game",
+      "imageUrl": "https://picsum.photos/seed/game2/600/400",
+      "imageHint": "gaming controller"
+    },
+    {
+      "id": "broadcast-10",
+      "description": "Broadcast thumbnail for another music session",
+      "imageUrl": "https://picsum.photos/seed/music2/600/400",
+      "imageHint": "guitar player"
+    },
+    {
+      "id": "hero-image",
+      "description": "Hero image for the homepage",
+      "imageUrl": "https://picsum.photos/seed/hero/1280/720",
+      "imageHint": "abstract lights"
+    }
+  ]
 }
