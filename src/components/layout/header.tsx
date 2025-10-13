@@ -22,8 +22,8 @@ export default function Header() {
     return '/broadcast/create';
   }
 
-  if (pathname.startsWith('/feed') || pathname.startsWith('/broadcast/')) {
-    return null; // Hide header on the feed and broadcast pages
+  if (pathname.startsWith('/feed') || pathname.startsWith('/broadcast/') || pathname.startsWith('/live')) {
+    return null; // Hide header on the feed, broadcast and live pages
   }
 
   return (
