@@ -3,15 +3,22 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Broadcast } from '@/lib/data';
 import { Button } from '@/components/ui/button';
-import { Mic, MicOff, Video, VideoOff, Volume2, VolumeX, Users, AlertCircle, ScreenShare, ScreenShareOff } from 'lucide-react';
+import { Mic, MicOff, Video, VideoOff, Volume2, VolumeX, Users, AlertCircle, ScreenShare, ScreenShareOff, X } from 'lucide-react';
 import type { IAgoraRTCClient, ICameraVideoTrack, IMicrophoneAudioTrack, IAgoraRTC, IRemoteVideoTrack, IScreenVideoTrack } from 'agora-rtc-sdk-ng';
 import { useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useRouter } from 'next/navigation';
 
 interface VideoPlayerProps {
   broadcast: Broadcast;
   isHost: boolean;
+  isAudioEnabled: boolean;
+  isVideoEnabled: boolean;
+  isScreenSharing: boolean;
+  toggleAudio: () => void;
+  toggleVideo: () => void;
+  handleScreenShare: () => void;
 }
 
 const appId = process.env.NEXT_PUBLIC_AGORA_APP_ID || '';
@@ -35,29 +42,63 @@ async function fetchToken(channelName: string, uid: number | string): Promise<st
 }
 
 
-export default function VideoPlayer({ broadcast, isHost: isHostFromUrl }: VideoPlayerProps) {
+export default function VideoPlayer({ 
+    broadcast, 
+    isHost,
+    isAudioEnabled,
+    isVideoEnabled,
+    isScreenSharing,
+    toggleAudio,
+    toggleVideo,
+    handleScreenShare
+}: VideoPlayerProps) {
   const { user: currentUser, isUserLoading } = useUser();
   const videoRef = useRef<HTMLDivElement>(null);
   const clientRef = useRef<IAgoraRTCClient>();
   const localVideoTrackRef = useRef<ICameraVideoTrack | null>(null);
   const localAudioTrackRef = useRef<IMicrophoneAudioTrack | null>(null);
   const screenVideoTrackRef = useRef<IScreenVideoTrack | null>(null);
+  const router = useRouter();
 
   const { toast } = useToast();
   
-  const [isMuted, setIsMuted] = useState(!isHostFromUrl);
-  const [isVideoEnabled, setIsVideoEnabled] = useState(false);
-  const [isAudioEnabled, setIsAudioEnabled] = useState(false);
-  const [isScreenSharing, setIsScreenSharing] = useState(false);
+  const [isMuted, setIsMuted] = useState(!isHost);
   const [remoteUsers, setRemoteUsers] = useState<any[]>([]);
   const [hasCameraPermission, setHasCameraPermission] = useState(false);
   const [isConnecting, setIsConnecting] = useState(true);
 
-  const isHost = isHostFromUrl && currentUser?.uid === broadcast.user.id;
+  // This internal state is needed for the VideoPlayer's own UI logic, like the mute button
+  const [_isVideoEnabled, _setIsVideoEnabled] = useState(isHost);
+  const [_isAudioEnabled, _setIsAudioEnabled] = useState(isHost);
+
+
+  const internalToggleVideo = async () => {
+    if(localVideoTrackRef.current) {
+        await localVideoTrackRef.current.setEnabled(!_isVideoEnabled);
+        _setIsVideoEnabled(!_isVideoEnabled);
+        toggleVideo(); // Notify parent
+    }
+  }
+
+  const internalToggleAudio = async () => {
+      if(localAudioTrackRef.current) {
+          await localAudioTrackRef.current.setEnabled(!_isAudioEnabled);
+          _setIsAudioEnabled(!_isAudioEnabled);
+          toggleAudio(); // Notify parent
+      }
+  }
+
+  const handleEndBroadcast = async () => {
+    screenVideoTrackRef.current?.close();
+    localVideoTrackRef.current?.close();
+    localAudioTrackRef.current?.close();
+    await clientRef.current?.leave();
+    router.push('/');
+  }
 
   // Effect for Hosts: Initialize local media immediately for preview
   useEffect(() => {
-    if (!isHost || !videoRef.current) return;
+    if (!isHost || typeof window === 'undefined') return;
 
     let videoTrack: ICameraVideoTrack | null = null;
     let audioTrack: IMicrophoneAudioTrack | null = null;
@@ -78,8 +119,6 @@ export default function VideoPlayer({ broadcast, isHost: isHostFromUrl }: VideoP
             if (videoRef.current) {
                 videoTrack.play(videoRef.current);
             }
-            setIsVideoEnabled(true);
-            setIsAudioEnabled(true);
         } catch (permError) {
             console.error('Failed to get camera/mic permissions', permError);
             setHasCameraPermission(false);
@@ -102,19 +141,8 @@ export default function VideoPlayer({ broadcast, isHost: isHostFromUrl }: VideoP
 
   // Effect for Agora Connection (both host and audience)
   useEffect(() => {
-    if (isUserLoading || !appId || !currentUser) return;
+    if (isUserLoading || !appId || !currentUser || (isHost && !hasCameraPermission) ) return;
     
-    // For hosts, wait for local media to be ready before connecting.
-    if (isHost && !hasCameraPermission && !localVideoTrackRef.current) {
-       // Still waiting for permissions or media initialization, don't connect yet.
-       if (!hasCameraPermission) {
-         // This block prevents non-hosts from getting stuck if host permission is denied.
-         setIsConnecting(false);
-       }
-       return;
-    }
-
-
     let client: IAgoraRTCClient;
 
     const init = async () => {
@@ -139,14 +167,21 @@ export default function VideoPlayer({ broadcast, isHost: isHostFromUrl }: VideoP
           setRemoteUsers(prev => [...prev.filter(u => u.uid !== user.uid), user]);
           const remoteVideoTrack = user.videoTrack;
           
-          let playerContainer = document.getElementById(user.uid.toString());
+          let playerContainer = document.getElementById(`user-player-${user.uid}`);
           if (!playerContainer && videoRef.current) {
             playerContainer = document.createElement('div');
-            playerContainer.id = user.uid.toString();
+            playerContainer.id = `user-player-${user.uid}`;
             playerContainer.style.width = '100%';
             playerContainer.style.height = '100%';
             playerContainer.style.position = 'absolute';
-            videoRef.current.append(playerContainer);
+            playerContainer.style.top = '0';
+            playerContainer.style.left = '0';
+
+            // For audience, we want the remote video to be the main view.
+            if (!isHost) {
+                videoRef.current.innerHTML = ''; // Clear any existing content
+                videoRef.current.append(playerContainer);
+            }
           }
           if(playerContainer){
             remoteVideoTrack.play(playerContainer);
@@ -160,7 +195,7 @@ export default function VideoPlayer({ broadcast, isHost: isHostFromUrl }: VideoP
       const handleUserUnpublished = (user: any, mediaType: 'video' | 'audio') => {
          if (mediaType === 'video') {
            setRemoteUsers(prev => prev.filter(u => u.uid !== user.uid));
-           const playerContainer = document.getElementById(user.uid.toString());
+           const playerContainer = document.getElementById(`user-player-${user.uid}`);
            if (playerContainer) {
                playerContainer.remove();
            }
@@ -210,73 +245,15 @@ export default function VideoPlayer({ broadcast, isHost: isHostFromUrl }: VideoP
       });
   };
 
-  const toggleVideo = async () => {
-    if(localVideoTrackRef.current) {
-        await localVideoTrackRef.current.setEnabled(!isVideoEnabled);
-        setIsVideoEnabled(!isVideoEnabled);
-    }
-  }
-
-  const toggleAudio = async () => {
-      if(localAudioTrackRef.current) {
-          await localAudioTrackRef.current.setEnabled(!isAudioEnabled);
-          setIsAudioEnabled(!isAudioEnabled);
-      }
-  }
-
-  const handleScreenShare = async () => {
-    if (!clientRef.current || !AgoraRTC) return;
-    
-    if (isScreenSharing) { // Stop screen sharing
-      try {
-        await clientRef.current.unpublish(screenVideoTrackRef.current!);
-        screenVideoTrackRef.current?.close();
-        screenVideoTrackRef.current = null;
-        
-        if (localVideoTrackRef.current) {
-          await clientRef.current.publish(localVideoTrackRef.current);
-          if (videoRef.current) {
-              // Ensure camera preview restarts
-              localVideoTrackRef.current.play(videoRef.current);
-          }
-        }
-        setIsScreenSharing(false);
-      } catch (e) {
-        console.error('Failed to stop screen sharing', e);
-        toast({variant: 'destructive', title: 'Could not stop screen sharing.'});
-      }
-    } else { // Start screen sharing
-      try {
-        const screenTrack = await AgoraRTC.createScreenVideoTrack({}, "auto");
-        screenVideoTrackRef.current = screenTrack;
-        
-        if (localVideoTrackRef.current) {
-          await clientRef.current.unpublish(localVideoTrackRef.current);
-        }
-        
-        await clientRef.current.publish(screenTrack);
-        
-        // Listen for the user to stop sharing via the browser's native UI
-        screenTrack.on("track-ended", handleScreenShare);
-
-        setIsScreenSharing(true);
-      } catch (e) {
-        console.error('Failed to start screen sharing', e);
-        toast({variant: 'destructive', title: 'Screen sharing failed', description: 'Please ensure you have granted permissions.'});
-        setIsScreenSharing(false); // Reset state
-      }
-    }
-  };
-
   const showHostUI = isHost;
   const showAudienceUI = !isHost;
   const showOfflineMessage = showAudienceUI && remoteUsers.length === 0 && !isConnecting;
 
 
   return (
-    <div className="absolute inset-0 w-full h-full">
-      <div ref={videoRef} className="w-full h-full bg-black">
-        {/* Agora video track is injected here */}
+    <div className="absolute inset-0 w-full h-full bg-black">
+      <div ref={videoRef} className="w-full h-full">
+        {/* Host self-view or remote user video is injected here */}
       </div>
 
        {showHostUI && !hasCameraPermission && (
@@ -301,7 +278,7 @@ export default function VideoPlayer({ broadcast, isHost: isHostFromUrl }: VideoP
       )}
 
 
-      <div className="absolute top-4 left-4 z-10 flex items-center gap-2">
+      <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
         {broadcast.isLive && (
           <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-600 text-white animate-pulse">
             <span className="w-2 h-2 mr-2 bg-white rounded-full"></span>
@@ -312,9 +289,14 @@ export default function VideoPlayer({ broadcast, isHost: isHostFromUrl }: VideoP
             <Users className="h-4 w-4" />
             {Intl.NumberFormat('en-US', { notation: 'compact' }).format(broadcast.viewers + remoteUsers.length)}
           </span>
+          {showHostUI && (
+            <Button variant="destructive" size="sm" onClick={handleEndBroadcast}>
+                <X className="h-4 w-4 mr-1.5"/> End
+            </Button>
+          )}
       </div>
 
-       <div className="absolute top-4 right-4 z-10">
+       <div className="absolute top-4 left-4 z-10">
          {showAudienceUI && (
             <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); toggleMute(); }} className="text-white hover:bg-white/20 rounded-full">
                 {isMuted ? <VolumeX className="h-6 w-6" /> : <Volume2 className="h-6 w-6" />}
@@ -323,11 +305,11 @@ export default function VideoPlayer({ broadcast, isHost: isHostFromUrl }: VideoP
       </div>
 
       {showHostUI && (
-        <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-10 flex items-center gap-4 p-2 bg-black/40 rounded-full">
-            <Button variant={isAudioEnabled ? "secondary" : "destructive"} size="icon" onClick={toggleAudio} className="rounded-full h-12 w-12">
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 flex items-center gap-4 p-2 bg-black/40 rounded-full">
+            <Button variant={isAudioEnabled ? "secondary" : "destructive"} size="icon" onClick={internalToggleAudio} className="rounded-full h-12 w-12">
                 {isAudioEnabled ? <Mic className="h-6 w-6" /> : <MicOff className="h-6 w-6" />}
             </Button>
-            <Button variant={isVideoEnabled && !isScreenSharing ? "secondary" : "destructive"} size="icon" onClick={toggleVideo} disabled={isScreenSharing} className="rounded-full h-12 w-12">
+            <Button variant={isVideoEnabled && !isScreenSharing ? "secondary" : "destructive"} size="icon" onClick={internalToggleVideo} disabled={isScreenSharing} className="rounded-full h-12 w-12">
                 {isVideoEnabled && !isScreenSharing ? <Video className="h-6 w-6" /> : <VideoOff className="h-6 w-6" />}
             </Button>
              <Button variant={isScreenSharing ? "primary" : "secondary"} size="icon" onClick={handleScreenShare} className="rounded-full h-12 w-12">

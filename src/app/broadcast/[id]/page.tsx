@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Heart, Share2, Star, MessageCircle, MoreVertical } from 'lucide-react';
 import { useUser, useUserDocument } from '@/firebase';
 import type { Broadcast } from '@/lib/data';
+import HostView from '@/components/broadcast/host-view';
 
 export default function BroadcastPage() {
   const params = useParams();
@@ -15,7 +16,7 @@ export default function BroadcastPage() {
   const { user } = useUser();
   const { userDocument } = useUserDocument();
   const searchParams = useSearchParams();
-  const isHost = searchParams.get('host') === 'true';
+  const isHost = searchParams.get('host') === 'true' && user?.uid === id.replace('broadcast-','').slice(0,5);
 
   let broadcast: Broadcast | undefined = broadcasts.find((b) => b.id === id);
   
@@ -38,10 +39,14 @@ export default function BroadcastPage() {
   if (!broadcast) {
     notFound();
   }
+  
+  if (isHost) {
+    return <HostView broadcast={broadcast} />;
+  }
 
   return (
     <div className="relative h-[calc(100vh-4rem)] w-full bg-black snap-start">
-      <VideoPlayer broadcast={broadcast} isHost={isHost && user?.uid === broadcast?.user.id} />
+      <VideoPlayer broadcast={broadcast} isHost={false} />
       
       <div className="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/50 to-transparent">
          {/* Header can go here if needed, for now it's clean */}
