@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { Broadcast } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Mic, MicOff, Video, VideoOff, Volume2, VolumeX, Users, AlertCircle } from 'lucide-react';
-import type { IAgoraRTCClient, ICameraVideoTrack, IMicrophoneAudioTrack } from 'agora-rtc-sdk-ng';
+import type { IAgoraRTCClient, ICameraVideoTrack, IMicrophoneAudioTrack, IAgoraRTC } from 'agora-rtc-sdk-ng';
 import { useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -16,6 +16,8 @@ interface VideoPlayerProps {
 }
 
 const appId = process.env.NEXT_PUBLIC_AGORA_APP_ID || '';
+let AgoraRTC: IAgoraRTC | null = null;
+
 
 async function fetchToken(channelName: string, uid: number | string): Promise<string> {
     const response = await fetch('/api/agora/token', {
@@ -47,17 +49,66 @@ export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerPr
   const [isAudioEnabled, setIsAudioEnabled] = useState(isHost);
   const [remoteUsers, setRemoteUsers] = useState<any[]>([]);
   const [hasCameraPermission, setHasCameraPermission] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
 
+  // Effect for Hosts: Initialize local media immediately for preview
+  useEffect(() => {
+    if (!isHost || !videoRef.current) return;
+
+    let videoTrack: ICameraVideoTrack | null = null;
+    let audioTrack: IMicrophoneAudioTrack | null = null;
+
+    const initHostMedia = async () => {
+        try {
+            if (!AgoraRTC) {
+                AgoraRTC = (await import('agora-rtc-sdk-ng')).default;
+            }
+            [audioTrack, videoTrack] = await AgoraRTC.createMicrophoneAndCameraTracks();
+            
+            localAudioTrackRef.current = audioTrack;
+            localVideoTrackRef.current = videoTrack;
+            
+            setHasCameraPermission(true);
+
+            if (videoRef.current) {
+                videoTrack.play(videoRef.current);
+            }
+            setIsVideoEnabled(true);
+            setIsAudioEnabled(true);
+        } catch (permError) {
+            console.error('Failed to get camera/mic permissions', permError);
+            setHasCameraPermission(false);
+            toast({
+                variant: 'destructive',
+                title: 'Permissions Denied',
+                description: 'Camera and microphone access is required to host a stream. Please enable permissions and refresh.'
+            });
+        }
+    };
+    
+    initHostMedia();
+
+    // Cleanup local tracks on component unmount
+    return () => {
+        videoTrack?.close();
+        audioTrack?.close();
+    };
+  }, [isHost, toast]);
+
+  // Effect for Agora Connection (both host and audience)
   useEffect(() => {
     if (!appId || !currentUser) return;
+    // For hosts, wait for local media to be ready before connecting
+    if (isHost && !hasCameraPermission && localVideoTrackRef.current === null) return;
 
-    let AgoraRTC: any;
     let client: IAgoraRTCClient;
 
     const init = async () => {
       try {
-        AgoraRTC = (await import('agora-rtc-sdk-ng')).default;
+        if (!AgoraRTC) {
+           AgoraRTC = (await import('agora-rtc-sdk-ng')).default;
+        }
       } catch (error) {
         console.error("Failed to load Agora SDK", error);
         toast({ variant: 'destructive', title: "Could not load streaming service."});
@@ -82,7 +133,9 @@ export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerPr
             playerContainer.style.position = 'absolute';
             videoRef.current.append(playerContainer);
           }
-          remoteVideoTrack.play(playerContainer);
+          if(playerContainer){
+            remoteVideoTrack.play(playerContainer);
+          }
         }
          if (mediaType === 'audio') {
           user.audioTrack.play();
@@ -110,28 +163,8 @@ export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerPr
         
         if (isHost) {
           client.setClientRole('host');
-          try {
-            const [audioTrack, videoTrack] = await AgoraRTC.createMicrophoneAndCameraTracks();
-            setHasCameraPermission(true);
-
-            localAudioTrackRef.current = audioTrack;
-            localVideoTrackRef.current = videoTrack;
-
-            if (videoRef.current) {
-              videoTrack.play(videoRef.current);
-            }
-            await client.publish([audioTrack, videoTrack]);
-            setIsVideoEnabled(true);
-            setIsAudioEnabled(true);
-
-          } catch (permError) {
-              console.error('Failed to get camera/mic permissions', permError);
-              setHasCameraPermission(false);
-              toast({
-                  variant: 'destructive',
-                  title: 'Permissions Denied',
-                  description: 'Camera and microphone access is required to host a stream. Please enable permissions and refresh.'
-              });
+          if (localAudioTrackRef.current && localVideoTrackRef.current) {
+             await client.publish([localAudioTrackRef.current, localVideoTrackRef.current]);
           }
         } else {
           client.setClientRole('audience');
@@ -145,12 +178,11 @@ export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerPr
     init();
 
     return () => {
-      localVideoTrackRef.current?.close();
-      localAudioTrackRef.current?.close();
+      // Local tracks are cleaned up in their own effect
       clientRef.current?.leave();
       clientRef.current?.removeAllListeners();
     };
-  }, [broadcast.id, isHost, currentUser, toast]);
+  }, [broadcast.id, isHost, currentUser, hasCameraPermission, toast]);
   
   const toggleMute = () => {
       setIsMuted(!isMuted);
