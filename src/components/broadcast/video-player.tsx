@@ -92,9 +92,11 @@ export default function VideoPlayer({
             remotePlayerContainer.style.height = '100%';
             remotePlayerContainer.style.position = 'absolute';
             if (videoRef.current) {
-                if (!document.getElementById(remotePlayerContainer.id)) {
-                    videoRef.current.append(remotePlayerContainer);
-                }
+                // Clear previous remote users before appending
+                Array.from(videoRef.current.children).forEach(child => {
+                    if(child.id.startsWith('player-')) child.remove();
+                });
+                videoRef.current.append(remotePlayerContainer);
             }
             user.videoTrack.play(remotePlayerContainer);
             setRemoteUsers(prev => [...prev.filter(u => u.uid !== user.uid), user]);
@@ -127,12 +129,22 @@ export default function VideoPlayer({
             localTracks = await AgoraRTC.createMicrophoneAndCameraTracks();
             localAudioTrackRef.current = localTracks[0];
             localVideoTrackRef.current = localTracks[1];
+
+            // Create a player container for the host
+            const hostPlayerContainer = document.createElement('div');
+            hostPlayerContainer.id = `player-${uid}`;
+            hostPlayerContainer.style.width = '100%';
+            hostPlayerContainer.style.height = '100%';
             if(videoRef.current) {
-                localTracks[1].play(videoRef.current);
+                videoRef.current.innerHTML = ''; // Clear previous content
+                videoRef.current.append(hostPlayerContainer);
             }
+            
+            localTracks[1].play(hostPlayerContainer);
             await client.publish(localTracks);
           } catch(permError) {
               console.error('Failed to get camera/mic permissions', permError);
+              toast({ variant: 'destructive', title: "Camera/Mic Required", description: "Please grant camera and microphone access to stream."})
           }
         } else {
           client.setClientRole('audience');
@@ -148,7 +160,8 @@ export default function VideoPlayer({
     init();
 
     return () => {
-      localTracks?.forEach(track => track.close());
+      localAudioTrackRef.current?.close();
+      localVideoTrackRef.current?.close();
       screenVideoTrackRef.current?.close();
       clientRef.current?.leave();
       clientRef.current?.removeAllListeners();
@@ -185,9 +198,11 @@ export default function VideoPlayer({
                   
                   // Handle user stopping screen share from browser controls
                   screenTrack.on("track-ended", async () => {
-                      await client.unpublish(screenTrack);
-                      screenTrack.close();
-                      screenVideoTrackRef.current = null;
+                      if (screenVideoTrackRef.current) {
+                        await client.unpublish(screenVideoTrackRef.current);
+                        screenVideoTrackRef.current.close();
+                        screenVideoTrackRef.current = null;
+                      }
                       // Re-publish camera track
                       if (localVideoTrackRef.current) {
                           await client.publish(localVideoTrackRef.current);
@@ -200,7 +215,9 @@ export default function VideoPlayer({
                   console.error("Screen sharing failed:", error);
                   toast({ variant: 'destructive', title: "Screen Share Failed", description: "Could not start screen sharing."})
                   // Re-publish camera if screen share fails
-                  await client.publish(localVideoTrackRef.current);
+                  if (localVideoTrackRef.current) {
+                    await client.publish(localVideoTrackRef.current);
+                  }
               }
           } else { // Stopping screen share
               if (screenVideoTrackRef.current) {
