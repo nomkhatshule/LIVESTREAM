@@ -5,7 +5,7 @@ import { useUser, useDoc, useFirestore, useUserDocument, updateDocumentNonBlocki
 import { doc, collection, serverTimestamp, query, orderBy, limit } from 'firebase/firestore';
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Mic, MicOff, Video, VideoOff, ScreenShare, ScreenShareOff, X, Users, MessageCircle, Send, Smile, FlipHorizontal, MessageCircleOff } from 'lucide-react';
+import { Mic, MicOff, Video, VideoOff, ScreenShare, ScreenShareOff, X, Users, MessageCircle, Send, Smile, MessageCircleOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
@@ -34,27 +34,23 @@ function LiveStudio() {
     const [newMessage, setNewMessage] = useState('');
     const [isChatVisible, setIsChatVisible] = useState(true);
     
-    // Memoize the doc reference
     const broadcastDocRef = useMemoFirebase(() => {
         if (!broadcastId) return undefined;
         return doc(firestore, 'broadcasts', broadcastId);
     }, [broadcastId, firestore]);
 
-    // Memoize the chat collection query
     const messagesQuery = useMemoFirebase(() => {
         if (!broadcastId) return undefined;
         return query(
             collection(firestore, `broadcasts/${broadcastId}/messages`),
             orderBy('timestamp', 'asc'),
-            limit(100) // Limit to the last 100 messages
+            limit(100)
         );
     }, [broadcastId, firestore]);
 
     const { data: broadcastData, isLoading: isBroadcastLoading } = useDoc<any>(broadcastDocRef);
     const { data: messages, isLoading: areMessagesLoading } = useCollection<ChatMessage>(messagesQuery);
 
-
-    // Mock broadcast object for the VideoPlayer
     const liveBroadcast: Broadcast = useMemo(() => {
         const hostInfo = {
             id: user?.uid || 'host',
@@ -87,25 +83,27 @@ function LiveStudio() {
                 variant: "destructive",
             });
             router.push('/login');
+        } else if (!isUserLoading && user && broadcastData && user.uid !== broadcastData.hostId) {
+            toast({
+                title: "Unauthorized",
+                description: "You are not the host of this broadcast.",
+                variant: "destructive",
+            });
+            router.push(`/broadcast/${broadcastId}`);
         }
-    }, [user, isUserLoading, router, toast]);
+    }, [user, isUserLoading, router, toast, broadcastData, broadcastId]);
 
-    // Redirect if broadcast is no longer live
     useEffect(() => {
       if (!isBroadcastLoading && broadcastData && !broadcastData.isLive) {
           toast({
               title: "Broadcast Ended",
               description: "This broadcast has ended.",
           });
-          if(broadcastDocRef) {
-            updateDocumentNonBlocking(broadcastDocRef, { isLive: false });
-          }
           router.push('/');
       }
-    }, [broadcastData, isBroadcastLoading, router, toast, broadcastDocRef]);
+    }, [broadcastData, isBroadcastLoading, router, toast]);
 
     useEffect(() => {
-        // Auto-scroll to the bottom of the chat
         if (scrollAreaRef.current) {
             const scrollableView = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
             if (scrollableView) {
@@ -119,7 +117,7 @@ function LiveStudio() {
         if (broadcastDocRef) {
             updateDocumentNonBlocking(broadcastDocRef, { isLive: false });
         }
-        router.push('/');
+        // The useEffect hook will handle the redirect
     };
 
     const handleSendMessage = (e: React.FormEvent) => {
@@ -151,7 +149,6 @@ function LiveStudio() {
 
     return (
         <div className="h-screen w-full bg-black text-white flex flex-col relative">
-            {/* Layer 1: Video Feed */}
             <div className="absolute inset-0 z-0">
                 <VideoPlayer
                     broadcast={liveBroadcast}
@@ -162,7 +159,6 @@ function LiveStudio() {
                 />
             </div>
             
-            {/* Layer 2: Status Bar */}
             <div className="absolute top-0 left-0 right-0 z-10 p-4 flex items-center justify-between bg-gradient-to-b from-black/50 to-transparent">
                 <div className="flex items-center gap-4">
                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-600 text-white animate-pulse">
@@ -179,7 +175,6 @@ function LiveStudio() {
                 </Button>
             </div>
 
-            {/* Layer 3: Interaction Zone */}
             <div className="absolute bottom-0 left-0 right-0 z-10 p-4 flex flex-col justify-end bg-gradient-to-t from-black/70 to-transparent h-2/5">
                 {isChatVisible && (
                     <ScrollArea className="h-full max-h-[250px] pr-4" ref={scrollAreaRef}>
@@ -220,7 +215,6 @@ function LiveStudio() {
                 </div>
             </div>
             
-            {/* Layer 4: Core Stream Controls */}
              <div className="absolute right-4 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-4 p-2 bg-black/40 rounded-full backdrop-blur-sm">
                 <Button variant={isAudioEnabled ? "secondary" : "destructive"} size="icon" className="rounded-full h-12 w-12" onClick={() => setIsAudioEnabled(prev => !prev)}>
                     {isAudioEnabled ? <Mic className="h-6 w-6"/> : <MicOff className="h-6 w-6"/>}
@@ -244,5 +238,3 @@ export default function LivePage() {
         </Suspense>
     )
 }
-
-    
