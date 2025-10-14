@@ -13,13 +13,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'account must be a string' }, { status: 400 });
   }
 
+  // Directly access the environment variables on the server.
+  // The `NEXT_PUBLIC_` prefix is for client-side exposure, but the server can access both.
   const appId = process.env.NEXT_PUBLIC_AGORA_APP_ID;
   const appCertificate = process.env.AGORA_APP_CERTIFICATE;
 
   if (!appId || !appCertificate) {
-    // This is the error that's likely being hit, even if vars are in .env
-    // Because next.config.ts isn't passing them through correctly.
-    console.error('Agora App ID or Certificate is not configured on the server. Check next.config.ts and .env file.');
+    console.error('Agora App ID or Certificate is not configured on the server. Check environment variables.');
     return NextResponse.json({ error: 'Agora App ID or Certificate is not configured' }, { status: 500 });
   }
 

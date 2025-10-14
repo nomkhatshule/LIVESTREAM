@@ -28,10 +28,8 @@ const nextConfig: NextConfig = {
       }
     ]
   },
-  env: {
-    NEXT_PUBLIC_AGORA_APP_ID: process.env.NEXT_PUBLIC_AGORA_APP_ID,
-    AGORA_APP_CERTIFICATE: process.env.AGORA_APP_CERTIFICATE,
-  },
+  // The env block is not the correct way to expose server-side variables to API routes.
+  // API routes have direct access to process.env.
 };
 
 export default nextConfig;
