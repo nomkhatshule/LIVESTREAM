@@ -13,8 +13,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { categories } from '@/lib/data';
-import { useUser, useFirestore, useUserDocument } from '@/firebase';
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { useUser, useFirestore, useUserDocument, addDocumentNonBlocking } from '@/firebase';
+import { serverTimestamp, collection } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Video, Loader, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -82,32 +82,39 @@ export default function CreateBroadcastPage() {
       return;
     }
     setIsSubmitting(true);
+    
+    const broadcastsCollection = collection(firestore, 'broadcasts');
+    const broadcastData = {
+      title: title,
+      category: category,
+      hostId: user.uid,
+      hostName: userDocument.username || user.displayName || 'Anonymous',
+      hostAvatar: userDocument.profilePicture || user.photoURL || '',
+      isLive: true,
+      viewers: 0,
+      createdAt: serverTimestamp(),
+      tags: ['New', 'Live'], // Default tags
+    };
+
     try {
-      const broadcastsCollection = collection(firestore, 'broadcasts');
-      
-      const newBroadcastDoc = await addDoc(broadcastsCollection, {
-        title: title,
-        category: category,
-        hostId: user.uid,
-        hostName: userDocument.username || user.displayName || 'Anonymous',
-        hostAvatar: userDocument.profilePicture || user.photoURL || '',
-        isLive: true,
-        viewers: 0,
-        createdAt: serverTimestamp(),
-        tags: ['New', 'Live'], // Default tags
-      });
+        // Use non-blocking add with optimistic navigation
+        const newBroadcastDocPromise = addDocumentNonBlocking(broadcastsCollection, broadcastData);
 
-      router.push(`/live?id=${newBroadcastDoc.id}`);
-
+        // We can navigate immediately for a faster user experience
+        // The promise resolves with the new DocumentReference
+        const newBroadcastDoc = await newBroadcastDocPromise;
+        router.push(`/live?id=${newBroadcastDoc.id}`);
+        
     } catch (error) {
-      console.error('Error creating broadcast:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Error Starting Stream',
-        description: 'Could not create the broadcast. Please try again.',
-      });
-    } finally {
-      setIsSubmitting(false);
+        // This catch block will now likely only catch non-Firestore errors,
+        // as permission errors are handled by our global listener.
+        console.error("An unexpected error occurred:", error);
+        toast({
+            variant: 'destructive',
+            title: 'Error Starting Stream',
+            description: 'An unexpected error occurred. Please try again.',
+        });
+        setIsSubmitting(false);
     }
   };
   
