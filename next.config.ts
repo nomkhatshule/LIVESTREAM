@@ -23,12 +23,9 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
       {
-        protocol: 'https',
-        hostname: 'picsum.photos',
-        port: '',
-        pathname: '/**',
-      },
-    ],
+        protocol: 'https'
+      }
+    ]
   },
   env: {
     // This ensures both variables are available to the server environment

@@ -120,7 +120,7 @@ export default function VideoPlayer({
       try {
         // Use the string UID (account) for both token fetching and joining
         const account = currentUser.uid;
-        const token = "007eJxTYPhl4qsReOBh2+src/zSks2sV7CUeqeenpBxx9J/veTHKCkFhpSkNHODNCNjA5M0CxPTJIskU2NLg8Qk42TzZCNz4xSj5eHvMhoCGRl6911gZGSAQBCfi8ExPb8oMSezLFWBgQEAFp8h+w==";
+        const token = await fetchToken(broadcast.id, account);
 
         await client.join(appId, broadcast.id, token, account);
         
