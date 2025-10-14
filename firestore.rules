@@ -1,22 +1,90 @@
+/**
+ * @fileoverview Firestore Security Rules for AgoraLive.
+ *
+ * Core Philosophy:
+ * This ruleset enforces a strict user-ownership model for user profiles
+ * and allows public read access with owner-only writes for broadcast chat messages.
+ *
+ * Data Structure:
+ * - /users/{userId}: Stores user profile information, with userId matching the Firebase auth UID.
+ * - /broadcasts/{broadcastId}/messages/{messageId}: Stores chat messages for a specific broadcast.
+ *
+ * Key Security Decisions:
+ * - Users can only read and write their own profile data.
+ * - Chat messages are publicly readable, but only authenticated users can create them, and they can only
+ *   update or delete their own messages.
+ * - Listing users is disallowed to protect user privacy.
+ *
+ * Denormalization for Authorization:
+ *  The userId is denormalized onto the User document at creation time to enforce path-based ownership and enable quick authorization checks.
+ */
 rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
 
-// Craft rules based on data in your Firestore database
-// allow write: if firestore.get(
-//    /databases/(default)/documents/users/$(request.auth.uid)).data.isAdmin;
-service firebase.storage {
-  match /b/{bucket}/o {
+    /**
+     * @description Checks if the request is authenticated.
+     * @returns {boolean} True if the request is authenticated, false otherwise.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
 
-    // This rule allows anyone with your Storage bucket reference to view, edit,
-    // and delete all data in your Storage bucket. It is useful for getting
-    // started, but it is configured to expire after 30 days because it
-    // leaves your app open to attackers. At that time, all client
-    // requests to your Storage bucket will be denied.
-    //
-    // Make sure to write security rules for your app before that time, or else
-    // all client requests to your Storage bucket will be denied until you Update
-    // your rules
-    match /{allPaths=**} {
-      allow read, write: if request.time < timestamp.date(2025, 11, 13);
+    /**
+     * @description Checks if the user ID matches the authenticated user's UID.
+     * @param {string} userId The user ID to check.
+     * @returns {boolean} True if the user ID matches the authenticated user's UID, false otherwise.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * @description Checks if the user is the owner of an existing document.
+     * @param {string} userId The user ID to check.
+     * @returns {boolean} True if the user ID matches the authenticated user's UID and the document exists.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+
+    /**
+     * @description Rules for user profiles.
+     * @path /users/{userId}
+     * @allow (create) - Authenticated user with UID 'user_abc' can create their profile at /users/user_abc if the document.id also equals 'user_abc'.
+     * @allow (get, update, delete) - Authenticated user with UID 'user_abc' can read, update, and delete their profile at /users/user_abc.
+     * @deny (create) - Authenticated user with UID 'user_abc' cannot create a profile at /users/user_xyz.
+     * @deny (get, update, delete) - Authenticated user with UID 'user_xyz' cannot read, update, or delete the profile at /users/user_abc.
+     * @principle Enforces document ownership for writes.
+     */
+    match /users/{userId} {
+      // Read permissions: only the owner can read their profile
+      allow get: if isOwner(userId);
+      allow list: if false;
+
+      // Write permissions: only the owner can create, update, or delete their profile
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Rules for chat messages within a broadcast.
+     * @path /broadcasts/{broadcastId}/messages/{messageId}
+     * @allow (get, list) - Any user can read chat messages.
+     * @allow (create) - Authenticated users can create chat messages.
+     * @allow (update, delete) - Only the owner of the message can update or delete it.
+     * @deny (update, delete) - Non-owners cannot update or delete chat messages.
+     * @principle Public read access with owner-only writes.
+     */
+    match /broadcasts/{broadcastId}/messages/{messageId} {
+      // Read permissions: anyone can read chat messages
+      allow get, list: if true;
+
+      // Write permissions: only authenticated users can create chat messages
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && request.auth.uid == resource.data.userId;
+      allow delete: if isSignedIn() && request.auth.uid == resource.data.userId;
     }
   }
 }
