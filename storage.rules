@@ -1,0 +1,12 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Allow users to read, write, and delete their own avatar files.
+    // Files are stored in a folder matching the user's UID for security.
+    match /avatars/{userId}/{fileName} {
+      allow read: if true;
+      allow write, delete: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
