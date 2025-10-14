@@ -17,6 +17,9 @@ export async function POST(request: Request) {
   const appCertificate = process.env.AGORA_APP_CERTIFICATE;
 
   if (!appId || !appCertificate) {
+    // This is the error that's likely being hit, even if vars are in .env
+    // Because next.config.ts isn't passing them through correctly.
+    console.error('Agora App ID or Certificate is not configured on the server. Check next.config.ts and .env file.');
     return NextResponse.json({ error: 'Agora App ID or Certificate is not configured' }, { status: 500 });
   }
 
