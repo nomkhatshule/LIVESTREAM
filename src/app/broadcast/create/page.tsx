@@ -103,7 +103,16 @@ export default function CreateBroadcastPage() {
         // We can navigate immediately for a faster user experience
         // The promise resolves with the new DocumentReference
         const newBroadcastDoc = await newBroadcastDocPromise;
-        router.push(`/live?id=${newBroadcastDoc.id}`);
+        
+        // If there was a permission error, newBroadcastDoc will be undefined.
+        // The global error handler will show the error, so we just stop here.
+        if (newBroadcastDoc) {
+          router.push(`/live?id=${newBroadcastDoc.id}`);
+        } else {
+          // If the doc creation fails for a reason other than permissions,
+          // it might be good to stop the loading spinner.
+          setIsSubmitting(false);
+        }
         
     } catch (error) {
         // This catch block will now likely only catch non-Firestore errors,
