@@ -12,10 +12,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { categories, users } from '@/lib/data';
-import { useUser } from '@/firebase';
+import { categories } from '@/lib/data';
+import { useUser, useFirestore, useUserDocument } from '@/firebase';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
-import { useFirestore } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { Video, Loader, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -24,6 +23,7 @@ export default function CreateBroadcastPage() {
   const router = useRouter();
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
+  const { userDocument, isDocLoading } = useUserDocument();
   const { toast } = useToast();
 
   const [title, setTitle] = useState('');
@@ -71,37 +71,32 @@ export default function CreateBroadcastPage() {
       });
       return;
     }
-    if (!user) {
+    if (!user || !userDocument) {
       toast({
         variant: 'destructive',
         title: 'Not Logged In',
-        description: 'You must be logged in to start a broadcast.',
+        description: 'You must be logged in with a complete profile to start a broadcast.',
       });
-      router.push('/login');
+      if (!user) router.push('/login');
+      else if (!userDocument) router.push('/profile');
       return;
     }
     setIsSubmitting(true);
     try {
-      // In a real app, you would have a 'broadcasts' collection.
-      // We will simulate this by adding a document to a mock collection.
       const broadcastsCollection = collection(firestore, 'broadcasts');
       
-      // Find a mock user to associate with the broadcast
-      const hostUser = users.find(u => u.id === user.uid) || users[0];
-
       const newBroadcastDoc = await addDoc(broadcastsCollection, {
         title: title,
         category: category,
         hostId: user.uid,
-        hostName: hostUser.name,
-        hostAvatar: hostUser.avatarUrl,
+        hostName: userDocument.username || 'Anonymous',
+        hostAvatar: userDocument.profilePicture || '',
         isLive: true,
         viewers: 0,
         createdAt: serverTimestamp(),
         tags: ['New', 'Live'], // Default tags
       });
 
-      // Navigate to the new dedicated live page with the broadcast ID
       router.push(`/live?id=${newBroadcastDoc.id}`);
 
     } catch (error) {
@@ -116,10 +111,13 @@ export default function CreateBroadcastPage() {
     }
   };
   
-  if (isUserLoading || hasCameraPermission === null) {
+  const isLoading = isUserLoading || isDocLoading || hasCameraPermission === null;
+
+  if (isLoading) {
     return (
         <div className="flex h-screen w-full items-center justify-center bg-background">
             <Loader className="h-8 w-8 animate-spin text-primary" />
+            <p className="ml-2">Preparing your studio...</p>
         </div>
     );
   }
@@ -182,7 +180,7 @@ export default function CreateBroadcastPage() {
           <Button
             size="lg"
             onClick={handleGoLive}
-            disabled={isSubmitting || !title || !category}
+            disabled={isSubmitting || !title || !category || isLoading}
             className="w-full"
           >
             {isSubmitting ? (
