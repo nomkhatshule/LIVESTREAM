@@ -2,84 +2,116 @@
  * @fileoverview Firestore Security Rules for AgoraLive.
  *
  * Core Philosophy:
- * This ruleset enforces a strict user-ownership model for user profiles
- * and allows public read access to broadcasts while restricting write access to owners.
+ * This ruleset enforces a user-ownership model for user profiles and allows creators of broadcasts to manage them.
  *
  * Data Structure:
- * - /users/{userId}: Stores user profile data; userId must match the authenticated user's UID.
- * - /broadcasts/{broadcastId}/messages/{messageId}: Stores chat messages for broadcasts.
+ * - /users/{userId}: Stores user profile information, with userId matching the Firebase auth UID.
+ * - /broadcasts/{broadcastId}/messages/{messageId}: Stores chat messages for a specific broadcast.
  *
  * Key Security Decisions:
- * - Users can only read/write their own profile data.
- * - Public read access is granted for broadcasts.
- * - Only owners can modify broadcasts.
+ * - Users can only create, read, update, and delete their own profile data.
+ * - Broadcasts can only be created by authenticated users, and the creator is considered the owner.
  *
  * Denormalization for Authorization:
- *  None
- *
- * Structural Segregation:
- *  User profiles are stored in a dedicated /users/{userId} collection, ensuring private access.
+ * The `broadcasts` collection stores the `hostId` of the user that created the resource. This avoids having to `get()` a separate document to verify the owner.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Allows users to read and write their own profile data.
+     * @description Controls access to user profile information.
      * @path /users/{userId}
-     * @allow (create, update, get, delete, list) if the request is made by the user with matching userId
-     * @deny (create, update, get, delete, list) if the request is made by a different user or unauthenticated user
-     * @principle Enforces document ownership for all operations.
+     * @allow (create) User with UID 'user123' can create their profile.
+     *   - Request: { auth: { uid: 'user123' }, path: '/databases/(default)/documents/users/user123' }
+     * @allow (get) User with UID 'user123' can read their profile.
+     *   - Request: { auth: { uid: 'user123' }, path: '/databases/(default)/documents/users/user123' }
+     * @allow (update) User with UID 'user123' can update their profile.
+     *   - Request: { auth: { uid: 'user123' }, path: '/databases/(default)/documents/users/user123' }
+     * @allow (delete) User with UID 'user123' can delete their profile.
+     *   - Request: { auth: { uid: 'user123' }, path: '/databases/(default)/documents/users/user123' }
+     * @deny (create) User with UID 'user456' cannot create a profile for user 'user123'.
+     *   - Request: { auth: { uid: 'user456' }, path: '/databases/(default)/documents/users/user123' }
+     * @principle Enforces document ownership for writes and restricts access to a user's own data tree.
      */
     match /users/{userId} {
-      allow get: if isSignedIn() && isOwner(userId);
+      function isOwner(userId) {
+        return request.auth != null && request.auth.uid == userId;
+      }
+
+      function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+      }
+
+      allow get: if isOwner(userId);
       allow list: if false;
-      allow create: if isSignedIn() && isOwner(userId);
-      allow update: if isSignedIn() && isOwner(userId);
-      allow delete: if isSignedIn() && isExistingOwner(userId);
+      allow create: if isOwner(userId);
+      allow update: if isExistingOwner(userId);
+      allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Allows anyone to read chat messages. Only allow broadcast owner to create messages.
-     * @path /broadcasts/{broadcastId}/messages/{messageId}
-     * @allow (get, list) any user, authenticated or not
-     * @allow (create) the authenticated user
-     * @deny (create) if the user is not authenticated.
-     * @deny (update, delete) all users.
-     * @principle Open read access with owner-only writes
-     */
-    match /broadcasts/{broadcastId}/messages/{messageId} {
-      allow get, list: if true;
-      allow create: if isSignedIn();
-      allow update, delete: if false;
-    }
-
-    /**
-     * @description Allows anyone to read broadcasts. Only allow owner to update broadcasts to stop live
+     * @description Controls access to broadcasts.
      * @path /broadcasts/{broadcastId}
-     * @allow (get, list) any user, authenticated or not
-     * @allow (update) the authenticated user with specific clause isLive
-     * @deny (create) if the user is not authenticated.
-     * @deny (update, delete) all users.
-     * @principle Open read access with owner-only writes
+     * @allow (create) Authenticated user can create a broadcast with their UID as the hostId.
+     *   - Request: { auth: { uid: 'user123' }, path: '/databases/(default)/documents/broadcasts', resource: { data: { hostId: 'user123' } } }
+     * @allow (get) Any user can read a broadcast.
+     *   - Request: { auth: { uid: 'user456' }, path: '/databases/(default)/documents/broadcasts/broadcast1' }
+     * @allow (update) Owner can update the broadcast.
+     *   - Request: { auth: { uid: 'user123' }, path: '/databases/(default)/documents/broadcasts/broadcast1', resource: { data: { hostId: 'user123' } } }
+     * @allow (delete) Owner can delete the broadcast.
+     *   - Request: { auth: { uid: 'user123' }, path: '/databases/(default)/documents/broadcasts/broadcast1', resource: { data: { hostId: 'user123' } } }
+     * @deny (create) Unauthenticated user cannot create a broadcast.
+     *   - Request: { auth: null, path: '/databases/(default)/documents/broadcasts' }
+     * @deny (update) Non-owner cannot update the broadcast.
+     *   - Request: { auth: { uid: 'user456' }, path: '/databases/(default)/documents/broadcasts/broadcast1', resource: { data: { hostId: 'user123' } } }
+     * @principle Enforces document ownership for writes, allows public reads.
      */
     match /broadcasts/{broadcastId} {
-      allow get, list: if true;
-      allow create: if false;
-      allow update: if isSignedIn();
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function isOwner(hostId) {
+        return isSignedIn() && request.auth.uid == hostId;
+      }
+
+      function isExistingOwner(hostId) {
+        return isOwner(hostId) && resource != null;
+      }
+
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSignedIn() && request.resource.data.hostId == request.auth.uid;
+      allow update: if isExistingOwner(resource.data.hostId);
+      allow delete: if isExistingOwner(resource.data.hostId);
+    }
+
+    /**
+     * @description Controls access to chat messages within a broadcast.
+     * @path /broadcasts/{broadcastId}/messages/{messageId}
+     * @allow (create) Authenticated user can create a chat message.
+     *   - Request: { auth: { uid: 'user123' }, path: '/databases/(default)/documents/broadcasts/broadcast1/messages' }
+     * @allow (get) Any user can read a chat message.
+     *   - Request: { auth: { uid: 'user456' }, path: '/databases/(default)/documents/broadcasts/broadcast1/messages/message1' }
+     * @allow (list) Any user can list chat messages.
+     *   - Request: { auth: { uid: 'user456' }, path: '/databases/(default)/documents/broadcasts/broadcast1/messages' }
+     * @deny (update) No one can update a chat message.
+     *   - Request: { auth: { uid: 'user123' }, path: '/databases/(default)/documents/broadcasts/broadcast1/messages/message1' }
+     * @deny (delete) No one can delete a chat message.
+     *   - Request: { auth: { uid: 'user123' }, path: '/databases/(default)/documents/broadcasts/broadcast1/messages/message1' }
+     * @principle Allows public reads and creates, restricts updates and deletes.
+     */
+    match /broadcasts/{broadcastId}/messages/{messageId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSignedIn();
+      allow update: if false;
       allow delete: if false;
-    }
-
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    function isOwner(userId) {
-      return request.auth.uid == userId;
-    }
-
-    function isExistingOwner(userId) {
-      return isSignedIn() && isOwner(userId) && resource != null;
     }
   }
 }
