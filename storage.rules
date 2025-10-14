@@ -1,12 +1,20 @@
 rules_version = '2';
 
+// The next line must be updated to match your Firebase project's storage bucket URL.
 service firebase.storage {
-  match /b/{bucket}/o {
-    // Allow users to read, write, and delete their own avatar files.
-    // Files are stored in a folder matching the user's UID for security.
-    match /avatars/{userId}/{fileName} {
+  match /b/studio-5881083204-f3849.appspot.com/o {
+    
+    // User Avatars:
+    // Allow users to upload files to a folder matching their user ID.
+    // Allow anyone to read these files (as they are public profile pictures).
+    match /user-avatars/{userId}/{fileName} {
       allow read: if true;
-      allow write, delete: if request.auth != null && request.auth.uid == userId;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Default deny all other paths
+    match /{allPaths=**} {
+      allow read, write: if false;
     }
   }
 }
