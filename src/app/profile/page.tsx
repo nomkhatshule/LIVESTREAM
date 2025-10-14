@@ -1,5 +1,5 @@
 'use client';
-import { useUser, useUserDocument, useFirestore, setDocumentNonBlocking } from '@/firebase';
+import { useUser, useUserDocument, useFirestore, setDocumentNonBlocking, useStorage } from '@/firebase';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -12,12 +12,16 @@ import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { revalidateProfilePaths } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { doc } from 'firebase/firestore';
+import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
+import { Camera, Loader2 } from 'lucide-react';
+
 
 const profileSchema = z.object({
   username: z.string().min(3, 'Username must be at least 3 characters').max(20, 'Username must be less than 20 characters'),
   bio: z.string().max(160, 'Bio must be less than 160 characters').optional(),
+  profilePicture: z.string().url().optional(),
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
@@ -26,13 +30,18 @@ export default function ProfilePage() {
   const { user, isUserLoading } = useUser();
   const { userDocument, isDocLoading } = useUserDocument();
   const firestore = useFirestore();
+  const storage = useStorage();
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
       username: '',
       bio: '',
+      profilePicture: '',
     },
   });
 
@@ -41,21 +50,59 @@ export default function ProfilePage() {
       form.reset({
         username: userDocument.username || '',
         bio: userDocument.bio || '',
+        profilePicture: userDocument.profilePicture || user?.photoURL || '',
       });
     }
-  }, [userDocument, form]);
+  }, [userDocument, user, form]);
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!event.target.files || event.target.files.length === 0 || !user) {
+      return;
+    }
+    const file = event.target.files[0];
+    const storageRef = ref(storage, `avatars/${user.uid}/${file.name}`);
+
+    setIsUploading(true);
+
+    try {
+        await uploadBytes(storageRef, file);
+        const downloadURL = await getDownloadURL(storageRef);
+
+        const userDocRef = doc(firestore, 'users', user.uid);
+        setDocumentNonBlocking(userDocRef, { profilePicture: downloadURL }, { merge: true });
+        form.setValue('profilePicture', downloadURL);
+
+        await revalidateProfilePaths();
+
+        toast({
+            title: 'Avatar Updated',
+            description: 'Your new avatar has been saved.',
+        });
+
+    } catch (error) {
+        console.error("Error uploading avatar:", error);
+        toast({
+            variant: 'destructive',
+            title: 'Upload Failed',
+            description: 'Could not upload your new avatar. Please try again.',
+        });
+    } finally {
+        setIsUploading(false);
+    }
+  };
 
   const onSubmit = async (data: ProfileFormValues) => {
     if (!user) return;
     
-    // Optimistically update the UI while the backend call proceeds.
     const userDocRef = doc(firestore, 'users', user.uid);
+    const { profilePicture, ...profileData } = data; // Don't save profilePicture via this form
     
-    // Use the non-blocking update function.
-    // It will handle errors via the global error emitter.
-    setDocumentNonBlocking(userDocRef, data, { merge: true });
+    setDocumentNonBlocking(userDocRef, profileData, { merge: true });
 
-    // Revalidate server-side caches.
     await revalidateProfilePaths();
     
     toast({
@@ -75,6 +122,9 @@ export default function ProfilePage() {
       </div>
     );
   }
+  
+  const avatarSrc = form.watch('profilePicture');
+
 
   return (
     <div className="container mx-auto max-w-2xl py-12 px-4">
@@ -82,12 +132,19 @@ export default function ProfilePage() {
         <CardHeader className="text-center">
            <div className="relative w-24 h-24 mx-auto">
               <Avatar className="w-24 h-24 border-4 border-primary">
-                <AvatarImage src={user.photoURL || undefined} />
+                <AvatarImage src={avatarSrc} />
                 <AvatarFallback className="text-3xl">{form.getValues('username')?.charAt(0) || user.email?.charAt(0)}</AvatarFallback>
               </Avatar>
-              <Button size="icon" variant="secondary" className="absolute bottom-0 right-0 rounded-full h-8 w-8">
-                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path><circle cx="12" cy="13" r="3"></circle></svg>
+              <Button size="icon" variant="secondary" className="absolute bottom-0 right-0 rounded-full h-8 w-8" onClick={handleAvatarClick} disabled={isUploading}>
+                 {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
               </Button>
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={handleFileChange}
+                className="hidden" 
+                accept="image/png, image/jpeg, image/gif"
+              />
             </div>
           <CardTitle className="mt-4 text-3xl font-headline">{form.watch('username') || user.displayName || 'Anonymous'}</CardTitle>
           <CardDescription>{user.email}</CardDescription>
@@ -121,7 +178,7 @@ export default function ProfilePage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" disabled={form.formState.isSubmitting}>
+              <Button type="submit" disabled={form.formState.isSubmitting || isUploading}>
                 {form.formState.isSubmitting ? 'Saving...' : 'Save Changes'}
               </Button>
             </form>

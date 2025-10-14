@@ -44,13 +44,14 @@ export default function UserNav() {
   }
   
   const displayName = isDocLoading ? '' : (userDocument?.username || user.displayName || 'Anonymous User');
+  const avatarUrl = userDocument?.profilePicture || user.photoURL;
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-9 w-9">
-            {user.photoURL && <AvatarImage src={user.photoURL} alt={displayName} />}
+            {avatarUrl && <AvatarImage src={avatarUrl} alt={displayName} />}
             <AvatarFallback>{displayName?.charAt(0).toUpperCase()}</AvatarFallback>
           </Avatar>
         </Button>
