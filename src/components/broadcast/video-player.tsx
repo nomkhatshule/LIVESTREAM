@@ -19,11 +19,12 @@ interface VideoPlayerProps {
 
 const appId = process.env.NEXT_PUBLIC_AGORA_APP_ID || '';
 
-// Updated to call the new Go middleware token server
+// Updated to call the new Go middleware token server via our proxy
 async function fetchToken(channelName: string, account: string, role: 'publisher' | 'subscriber'): Promise<string> {
     if (!account) {
         throw new Error("User account is not available to generate a token.");
     }
+    console.log(`Requesting token for account: ${account}, channel: ${channelName}, role: ${role}`);
     // Calls our own Next.js API route which acts as a proxy
     const response = await fetch('/api/token', {
         method: 'POST',
@@ -36,16 +37,25 @@ async function fetchToken(channelName: string, account: string, role: 'publisher
             expire: 3600 // Token expiration time in seconds
         }),
     });
+
     if (!response.ok) {
         let errorBody: any = { error: `Failed to fetch token from proxy: ${response.statusText}` };
         try {
-            errorBody = await response.json();
+            const textBody = await response.text();
+            console.error("Proxy server error response text:", textBody);
+            try {
+              errorBody = JSON.parse(textBody);
+            } catch {
+              errorBody.details = textBody;
+            }
         } catch (e) {
-            // Ignore if response is not json
+             console.error("Could not parse error response body:", e);
         }
-        throw new Error(errorBody.error || `Failed to fetch token from proxy: ${response.statusText}`);
+        throw new Error(errorBody.error || errorBody.details || `Failed to fetch token from proxy: ${response.statusText}`);
     }
+
     const data = await response.json();
+    console.log("Successfully received token.");
     return data.token;
 }
 
