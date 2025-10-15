@@ -3,12 +3,10 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Broadcast } from '@/lib/data';
 import { Button } from '@/components/ui/button';
-import { Mic, MicOff, Video, VideoOff, Volume2, VolumeX, Users, AlertCircle, ScreenShare, ScreenShareOff, X, FlipHorizontal } from 'lucide-react';
-import type { IAgoraRTCClient, ICameraVideoTrack, IMicrophoneAudioTrack, IAgoraRTC, IRemoteVideoTrack, IScreenVideoTrack, UID } from 'agora-rtc-sdk-ng';
+import { Volume2, VolumeX, Users } from 'lucide-react';
+import type { IAgoraRTCClient, ICameraVideoTrack, IMicrophoneAudioTrack, IAgoraRTC, IScreenVideoTrack } from 'agora-rtc-sdk-ng';
 import { useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { useRouter } from 'next/navigation';
 
 interface VideoPlayerProps {
   broadcast: Broadcast;
@@ -25,9 +23,7 @@ let AgoraRTC: IAgoraRTC | null = null;
 async function fetchToken(channelName: string, account: string): Promise<string> {
     const response = await fetch('/api/agora/token', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ channelName, account }),
     });
     if (!response.ok) {
@@ -47,28 +43,23 @@ export default function VideoPlayer({
     isScreenSharing,
 }: VideoPlayerProps) {
   const { user: currentUser, isUserLoading } = useUser();
-  const playerRef = useRef<HTMLDivElement>(null);
   const clientRef = useRef<IAgoraRTCClient>();
   const localVideoTrackRef = useRef<ICameraVideoTrack | null>(null);
   const localAudioTrackRef = useRef<IMicrophoneAudioTrack | null>(null);
   const screenVideoTrackRef = useRef<IScreenVideoTrack | null>(null);
-  const router = useRouter();
-
+  
   const { toast } = useToast();
   
   const [isMuted, setIsMuted] = useState(!isHost);
   const [remoteUsers, setRemoteUsers] = useState<any[]>([]);
   const [isConnecting, setIsConnecting] = useState(true);
 
-  // Effect for Agora Connection (both host and audience)
   useEffect(() => {
-    // CRITICAL FIX: Do not attempt to initialize until the user is fully loaded.
     if (isUserLoading || !appId || !currentUser) return;
     
     let client: IAgoraRTCClient;
-    let localTracks: [IMicrophoneAudioTrack, ICameraVideoTrack] | null = null;
 
-    const init = async () => {
+    const initAgora = async () => {
       setIsConnecting(true);
       try {
         if (!AgoraRTC) {
@@ -84,74 +75,71 @@ export default function VideoPlayer({
       client = AgoraRTC.createClient({ mode: 'live', codec: 'vp8' });
       clientRef.current = client;
 
-      const handleUserPublished = async (user: any, mediaType: 'video' | 'audio') => {
+      client.on('user-published', async (user, mediaType) => {
         await client.subscribe(user, mediaType);
         if (mediaType === 'video') {
             const remotePlayerContainer = document.createElement('div');
             remotePlayerContainer.id = `player-${user.uid}`;
             remotePlayerContainer.className = 'w-full h-full absolute top-0 left-0';
             
-            if (playerRef.current) {
-                // Remove any previous remote player for this user
+            const playerContainer = document.getElementById('remote-players');
+            if (playerContainer) {
                 const existingPlayer = document.getElementById(remotePlayerContainer.id);
-                if (existingPlayer) {
-                    existingPlayer.remove();
-                }
-                playerRef.current.append(remotePlayerContainer);
+                if (existingPlayer) existingPlayer.remove();
+                playerContainer.append(remotePlayerContainer);
             }
             user.videoTrack.play(remotePlayerContainer);
-            setRemoteUsers(prev => [...prev.filter(u => u.uid !== user.uid), user]);
         }
-         if (mediaType === 'audio') {
+        if (mediaType === 'audio') {
           user.audioTrack.play();
         }
-      };
+        setRemoteUsers(prev => [...prev.filter(u => u.uid !== user.uid), user]);
+      });
 
-      const handleUserUnpublished = (user: any) => {
+      client.on('user-unpublished', (user) => {
          const playerContainer = document.getElementById(`player-${user.uid}`);
-         if (playerContainer) {
-             playerContainer.remove();
-         }
+         if (playerContainer) playerContainer.remove();
          setRemoteUsers(prev => prev.filter(u => u.uid !== user.uid));
-      };
-
-      client.on('user-published', handleUserPublished);
-      client.on('user-unpublished', handleUserUnpublished);
+      });
 
       try {
-        // Use the string UID (account) for both token fetching and joining
         const account = currentUser.uid;
         const token = await fetchToken(broadcast.id, account);
-
         await client.join(appId, broadcast.id, token, account);
         
         if (isHost) {
           client.setClientRole('host');
           try {
-            localTracks = await AgoraRTC.createMicrophoneAndCameraTracks();
-            localAudioTrackRef.current = localTracks[0];
-            localVideoTrackRef.current = localTracks[1];
+            // THIS IS THE CRITICAL PERMISSION REQUEST
+            const [audioTrack, videoTrack] = await AgoraRTC.createMicrophoneAndCameraTracks();
+            localAudioTrackRef.current = audioTrack;
+            localVideoTrackRef.current = videoTrack;
             
-            // The key fix: play the local video track into the dedicated div
-            localTracks[1].play('local-player');
+            // Play local video to the dedicated div
+            videoTrack.play('local-player');
             
-            await client.publish(localTracks);
+            await client.publish([audioTrack, videoTrack]);
           } catch(permError) {
               console.error('Failed to get camera/mic permissions', permError);
-              toast({ variant: 'destructive', title: "Camera/Mic Required", description: "Please grant camera and microphone access to stream."})
+              toast({ 
+                variant: 'destructive', 
+                title: "Camera/Mic Required", 
+                description: "Please grant camera and microphone access to stream. You may need to refresh and try again.",
+                duration: 10000,
+              });
           }
         } else {
           client.setClientRole('audience');
         }
-      } catch (error) {
-        console.error('Failed to join channel or fetch token', error);
-        toast({ variant: 'destructive', title: 'Connection Failed', description: 'Could not connect to the broadcast.'});
+      } catch (error: any) {
+        console.error('Failed to join channel or publish', error);
+        toast({ variant: 'destructive', title: 'Connection Failed', description: error.message || 'Could not connect to the broadcast.'});
       } finally {
         setIsConnecting(false);
       }
     };
 
-    init();
+    initAgora();
 
     return () => {
       localAudioTrackRef.current?.close();
@@ -160,17 +148,17 @@ export default function VideoPlayer({
       clientRef.current?.leave();
       clientRef.current?.removeAllListeners();
     };
-  }, [broadcast.id, isHost, currentUser, toast, isUserLoading]);
+  }, [broadcast.id, isHost, currentUser, isUserLoading, toast]);
   
   useEffect(() => {
     if (isHost && localVideoTrackRef.current) {
-      localVideoTrackRef.current.setEnabled(isVideoEnabled ?? true);
+      localVideoTrackRef.current.setEnabled(isVideoEnabled ?? true).catch(e => console.error("Failed to toggle video", e));
     }
   }, [isVideoEnabled, isHost]);
 
   useEffect(() => {
     if (isHost && localAudioTrackRef.current) {
-      localAudioTrackRef.current.setEnabled(isAudioEnabled ?? true);
+      localAudioTrackRef.current.setEnabled(isAudioEnabled ?? true).catch(e => console.error("Failed to toggle audio", e));
     }
   }, [isAudioEnabled, isHost]);
 
@@ -183,44 +171,42 @@ export default function VideoPlayer({
 
           if (isScreenSharing) {
               try {
-                  // Unpublish camera track
                   await client.unpublish(localVideoTrackRef.current);
                   
-                  // Create and publish screen track
                   const screenTrack = await AgoraRTC.createScreenVideoTrack({}, "auto");
                   screenVideoTrackRef.current = screenTrack;
                   
-                  // Handle user stopping screen share from browser controls
                   screenTrack.on("track-ended", async () => {
                       if (screenVideoTrackRef.current) {
                         await client.unpublish(screenVideoTrackRef.current);
                         screenVideoTrackRef.current.close();
                         screenVideoTrackRef.current = null;
                       }
-                      // Re-publish camera track
                       if (localVideoTrackRef.current) {
                           await client.publish(localVideoTrackRef.current);
                       }
                   });
 
                   await client.publish(screenTrack);
+                  // Screen share also needs a player element
+                  screenTrack.play('local-player');
                   
               } catch (error) {
                   console.error("Screen sharing failed:", error);
                   toast({ variant: 'destructive', title: "Screen Share Failed", description: "Could not start screen sharing."})
-                  // Re-publish camera if screen share fails
                   if (localVideoTrackRef.current) {
                     await client.publish(localVideoTrackRef.current);
                   }
               }
-          } else { // Stopping screen share
+          } else { 
               if (screenVideoTrackRef.current) {
                   await client.unpublish(screenVideoTrackRef.current);
                   screenVideoTrackRef.current.close();
                   screenVideoTrackRef.current = null;
-                  // Re-publish camera track
+                  
                   if (localVideoTrackRef.current) {
                       await client.publish(localVideoTrackRef.current);
+                      localVideoTrackRef.current.play('local-player');
                   }
               }
           }
@@ -233,9 +219,9 @@ export default function VideoPlayer({
 
   const toggleMute = () => {
       setIsMuted(!isMuted);
-      remoteUsers.forEach(user => {
+      clientRef.current?.remoteUsers.forEach(user => {
           if (user.audioTrack) {
-              user.audioTrack.setVolume(isMuted ? 100 : 0);
+              user.audioTrack.setVolume(isMuted ? 0 : 100);
           }
       });
   };
@@ -246,14 +232,19 @@ export default function VideoPlayer({
 
   return (
     <div className="absolute inset-0 w-full h-full bg-black">
-      <div ref={playerRef} className="w-full h-full overflow-hidden relative">
+      {/* This is the container where all video feeds will be injected */}
+      <div id="video-container" className="w-full h-full overflow-hidden relative">
+        {/* Host's own video feed is rendered here */}
         {isHost && (
           <div 
             id="local-player" 
             className="w-full h-full absolute top-0 left-0"
           />
         )}
-        {/* Remote user videos are dynamically injected here */}
+        {/* Viewers will see remote streams injected here */}
+        {!isHost && (
+             <div id="remote-players" className="w-full h-full" />
+        )}
       </div>
 
       {showOfflineMessage && (
@@ -278,13 +269,12 @@ export default function VideoPlayer({
                 </span>
             </div>
             <div className="absolute top-4 left-4 z-10">
-                <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); toggleMute(); }} className="text-white hover:bg-white/20 rounded-full">
+                <Button variant="ghost" size="icon" onClick={toggleMute} className="text-white hover:bg-white/20 rounded-full">
                     {isMuted ? <VolumeX className="h-6 w-6" /> : <Volume2 className="h-6 w-6" />}
                 </Button>
             </div>
         </>
       )}
-
     </div>
   );
 }

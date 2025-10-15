@@ -1,8 +1,8 @@
 'use client';
 import { Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useUser, useDoc, useFirestore, useUserDocument, updateDocumentNonBlocking, addDocumentNonBlocking, useCollection } from '@/firebase';
-import { doc, collection, serverTimestamp, query, orderBy, limit } from 'firebase/firestore';
+import { useUser, useDoc, useFirestore, useUserDocument } from '@/firebase';
+import { doc, collection, serverTimestamp, query, orderBy, limit, updateDoc } from 'firebase/firestore';
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Mic, MicOff, Video, VideoOff, ScreenShare, ScreenShareOff, X, Users, MessageCircle, Send, Smile, MessageCircleOff } from 'lucide-react';
@@ -13,43 +13,39 @@ import VideoPlayer from '@/components/broadcast/video-player';
 import type { Broadcast, ChatMessage } from '@/lib/data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useMemoFirebase } from '@/firebase';
+import { addDocumentNonBlocking } from '@/firebase';
 
-
+// This is the UI for the host's studio controls and chat
 function LiveStudio({ 
-    isAudioEnabled, 
-    isVideoEnabled, 
-    isScreenSharing, 
-    onToggleAudio, 
-    onToggleVideo, 
-    onToggleScreenShare,
     liveBroadcast,
-    messages
+    messages,
+    onToggleAudio,
+    onToggleVideo,
+    onToggleScreenShare,
+    isAudioEnabled,
+    isVideoEnabled,
+    isScreenSharing,
 }: {
-    isAudioEnabled: boolean;
-    isVideoEnabled: boolean;
-    isScreenSharing: boolean;
+    liveBroadcast: Broadcast;
+    messages: ChatMessage[] | null;
     onToggleAudio: () => void;
     onToggleVideo: () => void;
     onToggleScreenShare: () => void;
-    liveBroadcast: Broadcast;
-    messages: ChatMessage[] | null;
+    isAudioEnabled: boolean;
+    isVideoEnabled: boolean;
+    isScreenSharing: boolean;
 }) {
     const router = useRouter();
     const firestore = useFirestore();
     const { user } = useUser();
     const { userDocument: hostUserDocument } = useUserDocument();
-    const { toast } = useToast();
     const scrollAreaRef = useRef<HTMLDivElement>(null);
 
     const [newMessage, setNewMessage] = useState('');
     const [isChatVisible, setIsChatVisible] = useState(true);
     
-    const broadcastDocRef = useMemoFirebase(() => {
-        if (!liveBroadcast.id) return undefined;
-        return doc(firestore, 'broadcasts', liveBroadcast.id);
-    }, [liveBroadcast.id, firestore]);
-    
     useEffect(() => {
+        // Auto-scroll chat
         if (scrollAreaRef.current) {
             const scrollableView = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
             if (scrollableView) {
@@ -60,9 +56,11 @@ function LiveStudio({
 
 
     const handleEndBroadcast = async () => {
-        if (broadcastDocRef) {
-            updateDocumentNonBlocking(broadcastDocRef, { isLive: false });
-             router.push('/');
+        if (liveBroadcast.id) {
+            const broadcastDocRef = doc(firestore, 'broadcasts', liveBroadcast.id);
+            // Use await here to make sure the update goes through before redirecting
+            await updateDoc(broadcastDocRef, { isLive: false });
+            router.push('/');
         }
     };
 
@@ -86,15 +84,14 @@ function LiveStudio({
 
     return (
         <div className="h-screen w-full bg-black text-white flex flex-col relative">
-            <div className="absolute inset-0 z-0">
-                <VideoPlayer
-                    broadcast={liveBroadcast}
-                    isHost={true}
-                    isAudioEnabled={isAudioEnabled}
-                    isVideoEnabled={isVideoEnabled}
-                    isScreenSharing={isScreenSharing}
-                />
-            </div>
+            {/* The VideoPlayer component is now responsible for its own rendering */}
+            <VideoPlayer
+                broadcast={liveBroadcast}
+                isHost={true}
+                isAudioEnabled={isAudioEnabled}
+                isVideoEnabled={isVideoEnabled}
+                isScreenSharing={isScreenSharing}
+            />
             
             <div className="absolute top-0 left-0 right-0 z-10 p-4 flex items-center justify-between bg-gradient-to-b from-black/50 to-transparent">
                 <div className="flex items-center gap-4">
@@ -176,7 +173,7 @@ function LiveStudioWrapper() {
     const { userDocument: hostUserDocument, isDocLoading: isHostDocLoading } = useUserDocument();
     const { toast } = useToast();
 
-    // State for controls is now lifted here
+    // State for media controls is lifted here.
     const [isAudioEnabled, setIsAudioEnabled] = useState(true);
     const [isVideoEnabled, setIsVideoEnabled] = useState(true);
     const [isScreenSharing, setIsScreenSharing] = useState(false);
@@ -196,51 +193,48 @@ function LiveStudioWrapper() {
     }, [broadcastId, firestore]);
 
     const { data: broadcastData, isLoading: isBroadcastLoading } = useDoc<any>(broadcastDocRef);
-    const { data: messages, isLoading: areMessagesLoading } = useCollection<ChatMessage>(messagesQuery);
+    const { data: messages } = useCollection<ChatMessage>(messagesQuery);
 
-    const liveBroadcast: Broadcast = useMemo(() => {
+    const liveBroadcast: Broadcast | null = useMemo(() => {
+        if (!broadcastId || !broadcastData) return null;
+        
         const hostInfo = {
-            id: user?.uid || 'host',
-            name: hostUserDocument?.username || user?.displayName || 'Host',
-            avatarUrl: hostUserDocument?.profilePicture || user?.photoURL || '',
+            id: broadcastData.hostId,
+            name: broadcastData.hostName,
+            avatarUrl: broadcastData.hostAvatar,
             avatarHint: 'person portrait',
-            bio: hostUserDocument?.bio || '',
+            bio: '',
             interests: [],
             watchHistory: []
         };
         
         return {
-            id: broadcastId || 'live-broadcast',
-            title: broadcastData?.title || 'Live Stream',
+            id: broadcastId,
+            title: broadcastData.title,
             user: hostInfo,
             thumbnailUrl: '',
             thumbnailHint: '',
-            viewers: broadcastData?.viewers || 0,
-            category: broadcastData?.category || '',
-            isLive: broadcastData?.isLive ?? true,
-            tags: broadcastData?.tags || ['Live'],
+            viewers: broadcastData.viewers,
+            category: broadcastData.category,
+            isLive: broadcastData.isLive,
+            tags: broadcastData.tags,
         };
-    }, [broadcastId, broadcastData, user, hostUserDocument]);
+    }, [broadcastId, broadcastData]);
 
     useEffect(() => {
-        if (!isUserLoading && !user) {
-            toast({
-                title: "Authentication required",
-                description: "You must be logged in to host a stream.",
-                variant: "destructive",
-            });
-            router.push('/login');
-        } else if (!isUserLoading && user && broadcastData && user.uid !== broadcastData.hostId) {
-            toast({
+        // Redirect non-hosts or unauthenticated users.
+        if (!isUserLoading && (!user || (broadcastData && user.uid !== broadcastData.hostId))) {
+             toast({
                 title: "Unauthorized",
-                description: "You are not the host of this broadcast.",
+                description: "You must be the host to access the live studio.",
                 variant: "destructive",
             });
-            router.push(`/broadcast/${broadcastId}`);
+            router.push(`/broadcast/${broadcastId || ''}`);
         }
     }, [user, isUserLoading, router, toast, broadcastData, broadcastId]);
 
     useEffect(() => {
+      // Redirect if the broadcast has ended.
       if (!isBroadcastLoading && broadcastData && !broadcastData.isLive) {
           toast({
               title: "Broadcast Ended",
@@ -250,7 +244,7 @@ function LiveStudioWrapper() {
       }
     }, [broadcastData, isBroadcastLoading, router, toast]);
 
-    if (isUserLoading || isBroadcastLoading || isHostDocLoading) {
+    if (isUserLoading || isBroadcastLoading || isHostDocLoading || !liveBroadcast) {
         return <div className="h-screen w-full flex items-center justify-center bg-black text-white">Loading Studio...</div>;
     }
     
@@ -260,14 +254,14 @@ function LiveStudioWrapper() {
     
     return (
         <LiveStudio 
+            liveBroadcast={liveBroadcast}
+            messages={messages}
             isAudioEnabled={isAudioEnabled}
             isVideoEnabled={isVideoEnabled}
             isScreenSharing={isScreenSharing}
             onToggleAudio={() => setIsAudioEnabled(prev => !prev)}
             onToggleVideo={() => setIsVideoEnabled(prev => !prev)}
             onToggleScreenShare={() => setIsScreenSharing(prev => !prev)}
-            liveBroadcast={liveBroadcast}
-            messages={messages}
         />
     )
 }
@@ -279,5 +273,3 @@ export default function LivePage() {
         </Suspense>
     )
 }
-
-    
