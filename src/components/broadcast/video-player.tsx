@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -27,7 +26,7 @@ interface VideoPlayerProps {
 
 const apiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY || '';
 
-async function fetchToken(userId: string, broadcastId: string): Promise<string> {
+async function fetchToken(userId: string): Promise<string> {
   const response = await fetch('/api/stream/token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -54,7 +53,7 @@ async function fetchToken(userId: string, broadcastId: string): Promise<string> 
 }
 
 
-const PlayerContent = ({ broadcast, isHost, isAudioEnabled, isVideoEnabled, isScreenSharing, call }: { 
+const PlayerUI = ({ broadcast, isHost, isAudioEnabled, isVideoEnabled, isScreenSharing, call }: { 
     broadcast: Broadcast; 
     isHost: boolean;
     isAudioEnabled?: boolean;
@@ -63,7 +62,7 @@ const PlayerContent = ({ broadcast, isHost, isAudioEnabled, isVideoEnabled, isSc
     call: Call;
 }) => {
     const { useCallCallingState, useParticipants, useScreenShareState } = useCallStateHooks();
-    const callingState = useCallCallingState();
+    const callingState = useCallCalling_State();
     const participants = useParticipants();
     const { screenShareState } = useScreenShareState();
 
@@ -72,34 +71,31 @@ const PlayerContent = ({ broadcast, isHost, isAudioEnabled, isVideoEnabled, isSc
 
     // Effects for toggling media
     useEffect(() => {
-        if (call && call.microphone) {
-          if (isAudioEnabled) {
-            call.microphone.enable();
-          } else {
-            call.microphone.disable();
-          }
+        if (!call) return;
+        if (isAudioEnabled) {
+          call.microphone.enable();
+        } else {
+          call.microphone.disable();
         }
     }, [call, isAudioEnabled]);
 
     useEffect(() => {
-        if (call && call.camera) {
-          if (isVideoEnabled) {
-            call.camera.enable();
-          } else {
-            call.camera.disable();
-          }
+        if (!call) return;
+        if (isVideoEnabled) {
+          call.camera.enable();
+        } else {
+          call.camera.disable();
         }
     }, [call, isVideoEnabled]);
     
     useEffect(() => {
-        if (call) {
-            if(isScreenSharing) {
-                call.startScreenShare().catch(err => console.error("Failed to publish screen share", err));
-            } else {
-                // Check if screen sharing is active before trying to stop
-                if (screenShareState.isPublishing) {
-                    call.stopPublish('screenshare').catch(err => console.error("Failed to stop screen share", err));
-                }
+        if (!call) return;
+        if(isScreenSharing) {
+            call.startScreenShare().catch(err => console.error("Failed to publish screen share", err));
+        } else {
+            // Check if screen sharing is active before trying to stop
+            if (screenShareState.isPublishing) {
+                call.stopPublish('screenshare').catch(err => console.error("Failed to stop screen share", err));
             }
         }
     }, [call, isScreenSharing, screenShareState]);
@@ -147,7 +143,7 @@ export default function VideoPlayer({
         }
 
         try {
-            const token = await fetchToken(currentUser.uid, broadcast.id);
+            const token = await fetchToken(currentUser.uid);
             
             videoClient = new StreamVideoClient({
                 apiKey,
@@ -206,7 +202,7 @@ export default function VideoPlayer({
     <StreamVideo client={client}>
         <StreamCall call={call}>
             <div className="absolute inset-0 w-full h-full bg-black">
-                <PlayerContent 
+                <PlayerUI 
                     broadcast={broadcast} 
                     isHost={isHost}
                     isAudioEnabled={isAudioEnabled}
