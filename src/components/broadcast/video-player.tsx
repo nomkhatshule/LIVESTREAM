@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { Broadcast } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Volume2, VolumeX, Users } from 'lucide-react';
-import AgoraRTC, { type IAgoraRTCClient, type ICameraVideoTrack, type IMicrophoneAudioTrack, type IAgoraRTC, type IScreenVideoTrack } from 'agora-rtc-sdk-ng';
+import AgoraRTC, { type IAgoraRTCClient, type ICameraVideoTrack, type IMicrophoneAudioTrack, type IAgoraRTC, type IScreenVideoTrack, RtcRole } from 'agora-rtc-sdk-ng';
 import { useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 
@@ -18,11 +18,11 @@ interface VideoPlayerProps {
 
 const appId = process.env.NEXT_PUBLIC_AGORA_APP_ID || '';
 
-async function fetchToken(channelName: string, account: string): Promise<string> {
+async function fetchToken(channelName: string, account: string, role: 'publisher' | 'subscriber'): Promise<string> {
     const response = await fetch('/api/agora/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ channelName, account }),
+        body: JSON.stringify({ channelName, account, role }),
     });
     if (!response.ok) {
         const errorBody = await response.json();
@@ -53,7 +53,6 @@ export default function VideoPlayer({
 
   // Main Effect for initializing Agora and handling connection
   useEffect(() => {
-    // Strict guard clause: Do not proceed until everything is ready.
     if (isUserLoading || !currentUser || !broadcast.id) {
         console.log("VideoPlayer: Waiting for user and broadcast ID...");
         return;
@@ -65,12 +64,10 @@ export default function VideoPlayer({
     const initAndJoin = async () => {
         setIsConnecting(true);
 
-        // --- 1. Create Client ---
         client = AgoraRTC.createClient({ mode: 'live', codec: 'vp8' });
         clientRef.current = client;
         console.log("Agora client created.");
 
-        // --- 2. Setup Listeners (for viewers) ---
         if (!isHost) {
             client.on('user-published', async (user, mediaType) => {
                 await client.subscribe(user, mediaType);
@@ -96,30 +93,26 @@ export default function VideoPlayer({
             });
         }
 
-        // --- 3. Join Channel ---
         try {
             const account = currentUser.uid;
-            const token = await fetchToken(broadcast.id, account);
+            const role = isHost ? 'publisher' : 'subscriber';
+            const token = await fetchToken(broadcast.id, account, role);
             
             await client.join(appId, broadcast.id, token, account);
-            console.log(`Successfully joined channel ${broadcast.id} as ${isHost ? 'host' : 'audience'}.`);
+            console.log(`Successfully joined channel ${broadcast.id} as ${role}.`);
 
             if (isHost) {
-                // --- 4. Get Permissions & Publish (Host only) ---
                 try {
                     client.setClientRole('host');
-                    // CRITICAL: Request hardware permissions
                     localTracks = await AgoraRTC.createMicrophoneAndCameraTracks();
                     localAudioTrackRef.current = localTracks[0];
                     localVideoTrackRef.current = localTracks[1];
                     
                     console.log("Successfully created local audio and video tracks.");
                     
-                    // CRITICAL: Play the local video for the host to see themselves
                     localTracks[1].play('local-player');
                     console.log("Local video track is playing on the 'local-player' element.");
 
-                    // Publish tracks to the channel
                     await client.publish(localTracks);
                     console.log("Successfully published local tracks to Agora.");
 
@@ -145,16 +138,17 @@ export default function VideoPlayer({
 
     initAndJoin();
 
-    // --- 5. Cleanup ---
     return () => {
         console.log("Cleaning up Agora connection.");
         localAudioTrackRef.current?.close();
         localVideoTrackRef.current?.close();
         screenVideoTrackRef.current?.close();
-        clientRef.current?.leave();
-        clientRef.current?.removeAllListeners();
+        // Use a timeout to prevent race conditions on fast refreshes
+        setTimeout(() => {
+          clientRef.current?.leave();
+          clientRef.current?.removeAllListeners();
+        }, 100);
     };
-  // This effect runs once when the component mounts and has all necessary dependencies.
   }, [broadcast.id, isHost, currentUser?.uid, isUserLoading, toast]);
   
   // Effect for Toggling Video
@@ -229,7 +223,8 @@ export default function VideoPlayer({
       setIsMuted(!isMuted);
       clientRef.current?.remoteUsers.forEach(user => {
           if (user.audioTrack) {
-              user.audioTrack.setVolume(isMuted ? 0 : 100);
+              // Set volume based on the new muted state.
+              user.audioTrack.setVolume(isMuted ? 100 : 0);
           }
       });
   };
@@ -241,7 +236,6 @@ export default function VideoPlayer({
   return (
     <div className="absolute inset-0 w-full h-full bg-black">
       <div id="video-container" className="w-full h-full overflow-hidden relative">
-        {/* The DIV where the video will be rendered. This MUST exist in the DOM. */}
         {isHost && (
           <div 
             id="local-player" 
