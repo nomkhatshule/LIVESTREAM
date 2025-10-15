@@ -15,94 +15,40 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useMemoFirebase } from '@/firebase';
 
 
-function LiveStudio() {
+function LiveStudio({ 
+    isAudioEnabled, 
+    isVideoEnabled, 
+    isScreenSharing, 
+    onToggleAudio, 
+    onToggleVideo, 
+    onToggleScreenShare,
+    liveBroadcast,
+    messages
+}: {
+    isAudioEnabled: boolean;
+    isVideoEnabled: boolean;
+    isScreenSharing: boolean;
+    onToggleAudio: () => void;
+    onToggleVideo: () => void;
+    onToggleScreenShare: () => void;
+    liveBroadcast: Broadcast;
+    messages: ChatMessage[] | null;
+}) {
     const router = useRouter();
-    const searchParams = useSearchParams();
-    const broadcastId = searchParams.get('id');
     const firestore = useFirestore();
-    const { user, isUserLoading } = useUser();
-    const { userDocument: hostUserDocument, isDocLoading: isHostDocLoading } = useUserDocument();
+    const { user } = useUser();
+    const { userDocument: hostUserDocument } = useUserDocument();
     const { toast } = useToast();
     const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-    // State for controls
-    const [isAudioEnabled, setIsAudioEnabled] = useState(true);
-    const [isVideoEnabled, setIsVideoEnabled] = useState(true);
-    const [isScreenSharing, setIsScreenSharing] = useState(false);
-
-    // Chat state
     const [newMessage, setNewMessage] = useState('');
     const [isChatVisible, setIsChatVisible] = useState(true);
     
     const broadcastDocRef = useMemoFirebase(() => {
-        if (!broadcastId) return undefined;
-        return doc(firestore, 'broadcasts', broadcastId);
-    }, [broadcastId, firestore]);
-
-    const messagesQuery = useMemoFirebase(() => {
-        if (!broadcastId) return undefined;
-        return query(
-            collection(firestore, `broadcasts/${broadcastId}/messages`),
-            orderBy('timestamp', 'asc'),
-            limit(100)
-        );
-    }, [broadcastId, firestore]);
-
-    const { data: broadcastData, isLoading: isBroadcastLoading } = useDoc<any>(broadcastDocRef);
-    const { data: messages, isLoading: areMessagesLoading } = useCollection<ChatMessage>(messagesQuery);
-
-    const liveBroadcast: Broadcast = useMemo(() => {
-        const hostInfo = {
-            id: user?.uid || 'host',
-            name: hostUserDocument?.username || user?.displayName || 'Host',
-            avatarUrl: hostUserDocument?.profilePicture || user?.photoURL || '',
-            avatarHint: 'person portrait',
-            bio: hostUserDocument?.bio || '',
-            interests: [],
-            watchHistory: []
-        };
-        
-        return {
-            id: broadcastId || 'live-broadcast',
-            title: broadcastData?.title || 'Live Stream',
-            user: hostInfo,
-            thumbnailUrl: '',
-            thumbnailHint: '',
-            viewers: broadcastData?.viewers || 0,
-            category: broadcastData?.category || '',
-            isLive: broadcastData?.isLive ?? true,
-            tags: broadcastData?.tags || ['Live'],
-        };
-    }, [broadcastId, broadcastData, user, hostUserDocument]);
-
-    useEffect(() => {
-        if (!isUserLoading && !user) {
-            toast({
-                title: "Authentication required",
-                description: "You must be logged in to host a stream.",
-                variant: "destructive",
-            });
-            router.push('/login');
-        } else if (!isUserLoading && user && broadcastData && user.uid !== broadcastData.hostId) {
-            toast({
-                title: "Unauthorized",
-                description: "You are not the host of this broadcast.",
-                variant: "destructive",
-            });
-            router.push(`/broadcast/${broadcastId}`);
-        }
-    }, [user, isUserLoading, router, toast, broadcastData, broadcastId]);
-
-    useEffect(() => {
-      if (!isBroadcastLoading && broadcastData && !broadcastData.isLive) {
-          toast({
-              title: "Broadcast Ended",
-              description: "This broadcast has ended.",
-          });
-          router.push('/');
-      }
-    }, [broadcastData, isBroadcastLoading, router, toast]);
-
+        if (!liveBroadcast.id) return undefined;
+        return doc(firestore, 'broadcasts', liveBroadcast.id);
+    }, [liveBroadcast.id, firestore]);
+    
     useEffect(() => {
         if (scrollAreaRef.current) {
             const scrollableView = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
@@ -116,15 +62,15 @@ function LiveStudio() {
     const handleEndBroadcast = async () => {
         if (broadcastDocRef) {
             updateDocumentNonBlocking(broadcastDocRef, { isLive: false });
+             router.push('/');
         }
-        // The useEffect hook will handle the redirect
     };
 
     const handleSendMessage = (e: React.FormEvent) => {
         e.preventDefault();
-        if (newMessage.trim() === '' || !user || !hostUserDocument || !broadcastId) return;
+        if (newMessage.trim() === '' || !user || !hostUserDocument || !liveBroadcast.id) return;
 
-        const messagesCollectionRef = collection(firestore, 'broadcasts', broadcastId, 'messages');
+        const messagesCollectionRef = collection(firestore, 'broadcasts', liveBroadcast.id, 'messages');
         
         const messagePayload: Omit<ChatMessage, 'id' | 'timestamp'> & { timestamp: any } = {
           userId: user.uid,
@@ -137,15 +83,6 @@ function LiveStudio() {
         addDocumentNonBlocking(messagesCollectionRef, messagePayload);
         setNewMessage('');
     };
-
-    if (isUserLoading || isBroadcastLoading || isHostDocLoading) {
-        return <div className="h-screen w-full flex items-center justify-center bg-black text-white">Loading Studio...</div>;
-    }
-    
-    if (!broadcastId) {
-        return <div className="h-screen w-full flex items-center justify-center bg-black text-white">Broadcast ID not found.</div>;
-    }
-
 
     return (
         <div className="h-screen w-full bg-black text-white flex flex-col relative">
@@ -216,13 +153,13 @@ function LiveStudio() {
             </div>
             
              <div className="absolute right-4 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-4 p-2 bg-black/40 rounded-full backdrop-blur-sm">
-                <Button variant={isAudioEnabled ? "secondary" : "destructive"} size="icon" className="rounded-full h-12 w-12" onClick={() => setIsAudioEnabled(prev => !prev)}>
+                <Button variant={isAudioEnabled ? "secondary" : "destructive"} size="icon" className="rounded-full h-12 w-12" onClick={onToggleAudio}>
                     {isAudioEnabled ? <Mic className="h-6 w-6"/> : <MicOff className="h-6 w-6"/>}
                 </Button>
-                 <Button variant={isVideoEnabled ? "secondary" : "destructive"} size="icon" className="rounded-full h-12 w-12" onClick={() => setIsVideoEnabled(prev => !prev)}>
+                 <Button variant={isVideoEnabled ? "secondary" : "destructive"} size="icon" className="rounded-full h-12 w-12" onClick={onToggleVideo}>
                     {isVideoEnabled ? <Video className="h-6 w-6"/> : <VideoOff className="h-6 w-6"/>}
                 </Button>
-                 <Button variant={isScreenSharing ? "primary" : "secondary"} size="icon" className="rounded-full h-12 w-12" onClick={() => setIsScreenSharing(prev => !prev)}>
+                 <Button variant={isScreenSharing ? "primary" : "secondary"} size="icon" className="rounded-full h-12 w-12" onClick={onToggleScreenShare}>
                     {isScreenSharing ? <ScreenShareOff className="h-6 w-6"/> : <ScreenShare className="h-6 w-6"/>}
                 </Button>
             </div>
@@ -230,11 +167,117 @@ function LiveStudio() {
     );
 }
 
+function LiveStudioWrapper() {
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const broadcastId = searchParams.get('id');
+    const firestore = useFirestore();
+    const { user, isUserLoading } = useUser();
+    const { userDocument: hostUserDocument, isDocLoading: isHostDocLoading } = useUserDocument();
+    const { toast } = useToast();
+
+    // State for controls is now lifted here
+    const [isAudioEnabled, setIsAudioEnabled] = useState(true);
+    const [isVideoEnabled, setIsVideoEnabled] = useState(true);
+    const [isScreenSharing, setIsScreenSharing] = useState(false);
+
+    const broadcastDocRef = useMemoFirebase(() => {
+        if (!broadcastId) return undefined;
+        return doc(firestore, 'broadcasts', broadcastId);
+    }, [broadcastId, firestore]);
+
+    const messagesQuery = useMemoFirebase(() => {
+        if (!broadcastId) return undefined;
+        return query(
+            collection(firestore, `broadcasts/${broadcastId}/messages`),
+            orderBy('timestamp', 'asc'),
+            limit(100)
+        );
+    }, [broadcastId, firestore]);
+
+    const { data: broadcastData, isLoading: isBroadcastLoading } = useDoc<any>(broadcastDocRef);
+    const { data: messages, isLoading: areMessagesLoading } = useCollection<ChatMessage>(messagesQuery);
+
+    const liveBroadcast: Broadcast = useMemo(() => {
+        const hostInfo = {
+            id: user?.uid || 'host',
+            name: hostUserDocument?.username || user?.displayName || 'Host',
+            avatarUrl: hostUserDocument?.profilePicture || user?.photoURL || '',
+            avatarHint: 'person portrait',
+            bio: hostUserDocument?.bio || '',
+            interests: [],
+            watchHistory: []
+        };
+        
+        return {
+            id: broadcastId || 'live-broadcast',
+            title: broadcastData?.title || 'Live Stream',
+            user: hostInfo,
+            thumbnailUrl: '',
+            thumbnailHint: '',
+            viewers: broadcastData?.viewers || 0,
+            category: broadcastData?.category || '',
+            isLive: broadcastData?.isLive ?? true,
+            tags: broadcastData?.tags || ['Live'],
+        };
+    }, [broadcastId, broadcastData, user, hostUserDocument]);
+
+    useEffect(() => {
+        if (!isUserLoading && !user) {
+            toast({
+                title: "Authentication required",
+                description: "You must be logged in to host a stream.",
+                variant: "destructive",
+            });
+            router.push('/login');
+        } else if (!isUserLoading && user && broadcastData && user.uid !== broadcastData.hostId) {
+            toast({
+                title: "Unauthorized",
+                description: "You are not the host of this broadcast.",
+                variant: "destructive",
+            });
+            router.push(`/broadcast/${broadcastId}`);
+        }
+    }, [user, isUserLoading, router, toast, broadcastData, broadcastId]);
+
+    useEffect(() => {
+      if (!isBroadcastLoading && broadcastData && !broadcastData.isLive) {
+          toast({
+              title: "Broadcast Ended",
+              description: "This broadcast has ended.",
+          });
+          router.push('/');
+      }
+    }, [broadcastData, isBroadcastLoading, router, toast]);
+
+    if (isUserLoading || isBroadcastLoading || isHostDocLoading) {
+        return <div className="h-screen w-full flex items-center justify-center bg-black text-white">Loading Studio...</div>;
+    }
+    
+    if (!broadcastId) {
+        return <div className="h-screen w-full flex items-center justify-center bg-black text-white">Broadcast ID not found.</div>;
+    }
+    
+    return (
+        <LiveStudio 
+            isAudioEnabled={isAudioEnabled}
+            isVideoEnabled={isVideoEnabled}
+            isScreenSharing={isScreenSharing}
+            onToggleAudio={() => setIsAudioEnabled(prev => !prev)}
+            onToggleVideo={() => setIsVideoEnabled(prev => !prev)}
+            onToggleScreenShare={() => setIsScreenSharing(prev => !prev)}
+            liveBroadcast={liveBroadcast}
+            messages={messages}
+        />
+    )
+}
 
 export default function LivePage() {
     return (
         <Suspense fallback={<div className="h-screen w-full flex items-center justify-center bg-black text-white">Loading Studio...</div>}>
-            <LiveStudio />
+            <LiveStudioWrapper />
         </Suspense>
     )
 }
+
+    
