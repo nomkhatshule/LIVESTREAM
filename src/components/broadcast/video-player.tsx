@@ -17,6 +17,7 @@ interface VideoPlayerProps {
 }
 
 const appId = process.env.NEXT_PUBLIC_AGORA_APP_ID || '';
+// Dynamically import Agora SDK
 let AgoraRTC: IAgoraRTC | null = null;
 
 
@@ -38,9 +39,9 @@ async function fetchToken(channelName: string, account: string): Promise<string>
 export default function VideoPlayer({ 
     broadcast, 
     isHost,
-    isAudioEnabled,
-    isVideoEnabled,
-    isScreenSharing,
+    isAudioEnabled = true,
+    isVideoEnabled = true,
+    isScreenSharing = false,
 }: VideoPlayerProps) {
   const { user: currentUser, isUserLoading } = useUser();
   const clientRef = useRef<IAgoraRTCClient>();
@@ -54,113 +55,140 @@ export default function VideoPlayer({
   const [remoteUsers, setRemoteUsers] = useState<any[]>([]);
   const [isConnecting, setIsConnecting] = useState(true);
 
+  // Main Effect for initializing Agora and handling connection
   useEffect(() => {
-    if (isUserLoading || !appId || !currentUser) return;
+    // Strict guard clause: Do not proceed until everything is ready.
+    if (isUserLoading || !currentUser || !broadcast.id) {
+        console.log("VideoPlayer: Waiting for user and broadcast ID...");
+        return;
+    }
     
     let client: IAgoraRTCClient;
+    let localTracks: [IMicrophoneAudioTrack, ICameraVideoTrack] | null = null;
 
-    const initAgora = async () => {
-      setIsConnecting(true);
-      try {
-        if (!AgoraRTC) {
-           AgoraRTC = (await import('agora-rtc-sdk-ng')).default;
-        }
-      } catch (error) {
-        console.error("Failed to load Agora SDK", error);
-        toast({ variant: 'destructive', title: "Could not load streaming service."});
-        setIsConnecting(false);
-        return;
-      }
+    const initAndJoin = async () => {
+        setIsConnecting(true);
 
-      client = AgoraRTC.createClient({ mode: 'live', codec: 'vp8' });
-      clientRef.current = client;
-
-      client.on('user-published', async (user, mediaType) => {
-        await client.subscribe(user, mediaType);
-        if (mediaType === 'video') {
-            const remotePlayerContainer = document.getElementById('remote-players');
-            if (remotePlayerContainer) {
-                 // Create a div for the remote user's video
-                const playerDiv = document.createElement('div');
-                playerDiv.id = `player-${user.uid}`;
-                playerDiv.className = 'w-full h-full absolute top-0 left-0';
-                remotePlayerContainer.append(playerDiv);
-                user.videoTrack.play(playerDiv);
+        // --- 1. Load SDK ---
+        try {
+            if (!AgoraRTC) {
+                AgoraRTC = (await import('agora-rtc-sdk-ng')).default;
+                console.log("Agora SDK loaded successfully.");
             }
+        } catch (error) {
+            console.error("Failed to load Agora SDK", error);
+            toast({ variant: 'destructive', title: "Could not load streaming service."});
+            setIsConnecting(false);
+            return;
         }
-        if (mediaType === 'audio') {
-          user.audioTrack.play();
-        }
-        setRemoteUsers(prev => [...prev.filter(u => u.uid !== user.uid), user]);
-      });
 
-      client.on('user-unpublished', (user) => {
-         const playerContainer = document.getElementById(`player-${user.uid}`);
-         if (playerContainer) playerContainer.remove();
-         setRemoteUsers(prev => prev.filter(u => u.uid !== user.uid));
-      });
+        // --- 2. Create Client ---
+        client = AgoraRTC.createClient({ mode: 'live', codec: 'vp8' });
+        clientRef.current = client;
+        console.log("Agora client created.");
 
-      try {
-        const account = currentUser.uid;
-        const token = await fetchToken(broadcast.id, account);
-        await client.join(appId, broadcast.id, token, account);
-        
-        if (isHost) {
-          client.setClientRole('host');
-          try {
-            // THIS IS THE CRITICAL PERMISSION REQUEST
-            const [audioTrack, videoTrack] = await AgoraRTC.createMicrophoneAndCameraTracks();
-            localAudioTrackRef.current = audioTrack;
-            localVideoTrackRef.current = videoTrack;
-            
-            // Play local video to the dedicated div
-            videoTrack.play('local-player');
-            
-            await client.publish([audioTrack, videoTrack]);
-          } catch(permError) {
-              console.error('Failed to get camera/mic permissions', permError);
-              toast({ 
-                variant: 'destructive', 
-                title: "Camera/Mic Required", 
-                description: "Please grant camera and microphone access to stream. You may need to refresh and try again.",
-                duration: 10000,
-              });
-          }
-        } else {
-          client.setClientRole('audience');
+        // --- 3. Setup Listeners (for viewers) ---
+        if (!isHost) {
+            client.on('user-published', async (user, mediaType) => {
+                await client.subscribe(user, mediaType);
+                console.log(`Subscribed to ${user.uid}'s ${mediaType} track.`);
+                if (mediaType === 'video') {
+                    const remotePlayerContainer = document.getElementById('remote-players');
+                    if (remotePlayerContainer) {
+                        const playerDiv = document.createElement('div');
+                        playerDiv.id = `player-${user.uid}`;
+                        playerDiv.className = 'w-full h-full absolute top-0 left-0';
+                        remotePlayerContainer.append(playerDiv);
+                        user.videoTrack!.play(playerDiv);
+                    }
+                }
+                if (mediaType === 'audio') {
+                    user.audioTrack!.play();
+                }
+            });
+
+             client.on('user-unpublished', (user) => {
+                const playerContainer = document.getElementById(`player-${user.uid}`);
+                if (playerContainer) playerContainer.remove();
+            });
         }
-      } catch (error: any) {
-        console.error('Failed to join channel or publish', error);
-        toast({ variant: 'destructive', title: 'Connection Failed', description: error.message || 'Could not connect to the broadcast.'});
-      } finally {
-        setIsConnecting(false);
-      }
+
+        // --- 4. Join Channel ---
+        try {
+            const account = currentUser.uid;
+            const token = await fetchToken(broadcast.id, account);
+            
+            await client.join(appId, broadcast.id, token, account);
+            console.log(`Successfully joined channel ${broadcast.id} as ${isHost ? 'host' : 'audience'}.`);
+
+            if (isHost) {
+                // --- 5. Get Permissions & Publish (Host only) ---
+                try {
+                    client.setClientRole('host');
+                    // CRITICAL: Request hardware permissions
+                    localTracks = await AgoraRTC.createMicrophoneAndCameraTracks();
+                    localAudioTrackRef.current = localTracks[0];
+                    localVideoTrackRef.current = localTracks[1];
+                    
+                    console.log("Successfully created local audio and video tracks.");
+                    
+                    // CRITICAL: Play the local video for the host to see themselves
+                    localTracks[1].play('local-player');
+                    console.log("Local video track is playing on the 'local-player' element.");
+
+                    // Publish tracks to the channel
+                    await client.publish(localTracks);
+                    console.log("Successfully published local tracks to Agora.");
+
+                } catch (permError) {
+                    console.error('Failed to get permissions or publish tracks', permError);
+                    toast({ 
+                        variant: 'destructive', 
+                        title: "Hardware Permission Denied", 
+                        description: "Camera and microphone access is required to go live. Please check your browser settings and refresh.",
+                        duration: 10000,
+                    });
+                }
+            } else {
+                client.setClientRole('audience');
+            }
+        } catch (joinError: any) {
+            console.error('Failed to join Agora channel:', joinError);
+            toast({ variant: 'destructive', title: 'Connection Failed', description: joinError.message || 'Could not connect to the broadcast.'});
+        } finally {
+            setIsConnecting(false);
+        }
     };
 
-    initAgora();
+    initAndJoin();
 
+    // --- 6. Cleanup ---
     return () => {
-      localAudioTrackRef.current?.close();
-      localVideoTrackRef.current?.close();
-      screenVideoTrackRef.current?.close();
-      clientRef.current?.leave();
-      clientRef.current?.removeAllListeners();
+        console.log("Cleaning up Agora connection.");
+        localAudioTrackRef.current?.close();
+        localVideoTrackRef.current?.close();
+        screenVideoTrackRef.current?.close();
+        clientRef.current?.leave();
+        clientRef.current?.removeAllListeners();
     };
-  }, [broadcast.id, isHost, currentUser, isUserLoading, toast]);
+  // This effect runs once when the component mounts and has all necessary dependencies.
+  }, [broadcast.id, isHost, currentUser?.uid, isUserLoading, toast]);
   
+  // Effect for Toggling Video
   useEffect(() => {
     if (isHost && localVideoTrackRef.current) {
-      localVideoTrackRef.current.setEnabled(isVideoEnabled ?? true).catch(e => console.error("Failed to toggle video", e));
+      localVideoTrackRef.current.setEnabled(isVideoEnabled).catch(e => console.error("Failed to toggle video", e));
     }
   }, [isVideoEnabled, isHost]);
 
+  // Effect for Toggling Audio
   useEffect(() => {
     if (isHost && localAudioTrackRef.current) {
-      localAudioTrackRef.current.setEnabled(isAudioEnabled ?? true).catch(e => console.error("Failed to toggle audio", e));
+      localAudioTrackRef.current.setEnabled(isAudioEnabled).catch(e => console.error("Failed to toggle audio", e));
     }
   }, [isAudioEnabled, isHost]);
 
-  // Effect for screen sharing
+  // Effect for Screen Sharing
   useEffect(() => {
       const handleScreenShare = async () => {
           if (!isHost || !clientRef.current || !AgoraRTC || !localVideoTrackRef.current) return;
@@ -186,7 +214,6 @@ export default function VideoPlayer({
                   });
 
                   await client.publish(screenTrack);
-                  // Screen share also needs a player element
                   screenTrack.play('local-player');
                   
               } catch (error) {
@@ -230,20 +257,24 @@ export default function VideoPlayer({
 
   return (
     <div className="absolute inset-0 w-full h-full bg-black">
-      {/* This is the container where all video feeds will be injected */}
       <div id="video-container" className="w-full h-full overflow-hidden relative">
-        {/* Host's own video feed is rendered here */}
+        {/* The DIV where the video will be rendered. This MUST exist in the DOM. */}
         {isHost && (
           <div 
             id="local-player" 
             className="w-full h-full"
           />
         )}
-        {/* Viewers will see remote streams injected here */}
         {!isHost && (
              <div id="remote-players" className="w-full h-full" />
         )}
       </div>
+      
+      {isConnecting && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                <p className="text-white text-lg">Connecting to Stream...</p>
+          </div>
+      )}
 
       {showOfflineMessage && (
          <div className="absolute inset-0 flex items-center justify-center bg-black/80">
