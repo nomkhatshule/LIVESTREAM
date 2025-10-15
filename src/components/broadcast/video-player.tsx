@@ -139,21 +139,28 @@ export default function VideoPlayer({
   // Effects for toggling media
   useEffect(() => {
     if (call && call.microphone) {
-      call.microphone.setEnabled(isAudioEnabled);
+      if (isAudioEnabled) {
+        call.microphone.enable();
+      } else {
+        call.microphone.disable();
+      }
     }
   }, [call, isAudioEnabled]);
 
   useEffect(() => {
     if (call && call.camera) {
-      call.camera.setEnabled(isVideoEnabled);
+      if (isVideoEnabled) {
+        call.camera.enable();
+      } else {
+        call.camera.disable();
+      }
     }
   }, [call, isVideoEnabled]);
   
   useEffect(() => {
     if (call) {
         if(isScreenSharing) {
-            // This is an async operation, but we don't need to block on it.
-            call.publishScreenShare().catch(err => console.error("Failed to publish screen share", err));
+            call.startScreenShare().catch(err => console.error("Failed to publish screen share", err));
         } else {
             call.stopScreenShare().catch(err => console.error("Failed to stop screen share", err));
         }
