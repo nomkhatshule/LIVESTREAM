@@ -53,7 +53,14 @@ async function fetchToken(userId: string): Promise<string> {
 }
 
 
-const PlayerUI = ({ broadcast, isHost, isAudioEnabled, isVideoEnabled, isScreenSharing, call }: { 
+const PlayerUI = ({ 
+    broadcast, 
+    isHost,
+    isAudioEnabled,
+    isVideoEnabled,
+    isScreenSharing,
+    call
+}: { 
     broadcast: Broadcast; 
     isHost: boolean;
     isAudioEnabled?: boolean;
@@ -162,6 +169,12 @@ export default function VideoPlayer({
             // Join the call. For hosts, this creates it. For viewers, it joins.
             await callInstance.join({ create: isHost });
             
+            // **THE FIX**: For hosts, automatically enable camera and mic after joining.
+            if (isHost) {
+                await callInstance.camera.enable();
+                await callInstance.microphone.enable();
+            }
+
             setCall(callInstance);
 
         } catch (error: any) {
