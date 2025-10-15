@@ -64,20 +64,21 @@ const PlayerUI = ({
     const callingState = useCallCallingState();
     const participants = useParticipants();
 
-    const hostParticipant = participants.find(p => p.userId === broadcast.user.id);
-    const participantToDisplay = isHost ? participants.find(p => p.isLocal) : hostParticipant;
+    const hostParticipant = isHost 
+      ? participants.find(p => p.isLocal) 
+      : participants.find(p => p.userId === broadcast.user.id);
 
     if (callingState !== CallingState.JOINED) {
         return <div className="absolute inset-0 flex items-center justify-center bg-black/50"><p className="text-white text-lg">Connecting to Stream...</p></div>;
     }
     
-    if (!participantToDisplay) {
+    if (!hostParticipant) {
          return <div className="absolute inset-0 flex items-center justify-center bg-black/50"><p className="text-white text-lg">{isHost ? "Ready to stream" : "Waiting for host..."}</p></div>;
     }
 
     return (
         <StreamTheme as="main" className="w-full h-full">
-            <ParticipantView participant={participantToDisplay} />
+            <ParticipantView participant={hostParticipant} />
         </StreamTheme>
     );
 };
