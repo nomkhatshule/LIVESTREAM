@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { Broadcast } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Volume2, VolumeX, Users } from 'lucide-react';
-import type { IAgoraRTCClient, ICameraVideoTrack, IMicrophoneAudioTrack, IAgoraRTC, IScreenVideoTrack } from 'agora-rtc-sdk-ng';
+import AgoraRTC, { type IAgoraRTCClient, type ICameraVideoTrack, type IMicrophoneAudioTrack, type IAgoraRTC, type IScreenVideoTrack } from 'agora-rtc-sdk-ng';
 import { useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 
@@ -17,9 +17,6 @@ interface VideoPlayerProps {
 }
 
 const appId = process.env.NEXT_PUBLIC_AGORA_APP_ID || '';
-// Dynamically import Agora SDK
-let AgoraRTC: IAgoraRTC | null = null;
-
 
 async function fetchToken(channelName: string, account: string): Promise<string> {
     const response = await fetch('/api/agora/token', {
@@ -52,7 +49,6 @@ export default function VideoPlayer({
   const { toast } = useToast();
   
   const [isMuted, setIsMuted] = useState(!isHost);
-  const [remoteUsers, setRemoteUsers] = useState<any[]>([]);
   const [isConnecting, setIsConnecting] = useState(true);
 
   // Main Effect for initializing Agora and handling connection
@@ -69,25 +65,12 @@ export default function VideoPlayer({
     const initAndJoin = async () => {
         setIsConnecting(true);
 
-        // --- 1. Load SDK ---
-        try {
-            if (!AgoraRTC) {
-                AgoraRTC = (await import('agora-rtc-sdk-ng')).default;
-                console.log("Agora SDK loaded successfully.");
-            }
-        } catch (error) {
-            console.error("Failed to load Agora SDK", error);
-            toast({ variant: 'destructive', title: "Could not load streaming service."});
-            setIsConnecting(false);
-            return;
-        }
-
-        // --- 2. Create Client ---
+        // --- 1. Create Client ---
         client = AgoraRTC.createClient({ mode: 'live', codec: 'vp8' });
         clientRef.current = client;
         console.log("Agora client created.");
 
-        // --- 3. Setup Listeners (for viewers) ---
+        // --- 2. Setup Listeners (for viewers) ---
         if (!isHost) {
             client.on('user-published', async (user, mediaType) => {
                 await client.subscribe(user, mediaType);
@@ -113,7 +96,7 @@ export default function VideoPlayer({
             });
         }
 
-        // --- 4. Join Channel ---
+        // --- 3. Join Channel ---
         try {
             const account = currentUser.uid;
             const token = await fetchToken(broadcast.id, account);
@@ -122,7 +105,7 @@ export default function VideoPlayer({
             console.log(`Successfully joined channel ${broadcast.id} as ${isHost ? 'host' : 'audience'}.`);
 
             if (isHost) {
-                // --- 5. Get Permissions & Publish (Host only) ---
+                // --- 4. Get Permissions & Publish (Host only) ---
                 try {
                     client.setClientRole('host');
                     // CRITICAL: Request hardware permissions
@@ -162,7 +145,7 @@ export default function VideoPlayer({
 
     initAndJoin();
 
-    // --- 6. Cleanup ---
+    // --- 5. Cleanup ---
     return () => {
         console.log("Cleaning up Agora connection.");
         localAudioTrackRef.current?.close();
@@ -191,7 +174,7 @@ export default function VideoPlayer({
   // Effect for Screen Sharing
   useEffect(() => {
       const handleScreenShare = async () => {
-          if (!isHost || !clientRef.current || !AgoraRTC || !localVideoTrackRef.current) return;
+          if (!isHost || !clientRef.current || !localVideoTrackRef.current) return;
           
           const client = clientRef.current;
 
@@ -252,7 +235,7 @@ export default function VideoPlayer({
   };
 
   const showAudienceUI = !isHost;
-  const showOfflineMessage = showAudienceUI && remoteUsers.length === 0 && !isConnecting;
+  const showOfflineMessage = showAudienceUI && clientRef.current?.remoteUsers.length === 0 && !isConnecting;
 
 
   return (
@@ -294,7 +277,7 @@ export default function VideoPlayer({
                 </span>
                 <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-black/50 text-white gap-1.5">
                     <Users className="h-4 w-4" />
-                    {Intl.NumberFormat('en-US', { notation: 'compact' }).format(broadcast.viewers + remoteUsers.length)}
+                    {Intl.NumberFormat('en-US', { notation: 'compact' }).format(broadcast.viewers + (clientRef.current?.remoteUsers.length || 0))}
                 </span>
             </div>
             <div className="absolute top-4 left-4 z-10">
