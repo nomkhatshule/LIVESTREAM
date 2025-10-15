@@ -162,7 +162,10 @@ export default function VideoPlayer({
         if(isScreenSharing) {
             call.startScreenShare().catch(err => console.error("Failed to publish screen share", err));
         } else {
-            call.stopScreenShare().catch(err => console.error("Failed to stop screen share", err));
+            // Check if screen sharing is active before trying to stop
+            if (call.screenShareState.isPublishing) {
+                call.stopPublish('screenshare').catch(err => console.error("Failed to stop screen share", err));
+            }
         }
     }
   }, [call, isScreenSharing])
@@ -188,7 +191,7 @@ export default function VideoPlayer({
                 <BroadcastContent broadcast={broadcast} isHost={isHost} />
                 {isHost && (
                     <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20">
-                         <CallControls onLeave={() => call.leave()} />
+                         {/* The CallControls component is currently hidden in the live studio view to use custom controls */}
                     </div>
                 )}
             </div>
