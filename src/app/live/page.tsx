@@ -26,19 +26,19 @@ function LiveStudio({
     messages,
     onToggleAudio,
     onToggleVideo,
-    onToggleScreenShare,
+    // onToggleScreenShare,
     isAudioEnabled,
     isVideoEnabled,
-    isScreenSharing,
+    // isScreenSharing,
 }: {
     liveBroadcast: Broadcast;
     messages: ChatMessage[] | null;
     onToggleAudio: () => void;
     onToggleVideo: () => void;
-    onToggleScreenShare: () => void;
+    // onToggleScreenShare: () => void;
     isAudioEnabled: boolean;
     isVideoEnabled: boolean;
-    isScreenSharing: boolean;
+    // isScreenSharing: boolean;
 }) {
     const router = useRouter();
     const firestore = useFirestore();
@@ -95,7 +95,7 @@ function LiveStudio({
                 isHost={true}
                 isAudioEnabled={isAudioEnabled}
                 isVideoEnabled={isVideoEnabled}
-                isScreenSharing={isScreenSharing}
+                // isScreenSharing={isScreenSharing}
             />
             
             <div className="absolute top-0 left-0 right-0 z-10 p-4 flex items-center justify-between bg-gradient-to-b from-black/50 to-transparent">
@@ -161,9 +161,9 @@ function LiveStudio({
                  <Button variant={isVideoEnabled ? "secondary" : "destructive"} size="icon" className="rounded-full h-12 w-12" onClick={onToggleVideo}>
                     {isVideoEnabled ? <Video className="h-6 w-6"/> : <VideoOff className="h-6 w-6"/>}
                 </Button>
-                 <Button variant={isScreenSharing ? "primary" : "secondary"} size="icon" className="rounded-full h-12 w-12" onClick={onToggleScreenShare}>
+                 {/* <Button variant={isScreenSharing ? "primary" : "secondary"} size="icon" className="rounded-full h-12 w-12" onClick={onToggleScreenShare}>
                     {isScreenSharing ? <ScreenShareOff className="h-6 w-6"/> : <ScreenShare className="h-6 w-6"/>}
-                </Button>
+                </Button> */}
             </div>
         </div>
     );
@@ -181,7 +181,7 @@ function LiveStudioWrapper() {
     // State for media controls is lifted here.
     const [isAudioEnabled, setIsAudioEnabled] = useState(true);
     const [isVideoEnabled, setIsVideoEnabled] = useState(true);
-    const [isScreenSharing, setIsScreenSharing] = useState(false);
+    // const [isScreenSharing, setIsScreenSharing] = useState(false);
 
     const broadcastDocRef = useMemoFirebase(() => {
         if (!broadcastId) return undefined;
@@ -263,10 +263,10 @@ function LiveStudioWrapper() {
             messages={messages}
             isAudioEnabled={isAudioEnabled}
             isVideoEnabled={isVideoEnabled}
-            isScreenSharing={isScreenSharing}
+            // isScreenSharing={isScreenSharing}
             onToggleAudio={() => setIsAudioEnabled(prev => !prev)}
             onToggleVideo={() => setIsVideoEnabled(prev => !prev)}
-            onToggleScreenShare={() => setIsScreenSharing(prev => !prev)}
+            // onToggleScreenShare={() => setIsScreenSharing(prev => !prev)}
         />
     )
 }

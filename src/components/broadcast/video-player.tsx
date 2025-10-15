@@ -21,7 +21,7 @@ interface VideoPlayerProps {
   isHost: boolean;
   isAudioEnabled?: boolean;
   isVideoEnabled?: boolean;
-  isScreenSharing?: boolean;
+  // isScreenSharing?: boolean;
 }
 
 const apiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY || '';
@@ -88,7 +88,7 @@ export default function VideoPlayer({
     isHost,
     isAudioEnabled = true,
     isVideoEnabled = true,
-    isScreenSharing = false,
+    // isScreenSharing = false,
 }: VideoPlayerProps) {
   const { user: currentUser, isUserLoading } = useUser();
   const { toast } = useToast();
@@ -176,15 +176,15 @@ export default function VideoPlayer({
     }
   }, [call, isAudioEnabled, isHost]);
 
-  useEffect(() => {
-    if (!call || !isHost) return;
-    const { isPublishing } = call.screenShareState;
-    if (isScreenSharing && !isPublishing) {
-      call.startScreenShare();
-    } else if (!isScreenSharing && isPublishing) {
-      call.stopScreenShare();
-    }
-  }, [call, isScreenSharing, isHost]);
+  // useEffect(() => {
+  //   if (!call || !isHost) return;
+  //   const { isPublishing } = call.screenShareState;
+  //   if (isScreenSharing && !isPublishing) {
+  //     call.startScreenShare();
+  //   } else if (!isScreenSharing && isPublishing) {
+  //     call.stopScreenShare();
+  //   }
+  // }, [call, isScreenSharing, isHost]);
 
 
   if (!currentUser || isUserLoading) {
