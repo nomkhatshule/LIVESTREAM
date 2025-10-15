@@ -19,44 +19,33 @@ interface VideoPlayerProps {
 
 const appId = process.env.NEXT_PUBLIC_AGORA_APP_ID || '';
 
-// Updated to call our internal Next.js API route.
+// Updated to use a public Agora token server.
 async function fetchToken(channelName: string, account: string, role: 'publisher' | 'subscriber'): Promise<string> {
     if (!account) {
         throw new Error("User account is not available to generate a token.");
     }
-    console.log(`Requesting token from proxy for account: ${account}, channel: ${channelName}, role: ${role}`);
     
-    const response = await fetch('/api/token', {
-        method: 'POST',
+    // The role in the URL is numeric: 1 for publisher, 2 for subscriber
+    const agoraRole = role === 'publisher' ? 1 : 2;
+
+    const url = `https://agora-token-service-production-d3a3.up.railway.app/rtc/${channelName}/${agoraRole}/uid/${account}/`;
+    
+    console.log(`Requesting token from public service: ${url}`);
+
+    const response = await fetch(url, {
+        method: 'GET',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            // tokenType is handled by the new API route
-            channel: channelName,
-            role: role,
-            uid: account,
-            expire: 3600
-        }),
     });
 
     if (!response.ok) {
-        let errorBody: any = { error: `Failed to fetch token from proxy: ${response.statusText}` };
-        try {
-            const textBody = await response.text();
-            console.error("Proxy server error response text:", textBody);
-            try {
-              errorBody = JSON.parse(textBody);
-            } catch {
-              errorBody.details = textBody;
-            }
-        } catch (e) {
-             console.error("Could not parse error response body:", e);
-        }
-        throw new Error(errorBody.error || errorBody.details || `Failed to fetch token from proxy: ${response.statusText}`);
+        const errorBody = await response.text();
+        console.error("Token server error:", errorBody);
+        throw new Error(`Failed to fetch token: ${response.statusText}`);
     }
 
     const data = await response.json();
-    console.log("Successfully received token from proxy.");
-    return data.token;
+    console.log("Successfully received token from public service.");
+    return data.rtcToken;
 }
 
 
