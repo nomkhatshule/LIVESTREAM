@@ -4,9 +4,10 @@ import { useEffect, useRef, useState } from 'react';
 import type { Broadcast } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Volume2, VolumeX, Users } from 'lucide-react';
-import AgoraRTC, { type IAgoraRTCClient, type ICameraVideoTrack, type IMicrophoneAudioTrack, type IScreenVideoTrack } from 'agora-rtc-sdk-ng';
 import { useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
+import type { IAgoraRTCClient, ICameraVideoTrack, IMicrophoneAudioTrack, IScreenVideoTrack, IAgoraRTC } from 'agora-rtc-sdk-ng';
+
 
 interface VideoPlayerProps {
   broadcast: Broadcast;
@@ -20,6 +21,9 @@ const appId = process.env.NEXT_PUBLIC_AGORA_APP_ID || '';
 
 // Updated to call the new Go middleware token server
 async function fetchToken(channelName: string, account: string, role: 'publisher' | 'subscriber'): Promise<string> {
+    if (!account) {
+        throw new Error("User account is not available to generate a token.");
+    }
     const response = await fetch('http://localhost:8080/token/getNew', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -53,7 +57,8 @@ export default function VideoPlayer({
     isScreenSharing = false,
 }: VideoPlayerProps) {
   const { user: currentUser, isUserLoading } = useUser();
-  const clientRef = useRef<IAgoraRTCClient>();
+  const agoraClientRef = useRef<IAgoraRTCClient | null>(null);
+  const agoraRTCRef = useRef<IAgoraRTC | null>(null);
   const localVideoTrackRef = useRef<ICameraVideoTrack | null>(null);
   const localAudioTrackRef = useRef<IMicrophoneAudioTrack | null>(null);
   const screenVideoTrackRef = useRef<IScreenVideoTrack | null>(null);
@@ -76,8 +81,11 @@ export default function VideoPlayer({
     const initAndJoin = async () => {
         setIsConnecting(true);
 
+        const AgoraRTC = (await import('agora-rtc-sdk-ng')).default;
+        agoraRTCRef.current = AgoraRTC;
+        
         client = AgoraRTC.createClient({ mode: 'live', codec: 'vp8' });
-        clientRef.current = client;
+        agoraClientRef.current = client;
         console.log("Agora client created.");
 
         // --- Token Expiration Handlers ---
@@ -99,13 +107,23 @@ export default function VideoPlayer({
         });
 
         client.on("token-privilege-did-expire", async () => {
-            console.error("Agora token has expired. The user will be disconnected.");
-            toast({
+            console.error("Agora token has expired. Reconnecting...");
+             toast({
               variant: "destructive",
               title: "Stream Disconnected",
-              description: "Your session has expired. Please rejoin the stream."
+              description: "Your session has expired. Attempting to rejoin..."
             });
-            // In a real-world scenario, you might try to rejoin automatically here.
+             try {
+                const role = isHost ? 'publisher' : 'subscriber';
+                const newToken = await fetchToken(broadcast.id, currentUser.uid, role);
+                if (client.connectionState !== 'DISCONNECTED') {
+                    await client.leave();
+                }
+                await client.join(appId, broadcast.id, newToken, currentUser.uid);
+             } catch(error) {
+                 console.error("Failed to rejoin after token expired", error);
+                 toast({ variant: "destructive", title: "Reconnection Failed", description: "Could not rejoin the stream."});
+             }
         });
         // --- End of Token Handlers ---
 
@@ -187,8 +205,8 @@ export default function VideoPlayer({
         screenVideoTrackRef.current?.close();
         // Use a timeout to prevent race conditions on fast refreshes
         setTimeout(() => {
-          clientRef.current?.leave();
-          clientRef.current?.removeAllListeners();
+          agoraClientRef.current?.leave();
+          agoraClientRef.current?.removeAllListeners();
         }, 100);
     };
   }, [broadcast.id, isHost, currentUser?.uid, isUserLoading, toast]);
@@ -210,9 +228,10 @@ export default function VideoPlayer({
   // Effect for Screen Sharing
   useEffect(() => {
       const handleScreenShare = async () => {
-          if (!isHost || !clientRef.current || !localVideoTrackRef.current) return;
+          if (!isHost || !agoraClientRef.current || !localVideoTrackRef.current || !agoraRTCRef.current) return;
           
-          const client = clientRef.current;
+          const client = agoraClientRef.current;
+          const AgoraRTC = agoraRTCRef.current;
 
           if (isScreenSharing) {
               try {
@@ -263,7 +282,7 @@ export default function VideoPlayer({
 
   const toggleMute = () => {
       setIsMuted(!isMuted);
-      clientRef.current?.remoteUsers.forEach(user => {
+      agoraClientRef.current?.remoteUsers.forEach(user => {
           if (user.audioTrack) {
               // Set volume based on the new muted state.
               user.audioTrack.setVolume(isMuted ? 100 : 0);
@@ -272,7 +291,7 @@ export default function VideoPlayer({
   };
 
   const showAudienceUI = !isHost;
-  const showOfflineMessage = showAudienceUI && clientRef.current?.remoteUsers.length === 0 && !isConnecting;
+  const showOfflineMessage = showAudienceUI && agoraClientRef.current?.remoteUsers.length === 0 && !isConnecting;
 
 
   return (
@@ -313,7 +332,7 @@ export default function VideoPlayer({
                 </span>
                 <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-black/50 text-white gap-1.5">
                     <Users className="h-4 w-4" />
-                    {Intl.NumberFormat('en-US', { notation: 'compact' }).format(broadcast.viewers + (clientRef.current?.remoteUsers.length || 0))}
+                    {Intl.NumberFormat('en-US', { notation: 'compact' }).format(broadcast.viewers + (agoraClientRef.current?.remoteUsers.length || 0))}
                 </span>
             </div>
             <div className="absolute top-4 left-4 z-10">

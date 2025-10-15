@@ -9,10 +9,15 @@ import { Mic, MicOff, Video, VideoOff, ScreenShare, ScreenShareOff, X, Users, Me
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
-import VideoPlayer from '@/components/broadcast/video-player';
 import type { Broadcast, ChatMessage } from '@/lib/data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useCollection } from '@/firebase';
+import dynamic from 'next/dynamic';
+
+const VideoPlayer = dynamic(() => import('@/components/broadcast/video-player'), {
+    ssr: false,
+    loading: () => <div className="absolute inset-0 flex items-center justify-center bg-black/50"><p className="text-white text-lg">Loading Player...</p></div>
+});
 
 
 // This is the UI for the host's studio controls and chat
