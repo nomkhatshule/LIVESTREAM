@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -15,6 +16,7 @@ import {
   StreamVideoClient,
   ParticipantView,
   useCallStateHooks,
+  useParticipants,
 } from '@stream-io/video-react-sdk';
 import '@stream-io/video-react-sdk/dist/css/styles.css';
 
@@ -46,14 +48,22 @@ async function fetchToken(userId: string): Promise<string> {
 const BroadcastContent = ({ broadcast, isHost }: { broadcast: Broadcast; isHost: boolean }) => {
     const { useCallCallingState } = useCallStateHooks();
     const callingState = useCallCallingState();
+    const participants = useParticipants();
+
+    const hostParticipant = participants.find(p => p.userId === broadcast.user.id);
+    const participantToDisplay = isHost ? participants.find(p => p.isLocal) : hostParticipant;
 
     if (callingState !== CallingState.JOINED) {
         return <div className="absolute inset-0 flex items-center justify-center bg-black/50"><p className="text-white text-lg">Connecting to Stream...</p></div>;
     }
     
+    if (!participantToDisplay) {
+         return <div className="absolute inset-0 flex items-center justify-center bg-black/50"><p className="text-white text-lg">{isHost ? "Ready to stream" : "Waiting for host..."}</p></div>;
+    }
+
     return (
         <StreamTheme as="main" className="w-full h-full">
-            <ParticipantView participant={isHost ? 'local' : broadcast.user.id} />
+            <ParticipantView participant={participantToDisplay} />
         </StreamTheme>
     );
 };
@@ -123,7 +133,9 @@ export default function VideoPlayer({
             videoClient.disconnectUser().catch(err => console.error("Failed to disconnect user on cleanup", err));
         }
     };
-  }, [broadcast.id, isHost, currentUser?.uid, isUserLoading, toast, call]);
+  // The dependency array should not include `call` itself to avoid re-running on call state changes.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [broadcast.id, isHost, currentUser?.uid, isUserLoading, toast]);
 
   // Effects for toggling media
   useEffect(() => {
@@ -141,12 +153,18 @@ export default function VideoPlayer({
   useEffect(() => {
     if (call) {
         if(isScreenSharing) {
-            call.publishScreenShare();
+            // This is an async operation, but we don't need to block on it.
+            call.publishScreenShare().catch(err => console.error("Failed to publish screen share", err));
         } else {
-            call.stopScreenShare();
+            call.stopScreenShare().catch(err => console.error("Failed to stop screen share", err));
         }
     }
   }, [call, isScreenSharing])
+
+
+  if (!currentUser || isUserLoading) {
+     return <div className="absolute inset-0 w-full h-full bg-black flex items-center justify-center"><p className="text-white">Authenticating...</p></div>
+  }
 
 
   if (!client || !call) {
