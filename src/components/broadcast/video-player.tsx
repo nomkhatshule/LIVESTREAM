@@ -32,7 +32,12 @@ async function fetchToken(channelName: string, account: string, role: 'publisher
         }),
     });
     if (!response.ok) {
-        const errorBody = await response.json();
+        let errorBody: any = { error: `Failed to fetch token from middleware: ${response.statusText}` };
+        try {
+            errorBody = await response.json();
+        } catch (e) {
+            // Ignore if response is not json
+        }
         throw new Error(errorBody.error || `Failed to fetch token from middleware: ${response.statusText}`);
     }
     const data = await response.json();
