@@ -27,29 +27,30 @@ interface VideoPlayerProps {
 
 const apiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY || '';
 
-async function fetchToken(userId: string): Promise<string> {
-    const response = await fetch('/api/stream/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId }),
-    });
-    if (!response.ok) {
-        let errorBody: any;
+async function fetchToken(userId: string, broadcastId: string): Promise<string> {
+  const response = await fetch('/api/stream/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId }),
+  });
+
+  if (!response.ok) {
+    let errorBody: any;
+    try {
+        const textBody = await response.text();
+        console.error("Proxy server error response text:", textBody);
         try {
-            const textBody = await response.text();
-            console.error("Proxy server error response text:", textBody);
-            try {
-              errorBody = JSON.parse(textBody);
-            } catch {
-              throw new Error(`Failed to fetch Stream token. Status: ${response.status} Body: ${textBody}`);
-            }
-        } catch(e) {
-             throw new Error(`Failed to fetch Stream token. Status: ${response.status}`);
+          errorBody = JSON.parse(textBody);
+        } catch {
+          throw new Error(`Failed to fetch Stream token. Status: ${response.status} Body: ${textBody}`);
         }
-        throw new Error(errorBody.details || errorBody.error || 'Failed to fetch Stream token');
+    } catch(e) {
+         throw new Error(`Failed to fetch Stream token. Status: ${response.status}`);
     }
-    const { token } = await response.json();
-    return token;
+    throw new Error(errorBody.details || errorBody.error || 'Failed to fetch Stream token');
+  }
+  const { token } = await response.json();
+  return token;
 }
 
 
@@ -146,7 +147,7 @@ export default function VideoPlayer({
         }
 
         try {
-            const token = await fetchToken(currentUser.uid);
+            const token = await fetchToken(currentUser.uid, broadcast.id);
             
             videoClient = new StreamVideoClient({
                 apiKey,
@@ -180,11 +181,11 @@ export default function VideoPlayer({
         if (call) {
             call.leave().catch(err => console.error("Failed to leave call on cleanup", err));
         }
-        if (videoClient) {
-            videoClient.disconnectUser().catch(err => console.error("Failed to disconnect user on cleanup", err));
+        if (client) { // use videoClient from closure
+            client.disconnectUser().catch(err => console.error("Failed to disconnect user on cleanup", err));
         }
     };
-  // The dependency array should not include `call` itself to avoid re-running on call state changes.
+  // The dependency array should not include `call` or `client` itself to avoid re-running on call state changes.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [broadcast.id, isHost, currentUser?.uid, isUserLoading, toast]);
 
