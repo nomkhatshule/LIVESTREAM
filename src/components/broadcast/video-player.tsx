@@ -78,17 +78,15 @@ export default function VideoPlayer({
       client.on('user-published', async (user, mediaType) => {
         await client.subscribe(user, mediaType);
         if (mediaType === 'video') {
-            const remotePlayerContainer = document.createElement('div');
-            remotePlayerContainer.id = `player-${user.uid}`;
-            remotePlayerContainer.className = 'w-full h-full absolute top-0 left-0';
-            
-            const playerContainer = document.getElementById('remote-players');
-            if (playerContainer) {
-                const existingPlayer = document.getElementById(remotePlayerContainer.id);
-                if (existingPlayer) existingPlayer.remove();
-                playerContainer.append(remotePlayerContainer);
+            const remotePlayerContainer = document.getElementById('remote-players');
+            if (remotePlayerContainer) {
+                 // Create a div for the remote user's video
+                const playerDiv = document.createElement('div');
+                playerDiv.id = `player-${user.uid}`;
+                playerDiv.className = 'w-full h-full absolute top-0 left-0';
+                remotePlayerContainer.append(playerDiv);
+                user.videoTrack.play(playerDiv);
             }
-            user.videoTrack.play(remotePlayerContainer);
         }
         if (mediaType === 'audio') {
           user.audioTrack.play();
@@ -238,7 +236,7 @@ export default function VideoPlayer({
         {isHost && (
           <div 
             id="local-player" 
-            className="w-full h-full absolute top-0 left-0"
+            className="w-full h-full"
           />
         )}
         {/* Viewers will see remote streams injected here */}

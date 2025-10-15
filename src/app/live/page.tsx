@@ -1,7 +1,7 @@
 'use client';
 import { Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useUser, useDoc, useFirestore, useUserDocument, useCollection } from '@/firebase';
+import { useUser, useDoc, useFirestore, useUserDocument, useMemoFirebase, addDocumentNonBlocking } from '@/firebase';
 import { doc, collection, serverTimestamp, query, orderBy, limit, updateDoc } from 'firebase/firestore';
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { Button } from '@/components/ui/button';
@@ -12,8 +12,8 @@ import { Input } from '@/components/ui/input';
 import VideoPlayer from '@/components/broadcast/video-player';
 import type { Broadcast, ChatMessage } from '@/lib/data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useMemoFirebase } from '@/firebase';
-import { addDocumentNonBlocking } from '@/firebase';
+import { useCollection } from '@/firebase';
+
 
 // This is the UI for the host's studio controls and chat
 function LiveStudio({ 
