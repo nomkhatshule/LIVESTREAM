@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 // Correct the import to handle module structure differences.
 import agora from 'agora-token';
-const { RtcTokenBuilder, RtcRole } = agora;
-
 
 // This route generates an Agora token directly.
 export async function POST(req: NextRequest) {
+  const { RtcTokenBuilder, RtcRole } = agora;
+  
   let body;
   try {
     body = await req.json();
@@ -61,6 +61,8 @@ export async function POST(req: NextRequest) {
 
   } catch (error: any) {
     console.error('Error generating Agora token:', error);
-    return NextResponse.json({ error: 'Failed to generate token', details: error.message }, { status: 500 });
+    // Ensure the error message is a string for the JSON response
+    const errorMessage = error.message || 'An unknown error occurred during token generation.';
+    return NextResponse.json({ error: 'Failed to generate token', details: errorMessage }, { status: 500 });
   }
 }
