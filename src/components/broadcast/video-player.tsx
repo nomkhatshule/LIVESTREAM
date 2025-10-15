@@ -131,14 +131,9 @@ export default function VideoPlayer({
             localAudioTrackRef.current = localTracks[0];
             localVideoTrackRef.current = localTracks[1];
             
-            if (playerRef.current) {
-                const localPlayerContainer = document.createElement('div');
-                localPlayerContainer.id = `local-player-${account}`;
-                localPlayerContainer.className = 'w-full h-full absolute top-0 left-0';
-                playerRef.current.append(localPlayerContainer);
-                localTracks[1].play(localPlayerContainer);
-            }
-
+            // The key fix: play the local video track into the dedicated div
+            localTracks[1].play('local-player');
+            
             await client.publish(localTracks);
           } catch(permError) {
               console.error('Failed to get camera/mic permissions', permError);
@@ -251,7 +246,13 @@ export default function VideoPlayer({
   return (
     <div className="absolute inset-0 w-full h-full bg-black">
       <div ref={playerRef} className="w-full h-full overflow-hidden relative">
-        {/* Host self-view or remote user video is injected here */}
+        {isHost && (
+          <div 
+            id="local-player" 
+            className="w-full h-full absolute top-0 left-0"
+          />
+        )}
+        {/* Remote user videos are dynamically injected here */}
       </div>
 
       {showOfflineMessage && (
