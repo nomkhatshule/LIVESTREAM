@@ -16,8 +16,7 @@ import { categories } from '@/lib/data';
 import { useUser, useFirestore, useUserDocument } from '@/firebase';
 import { serverTimestamp, collection, addDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
-import { Video, Loader, AlertCircle, CameraOff } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Video, Loader, CameraOff } from 'lucide-react';
 
 export default function CreateBroadcastPage() {
   const router = useRouter();
@@ -35,7 +34,6 @@ export default function CreateBroadcastPage() {
 
   useEffect(() => {
     const getCameraPermission = async () => {
-      // Don't request permissions if already denied/granted, unless state is null
       if (hasCameraPermission !== null) return;
 
       try {
@@ -87,7 +85,6 @@ export default function CreateBroadcastPage() {
     }
     setIsSubmitting(true);
     
-    // Stop the local video stream before navigating
     if (videoRef.current && videoRef.current.srcObject) {
         const stream = videoRef.current.srcObject as MediaStream;
         stream.getTracks().forEach(track => track.stop());
@@ -103,16 +100,14 @@ export default function CreateBroadcastPage() {
       isLive: true,
       viewers: 0,
       createdAt: serverTimestamp(),
-      tags: ['New', 'Live'], // Default tags
+      tags: ['New', 'Live'],
     };
 
     try {
         const newBroadcastDoc = await addDoc(broadcastsCollection, broadcastData);
-        if (newBroadcastDoc.id) {
-          router.push(`/live?id=${newBroadcastDoc.id}`);
-        } else {
-           throw new Error("Failed to create broadcast document.");
-        }
+        // CRITICAL FIX: Await the navigation to ensure the current page
+        // fully unloads and releases the camera before the next page loads.
+        await router.push(`/live?id=${newBroadcastDoc.id}`);
     } catch (error) {
         console.error("Error starting broadcast:", error);
         toast({
@@ -137,11 +132,9 @@ export default function CreateBroadcastPage() {
 
   return (
     <div className="relative h-screen w-full overflow-hidden flex items-center justify-center">
-        {/* Video Background */}
         <video ref={videoRef} className="absolute top-0 left-0 w-full h-full object-cover -z-10" autoPlay muted playsInline />
         <div className="absolute inset-0 bg-black/50" />
         
-        {/* Fallback for no camera permission */}
         {hasCameraPermission === false && (
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 text-white z-0">
                 <CameraOff className="h-16 w-16 mb-4" />
@@ -152,7 +145,6 @@ export default function CreateBroadcastPage() {
             </div>
         )}
 
-        {/* Form Overlay */}
         <div className="relative z-10 w-full max-w-md space-y-6 rounded-2xl bg-card/80 backdrop-blur-lg p-8 shadow-2xl">
             <div className="text-center">
             <h1 className="text-3xl font-bold font-headline text-foreground">Go Live</h1>
