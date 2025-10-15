@@ -30,39 +30,39 @@ export default function CreateBroadcastPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(true); // Changed to true to bypass check
+  const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
 
   useEffect(() => {
-    // const getCameraPermission = async () => {
-    //   if (hasCameraPermission !== null) return;
-    //   try {
-    //     const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-    //     setHasCameraPermission(true);
-    //     if (videoRef.current) {
-    //       videoRef.current.srcObject = stream;
-    //     }
-    //   } catch (error) {
-    //     console.error('Error accessing camera:', error);
-    //     setHasCameraPermission(false);
-    //     toast({
-    //       variant: 'destructive',
-    //       title: 'Camera Access Denied',
-    //       description: 'Please enable camera permissions in your browser settings to go live.',
-    //     });
-    //   }
-    // };
-    // getCameraPermission();
+    const getCameraPermission = async () => {
+      if (hasCameraPermission !== null) return;
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        setHasCameraPermission(true);
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      } catch (error) {
+        console.error('Error accessing camera:', error);
+        setHasCameraPermission(false);
+        toast({
+          variant: 'destructive',
+          title: 'Camera Access Denied',
+          description: 'Please enable camera permissions in your browser settings to go live.',
+        });
+      }
+    };
+    getCameraPermission();
   }, [hasCameraPermission, toast]);
 
   const handleGoLive = async () => {
-    // if (!hasCameraPermission) {
-    //     toast({
-    //         variant: 'destructive',
-    //         title: 'Camera Required',
-    //         description: 'Camera access is required to start a broadcast.',
-    //     });
-    //     return;
-    // }
+    if (!hasCameraPermission) {
+        toast({
+            variant: 'destructive',
+            title: 'Camera Required',
+            description: 'Camera access is required to start a broadcast.',
+        });
+        return;
+    }
     if (!title || !category) {
       toast({
         variant: 'destructive',
@@ -130,7 +130,7 @@ export default function CreateBroadcastPage() {
 
   return (
     <div className="relative h-screen w-full overflow-hidden flex items-center justify-center">
-        <div ref={videoRef} className="absolute top-0 left-0 w-full h-full object-cover -z-10 bg-black" />
+        <video ref={videoRef} autoPlay muted playsInline className="absolute top-0 left-0 w-full h-full object-cover -z-10 bg-black" />
         <div className="absolute inset-0 bg-black/50" />
         
         {hasCameraPermission === false && (
@@ -181,7 +181,7 @@ export default function CreateBroadcastPage() {
             <Button
             size="lg"
             onClick={handleGoLive}
-            disabled={isSubmitting || !title || !category || isLoading}
+            disabled={isSubmitting || !title || !category || isLoading || hasCameraPermission === false}
             className="w-full"
             >
             {isSubmitting ? (
