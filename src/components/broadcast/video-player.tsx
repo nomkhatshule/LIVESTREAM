@@ -55,58 +55,17 @@ async function fetchToken(userId: string): Promise<string> {
 
 const PlayerUI = ({ 
     broadcast, 
-    isHost,
-    isAudioEnabled,
-    isVideoEnabled,
-    isScreenSharing,
-    call
+    isHost
 }: { 
     broadcast: Broadcast; 
     isHost: boolean;
-    isAudioEnabled?: boolean;
-    isVideoEnabled?: boolean;
-    isScreenSharing?: boolean;
-    call: Call;
 }) => {
-    const { useCallCallingState, useParticipants, useScreenShareState } = useCallStateHooks();
+    const { useCallCallingState, useParticipants } = useCallStateHooks();
     const callingState = useCallCallingState();
     const participants = useParticipants();
-    const { screenShareState } = useScreenShareState();
 
     const hostParticipant = participants.find(p => p.userId === broadcast.user.id);
     const participantToDisplay = isHost ? participants.find(p => p.isLocal) : hostParticipant;
-
-    // Effects for toggling media
-    useEffect(() => {
-        if (!call) return;
-        if (isAudioEnabled) {
-          call.microphone.enable();
-        } else {
-          call.microphone.disable();
-        }
-    }, [call, isAudioEnabled]);
-
-    useEffect(() => {
-        if (!call) return;
-        if (isVideoEnabled) {
-          call.camera.enable();
-        } else {
-          call.camera.disable();
-        }
-    }, [call, isVideoEnabled]);
-    
-    useEffect(() => {
-        if (!call || !screenShareState) return;
-        if(isScreenSharing) {
-            call.startScreenShare().catch(err => console.error("Failed to publish screen share", err));
-        } else {
-            // Check if screen sharing is active before trying to stop
-            if (screenShareState.isPublishing) {
-                call.stopPublish('screenshare').catch(err => console.error("Failed to stop screen share", err));
-            }
-        }
-    }, [call, isScreenSharing, screenShareState]);
-
 
     if (callingState !== CallingState.JOINED) {
         return <div className="absolute inset-0 flex items-center justify-center bg-black/50"><p className="text-white text-lg">Connecting to Stream...</p></div>;
@@ -198,6 +157,36 @@ export default function VideoPlayer({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [broadcast.id, isHost, currentUser?.uid, isUserLoading, toast]);
 
+  // Effects for toggling media based on props from LiveStudio
+  useEffect(() => {
+    if (!call || !isHost) return;
+    if (isVideoEnabled) {
+      call.camera.enable();
+    } else {
+      call.camera.disable();
+    }
+  }, [call, isVideoEnabled, isHost]);
+
+  useEffect(() => {
+    if (!call || !isHost) return;
+    if (isAudioEnabled) {
+      call.microphone.enable();
+    } else {
+      call.microphone.disable();
+    }
+  }, [call, isAudioEnabled, isHost]);
+
+  useEffect(() => {
+    if (!call || !isHost) return;
+    const { isPublishing } = call.screenShareState;
+    if (isScreenSharing && !isPublishing) {
+      call.startScreenShare();
+    } else if (!isScreenSharing && isPublishing) {
+      call.stopScreenShare();
+    }
+  }, [call, isScreenSharing, isHost]);
+
+
   if (!currentUser || isUserLoading) {
      return <div className="absolute inset-0 w-full h-full bg-black flex items-center justify-center"><p className="text-white">Authenticating...</p></div>
   }
@@ -218,10 +207,6 @@ export default function VideoPlayer({
                 <PlayerUI 
                     broadcast={broadcast} 
                     isHost={isHost}
-                    isAudioEnabled={isAudioEnabled}
-                    isVideoEnabled={isVideoEnabled}
-                    isScreenSharing={isScreenSharing}
-                    call={call}
                 />
             </div>
         </StreamCall>

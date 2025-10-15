@@ -83,6 +83,7 @@ export default function CreateBroadcastPage() {
     }
     setIsSubmitting(true);
     
+    // Explicitly stop all media tracks to release the camera before navigating.
     if (videoRef.current && videoRef.current.srcObject) {
         const stream = videoRef.current.srcObject as MediaStream;
         stream.getTracks().forEach(track => track.stop());
