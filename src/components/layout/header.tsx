@@ -58,18 +58,6 @@ export default function Header() {
               <Tv className="mr-1.5 h-4 w-4" />
               For You
             </Link>
-             <Link
-              href="/agora-test"
-              className={cn(
-                'flex items-center transition-colors hover:text-foreground/80',
-                pathname.startsWith('/agora-test')
-                  ? 'text-foreground'
-                  : 'text-foreground/60'
-              )}
-            >
-              <FlaskConical className="mr-1.5 h-4 w-4" />
-              Test
-            </Link>
             {!isMobile && (
               <Link
                 href="#"
