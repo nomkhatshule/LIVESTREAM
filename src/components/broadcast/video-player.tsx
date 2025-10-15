@@ -7,8 +7,6 @@ import { useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import {
   Call,
-  CallControls,
-  CallParticipantsList,
   CallingState,
   StreamCall,
   StreamTheme,
@@ -44,13 +42,56 @@ async function fetchToken(userId: string): Promise<string> {
 }
 
 
-const BroadcastContent = ({ broadcast, isHost }: { broadcast: Broadcast; isHost: boolean }) => {
-    const { useCallCallingState, useParticipants } = useCallStateHooks();
+const PlayerContent = ({ broadcast, isHost, isAudioEnabled, isVideoEnabled, isScreenSharing, call }: { 
+    broadcast: Broadcast; 
+    isHost: boolean;
+    isAudioEnabled?: boolean;
+    isVideoEnabled?: boolean;
+    isScreenSharing?: boolean;
+    call: Call;
+}) => {
+    const { useCallCallingState, useParticipants, useScreenShareState } = useCallStateHooks();
     const callingState = useCallCallingState();
     const participants = useParticipants();
+    const { screenShareState } = useScreenShareState();
 
     const hostParticipant = participants.find(p => p.userId === broadcast.user.id);
     const participantToDisplay = isHost ? participants.find(p => p.isLocal) : hostParticipant;
+
+    // Effects for toggling media
+    useEffect(() => {
+        if (call && call.microphone) {
+          if (isAudioEnabled) {
+            call.microphone.enable();
+          } else {
+            call.microphone.disable();
+          }
+        }
+    }, [call, isAudioEnabled]);
+
+    useEffect(() => {
+        if (call && call.camera) {
+          if (isVideoEnabled) {
+            call.camera.enable();
+          } else {
+            call.camera.disable();
+          }
+        }
+    }, [call, isVideoEnabled]);
+    
+    useEffect(() => {
+        if (call) {
+            if(isScreenSharing) {
+                call.startScreenShare().catch(err => console.error("Failed to publish screen share", err));
+            } else {
+                // Check if screen sharing is active before trying to stop
+                if (screenShareState.isPublishing) {
+                    call.stopPublish('screenshare').catch(err => console.error("Failed to stop screen share", err));
+                }
+            }
+        }
+    }, [call, isScreenSharing, screenShareState.isPublishing])
+
 
     if (callingState !== CallingState.JOINED) {
         return <div className="absolute inset-0 flex items-center justify-center bg-black/50"><p className="text-white text-lg">Connecting to Stream...</p></div>;
@@ -136,41 +177,6 @@ export default function VideoPlayer({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [broadcast.id, isHost, currentUser?.uid, isUserLoading, toast]);
 
-  // Effects for toggling media
-  useEffect(() => {
-    if (call && call.microphone) {
-      if (isAudioEnabled) {
-        call.microphone.enable();
-      } else {
-        call.microphone.disable();
-      }
-    }
-  }, [call, isAudioEnabled]);
-
-  useEffect(() => {
-    if (call && call.camera) {
-      if (isVideoEnabled) {
-        call.camera.enable();
-      } else {
-        call.camera.disable();
-      }
-    }
-  }, [call, isVideoEnabled]);
-  
-  useEffect(() => {
-    if (call) {
-        if(isScreenSharing) {
-            call.startScreenShare().catch(err => console.error("Failed to publish screen share", err));
-        } else {
-            // Check if screen sharing is active before trying to stop
-            if (call.screenShareState.isPublishing) {
-                call.stopPublish('screenshare').catch(err => console.error("Failed to stop screen share", err));
-            }
-        }
-    }
-  }, [call, isScreenSharing])
-
-
   if (!currentUser || isUserLoading) {
      return <div className="absolute inset-0 w-full h-full bg-black flex items-center justify-center"><p className="text-white">Authenticating...</p></div>
   }
@@ -188,12 +194,14 @@ export default function VideoPlayer({
     <StreamVideo client={client}>
         <StreamCall call={call}>
             <div className="absolute inset-0 w-full h-full bg-black">
-                <BroadcastContent broadcast={broadcast} isHost={isHost} />
-                {isHost && (
-                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20">
-                         {/* The CallControls component is currently hidden in the live studio view to use custom controls */}
-                    </div>
-                )}
+                <PlayerContent 
+                    broadcast={broadcast} 
+                    isHost={isHost}
+                    isAudioEnabled={isAudioEnabled}
+                    isVideoEnabled={isVideoEnabled}
+                    isScreenSharing={isScreenSharing}
+                    call={call}
+                />
             </div>
         </StreamCall>
     </StreamVideo>
