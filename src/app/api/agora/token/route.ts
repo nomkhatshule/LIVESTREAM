@@ -4,19 +4,27 @@ import { RtcTokenBuilder, RtcRole } from 'agora-token';
 export async function POST(request: Request) {
   const { channelName, account } = await request.json();
 
+  // --- Start of new logging ---
+  console.log('--- Attempting to generate Agora Token ---');
+  console.log('Received channelName:', channelName);
+  console.log('Received account:', account);
+  // --- End of new logging ---
+
   if (!channelName || !account) {
     return NextResponse.json({ error: 'channelName and account are required' }, { status: 400 });
   }
 
-  // The account must be a string for buildTokenWithAccount
   if (typeof account !== 'string') {
     return NextResponse.json({ error: 'account must be a string' }, { status: 400 });
   }
 
-  // Directly access the environment variables on the server.
-  // The `NEXT_PUBLIC_` prefix is for client-side exposure, but the server can access both.
   const appId = process.env.NEXT_PUBLIC_AGORA_APP_ID;
   const appCertificate = process.env.AGORA_APP_CERTIFICATE;
+
+  // --- More logging ---
+  console.log('Found App ID:', appId ? 'Yes' : 'No');
+  console.log('Found App Certificate:', appCertificate ? 'Yes' : 'No');
+  // --- End of more logging ---
 
   if (!appId || !appCertificate) {
     console.error('Agora App ID or Certificate is not configured on the server. Check environment variables.');
@@ -29,15 +37,15 @@ export async function POST(request: Request) {
   const privilegeExpiredTs = currentTimestamp + expirationTimeInSeconds;
 
   try {
-    // Use buildTokenWithAccount for string-based UIDs
     const token = RtcTokenBuilder.buildTokenWithAccount(
       appId,
       appCertificate,
       channelName,
-      account, // Use the string account
+      account,
       role,
       privilegeExpiredTs
     );
+    console.log('Token generated successfully.');
     return NextResponse.json({ token });
   } catch (error) {
     console.error('Error generating Agora token:', error);
