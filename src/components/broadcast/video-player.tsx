@@ -19,22 +19,22 @@ interface VideoPlayerProps {
 
 const appId = process.env.NEXT_PUBLIC_AGORA_APP_ID || '';
 
-// Updated to call the new Go middleware token server via our proxy
+// Updated to call our internal Next.js API route.
 async function fetchToken(channelName: string, account: string, role: 'publisher' | 'subscriber'): Promise<string> {
     if (!account) {
         throw new Error("User account is not available to generate a token.");
     }
-    console.log(`Requesting token for account: ${account}, channel: ${channelName}, role: ${role}`);
-    // Calls our own Next.js API route which acts as a proxy
+    console.log(`Requesting token from proxy for account: ${account}, channel: ${channelName}, role: ${role}`);
+    
     const response = await fetch('/api/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            tokenType: 'rtc',
+            // tokenType is handled by the new API route
             channel: channelName,
             role: role,
             uid: account,
-            expire: 3600 // Token expiration time in seconds
+            expire: 3600
         }),
     });
 
@@ -55,7 +55,7 @@ async function fetchToken(channelName: string, account: string, role: 'publisher
     }
 
     const data = await response.json();
-    console.log("Successfully received token.");
+    console.log("Successfully received token from proxy.");
     return data.token;
 }
 

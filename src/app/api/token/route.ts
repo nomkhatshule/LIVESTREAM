@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { RtcTokenBuilder, RtcRole } from 'agora-token';
 
-// This route acts as a proxy to the Go token server to avoid CORS issues.
+// This route generates an Agora token directly, removing the need for the Go middleware.
 export async function POST(req: NextRequest) {
   let body;
   try {
@@ -10,44 +11,53 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid request body. Expected JSON.' }, { status: 400 });
   }
 
+  const { channel, role, uid } = body;
+
+  // 1. Validate incoming data
+  if (!channel || !role || !uid) {
+    const missingParams = [!channel && 'channel', !role && 'role', !uid && 'uid'].filter(Boolean).join(', ');
+    console.error(`Token generation failed: Missing parameters in request body. Missing: ${missingParams}`, body);
+    return NextResponse.json({ error: `Missing required parameters: ${missingParams}` }, { status: 400 });
+  }
+
+  if (typeof channel !== 'string' || typeof uid !== 'string') {
+    return NextResponse.json({ error: 'Invalid parameter types: channel and uid must be strings.' }, { status: 400 });
+  }
+
+  // 2. Load credentials from environment variables
+  const appId = process.env.NEXT_PUBLIC_AGORA_APP_ID;
+  const appCertificate = process.env.AGORA_APP_CERTIFICATE;
+
+  if (!appId || !appCertificate) {
+    console.error('Agora App ID or Certificate is not configured in environment variables.');
+    return NextResponse.json({ error: 'Server configuration error: Agora credentials not set.' }, { status: 500 });
+  }
+
+  // 3. Determine the user role for Agora
+  const agoraRole = role === 'publisher' ? RtcRole.PUBLISHER : RtcRole.SUBSCRIBER;
+  const expireTime = 3600; // 1 hour expiration time in seconds
+  const currentTime = Math.floor(Date.now() / 1000);
+  const privilegeExpireTime = currentTime + expireTime;
+
   try {
-    const { tokenType, channel, role, uid, expire } = body;
+    // 4. Generate the token
+    console.log(`Generating token for channel: "${channel}", uid: "${uid}", role: ${role} (Agora role: ${agoraRole})`);
+    
+    const token = RtcTokenBuilder.buildTokenWithAccount(
+      appId,
+      appCertificate,
+      channel,
+      uid, // Use string UID here
+      agoraRole,
+      privilegeExpireTime
+    );
 
-    // Validate incoming data
-    if (!tokenType || !channel || !role || !uid) {
-      console.error('Proxy validation failed. Missing parameters in request body:', body);
-      return NextResponse.json({ error: 'Missing required parameters: tokenType, channel, role, uid' }, { status: 400 });
-    }
-
-    // Forward the request to the actual Go token server
-    const tokenServerResponse = await fetch('http://localhost:8080/token/getNew', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        tokenType,
-        channel,
-        role,
-        uid,
-        expire: expire || 3600, // Default to 1 hour
-      }),
-    });
-
-    if (!tokenServerResponse.ok) {
-        const errorBody = await tokenServerResponse.text();
-        console.error(`Token server responded with ${tokenServerResponse.status}:`, errorBody);
-        return NextResponse.json({ error: 'Failed to get token from middleware server', details: errorBody }, { status: tokenServerResponse.status });
-    }
-
-    const data = await tokenServerResponse.json();
-
-    // Return the token to the client
-    return NextResponse.json(data);
+    console.log("Successfully generated Agora token.");
+    // 5. Return the token to the client
+    return NextResponse.json({ token });
 
   } catch (error: any) {
-    console.error('Error in token proxy API after parsing body:', error);
-    // Forward a more specific error message if available
-    return NextResponse.json({ error: 'Internal Server Error in proxy', details: error.message }, { status: 500 });
+    console.error('Error generating Agora token:', error.message);
+    return NextResponse.json({ error: 'Failed to generate token', details: error.message }, { status: 500 });
   }
 }
