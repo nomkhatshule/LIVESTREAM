@@ -28,17 +28,28 @@ interface VideoPlayerProps {
 const apiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY || '';
 
 async function fetchToken(userId: string): Promise<string> {
-  const response = await fetch('/api/stream/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ userId }),
-  });
-  if (!response.ok) {
-    const errorBody = await response.json();
-    throw new Error(errorBody.error || 'Failed to fetch Stream token');
-  }
-  const { token } = await response.json();
-  return token;
+    const response = await fetch('/api/stream/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId }),
+    });
+    if (!response.ok) {
+        let errorBody: any;
+        try {
+            const textBody = await response.text();
+            console.error("Proxy server error response text:", textBody);
+            try {
+              errorBody = JSON.parse(textBody);
+            } catch {
+              throw new Error(`Failed to fetch Stream token. Status: ${response.status} Body: ${textBody}`);
+            }
+        } catch(e) {
+             throw new Error(`Failed to fetch Stream token. Status: ${response.status}`);
+        }
+        throw new Error(errorBody.details || errorBody.error || 'Failed to fetch Stream token');
+    }
+    const { token } = await response.json();
+    return token;
 }
 
 
@@ -90,7 +101,7 @@ const PlayerContent = ({ broadcast, isHost, isAudioEnabled, isVideoEnabled, isSc
                 }
             }
         }
-    }, [call, isScreenSharing, screenShareState.isPublishing])
+    }, [call, isScreenSharing, screenShareState]);
 
 
     if (callingState !== CallingState.JOINED) {
