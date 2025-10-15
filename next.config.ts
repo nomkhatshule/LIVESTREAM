@@ -28,8 +28,6 @@ const nextConfig: NextConfig = {
       }
     ]
   },
-  // The env block is not the correct way to expose server-side variables to API routes.
-  // API routes have direct access to process.env.
 };
 
 export default nextConfig;
