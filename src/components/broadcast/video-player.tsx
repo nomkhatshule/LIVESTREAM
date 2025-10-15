@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { Broadcast } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Volume2, VolumeX, Users } from 'lucide-react';
-import AgoraRTC, { type IAgoraRTCClient, type ICameraVideoTrack, type IMicrophoneAudioTrack, type IAgoraRTC, type IScreenVideoTrack, RtcRole } from 'agora-rtc-sdk-ng';
+import AgoraRTC, { type IAgoraRTCClient, type ICameraVideoTrack, type IMicrophoneAudioTrack, type IScreenVideoTrack } from 'agora-rtc-sdk-ng';
 import { useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 
@@ -18,15 +18,22 @@ interface VideoPlayerProps {
 
 const appId = process.env.NEXT_PUBLIC_AGORA_APP_ID || '';
 
+// Updated to call the new Go middleware token server
 async function fetchToken(channelName: string, account: string, role: 'publisher' | 'subscriber'): Promise<string> {
-    const response = await fetch('/api/agora/token', {
+    const response = await fetch('http://localhost:8080/token/getNew', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ channelName, account, role }),
+        body: JSON.stringify({
+            tokenType: 'rtc',
+            channel: channelName,
+            role: role,
+            uid: account,
+            expire: 3600 // Token expiration time in seconds
+        }),
     });
     if (!response.ok) {
         const errorBody = await response.json();
-        throw new Error(errorBody.error || 'Failed to fetch token');
+        throw new Error(errorBody.error || `Failed to fetch token from middleware: ${response.statusText}`);
     }
     const data = await response.json();
     return data.token;
