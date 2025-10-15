@@ -62,7 +62,7 @@ const PlayerUI = ({ broadcast, isHost, isAudioEnabled, isVideoEnabled, isScreenS
     call: Call;
 }) => {
     const { useCallCallingState, useParticipants, useScreenShareState } = useCallStateHooks();
-    const callingState = useCallCalling_State();
+    const callingState = useCallCallingState();
     const participants = useParticipants();
     const { screenShareState } = useScreenShareState();
 
@@ -89,7 +89,7 @@ const PlayerUI = ({ broadcast, isHost, isAudioEnabled, isVideoEnabled, isScreenS
     }, [call, isVideoEnabled]);
     
     useEffect(() => {
-        if (!call) return;
+        if (!call || !screenShareState) return;
         if(isScreenSharing) {
             call.startScreenShare().catch(err => console.error("Failed to publish screen share", err));
         } else {
