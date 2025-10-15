@@ -1,7 +1,7 @@
 'use client';
 import { Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useUser, useDoc, useFirestore, useUserDocument } from '@/firebase';
+import { useUser, useDoc, useFirestore, useUserDocument, useCollection } from '@/firebase';
 import { doc, collection, serverTimestamp, query, orderBy, limit, updateDoc } from 'firebase/firestore';
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { Button } from '@/components/ui/button';
