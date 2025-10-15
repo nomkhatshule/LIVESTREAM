@@ -19,33 +19,42 @@ interface VideoPlayerProps {
 
 const appId = process.env.NEXT_PUBLIC_AGORA_APP_ID || '';
 
-// Updated to use a public Agora token server.
+// Updated to use a public Agora token server via our own proxy
 async function fetchToken(channelName: string, account: string, role: 'publisher' | 'subscriber'): Promise<string> {
     if (!account) {
         throw new Error("User account is not available to generate a token.");
     }
     
-    // The role in the URL is numeric: 1 for publisher, 2 for subscriber
-    const agoraRole = role === 'publisher' ? 1 : 2;
+    console.log(`Requesting token from proxy for channel: ${channelName}, uid: ${account}`);
 
-    const url = `https://agora-token-service-production-d3a3.up.railway.app/rtc/${channelName}/${agoraRole}/uid/${account}/`;
-    
-    console.log(`Requesting token from public service: ${url}`);
-
-    const response = await fetch(url, {
-        method: 'GET',
+    const response = await fetch('/api/token', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            channelName,
+            uid: account,
+            role,
+        }),
     });
 
     if (!response.ok) {
-        const errorBody = await response.text();
-        console.error("Token server error:", errorBody);
-        throw new Error(`Failed to fetch token: ${response.statusText}`);
+        let errorBody: any = { error: `Failed to fetch token from proxy: ${response.statusText}` };
+        try {
+            const textBody = await response.text();
+            console.error("Proxy server error response text:", textBody);
+            try {
+              errorBody = JSON.parse(textBody);
+            } catch {
+              // Ignore if response is not json
+            }
+        } catch (e) {
+             console.error("Could not parse error response body:", e);
+        }
+        throw new Error(errorBody.error || errorBody.details || `Failed to fetch token from proxy: ${response.statusText}`);
     }
 
     const data = await response.json();
-    console.log("Successfully received token from public service.");
-    return data.rtcToken;
+    return data.token;
 }
 
 
