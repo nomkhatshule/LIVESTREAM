@@ -24,7 +24,8 @@ async function fetchToken(channelName: string, account: string, role: 'publisher
     if (!account) {
         throw new Error("User account is not available to generate a token.");
     }
-    const response = await fetch('http://localhost:8080/token/getNew', {
+    // Calls our own Next.js API route which acts as a proxy
+    const response = await fetch('/api/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -36,13 +37,13 @@ async function fetchToken(channelName: string, account: string, role: 'publisher
         }),
     });
     if (!response.ok) {
-        let errorBody: any = { error: `Failed to fetch token from middleware: ${response.statusText}` };
+        let errorBody: any = { error: `Failed to fetch token from proxy: ${response.statusText}` };
         try {
             errorBody = await response.json();
         } catch (e) {
             // Ignore if response is not json
         }
-        throw new Error(errorBody.error || `Failed to fetch token from middleware: ${response.statusText}`);
+        throw new Error(errorBody.error || `Failed to fetch token from proxy: ${response.statusText}`);
     }
     const data = await response.json();
     return data.token;
@@ -77,12 +78,21 @@ export default function VideoPlayer({
     
     let client: IAgoraRTCClient;
     let localTracks: [IMicrophoneAudioTrack, ICameraVideoTrack] | null = null;
+    let AgoraRTC: IAgoraRTC;
 
     const initAndJoin = async () => {
         setIsConnecting(true);
 
-        const AgoraRTC = (await import('agora-rtc-sdk-ng')).default;
-        agoraRTCRef.current = AgoraRTC;
+        try {
+            // Dynamically import Agora SDK on the client side
+            const AgoraSDK = (await import('agora-rtc-sdk-ng'));
+            AgoraRTC = AgoraSDK.default;
+            agoraRTCRef.current = AgoraRTC;
+        } catch (e) {
+            console.error("Failed to load Agora SDK", e);
+            toast({ variant: "destructive", title: "Could not load video library", description: "Please check your connection and try again." });
+            return;
+        }
         
         client = AgoraRTC.createClient({ mode: 'live', codec: 'vp8' });
         agoraClientRef.current = client;
@@ -155,6 +165,10 @@ export default function VideoPlayer({
 
         try {
             const account = currentUser.uid;
+            // Ensure account is a non-empty string.
+            if (!account || typeof account !== 'string' || account.trim() === '') {
+                throw new Error("Invalid user account for token generation.");
+            }
             const role = isHost ? 'publisher' : 'subscriber';
             const token = await fetchToken(broadcast.id, account, role);
             
