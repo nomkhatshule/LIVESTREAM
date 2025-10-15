@@ -13,8 +13,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { categories } from '@/lib/data';
-import { useUser, useFirestore, useUserDocument, addDocumentNonBlocking } from '@/firebase';
-import { serverTimestamp, collection } from 'firebase/firestore';
+import { useUser, useFirestore, useUserDocument } from '@/firebase';
+import { serverTimestamp, collection, addDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Video, Loader, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -65,16 +65,18 @@ export default function CreateBroadcastPage() {
     };
 
     try {
-        const newBroadcastDoc = await addDocumentNonBlocking(broadcastsCollection, broadcastData);
+        // CRITICAL FIX: Await the creation of the document to get its ID
+        const newBroadcastDoc = await addDoc(broadcastsCollection, broadcastData);
         
-        if (newBroadcastDoc) {
+        // Only redirect AFTER we have the ID.
+        if (newBroadcastDoc.id) {
           router.push(`/live?id=${newBroadcastDoc.id}`);
         } else {
-          setIsSubmitting(false);
+           throw new Error("Failed to create broadcast document.");
         }
         
     } catch (error) {
-        console.error("An unexpected error occurred:", error);
+        console.error("Error starting broadcast:", error);
         toast({
             variant: 'destructive',
             title: 'Error Starting Stream',
