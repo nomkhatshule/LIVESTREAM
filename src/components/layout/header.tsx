@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { AgoraLiveLogo } from '@/components/icons';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Clapperboard, Tv } from 'lucide-react';
+import { Search, Clapperboard, Tv, FlaskConical } from 'lucide-react';
 import UserNav from '@/components/auth/user-nav';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -22,8 +22,8 @@ export default function Header() {
     return '/broadcast/create';
   }
 
-  if (pathname.startsWith('/feed') || pathname.startsWith('/broadcast/') || pathname.startsWith('/live')) {
-    return null; // Hide header on the feed, broadcast and live pages
+  if (pathname.startsWith('/feed') || pathname.startsWith('/broadcast/') || pathname.startsWith('/live') || pathname.startsWith('/agora-test')) {
+    return null; // Hide header on the feed, broadcast, live and test pages
   }
 
   return (
@@ -57,6 +57,18 @@ export default function Header() {
             >
               <Tv className="mr-1.5 h-4 w-4" />
               For You
+            </Link>
+             <Link
+              href="/agora-test"
+              className={cn(
+                'flex items-center transition-colors hover:text-foreground/80',
+                pathname.startsWith('/agora-test')
+                  ? 'text-foreground'
+                  : 'text-foreground/60'
+              )}
+            >
+              <FlaskConical className="mr-1.5 h-4 w-4" />
+              Test
             </Link>
             {!isMobile && (
               <Link
