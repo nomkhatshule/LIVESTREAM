@@ -9,9 +9,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'channelName, uid, and role are required' }, { status: 400 });
     }
 
+    const appId = process.env.NEXT_PUBLIC_AGORA_APP_ID;
+    if (!appId) {
+        return NextResponse.json({ error: 'Agora App ID is not configured on the server.' }, { status: 500 });
+    }
+
     // The role in the URL is numeric: 1 for publisher, 2 for subscriber
     const agoraRole = role === 'publisher' ? 1 : 2;
-    const url = `https://agora-token-service-production-d3a3.up.railway.app/rtc/${channelName}/${agoraRole}/uid/${uid}/`;
+    // CORRECTED URL: Added the appID to the path as required by this token server.
+    const url = `https://agora-token-service-production-d3a3.up.railway.app/rtc/${channelName}/${agoraRole}/uid/${uid}/?appId=${appId}`;
     
     console.log(`Proxying request to: ${url}`);
 
