@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { RtcTokenBuilder, RtcRole } from 'agora-token';
+// Correct the import to handle module structure differences.
+import agora from 'agora-token';
+const { RtcTokenBuilder, RtcRole } = agora;
 
-// This route generates an Agora token directly, removing the need for the Go middleware.
+
+// This route generates an Agora token directly.
 export async function POST(req: NextRequest) {
   let body;
   try {
@@ -57,7 +60,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ token });
 
   } catch (error: any) {
-    console.error('Error generating Agora token:', error.message);
+    console.error('Error generating Agora token:', error);
     return NextResponse.json({ error: 'Failed to generate token', details: error.message }, { status: 500 });
   }
 }
