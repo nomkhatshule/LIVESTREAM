@@ -39,6 +39,7 @@ export async function POST(req: NextRequest) {
 
   } catch (error: any) {
     console.error('Error in token proxy API:', error);
-    return NextResponse.json({ error: 'Internal Server Error in proxy' }, { status: 500 });
+    // Forward a more specific error message if available
+    return NextResponse.json({ error: 'Internal Server Error in proxy', details: error.message }, { status: 500 });
   }
 }
