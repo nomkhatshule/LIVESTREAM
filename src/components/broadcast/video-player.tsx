@@ -62,6 +62,7 @@ export default function VideoPlayer({
 
   // Effect for Agora Connection (both host and audience)
   useEffect(() => {
+    // CRITICAL FIX: Do not attempt to initialize until the user is fully loaded.
     if (isUserLoading || !appId || !currentUser) return;
     
     let client: IAgoraRTCClient;
