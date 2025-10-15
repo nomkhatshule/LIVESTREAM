@@ -16,7 +16,6 @@ import {
   StreamVideoClient,
   ParticipantView,
   useCallStateHooks,
-  useParticipants,
 } from '@stream-io/video-react-sdk';
 import '@stream-io/video-react-sdk/dist/css/styles.css';
 
@@ -46,7 +45,7 @@ async function fetchToken(userId: string): Promise<string> {
 
 
 const BroadcastContent = ({ broadcast, isHost }: { broadcast: Broadcast; isHost: boolean }) => {
-    const { useCallCallingState } = useCallStateHooks();
+    const { useCallCallingState, useParticipants } = useCallStateHooks();
     const callingState = useCallCallingState();
     const participants = useParticipants();
 
