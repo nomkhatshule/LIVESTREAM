@@ -75,6 +75,36 @@ export default function VideoPlayer({
         clientRef.current = client;
         console.log("Agora client created.");
 
+        // --- Token Expiration Handlers ---
+        client.on("token-privilege-will-expire", async () => {
+          console.log("Agora token is about to expire. Renewing...");
+          try {
+            const role = isHost ? 'publisher' : 'subscriber';
+            const newToken = await fetchToken(broadcast.id, currentUser.uid, role);
+            await client.renewToken(newToken);
+            console.log("Agora token renewed successfully.");
+          } catch (error) {
+            console.error("Failed to renew Agora token", error);
+            toast({
+              variant: "destructive",
+              title: "Connection Unstable",
+              description: "Could not renew the session token. The stream may disconnect."
+            })
+          }
+        });
+
+        client.on("token-privilege-did-expire", async () => {
+            console.error("Agora token has expired. The user will be disconnected.");
+            toast({
+              variant: "destructive",
+              title: "Stream Disconnected",
+              description: "Your session has expired. Please rejoin the stream."
+            });
+            // In a real-world scenario, you might try to rejoin automatically here.
+        });
+        // --- End of Token Handlers ---
+
+
         if (!isHost) {
             client.on('user-published', async (user, mediaType) => {
                 await client.subscribe(user, mediaType);
