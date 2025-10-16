@@ -8,11 +8,11 @@
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the user."
+          "description": "Unique identifier for the user (matches Firebase Auth UID)."
         },
         "username": {
           "type": "string",
-          "description": "The user's username."
+          "description": "The user's public display name."
         },
         "email": {
           "type": "string",
@@ -41,6 +41,72 @@
         "createdAt"
       ]
     },
+    "Broadcast": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Broadcast",
+      "type": "object",
+      "description": "Represents a single live stream session on the platform.",
+      "properties": {
+        "hostId": {
+          "type": "string",
+          "description": "The ID of the user hosting the broadcast. Links to the User entity."
+        },
+        "hostName": {
+          "type": "string",
+          "description": "Denormalized username of the host for quick display."
+        },
+        "hostAvatar": {
+          "type": "string",
+          "description": "Denormalized URL of the host's avatar for quick display.",
+          "format": "uri"
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the broadcast."
+        },
+        "category": {
+          "type": "string",
+          "description": "The category of the broadcast (e.g., 'Gaming', 'Music')."
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "A list of tags for discoverability."
+        },
+        "isLive": {
+          "type": "boolean",
+          "description": "Indicates if the broadcast is currently active."
+        },
+        "viewerCount": {
+          "type": "number",
+          "description": "An approximate count of current viewers."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "The server timestamp when the broadcast was created.",
+          "format": "date-time"
+        },
+        "streamDetails": {
+          "type": "object",
+          "description": "Holds dynamic details about the live stream session.",
+          "properties": {
+            "isScreenSharing": {
+              "type": "boolean",
+              "description": "True if the host is currently sharing their screen."
+            }
+          }
+        }
+      },
+      "required": [
+        "hostId",
+        "hostName",
+        "title",
+        "isLive",
+        "createdAt"
+      ]
+    },
     "ChatMessage": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Chat Message",
@@ -53,11 +119,11 @@
         },
         "username": {
           "type": "string",
-          "description": "The username of the user who sent the message."
+          "description": "The username of the sender."
         },
         "userAvatar": {
           "type": "string",
-          "description": "URL of the user's avatar.",
+          "description": "URL of the sender's avatar.",
           "format": "uri"
         },
         "message": {
@@ -76,12 +142,64 @@
         "message",
         "timestamp"
       ]
+    },
+    "Reaction": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Reaction",
+      "type": "object",
+      "description": "Represents a single real-time reaction from a viewer.",
+      "properties": {
+        "emojiId": {
+          "type": "string",
+          "description": "Identifier for the emoji used (e.g., 'heart', 'thumbs_up')."
+        },
+        "senderId": {
+          "type": "string",
+          "description": "The ID of the user who sent the reaction."
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "The server timestamp, used for TTL policy and ordering.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "emojiId",
+        "senderId",
+        "timestamp"
+      ]
+    },
+    "Guest": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Guest",
+      "type": "object",
+      "description": "Represents a guest who has been invited to or joined a broadcast.",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The ID of the guest user."
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "invited",
+            "joined",
+            "left"
+          ],
+          "description": "The current status of the guest in the broadcast."
+        }
+      },
+      "required": [
+        "userId",
+        "status"
+      ]
     }
   },
   "auth": {
     "providers": [
       "password",
-      "anonymous"
+      "anonymous",
+      "google.com"
     ]
   },
   "firestore": {
@@ -91,15 +209,19 @@
         "definition": {
           "entityName": "User",
           "schema": {
-            "$ref": "#/backend/entities/User"
+            "$ref": "#/entities/User"
           },
-          "description": "Stores user profile information. The userId is equal to the Firebase Authentication UID. Enables path-based ownership.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The Firebase Authentication UID of the user."
-            }
-          ]
+          "description": "Stores public user profile information. The userId is equal to the Firebase Authentication UID."
+        }
+      },
+      {
+        "path": "/broadcasts/{broadcastId}",
+        "definition": {
+          "entityName": "Broadcast",
+          "schema": {
+            "$ref": "#/entities/Broadcast"
+          },
+          "description": "Core document for a live stream. Contains metadata about the session."
         }
       },
       {
@@ -107,22 +229,33 @@
         "definition": {
           "entityName": "ChatMessage",
           "schema": {
-            "$ref": "#/backend/entities/ChatMessage"
+            "$ref": "#/entities/ChatMessage"
           },
-          "description": "Stores chat messages for a specific broadcast.",
-          "params": [
-            {
-              "name": "broadcastId",
-              "description": "The ID of the broadcast."
-            },
-            {
-              "name": "messageId",
-              "description": "The ID of the chat message."
-            }
-          ]
+          "description": "Sub-collection storing chat messages for a specific broadcast."
+        }
+      },
+      {
+        "path": "/broadcasts/{broadcastId}/reactions/{reactionId}",
+        "definition": {
+          "entityName": "Reaction",
+          "schema": {
+            "$ref": "#/entities/Reaction"
+          },
+          "description": "Sub-collection for ephemeral real-time reactions. Documents should have a TTL policy."
+        }
+      },
+      {
+        "path": "/broadcasts/{broadcastId}/guests/{guestId}",
+        "definition": {
+          "entityName": "Guest",
+          "schema": {
+            "$ref": "#/entities/Guest"
+          },
+          "description": "Sub-collection managing the state of guests (co-hosts) for a broadcast."
         }
       }
     ],
-    "reasoning": "This Firestore structure is designed to support the AgoraLive application, prioritizing security, scalability, and debuggability. It leverages path-based ownership for user data and authorization independence through data denormalization. The structure facilitates secure `list` operations via structural segregation and the membership map model for collaborative entities.\n\n**User Authentication and Profiles:** Each user has a dedicated document under `/users/{userId}`. This collection stores user profile information. This utilizes path-based ownership. \n\n**Authorization Independence:** This design avoids hierarchical authorization dependencies by using path-based ownership for user data. Security rules can directly validate `request.auth.uid` against the document path without needing to perform `get()` operations on parent documents. All documents in a collection share the same security requirements, enabling secure `list` operations. The membership map pattern provides a scalable and debuggable way to manage access control."
+    "reasoning": "This Firestore structure is designed for a scalable and feature-rich live streaming application. It uses a root `broadcasts` collection for discoverability and nests ephemeral or stream-specific data like chat, reactions, and guests in sub-collections. This approach is efficient for queries and security rules. User profiles are kept in a separate root collection to avoid data duplication. Denormalization of host information on the `Broadcast` document optimizes for read-heavy client scenarios, reducing the need for extra lookups."
   }
 }
+    
