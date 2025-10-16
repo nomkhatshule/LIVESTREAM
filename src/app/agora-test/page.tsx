@@ -2,12 +2,11 @@
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Users, X, Send, Smile, MessageCircle, CameraOff } from 'lucide-react';
+import { Users, X, Send, Smile, MessageCircle, CameraOff, Video, Mic, UserPlus, ScreenShare } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useEffect, useRef, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export default function AgoraTestPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -68,6 +67,22 @@ export default function AgoraTestPage() {
           <Button variant="destructive" size="sm">
             <X className="h-4 w-4 mr-1.5" /> End
           </Button>
+        </div>
+
+        {/* Right side controls */}
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-4 p-2 bg-black/40 rounded-full backdrop-blur-sm">
+            <Button variant="secondary" size="icon" className="rounded-full h-12 w-12">
+                <Video className="h-6 w-6"/>
+            </Button>
+            <Button variant="secondary" size="icon" className="rounded-full h-12 w-12">
+                <Mic className="h-6 w-6"/>
+            </Button>
+            <Button variant="secondary" size="icon" className="rounded-full h-12 w-12">
+                <ScreenShare className="h-6 w-6"/>
+            </Button>
+            <Button variant="secondary" size="icon" className="rounded-full h-12 w-12">
+                <UserPlus className="h-6 w-6"/>
+            </Button>
         </div>
 
         {/* Chat and Controls */}
