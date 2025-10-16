@@ -30,7 +30,6 @@ export type Broadcast = {
 
 export type Category = {
   name: string;
-  icon: any; // Lucide icon component
 };
 
 export type ChatMessage = {
