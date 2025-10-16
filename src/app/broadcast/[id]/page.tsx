@@ -64,6 +64,11 @@ export default function BroadcastPage() {
     // Logic will be added later
   }
 
+  const handleLike = () => {
+    console.log('Like button clicked!');
+    // Logic will be added later
+  }
+
   if (isBroadcastLoading) {
     return <BroadcastSkeleton />;
   }
@@ -90,17 +95,17 @@ export default function BroadcastPage() {
             <div>
               <div className="flex items-center gap-2">
                 <p className="font-bold text-lg">{broadcast.user.name}</p>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-600 text-white animate-pulse">
+              </div>
+              <div className="flex items-center gap-3 mt-1">
+                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-600 text-white animate-pulse">
                     LIVE
                 </span>
-              </div>
-              <p className="text-base font-semibold mt-1">{broadcast.title}</p>
-               <div className="flex items-center gap-3 mt-1">
                   <span className="inline-flex items-center text-xs font-medium gap-1">
                       <Users className="h-3 w-3" />
                       {broadcast.viewers.toLocaleString()}
                   </span>
               </div>
+               <p className="text-base font-semibold mt-1">{broadcast.title}</p>
             </div>
           </div>
       </div>
@@ -144,7 +149,7 @@ export default function BroadcastPage() {
           
           {/* Right side: Action Buttons */}
           <div className="flex flex-col items-center space-y-5">
-            <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white flex flex-col drop-shadow-md hover:bg-transparent hover:text-white">
+            <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white flex flex-col drop-shadow-md hover:bg-transparent hover:text-white" onClick={handleLike}>
               <Heart className="h-7 w-7" />
               <span className="text-xs mt-1">1.2k</span>
             </Button>
