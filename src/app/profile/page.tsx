@@ -69,14 +69,20 @@ export default function ProfilePage() {
     setIsUploading(true);
 
     try {
+      // 1. Await the upload
       await uploadBytes(storageRef, file);
+      
+      // 2. Await the download URL
       const downloadURL = await getDownloadURL(storageRef);
 
+      // 3. Update the form value to optimistically show the new image
+      form.setValue('profilePicture', downloadURL);
+
+      // 4. Update the document in Firestore
       const userDocRef = doc(firestore, 'users', user.uid);
       setDocumentNonBlocking(userDocRef, { profilePicture: downloadURL }, { merge: true });
       
-      form.setValue('profilePicture', downloadURL);
-
+      // 5. Revalidate paths to update avatar in header/other components
       await revalidateProfilePaths();
 
       toast({
@@ -84,14 +90,15 @@ export default function ProfilePage() {
         description: 'Your new avatar has been saved and is now visible.',
       });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error uploading avatar:", error);
       toast({
         variant: 'destructive',
         title: 'Upload Failed',
-        description: 'Could not upload your new avatar. Please check the file type and size, and ensure you have permission.',
+        description: error.message || 'Could not upload your new avatar. Please check file permissions and security rules.',
       });
     } finally {
+      // 6. ALWAYS ensure the loading state is turned off
       setIsUploading(false);
     }
   };
@@ -100,7 +107,8 @@ export default function ProfilePage() {
     if (!user) return;
     
     const userDocRef = doc(firestore, 'users', user.uid);
-    const { profilePicture, ...profileData } = data; // Don't save profilePicture via this form
+    // Exclude profilePicture as it's handled separately by the upload logic
+    const { profilePicture, ...profileData } = data; 
     
     setDocumentNonBlocking(userDocRef, profileData, { merge: true });
 
