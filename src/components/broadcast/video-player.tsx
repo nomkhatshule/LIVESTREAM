@@ -7,6 +7,7 @@ import {
   useCallStateHooks,
 } from '@stream-io/video-react-sdk';
 import '@stream-io/video-react-sdk/dist/css/styles.css';
+import { cn } from '@/lib/utils';
 
 interface VideoPlayerProps {
   broadcast: Broadcast;
@@ -27,6 +28,8 @@ export default function VideoPlayer({
     const participantToDisplay = isHost
       ? participants.find((p) => p.isLocal)
       : participants.find((p) => p.userId === broadcast.user.id);
+      
+    const isVideoReady = participantToDisplay && participantToDisplay.isCameraEnabled && !participantToDisplay.isScreenSharing;
 
     // This loading state is still relevant, as it waits for the SDK to connect.
     if (callingState !== 'joined') {
@@ -40,7 +43,11 @@ export default function VideoPlayer({
     }
 
     return (
-      <div className="absolute inset-0 w-full h-full bg-black">
+      // The container will be hidden until the video is ready to play, preventing a flash of the fallback text.
+      <div className={cn(
+        "absolute inset-0 w-full h-full bg-black",
+        !isVideoReady && "opacity-0"
+      )}>
         {/* StreamTheme can be removed from here if it's applied at a higher level, but it's fine to keep. */}
         <StreamTheme as="main" className="w-full h-full">
             <ParticipantView participant={participantToDisplay} />

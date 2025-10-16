@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import type { Broadcast, ChatMessage as ChatMessageType } from '@/lib/data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useCollection } from '@/firebase';
+import Image from 'next/image';
 import {
   Call,
   StreamCall,
@@ -37,7 +38,8 @@ function LiveStudio({ liveBroadcast }: { liveBroadcast: Broadcast }) {
     const [isChatVisible, setIsChatVisible] = useState(true);
 
     // These hooks now work reliably because they are inside <StreamCall>
-    const { useCameraState, useMicrophoneState } = useCallStateHooks();
+    const { useCameraState, useMicrophoneState, useCallCallingState } = useCallStateHooks();
+    const callingState = useCallCallingState();
     const { camera, isMute: isCameraMute } = useCameraState();
     const { microphone, isMute: isMicrophoneMute } = useMicrophoneState();
 
@@ -51,14 +53,17 @@ function LiveStudio({ liveBroadcast }: { liveBroadcast: Broadcast }) {
     }, [liveBroadcast.id, firestore]);
     const { data: messages } = useCollection<ChatMessageType>(messagesQuery);
     
-    // Auto-enable camera and mic for the host on component mount
+    // Auto-enable camera and mic for the host once the call has been joined.
+    // This ensures the "Ready to stream" UI shows first.
     useEffect(() => {
+        if (callingState !== 'joined') return;
+
         const enableMedia = async () => {
           if (isCameraMute) await camera.enable();
           if (isMicrophoneMute) await microphone.enable();
         };
         enableMedia();
-    }, [camera, microphone, isCameraMute, isMicrophoneMute]);
+    }, [callingState, camera, microphone, isCameraMute, isMicrophoneMute]);
 
     useEffect(() => {
         // Auto-scroll chat
@@ -104,6 +109,16 @@ function LiveStudio({ liveBroadcast }: { liveBroadcast: Broadcast }) {
     return (
         <div className="relative h-screen w-full">
             <div className="h-screen w-full bg-black text-white flex flex-col relative">
+                
+                {/* Background image for loading state */}
+                <Image
+                    src="https://picsum.photos/seed/livebg/1920/1080"
+                    alt="Abstract background"
+                    fill
+                    className="object-cover -z-10"
+                    data-ai-hint="abstract lights"
+                />
+                
                 {/* VideoPlayer is now a simple presentational component */}
                 <VideoPlayer broadcast={liveBroadcast} isHost={true} />
                 
@@ -163,14 +178,16 @@ function LiveStudio({ liveBroadcast }: { liveBroadcast: Broadcast }) {
                     </div>
                 </div>
             </div>
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-4 p-2 bg-black/40 rounded-full backdrop-blur-sm">
-                <Button variant={isAudioEnabled ? "secondary" : "destructive"} size="icon" className="rounded-full h-12 w-12" onClick={() => microphone.toggle()}>
-                    {isAudioEnabled ? <Mic className="h-6 w-6"/> : <MicOff className="h-6 w-6"/>}
-                </Button>
-                <Button variant={isVideoEnabled ? "secondary" : "destructive"} size="icon" className="rounded-full h-12 w-12" onClick={() => camera.toggle()}>
-                    {isVideoEnabled ? <Video className="h-6 w-6"/> : <VideoOff className="h-6 w-6"/>}
-                </Button>
-            </div>
+            {callingState === 'joined' && (
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-4 p-2 bg-black/40 rounded-full backdrop-blur-sm">
+                    <Button variant={isAudioEnabled ? "secondary" : "destructive"} size="icon" className="rounded-full h-12 w-12" onClick={() => microphone.toggle()}>
+                        {isAudioEnabled ? <Mic className="h-6 w-6"/> : <MicOff className="h-6 w-6"/>}
+                    </Button>
+                    <Button variant={isVideoEnabled ? "secondary" : "destructive"} size="icon" className="rounded-full h-12 w-12" onClick={() => camera.toggle()}>
+                        {isVideoEnabled ? <Video className="h-6 w-6"/> : <VideoOff className="h-6 w-6"/>}
+                    </Button>
+                </div>
+            )}
         </div>
     );
 }
