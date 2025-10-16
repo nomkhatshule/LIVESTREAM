@@ -6,7 +6,7 @@ import { notFound, useParams } from 'next/navigation';
 import VideoPlayer from '@/components/broadcast/video-player';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Heart, Share2, MessageCircle, MoreVertical, PlusCircle, Users, ArrowUp } from 'lucide-react';
+import { Heart, Share2, MessageCircle, MoreVertical, PlusCircle, Users, ArrowUp, MessageCircleOff } from 'lucide-react';
 import { useUser } from '@/firebase';
 import type { Broadcast } from '@/lib/data';
 import { useDoc, useFirestore } from '@/firebase';
@@ -23,6 +23,7 @@ export default function BroadcastPage() {
   const { user } = useUser();
   const firestore = useFirestore();
   const [newMessage, setNewMessage] = useState('');
+  const [isChatVisible, setIsChatVisible] = useState(true);
 
   const broadcastDocRef = useMemo(() => {
     if (!id) return undefined;
@@ -93,48 +94,52 @@ export default function BroadcastPage() {
                     LIVE
                 </span>
               </div>
-              <div className="flex items-center gap-3">
+              <p className="text-base font-semibold mt-1">{broadcast.title}</p>
+               <div className="flex items-center gap-3 mt-1">
                   <span className="inline-flex items-center text-xs font-medium gap-1">
                       <Users className="h-3 w-3" />
                       {broadcast.viewers.toLocaleString()}
                   </span>
               </div>
-              <h1 className="text-base font-semibold mt-1">{broadcast.title}</h1>
             </div>
           </div>
       </div>
 
       {/* Overlay for information and actions */}
       <div className="absolute bottom-0 left-0 right-0 p-4 pb-8 bg-gradient-to-t from-black/70 to-transparent text-white">
-        <div className="flex items-end justify-between">
-          <div className="flex flex-col w-full">
-            <ScrollArea className="h-48 w-full pr-4">
-              <div className="flex flex-col gap-3">
-                {mockComments.map((comment) => (
-                  <div key={comment.id} className="flex items-start gap-3 text-sm text-white bg-black/20 p-2 rounded-lg">
-                    <Avatar className="h-6 w-6 border border-secondary">
-                      <AvatarImage src={comment.avatar} alt={comment.username} />
-                      <AvatarFallback>{comment.username.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <span className="font-bold text-secondary mr-1.5">{comment.username}:</span>
-                      <p className="break-words inline">{comment.message}</p>
+        <div className="flex items-end justify-between gap-4">
+          <div className="flex-1">
+            {isChatVisible && (
+                <>
+                    <ScrollArea className="h-48 w-full pr-4">
+                    <div className="flex flex-col gap-3">
+                        {mockComments.map((comment) => (
+                        <div key={comment.id} className="flex items-start gap-3 text-sm text-white bg-black/20 p-2 rounded-lg">
+                            <Avatar className="h-6 w-6 border border-secondary">
+                            <AvatarImage src={comment.avatar} alt={comment.username} />
+                            <AvatarFallback>{comment.username.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1">
+                            <span className="font-bold text-secondary mr-1.5">{comment.username}:</span>
+                            <p className="break-words inline">{comment.message}</p>
+                            </div>
+                        </div>
+                        ))}
                     </div>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-             <form onSubmit={handleSendMessage} className="relative flex-1 mt-3">
-              <Input
-                placeholder="Add a comment..."
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                className="bg-black/50 border-white/20 text-white placeholder:text-gray-400 pr-10 h-10"
-              />
-              <Button variant="ghost" size="icon" type="submit" className="absolute inset-y-0 right-0 text-white">
-                <ArrowUp className="h-5 w-5" />
-              </Button>
-            </form>
+                    </ScrollArea>
+                    <form onSubmit={handleSendMessage} className="relative flex-1 mt-3">
+                        <Input
+                            placeholder="Add a comment..."
+                            value={newMessage}
+                            onChange={(e) => setNewMessage(e.target.value)}
+                            className="bg-black/50 border-white/20 text-white placeholder:text-gray-400 pr-10 h-10"
+                        />
+                        <Button variant="ghost" size="icon" type="submit" className="absolute inset-y-0 right-0 text-white">
+                            <ArrowUp className="h-5 w-5" />
+                        </Button>
+                    </form>
+                </>
+            )}
           </div>
           
           {/* Right side: Action Buttons */}
@@ -143,9 +148,9 @@ export default function BroadcastPage() {
               <Heart className="h-7 w-7" />
               <span className="text-xs mt-1">1.2k</span>
             </Button>
-            <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white flex flex-col drop-shadow-md hover:bg-transparent hover:text-white">
-              <MessageCircle className="h-7 w-7" />
-               <span className="text-xs mt-1">203</span>
+            <Button variant="ghost" size="icon" onClick={() => setIsChatVisible(!isChatVisible)} className="h-12 w-12 rounded-full text-white flex flex-col drop-shadow-md hover:bg-transparent hover:text-white">
+                {isChatVisible ? <MessageCircleOff className="h-7 w-7" /> : <MessageCircle className="h-7 w-7" />}
+               <span className="text-xs mt-1">Chat</span>
             </Button>
             <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white drop-shadow-md hover:bg-transparent hover:text-white">
               <Share2 className="h-7 w-7" />
