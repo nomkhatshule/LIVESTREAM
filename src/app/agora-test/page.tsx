@@ -8,6 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useEffect, useRef, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
+import { useUser, useUserDocument } from '@/firebase';
 
 interface Comment {
   id: number;
@@ -25,6 +26,8 @@ export default function AgoraTestPage() {
   const [comments, setComments] = useState<Comment[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [isChatVisible, setIsChatVisible] = useState(true);
+  const { user } = useUser();
+  const { userDocument } = useUserDocument();
 
   useEffect(() => {
     const getCameraPermission = async () => {
@@ -81,8 +84,8 @@ export default function AgoraTestPage() {
 
     const newComment: Comment = {
         id: Date.now(),
-        username: 'You', // Example username
-        avatar: 'https://picsum.photos/seed/my-avatar/100/100',
+        username: userDocument?.username || user?.displayName || 'You',
+        avatar: userDocument?.profilePicture || user?.photoURL || 'https://picsum.photos/seed/my-avatar/100/100',
         message: newMessage,
     };
 
