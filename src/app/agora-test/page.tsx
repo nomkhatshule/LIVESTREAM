@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Users, X, Send, Smile, MessageCircle, CameraOff, Video, Mic, UserPlus, ScreenShare, VideoOff, MicOff, ArrowUp, MessageCircleOff } from 'lucide-react';
+import { Users, X, Send, Smile, MessageCircle, CameraOff, Video, Mic, UserPlus, ScreenShare, VideoOff, MicOff, ArrowUp, MessageCircleOff, MonitorUp } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useEffect, useRef, useState } from 'react';
@@ -24,6 +24,7 @@ export default function AgoraTestPage() {
   const [hasCameraPermission, setHasCameraPermission] = useState(true);
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const [isMicEnabled, setIsMicEnabled] = useState(true);
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
   const { toast } = useToast();
   const [comments, setComments] = useState<Comment[]>([]);
   const [newMessage, setNewMessage] = useState('');
@@ -68,6 +69,10 @@ export default function AgoraTestPage() {
   }, []);
 
   const handleToggleVideo = () => {
+    if (isScreenSharing) {
+        handleToggleScreenShare();
+        return;
+    }
     setIsVideoEnabled(prev => {
         const nextState = !prev;
         if (videoRef.current && videoRef.current.srcObject) {
@@ -91,6 +96,45 @@ export default function AgoraTestPage() {
       }
       return nextState;
     });
+  }
+
+  const handleToggleScreenShare = async () => {
+    if (isScreenSharing) {
+        // Stop screen share and revert to camera
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+        }
+        setIsScreenSharing(false);
+        setIsVideoEnabled(true);
+    } else {
+        // Start screen share
+        try {
+            const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+            if (videoRef.current) {
+                // Stop existing camera tracks before switching
+                const existingStream = videoRef.current.srcObject as MediaStream;
+                existingStream?.getTracks().forEach(track => track.stop());
+
+                videoRef.current.srcObject = screenStream;
+            }
+            setIsScreenSharing(true);
+            setIsVideoEnabled(true); // Screen is a form of video
+
+            // Listen for when the user stops sharing via the browser UI
+            screenStream.getVideoTracks()[0].onended = () => {
+                handleToggleScreenShare(); // Revert back to camera
+            };
+
+        } catch (error) {
+            console.error('Error starting screen share:', error);
+            toast({
+                variant: 'destructive',
+                title: 'Screen Share Failed',
+                description: 'Could not start screen sharing. Please ensure you have given permission.',
+            });
+        }
+    }
   }
 
   const handleSendMessage = (e: React.FormEvent) => {
@@ -181,13 +225,13 @@ export default function AgoraTestPage() {
         {/* Right side controls */}
         <div className="absolute right-4 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-4 p-2 bg-black/40 rounded-full backdrop-blur-sm">
             <Button variant="secondary" size="icon" className="rounded-full h-12 w-12" onClick={handleToggleVideo}>
-                {isVideoEnabled ? <Video className="h-6 w-6"/> : <VideoOff className="h-6 w-6"/>}
+                {isVideoEnabled && !isScreenSharing ? <Video className="h-6 w-6"/> : <VideoOff className="h-6 w-6"/>}
             </Button>
             <Button variant="secondary" size="icon" className="rounded-full h-12 w-12" onClick={handleToggleMic}>
                 {isMicEnabled ? <Mic className="h-6 w-6"/> : <MicOff className="h-6 w-6"/>}
             </Button>
-            <Button variant="secondary" size="icon" className="rounded-full h-12 w-12">
-                <ScreenShare className="h-6 w-6"/>
+            <Button variant={isScreenSharing ? "primary" : "secondary"} size="icon" className="rounded-full h-12 w-12" onClick={handleToggleScreenShare}>
+                {isScreenSharing ? <MonitorUp className="h-6 w-6"/> : <ScreenShare className="h-6 w-6"/>}
             </Button>
             <Button variant="secondary" size="icon" className="rounded-full h-12 w-12">
                 <UserPlus className="h-6 w-6"/>
