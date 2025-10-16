@@ -83,11 +83,6 @@ export default function BroadcastPage() {
               </div>
             </div>
             <h1 className="text-lg font-semibold mb-1">{broadcast.title}</h1>
-            <div className="flex items-center gap-2 flex-wrap">
-              {broadcast.tags.map(tag => (
-                <Badge key={tag} variant="secondary" className="bg-white/20 border-transparent text-white text-xs">{tag}</Badge>
-              ))}
-            </div>
           </div>
           
           {/* Right side: Action Buttons */}
