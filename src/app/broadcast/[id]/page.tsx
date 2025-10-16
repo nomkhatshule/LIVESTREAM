@@ -153,9 +153,8 @@ export default function BroadcastPage() {
           
           {/* Right side: Action Buttons */}
           <div className="flex flex-col items-center space-y-5">
-            <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white flex flex-col drop-shadow-md hover:bg-transparent hover:text-white">
+            <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white flex-col justify-center items-center drop-shadow-md hover:bg-transparent hover:text-white">
                 <PlusCircle className="h-7 w-7"/>
-                <span className="text-xs mt-1">Follow</span>
             </Button>
             <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white flex flex-col drop-shadow-md hover:bg-transparent hover:text-white" onClick={handleLike}>
               <Heart className="h-7 w-7" />
