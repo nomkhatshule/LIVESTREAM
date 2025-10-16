@@ -87,14 +87,12 @@ export default function BroadcastPage() {
                 </Button>
             </div>
             <div>
-              <div className="flex items-center gap-3">
-                <p className="font-bold text-lg">{broadcast.user.name}</p>
+              <p className="font-bold text-lg">{broadcast.user.name}</p>
+              <h1 className="text-base font-semibold">{broadcast.title}</h1>
+              <div className="flex items-center gap-3 mt-1">
                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-600 text-white animate-pulse">
                     LIVE
                 </span>
-              </div>
-              <h1 className="text-base font-semibold">{broadcast.title}</h1>
-              <div className="flex items-center gap-3 mt-1">
                   <span className="inline-flex items-center text-xs font-medium gap-1">
                       <Users className="h-3 w-3" />
                       {broadcast.viewers.toLocaleString()}
@@ -107,7 +105,7 @@ export default function BroadcastPage() {
       {/* Overlay for information and actions */}
       <div className="absolute bottom-0 left-0 right-0 p-4 pb-8 bg-gradient-to-t from-black/70 to-transparent text-white">
         <div className="flex items-end justify-between">
-          <div className="flex flex-col w-full">
+          <div className="flex flex-col w-full max-w-sm">
             <ScrollArea className="h-48 w-full pr-4">
               <div className="flex flex-col gap-3">
                 {mockComments.map((comment) => (
