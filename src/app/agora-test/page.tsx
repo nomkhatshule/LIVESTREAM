@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Users, X, Send, Smile, MessageCircle, CameraOff, Video, Mic, UserPlus, ScreenShare, VideoOff, MicOff, ArrowUp, MessageCircleOff, MonitorUp } from 'lucide-react';
+import { Users, X, Send, Smile, MessageCircle, CameraOff, Video, Mic, UserPlus, ScreenShare, VideoOff, MicOff, ArrowUp, MessageCircleOff, MonitorUp, Heart, ThumbsUp } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useEffect, useRef, useState } from 'react';
@@ -16,6 +16,12 @@ interface Comment {
   username: string;
   avatar: string;
   message: string;
+}
+
+interface Reaction {
+  id: number;
+  emoji: React.ReactNode;
+  x: number;
 }
 
 export default function AgoraTestPage() {
@@ -32,6 +38,7 @@ export default function AgoraTestPage() {
   const { user } = useUser();
   const { userDocument } = useUserDocument();
   const [viewerCount, setViewerCount] = useState(1234);
+  const [reactions, setReactions] = useState<Reaction[]>([]);
 
   useEffect(() => {
     const getCameraPermission = async () => {
@@ -101,12 +108,20 @@ export default function AgoraTestPage() {
   const handleToggleScreenShare = async () => {
     if (isScreenSharing) {
         // Stop screen share and revert to camera
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        if (videoRef.current) {
-            videoRef.current.srcObject = stream;
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            if (videoRef.current) {
+                // Properly stop old stream tracks
+                const oldStream = videoRef.current.srcObject as MediaStream;
+                oldStream?.getTracks().forEach(track => track.stop());
+                videoRef.current.srcObject = stream;
+            }
+            setIsScreenSharing(false);
+            setIsVideoEnabled(true);
+        } catch (error) {
+            console.error('Error switching back to camera:', error);
+            // Handle error, e.g., show a toast
         }
-        setIsScreenSharing(false);
-        setIsVideoEnabled(true);
     } else {
         // Start screen share
         try {
@@ -123,7 +138,15 @@ export default function AgoraTestPage() {
 
             // Listen for when the user stops sharing via the browser UI
             screenStream.getVideoTracks()[0].onended = () => {
-                handleToggleScreenShare(); // Revert back to camera
+                setIsScreenSharing(false);
+                // When browser share is stopped, revert to showing "video off" state
+                // rather than trying to auto-restart camera.
+                setIsVideoEnabled(false);
+                 if (videoRef.current) {
+                    const oldStream = videoRef.current.srcObject as MediaStream;
+                    oldStream?.getTracks().forEach(track => track.stop());
+                    videoRef.current.srcObject = null;
+                }
             };
 
         } catch (error) {
@@ -171,8 +194,27 @@ export default function AgoraTestPage() {
     // e.g., navigator.clipboard.writeText('https://agorademo.live/join/UNIQUE_TOKEN');
   }
 
+  const handleReaction = () => {
+    const emojis = [
+        <Heart key="heart" className="text-red-500 fill-red-500" />,
+        <ThumbsUp key="thumbsup" className="text-yellow-400 fill-yellow-400" />,
+        '😂', '🔥', '🎉'
+    ];
+    const newReaction: Reaction = {
+        id: Date.now() + Math.random(),
+        emoji: emojis[Math.floor(Math.random() * emojis.length)],
+        x: Math.random() * 20 + 40, // Horizontal position percentage (40% to 60%)
+    };
+    setReactions(prev => [...prev, newReaction]);
+
+    // Remove the reaction after animation completes (5s)
+    setTimeout(() => {
+        setReactions(prev => prev.filter(r => r.id !== newReaction.id));
+    }, 5000);
+  }
+
   return (
-    <div className="relative h-screen w-full">
+    <div className="relative h-screen w-full overflow-hidden">
       <div className="h-screen w-full bg-black text-white flex flex-col relative">
         {/* Local Video Feed Container */}
         <div className="absolute inset-0 bg-gray-900 flex items-center justify-center">
@@ -204,6 +246,19 @@ export default function AgoraTestPage() {
                 </p>
             </div>
           )}
+        </div>
+
+        {/* Floating Reactions Container */}
+        <div className="absolute bottom-24 right-4 h-96 w-20 z-20 pointer-events-none">
+            {reactions.map(reaction => (
+                <div 
+                    key={reaction.id}
+                    className="animate-float-up absolute bottom-0 text-3xl opacity-0"
+                    style={{ left: `${reaction.x}%` }}
+                >
+                    {reaction.emoji}
+                </div>
+            ))}
         </div>
 
         {/* Header */}
@@ -280,7 +335,7 @@ export default function AgoraTestPage() {
                 <ArrowUp className="h-5 w-5" />
               </Button>
             </form>
-            <Button variant="ghost" size="icon" className="text-white bg-black/50 rounded-full h-10 w-10">
+            <Button variant="ghost" size="icon" onClick={handleReaction} className="text-white bg-black/50 rounded-full h-10 w-10">
               <Smile className="h-5 w-5" />
             </Button>
             <Button variant="ghost" size="icon" onClick={() => setIsChatVisible(prev => !prev)} className="text-white bg-black/50 rounded-full h-10 w-10">
@@ -292,3 +347,5 @@ export default function AgoraTestPage() {
     </div>
   );
 }
+
+    

@@ -70,3 +70,22 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+    .animate-float-up {
+        animation: float-up 5s ease-out forwards;
+    }
+
+    @keyframes float-up {
+        from {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateY(-500px);
+            opacity: 0;
+        }
+    }
+}
+
+    
