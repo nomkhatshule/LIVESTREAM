@@ -15,14 +15,18 @@ import {
 import { CreditCard, LogOut, PlusCircle, Settings, User as UserIcon } from 'lucide-react';
 import { useAuth, useUser, useUserDocument } from '@/firebase';
 import { signOut } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
 
 export default function UserNav() {
   const auth = useAuth();
+  const router = useRouter();
   const { user, isUserLoading } = useUser();
   const { userDocument, isDocLoading } = useUserDocument();
 
   const handleLogout = () => {
-    signOut(auth);
+    signOut(auth).then(() => {
+      router.push('/landing');
+    });
   };
   
   const getStreamLink = () => {
