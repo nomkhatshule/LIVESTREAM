@@ -21,7 +21,10 @@ import {
   StreamVideoClient,
   useCall,
   useCallStateHooks,
+  ParticipantView,
+  StreamTheme,
 } from '@stream-io/video-react-sdk';
+import '@stream-io/video-react-sdk/dist/css/styles.css';
 
 interface Comment {
   id: string;
@@ -68,10 +71,11 @@ function AgoraTestPageUI() {
 
   // Stream SDK Hooks
   const call = useCall();
-  const { useCameraState, useMicrophoneState, useScreenShareState } = useCallStateHooks();
+  const { useCameraState, useMicrophoneState, useScreenShareState, useLocalParticipant } = useCallStateHooks();
   const { isMute: isVideoMute, camera } = useCameraState();
   const { isMute: isMicMute, microphone } = useMicrophoneState();
   const { isScreenSharing } = useScreenShareState();
+  const localParticipant = useLocalParticipant();
   
   const isVideoEnabled = !isVideoMute;
   const isMicEnabled = !isMicMute;
@@ -182,8 +186,6 @@ function AgoraTestPageUI() {
   }
   
   const handleEndStream = async () => {
-    // Let the cleanup effect in AgoraTestWrapper handle SDK disconnection.
-    // Just update firestore and navigate away.
     if (broadcastDocRef) {
         await updateDoc(broadcastDocRef, { isLive: false });
     }
@@ -219,6 +221,10 @@ function AgoraTestPageUI() {
       <div className="h-screen w-full bg-black text-white flex flex-col relative">
         <div className="absolute inset-0 bg-gray-900 flex items-center justify-center">
           
+          <StreamTheme as="main" className="w-full h-full">
+            {localParticipant && <ParticipantView participant={localParticipant} />}
+          </StreamTheme>
+
           {!isVideoEnabled && !isScreenSharing && (
              <Image
                 src="https://picsum.photos/seed/agora-bg/1920/1080"
@@ -228,9 +234,6 @@ function AgoraTestPageUI() {
                 data-ai-hint="abstract background"
               />
           )}
-
-          {/* This video tag is now managed by the Stream SDK's ParticipantView */}
-          {/* We will implement that in the next step */}
           
           {!hasCameraPermission && (
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 text-white z-10">
