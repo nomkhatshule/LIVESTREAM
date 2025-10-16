@@ -59,7 +59,6 @@ function AgoraTestPageUI() {
   const broadcastId = searchParams.get('id');
   const firestore = useFirestore();
 
-  const videoRef = useRef<HTMLVideoElement>(null);
   const [hasCameraPermission, setHasCameraPermission] = useState(true);
   const { toast } = useToast();
   
@@ -70,11 +69,10 @@ function AgoraTestPageUI() {
   const [reactions, setReactions] = useState<Reaction[]>([]);
 
   // Stream SDK Hooks
-  const call = useCall();
   const { useCameraState, useMicrophoneState, useScreenShareState, useLocalParticipant } = useCallStateHooks();
   const { isMute: isVideoMute, camera } = useCameraState();
   const { isMute: isMicMute, microphone } = useMicrophoneState();
-  const { isScreenSharing } = useScreenShareState();
+  const { isScreenSharing, screenShare } = useScreenShareState();
   const localParticipant = useLocalParticipant();
   
   const isVideoEnabled = !isVideoMute;
@@ -132,7 +130,7 @@ function AgoraTestPageUI() {
 
   const handleToggleVideo = async () => {
     if (isScreenSharing) {
-        await handleToggleScreenShare();
+        await screenShare.toggle();
     }
     await camera.toggle();
   }
@@ -142,14 +140,9 @@ function AgoraTestPageUI() {
   }
 
   const handleToggleScreenShare = async () => {
-    if (!call) return;
     const nextIsScreenSharing = !isScreenSharing;
     try {
-        if (nextIsScreenSharing) {
-            await call.startScreenShare();
-        } else {
-            await call.stopScreenShare();
-        }
+        await screenShare.toggle();
         if (broadcastDocRef) {
             updateDoc(broadcastDocRef, { 'streamDetails.isScreenSharing': nextIsScreenSharing });
         }
@@ -186,6 +179,8 @@ function AgoraTestPageUI() {
   }
   
   const handleEndStream = async () => {
+    camera.disable();
+    microphone.disable();
     if (broadcastDocRef) {
         await updateDoc(broadcastDocRef, { isLive: false });
     }
