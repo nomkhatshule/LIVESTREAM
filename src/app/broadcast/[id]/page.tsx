@@ -6,7 +6,7 @@ import { notFound, useParams } from 'next/navigation';
 import VideoPlayer from '@/components/broadcast/video-player';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Heart, Share2, MessageCircle, MoreVertical, PlusCircle, Users, ArrowUp, MessageCircleOff } from 'lucide-react';
+import { Heart, Share2, MoreVertical, PlusCircle, Users, ArrowUp, MessageCircleOff, MessageCircle } from 'lucide-react';
 import { useUser } from '@/firebase';
 import type { Broadcast } from '@/lib/data';
 import { useDoc, useFirestore } from '@/firebase';
@@ -102,17 +102,17 @@ export default function BroadcastPage() {
                 </Button>
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <p className="font-bold text-lg">{broadcast.user.name}</p>
+              <p className="font-bold text-lg">{broadcast.user.name}</p>
+              <div className="flex items-center gap-3 mt-1">
                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-600 text-white animate-pulse">
                     LIVE
                 </span>
-              </div>
-               <p className="text-base font-semibold mt-1">{broadcast.title}</p>
-                 <span className="inline-flex items-center text-xs font-medium gap-1 mt-1">
+                 <span className="inline-flex items-center text-xs font-medium gap-1">
                       <Users className="h-3 w-3" />
                       {broadcast.viewers.toLocaleString()}
                   </span>
+              </div>
+               <p className="text-base font-semibold mt-1">{broadcast.title}</p>
             </div>
           </div>
       </div>
@@ -120,7 +120,7 @@ export default function BroadcastPage() {
       {/* Overlay for information and actions */}
       <div className="absolute bottom-0 left-0 right-0 p-4 pb-8 bg-gradient-to-t from-black/70 to-transparent text-white">
         <div className="flex items-end justify-between gap-4">
-          <div className="flex-1">
+          <div className="flex-1 w-full">
             {isChatVisible && (
                 <>
                     <ScrollArea className="h-48 w-full pr-4">
@@ -132,7 +132,7 @@ export default function BroadcastPage() {
                             <AvatarFallback>{comment.username.charAt(0)}</AvatarFallback>
                             </Avatar>
                             <div className="flex-1">
-                            <span className="font-bold text-secondary mr-1.5">{comment.username}:</span>
+                            <span className="font-bold text-red-500 mr-1.5">{comment.username}:</span>
                             <p className="break-words inline">{comment.message}</p>
                             </div>
                         </div>
