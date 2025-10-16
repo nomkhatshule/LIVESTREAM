@@ -154,21 +154,21 @@ export default function BroadcastPage() {
           {/* Right side: Action Buttons */}
           <div className="flex flex-col items-center space-y-5">
             <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white flex-col justify-center items-center drop-shadow-md hover:bg-transparent hover:text-white">
-                <PlusCircle className="h-7 w-7"/>
+                <PlusCircle className="h-8 w-8"/>
             </Button>
-            <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white flex flex-col drop-shadow-md hover:bg-transparent hover:text-white" onClick={handleLike}>
-              <Heart className="h-7 w-7" />
+            <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white flex-col drop-shadow-md hover:bg-transparent hover:text-white" onClick={handleLike}>
+              <Heart className="h-8 w-8" />
               <span className="text-xs mt-1">1.2k</span>
             </Button>
-            <Button variant="ghost" size="icon" onClick={() => setIsChatVisible(!isChatVisible)} className="h-12 w-12 rounded-full text-white flex flex-col drop-shadow-md hover:bg-transparent hover:text-white">
-                {isChatVisible ? <MessageCircleOff className="h-7 w-7" /> : <MessageCircle className="h-7 w-7" />}
+            <Button variant="ghost" size="icon" onClick={() => setIsChatVisible(!isChatVisible)} className="h-12 w-12 rounded-full text-white flex-col drop-shadow-md hover:bg-transparent hover:text-white">
+                {isChatVisible ? <MessageCircleOff className="h-8 w-8" /> : <MessageCircle className="h-8 w-8" />}
                <span className="text-xs mt-1">Chat</span>
             </Button>
             <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white drop-shadow-md hover:bg-transparent hover:text-white">
-              <Share2 className="h-7 w-7" />
+              <Share2 className="h-8 w-8" />
             </Button>
              <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white drop-shadow-md hover:bg-transparent hover:text-white">
-              <MoreVertical className="h-7 w-7" />
+              <MoreVertical className="h-8 w-8" />
             </Button>
           </div>
         </div>
