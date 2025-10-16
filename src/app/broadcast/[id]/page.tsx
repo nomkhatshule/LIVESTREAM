@@ -6,7 +6,7 @@ import { notFound, useParams } from 'next/navigation';
 import VideoPlayer from '@/components/broadcast/video-player';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Heart, Share2, MessageCircle, MoreVertical, PlusCircle, Users, Send } from 'lucide-react';
+import { Heart, Share2, MessageCircle, MoreVertical, PlusCircle, Users, ArrowUp } from 'lucide-react';
 import { useUser } from '@/firebase';
 import type { Broadcast } from '@/lib/data';
 import { useDoc, useFirestore } from '@/firebase';
@@ -132,7 +132,7 @@ export default function BroadcastPage() {
                 className="bg-black/50 border-white/20 text-white placeholder:text-gray-400 pr-10 h-10"
               />
               <Button variant="ghost" size="icon" type="submit" className="absolute inset-y-0 right-0 text-white">
-                <Send className="h-5 w-5" />
+                <ArrowUp className="h-5 w-5" />
               </Button>
             </form>
           </div>
