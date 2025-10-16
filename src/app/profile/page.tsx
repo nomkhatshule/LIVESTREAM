@@ -64,28 +64,24 @@ export default function ProfilePage() {
       return;
     }
     const file = event.target.files[0];
-    // Create a reference to the file in Firebase Storage
     const storageRef = ref(storage, `avatars/${user.uid}/${file.name}`);
 
     setIsUploading(true);
 
     try {
-      // Wait for the upload to complete
       await uploadBytes(storageRef, file);
-      // Get the download URL
       const downloadURL = await getDownloadURL(storageRef);
 
       const userDocRef = doc(firestore, 'users', user.uid);
-      // Now, update Firestore with the new URL.
       setDocumentNonBlocking(userDocRef, { profilePicture: downloadURL }, { merge: true });
+      
       form.setValue('profilePicture', downloadURL);
 
-      // Revalidate paths to show the new avatar across the app
       await revalidateProfilePaths();
 
       toast({
         title: 'Avatar Updated',
-        description: 'Your new avatar has been saved.',
+        description: 'Your new avatar has been saved and is now visible.',
       });
 
     } catch (error) {
@@ -93,10 +89,9 @@ export default function ProfilePage() {
       toast({
         variant: 'destructive',
         title: 'Upload Failed',
-        description: 'Could not upload your new avatar. Please try again.',
+        description: 'Could not upload your new avatar. Please check the file type and size, and ensure you have permission.',
       });
     } finally {
-      // This will now correctly run after success or failure
       setIsUploading(false);
     }
   };
