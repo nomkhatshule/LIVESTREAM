@@ -72,12 +72,14 @@ export default function BroadcastPage() {
                 </Button>
             </div>
             <div>
+              <div className="flex items-center gap-3">
                 <p className="font-bold text-lg">{broadcast.user.name}</p>
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-600 text-white animate-pulse">
+                    LIVE
+                </span>
+              </div>
                 <h1 className="text-base font-semibold">{broadcast.title}</h1>
                 <div className="flex items-center gap-3 mt-1">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-600 text-white animate-pulse">
-                        LIVE
-                    </span>
                     <span className="inline-flex items-center text-xs font-medium gap-1">
                         <Users className="h-3 w-3" />
                         {broadcast.viewers.toLocaleString()}
