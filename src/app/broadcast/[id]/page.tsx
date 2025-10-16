@@ -97,9 +97,6 @@ export default function BroadcastPage() {
                     <AvatarImage src={broadcast.user.avatarUrl} alt={broadcast.user.name} data-ai-hint={broadcast.user.avatarHint} />
                     <AvatarFallback>{broadcast.user.name.charAt(0)}</AvatarFallback>
                 </Avatar>
-                <Button size="icon" className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-primary hover:bg-primary/90">
-                    <PlusCircle className="h-5 w-5"/>
-                </Button>
             </div>
             <div>
               <p className="font-bold text-lg">{broadcast.user.name}</p>
@@ -156,6 +153,10 @@ export default function BroadcastPage() {
           
           {/* Right side: Action Buttons */}
           <div className="flex flex-col items-center space-y-5">
+            <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white flex flex-col drop-shadow-md hover:bg-transparent hover:text-white">
+                <PlusCircle className="h-7 w-7"/>
+                <span className="text-xs mt-1">Follow</span>
+            </Button>
             <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white flex flex-col drop-shadow-md hover:bg-transparent hover:text-white" onClick={handleLike}>
               <Heart className="h-7 w-7" />
               <span className="text-xs mt-1">1.2k</span>
