@@ -60,18 +60,20 @@ export default function BroadcastPage() {
       <VideoPlayer broadcast={broadcast} isHost={false} />
       
       <div className="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/50 to-transparent text-white">
-         <div className="flex-1 mr-8">
-             <div className="relative w-12 h-12 mb-3">
-              <Avatar className="h-12 w-12 border-2 border-primary">
-                <AvatarImage src={broadcast.user.avatarUrl} alt={broadcast.user.name} data-ai-hint={broadcast.user.avatarHint} />
-                <AvatarFallback>{broadcast.user.name.charAt(0)}</AvatarFallback>
-              </Avatar>
-               <Button size="icon" className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-primary hover:bg-primary/90">
-                  <PlusCircle className="h-5 w-5"/>
-               </Button>
+         <div className="flex items-start gap-4">
+            <div className="relative w-12 h-12 shrink-0">
+                <Avatar className="h-12 w-12 border-2 border-primary">
+                    <AvatarImage src={broadcast.user.avatarUrl} alt={broadcast.user.name} data-ai-hint={broadcast.user.avatarHint} />
+                    <AvatarFallback>{broadcast.user.name.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <Button size="icon" className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-primary hover:bg-primary/90">
+                    <PlusCircle className="h-5 w-5"/>
+                </Button>
             </div>
-            <p className="font-bold text-lg">{broadcast.user.name}</p>
-            <h1 className="text-base font-semibold">{broadcast.title}</h1>
+            <div>
+                <p className="font-bold text-lg">{broadcast.user.name}</p>
+                <h1 className="text-base font-semibold">{broadcast.title}</h1>
+            </div>
           </div>
       </div>
 
