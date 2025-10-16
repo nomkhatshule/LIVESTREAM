@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import { useUser, useUserDocument } from '@/firebase';
+import { useRouter } from 'next/navigation';
 
 interface Comment {
   id: number;
@@ -18,6 +19,7 @@ interface Comment {
 }
 
 export default function AgoraTestPage() {
+  const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [hasCameraPermission, setHasCameraPermission] = useState(true);
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
@@ -92,6 +94,16 @@ export default function AgoraTestPage() {
     setComments(prev => [...prev, newComment]);
     setNewMessage('');
   }
+  
+  const handleEndStream = () => {
+    // Release camera and microphone
+    if (videoRef.current && videoRef.current.srcObject) {
+        const stream = videoRef.current.srcObject as MediaStream;
+        stream.getTracks().forEach(track => track.stop());
+    }
+    // Navigate to homepage
+    router.push('/');
+  }
 
   return (
     <div className="relative h-screen w-full">
@@ -140,7 +152,7 @@ export default function AgoraTestPage() {
               1,234
             </span>
           </div>
-          <Button variant="destructive" size="sm">
+          <Button variant="destructive" size="sm" onClick={handleEndStream}>
             <X className="h-4 w-4 mr-1.5" /> End
           </Button>
         </div>
