@@ -12,11 +12,9 @@ import { Input } from '@/components/ui/input';
 import type { Broadcast, ChatMessage as ChatMessageType } from '@/lib/data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useCollection } from '@/firebase';
-import dynamic from 'next/dynamic';
 import {
   Call,
   StreamCall,
-  StreamTheme,
   StreamVideo,
   StreamVideoClient,
   useCallStateHooks,
@@ -24,6 +22,8 @@ import {
 import VideoPlayer from '@/components/broadcast/video-player';
 
 
+// Step 3: This new component contains all the UI and logic that depends on the call context.
+// It is guaranteed to run inside <StreamCall>, so all hooks will work correctly.
 function LiveStudio({ liveBroadcast }: { liveBroadcast: Broadcast }) {
     const firestore = useFirestore();
     const { user } = useUser();
@@ -34,6 +34,7 @@ function LiveStudio({ liveBroadcast }: { liveBroadcast: Broadcast }) {
     const [newMessage, setNewMessage] = useState('');
     const [isChatVisible, setIsChatVisible] = useState(true);
 
+    // These hooks now work reliably because they are inside <StreamCall>
     const { useCameraState, useMicrophoneState } = useCallStateHooks();
     const { camera, isMute: isCameraMute } = useCameraState();
     const { microphone, isMute: isMicrophoneMute } = useMicrophoneState();
@@ -50,8 +51,11 @@ function LiveStudio({ liveBroadcast }: { liveBroadcast: Broadcast }) {
     
     // Auto-enable camera and mic for the host on component mount
     useEffect(() => {
-        if (isCameraMute) camera.enable();
-        if (isMicrophoneMute) microphone.enable();
+        const enableMedia = async () => {
+          if (isCameraMute) await camera.enable();
+          if (isMicrophoneMute) await microphone.enable();
+        };
+        enableMedia();
     }, [camera, microphone, isCameraMute, isMicrophoneMute]);
 
     useEffect(() => {
@@ -69,6 +73,7 @@ function LiveStudio({ liveBroadcast }: { liveBroadcast: Broadcast }) {
         if (liveBroadcast.id) {
             const broadcastDocRef = doc(firestore, 'broadcasts', liveBroadcast.id);
             await updateDoc(broadcastDocRef, { isLive: false });
+            // The call will be left automatically on cleanup from the wrapper
             router.push('/');
         }
     };
@@ -97,6 +102,7 @@ function LiveStudio({ liveBroadcast }: { liveBroadcast: Broadcast }) {
     return (
         <div className="relative h-screen w-full">
             <div className="h-screen w-full bg-black text-white flex flex-col relative">
+                {/* VideoPlayer is now a simple presentational component */}
                 <VideoPlayer broadcast={liveBroadcast} isHost={true} />
                 
                 <div className="absolute top-0 left-0 right-0 z-10 p-4 flex items-center justify-between bg-gradient-to-b from-black/50 to-transparent">
@@ -169,6 +175,7 @@ function LiveStudio({ liveBroadcast }: { liveBroadcast: Broadcast }) {
 
 const apiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY || '';
 
+// Step 1: This wrapper component now handles all SDK initialization and context providers.
 function LiveStudioWrapper() {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -266,7 +273,7 @@ function LiveStudioWrapper() {
             }
         };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [broadcastId, user, isUserLoading, client]);
+    }, [broadcastId, user, isUserLoading]); // Removed client and call from deps to prevent re-init
 
 
     useEffect(() => {
@@ -301,6 +308,7 @@ function LiveStudioWrapper() {
         return <div className="h-screen w-full flex items-center justify-center bg-black text-white">Broadcast ID not found.</div>;
     }
     
+    // Step 2: Render the context providers, and pass the new LiveStudio component as a child.
     return (
         <StreamVideo client={client}>
             <StreamCall call={call}>
