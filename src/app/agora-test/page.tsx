@@ -217,13 +217,17 @@ function AgoraTestPageUI() {
   }
   
   const handleEndStream = async () => {
+    // First, stop all local media tracks to release the camera/mic
     if (videoRef.current && videoRef.current.srcObject) {
         const stream = videoRef.current.srcObject as MediaStream;
         stream.getTracks().forEach(track => track.stop());
     }
+    // Then, update the broadcast status in Firestore
     if (broadcastDocRef) {
         await updateDoc(broadcastDocRef, { isLive: false });
     }
+    // Finally, redirect to the homepage. This will unmount the component
+    // and trigger the Stream SDK cleanup in the wrapper component.
     router.push('/');
   }
 
