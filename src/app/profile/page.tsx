@@ -69,13 +69,17 @@ export default function ProfilePage() {
     setIsUploading(true);
 
     try {
+        // Await the upload to complete
         await uploadBytes(storageRef, file);
+        // Await getting the download URL
         const downloadURL = await getDownloadURL(storageRef);
 
         const userDocRef = doc(firestore, 'users', user.uid);
+        // Use non-blocking update for Firestore, but only after getting the URL
         setDocumentNonBlocking(userDocRef, { profilePicture: downloadURL }, { merge: true });
         form.setValue('profilePicture', downloadURL);
 
+        // Revalidate paths to show the new avatar across the app
         await revalidateProfilePaths();
 
         toast({
@@ -91,6 +95,7 @@ export default function ProfilePage() {
             description: 'Could not upload your new avatar. Please try again.',
         });
     } finally {
+        // This will now correctly run after success or failure
         setIsUploading(false);
     }
   };
