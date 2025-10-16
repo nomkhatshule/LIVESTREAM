@@ -1,18 +1,20 @@
 
-
 'use client';
+
 import { broadcasts, users } from '@/lib/data';
 import { notFound, useParams } from 'next/navigation';
 import VideoPlayer from '@/components/broadcast/video-player';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Heart, Share2, Star, MessageCircle, MoreVertical, PlusCircle, Users } from 'lucide-react';
+import { Heart, Share2, MessageCircle, MoreVertical, PlusCircle, Users, Send } from 'lucide-react';
 import { useUser } from '@/firebase';
 import type { Broadcast } from '@/lib/data';
 import { useDoc, useFirestore } from '@/firebase';
 import { doc } from 'firebase/firestore';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Input } from '@/components/ui/input';
 
 
 export default function BroadcastPage() {
@@ -20,6 +22,7 @@ export default function BroadcastPage() {
   const { id } = params as { id: string };
   const { user } = useUser();
   const firestore = useFirestore();
+  const [newMessage, setNewMessage] = useState('');
 
   const broadcastDocRef = useMemo(() => {
     if (!id) return undefined;
@@ -48,6 +51,17 @@ export default function BroadcastPage() {
     };
   }, [broadcastData, id]);
 
+  const mockComments = [
+    { id: 1, username: 'User123', avatar: 'https://picsum.photos/seed/chat1/40/40', message: 'This is awesome! 🚀' },
+    { id: 2, username: 'StreamFan', avatar: 'https://picsum.photos/seed/chat2/40/40', message: 'Love this content!' },
+    { id: 3, username: 'Newbie', avatar: 'https://picsum.photos/seed/chat3/40/40', message: 'What is this song called?' },
+    { id: 4, username: 'AnotherViewer', avatar: 'https://picsum.photos/seed/chat4/40/40', message: 'So cool!' },
+  ];
+
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Logic will be added later
+  }
 
   if (isBroadcastLoading) {
     return <BroadcastSkeleton />;
@@ -93,7 +107,35 @@ export default function BroadcastPage() {
       {/* Overlay for information and actions */}
       <div className="absolute bottom-0 left-0 right-0 p-4 pb-8 bg-gradient-to-t from-black/70 to-transparent text-white">
         <div className="flex items-end justify-between">
-          <div className="flex-1 mr-8" />
+          <div className="flex flex-col w-full max-w-sm">
+            <ScrollArea className="h-48 w-full pr-4">
+              <div className="flex flex-col gap-3">
+                {mockComments.map((comment) => (
+                  <div key={comment.id} className="flex items-start gap-3 text-sm text-white bg-black/20 p-2 rounded-lg">
+                    <Avatar className="h-6 w-6 border border-secondary">
+                      <AvatarImage src={comment.avatar} alt={comment.username} />
+                      <AvatarFallback>{comment.username.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <span className="font-bold text-secondary mr-1.5">{comment.username}:</span>
+                      <p className="break-words inline">{comment.message}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+             <form onSubmit={handleSendMessage} className="relative flex-1 mt-3">
+              <Input
+                placeholder="Add a comment..."
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                className="bg-black/50 border-white/20 text-white placeholder:text-gray-400 pr-10 h-10"
+              />
+              <Button variant="ghost" size="icon" type="submit" className="absolute inset-y-0 right-0 text-white">
+                <Send className="h-5 w-5" />
+              </Button>
+            </form>
+          </div>
           
           {/* Right side: Action Buttons */}
           <div className="flex flex-col items-center space-y-5">
