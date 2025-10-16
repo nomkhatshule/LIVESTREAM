@@ -107,7 +107,7 @@ export default function BroadcastPage() {
       {/* Overlay for information and actions */}
       <div className="absolute bottom-0 left-0 right-0 p-4 pb-8 bg-gradient-to-t from-black/70 to-transparent text-white">
         <div className="flex items-end justify-between">
-          <div className="flex flex-col w-full max-w-sm">
+          <div className="flex flex-col w-full">
             <ScrollArea className="h-48 w-full pr-4">
               <div className="flex flex-col gap-3">
                 {mockComments.map((comment) => (
