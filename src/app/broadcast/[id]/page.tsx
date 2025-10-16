@@ -92,18 +92,18 @@ export default function BroadcastPage() {
       
       <div className="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/50 to-transparent text-white">
          <div className="flex items-start gap-4">
-            <div className="relative w-12 h-12 shrink-0">
-                <Avatar className="h-12 w-12 border-2 border-primary">
-                    <AvatarImage src={broadcast.user.avatarUrl} alt={broadcast.user.name} data-ai-hint={broadcast.user.avatarHint} />
-                    <AvatarFallback>{broadcast.user.name.charAt(0)}</AvatarFallback>
-                </Avatar>
-            </div>
+            <Avatar className="h-12 w-12 border-2 border-primary">
+                <AvatarImage src={broadcast.user.avatarUrl} alt={broadcast.user.name} data-ai-hint={broadcast.user.avatarHint} />
+                <AvatarFallback>{broadcast.user.name.charAt(0)}</AvatarFallback>
+            </Avatar>
             <div>
-              <p className="font-bold text-lg">{broadcast.user.name}</p>
-              <div className="flex items-center gap-3 mt-1">
+              <div className="flex items-center gap-3">
+                <p className="font-bold text-lg">{broadcast.user.name}</p>
                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-600 text-white animate-pulse">
                     LIVE
                 </span>
+              </div>
+              <div className="flex items-center gap-3 mt-1">
                  <span className="inline-flex items-center text-xs font-medium gap-1">
                       <Users className="h-3 w-3" />
                       {broadcast.viewers.toLocaleString()}
@@ -119,7 +119,7 @@ export default function BroadcastPage() {
         <div className="flex items-end justify-between gap-4">
           <div className="flex-1 w-full">
             {isChatVisible && (
-                <>
+                <div className="w-full">
                     <ScrollArea className="h-48 w-full pr-4">
                     <div className="flex flex-col gap-3">
                         {comments.map((comment) => (
@@ -147,7 +147,7 @@ export default function BroadcastPage() {
                             <ArrowUp className="h-5 w-5" />
                         </Button>
                     </form>
-                </>
+                </div>
             )}
           </div>
           
