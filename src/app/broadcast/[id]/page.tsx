@@ -88,7 +88,6 @@ export default function BroadcastPage() {
             </div>
             <div>
               <p className="font-bold text-lg">{broadcast.user.name}</p>
-              <h1 className="text-base font-semibold">{broadcast.title}</h1>
               <div className="flex items-center gap-3 mt-1">
                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-600 text-white animate-pulse">
                     LIVE
@@ -98,6 +97,7 @@ export default function BroadcastPage() {
                       {broadcast.viewers.toLocaleString()}
                   </span>
               </div>
+              <h1 className="text-base font-semibold mt-1">{broadcast.title}</h1>
             </div>
           </div>
       </div>
