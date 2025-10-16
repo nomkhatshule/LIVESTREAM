@@ -1,8 +1,8 @@
 'use client';
 import { Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useUser, useDoc, useFirestore, useUserDocument, useMemoFirebase, addDocumentNonBlocking } from '@/firebase';
-import { doc, collection, serverTimestamp, query, orderBy, limit, updateDoc } from 'firebase/firestore';
+import { useUser, useDoc, useFirestore, useUserDocument, useMemoFirebase } from '@/firebase';
+import { doc, collection, serverTimestamp, query, orderBy, limit, updateDoc, addDoc } from 'firebase/firestore';
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Mic, MicOff, Video, VideoOff, X, Users, MessageCircle, Send, Smile, MessageCircleOff } from 'lucide-react';
@@ -20,9 +20,10 @@ import {
   useCallStateHooks,
 } from '@stream-io/video-react-sdk';
 import VideoPlayer from '@/components/broadcast/video-player';
+import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 
-// Step 3: This new component contains all the UI and logic that depends on the call context.
+// This component contains all the UI and logic that depends on the call context.
 // It is guaranteed to run inside <StreamCall>, so all hooks will work correctly.
 function LiveStudio({ liveBroadcast }: { liveBroadcast: Broadcast }) {
     const firestore = useFirestore();
@@ -175,7 +176,7 @@ function LiveStudio({ liveBroadcast }: { liveBroadcast: Broadcast }) {
 
 const apiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY || '';
 
-// Step 1: This wrapper component now handles all SDK initialization and context providers.
+// This wrapper component handles all SDK initialization and context providers.
 function LiveStudioWrapper() {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -308,7 +309,7 @@ function LiveStudioWrapper() {
         return <div className="h-screen w-full flex items-center justify-center bg-black text-white">Broadcast ID not found.</div>;
     }
     
-    // Step 2: Render the context providers, and pass the new LiveStudio component as a child.
+    // Render the context providers, and pass the new LiveStudio component as a child.
     return (
         <StreamVideo client={client}>
             <StreamCall call={call}>
@@ -325,5 +326,3 @@ export default function LivePage() {
         </Suspense>
     )
 }
-
-    
