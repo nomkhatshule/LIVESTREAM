@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Users, X, Send, Smile, MessageCircle, CameraOff, Video, Mic, UserPlus, ScreenShare, VideoOff, MicOff } from 'lucide-react';
+import { Users, X, Send, Smile, MessageCircle, CameraOff, Video, Mic, UserPlus, ScreenShare, VideoOff, MicOff, ArrowUp } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useEffect, useRef, useState } from 'react';
@@ -151,7 +151,7 @@ export default function AgoraTestPage() {
                 className="bg-black/50 border-white/20 text-white placeholder:text-gray-400 pr-10"
               />
               <Button variant="ghost" size="icon" type="submit" className="absolute inset-y-0 right-0 text-white">
-                <Send className="h-5 w-5" />
+                <ArrowUp className="h-5 w-5" />
               </Button>
             </form>
             <Button variant="ghost" size="icon" className="text-white bg-black/50 rounded-full h-10 w-10">
