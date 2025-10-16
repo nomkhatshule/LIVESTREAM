@@ -83,7 +83,6 @@ export default function CreateBroadcastPage() {
     }
     setIsSubmitting(true);
     
-    // Explicitly stop all media tracks to release the camera before navigating.
     if (videoRef.current && videoRef.current.srcObject) {
         const stream = videoRef.current.srcObject as MediaStream;
         stream.getTracks().forEach(track => track.stop());
@@ -100,13 +99,15 @@ export default function CreateBroadcastPage() {
       viewers: 0,
       createdAt: serverTimestamp(),
       tags: ['New', 'Live'],
+      streamDetails: {
+        isScreenSharing: false,
+      },
     };
 
     try {
         const newBroadcastDoc = await addDoc(broadcastsCollection, broadcastData);
-        // CRITICAL FIX: Await the navigation to ensure the current page
-        // fully unloads and releases the camera before the next page loads.
-        await router.push(`/live?id=${newBroadcastDoc.id}`);
+        // Redirect to the agora-test page with the new broadcast ID
+        await router.push(`/agora-test?id=${newBroadcastDoc.id}`);
     } catch (error) {
         console.error("Error starting broadcast:", error);
         toast({
@@ -196,3 +197,5 @@ export default function CreateBroadcastPage() {
     </div>
   );
 }
+
+    

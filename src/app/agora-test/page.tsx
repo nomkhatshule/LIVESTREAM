@@ -5,17 +5,22 @@ import { Input } from '@/components/ui/input';
 import { Users, X, Send, Smile, MessageCircle, CameraOff, Video, Mic, UserPlus, ScreenShare, VideoOff, MicOff, ArrowUp, MessageCircleOff, MonitorUp, Heart, ThumbsUp } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
-import { useUser, useUserDocument } from '@/firebase';
-import { useRouter } from 'next/navigation';
+import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { doc, updateDoc, collection, query, orderBy, limit } from 'firebase/firestore';
+import { useCollection } from '@/firebase';
+import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { serverTimestamp } from 'firebase/firestore';
 
 interface Comment {
-  id: number;
+  id: string;
   username: string;
   avatar: string;
   message: string;
+  timestamp: any;
 }
 
 interface Reaction {
@@ -24,26 +29,60 @@ interface Reaction {
   x: number;
 }
 
+interface BroadcastData {
+    title: string;
+    hostId: string;
+    hostName: string;
+    hostAvatar: string;
+    isLive: boolean;
+    streamDetails?: {
+      isScreenSharing: boolean;
+    }
+}
+
 export default function AgoraTestPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const broadcastId = searchParams.get('id');
+  const firestore = useFirestore();
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const [hasCameraPermission, setHasCameraPermission] = useState(true);
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const [isMicEnabled, setIsMicEnabled] = useState(true);
-  const [isScreenSharing, setIsScreenSharing] = useState(false);
   const { toast } = useToast();
-  const [comments, setComments] = useState<Comment[]>([]);
+  
   const [newMessage, setNewMessage] = useState('');
   const [isChatVisible, setIsChatVisible] = useState(true);
   const { user } = useUser();
-  const { userDocument } = useUserDocument();
   const [viewerCount, setViewerCount] = useState(1234);
   const [reactions, setReactions] = useState<Reaction[]>([]);
+
+  // Real-time broadcast document
+  const broadcastDocRef = useMemoFirebase(() => {
+    if (!broadcastId) return undefined;
+    return doc(firestore, 'broadcasts', broadcastId);
+  }, [broadcastId, firestore]);
+  
+  const { data: broadcastData, isLoading: isBroadcastLoading } = useDoc<BroadcastData>(broadcastDocRef);
+
+  const isScreenSharing = broadcastData?.streamDetails?.isScreenSharing ?? false;
+
+  // Real-time chat messages
+   const messagesQuery = useMemoFirebase(() => {
+    if (!broadcastId) return undefined;
+    return query(
+        collection(firestore, `broadcasts/${broadcastId}/messages`),
+        orderBy('timestamp', 'asc'),
+        limit(100)
+    );
+  }, [broadcastId, firestore]);
+  const { data: comments } = useCollection<Comment>(messagesQuery);
+
 
   useEffect(() => {
     const getCameraPermission = async () => {
       try {
-        // Request both video and audio permissions
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         setHasCameraPermission(true);
         if (videoRef.current) {
@@ -59,19 +98,17 @@ export default function AgoraTestPage() {
         });
       }
     };
-
     getCameraPermission();
   }, [toast]);
   
   useEffect(() => {
     const interval = setInterval(() => {
       setViewerCount(prevCount => {
-        const change = Math.floor(Math.random() * 50) - 25; // Random change between -25 and +25
+        const change = Math.floor(Math.random() * 50) - 25;
         const newCount = prevCount + change;
-        return newCount > 0 ? newCount : 0; // Ensure count doesn't go below zero
+        return newCount > 0 ? newCount : 0;
       });
-    }, 3000); // Update every 3 seconds
-
+    }, 3000);
     return () => clearInterval(interval);
   }, []);
 
@@ -84,9 +121,7 @@ export default function AgoraTestPage() {
         const nextState = !prev;
         if (videoRef.current && videoRef.current.srcObject) {
             const stream = videoRef.current.srcObject as MediaStream;
-            stream.getVideoTracks().forEach(track => {
-            track.enabled = nextState;
-            });
+            stream.getVideoTracks().forEach(track => { track.enabled = nextState; });
         }
         return nextState;
     });
@@ -97,50 +132,32 @@ export default function AgoraTestPage() {
       const nextState = !prev;
       if (videoRef.current && videoRef.current.srcObject) {
         const stream = videoRef.current.srcObject as MediaStream;
-        stream.getAudioTracks().forEach(track => {
-          track.enabled = nextState;
-        });
+        stream.getAudioTracks().forEach(track => { track.enabled = nextState; });
       }
       return nextState;
     });
   }
 
   const handleToggleScreenShare = async () => {
-    if (isScreenSharing) {
-        // Stop screen share and revert to camera
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-            if (videoRef.current) {
-                // Properly stop old stream tracks
-                const oldStream = videoRef.current.srcObject as MediaStream;
-                oldStream?.getTracks().forEach(track => track.stop());
-                videoRef.current.srcObject = stream;
-            }
-            setIsScreenSharing(false);
-            setIsVideoEnabled(true);
-        } catch (error) {
-            console.error('Error switching back to camera:', error);
-            // Handle error, e.g., show a toast
-        }
-    } else {
-        // Start screen share
+    const nextIsScreenSharing = !isScreenSharing;
+    if (broadcastDocRef) {
+        // Optimistically update Firestore first
+        updateDoc(broadcastDocRef, { 'streamDetails.isScreenSharing': nextIsScreenSharing });
+    }
+
+    if (nextIsScreenSharing) {
         try {
             const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
             if (videoRef.current) {
-                // Stop existing camera tracks before switching
                 const existingStream = videoRef.current.srcObject as MediaStream;
                 existingStream?.getTracks().forEach(track => track.stop());
-
                 videoRef.current.srcObject = screenStream;
             }
-            setIsScreenSharing(true);
-            setIsVideoEnabled(true); // Screen is a form of video
-
-            // Listen for when the user stops sharing via the browser UI
+            setIsVideoEnabled(true);
             screenStream.getVideoTracks()[0].onended = () => {
-                setIsScreenSharing(false);
-                // When browser share is stopped, revert to showing "video off" state
-                // rather than trying to auto-restart camera.
+                if (broadcastDocRef) {
+                   updateDoc(broadcastDocRef, { 'streamDetails.isScreenSharing': false });
+                }
                 setIsVideoEnabled(false);
                  if (videoRef.current) {
                     const oldStream = videoRef.current.srcObject as MediaStream;
@@ -148,40 +165,57 @@ export default function AgoraTestPage() {
                     videoRef.current.srcObject = null;
                 }
             };
-
         } catch (error) {
             console.error('Error starting screen share:', error);
+            if (broadcastDocRef) {
+               updateDoc(broadcastDocRef, { 'streamDetails.isScreenSharing': false });
+            }
             toast({
                 variant: 'destructive',
                 title: 'Screen Share Failed',
-                description: 'Could not start screen sharing. Please ensure you have given permission.',
+                description: 'Could not start screen sharing.',
             });
+        }
+    } else {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            if (videoRef.current) {
+                const oldStream = videoRef.current.srcObject as MediaStream;
+                oldStream?.getTracks().forEach(track => track.stop());
+                videoRef.current.srcObject = stream;
+            }
+            setIsVideoEnabled(true);
+        } catch (error) {
+            console.error('Error switching back to camera:', error);
         }
     }
   }
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (newMessage.trim() === '') return;
+    if (newMessage.trim() === '' || !user || !broadcastId || !broadcastData) return;
 
-    const newComment: Comment = {
-        id: Date.now(),
-        username: userDocument?.username || user?.displayName || 'You',
-        avatar: userDocument?.profilePicture || user?.photoURL || 'https://picsum.photos/seed/my-avatar/100/100',
+    const newComment: Omit<Comment, 'id'> & { timestamp: any } = {
+        userId: user.uid,
+        username: broadcastData.hostName,
+        avatar: broadcastData.hostAvatar,
         message: newMessage,
+        timestamp: serverTimestamp(),
     };
-
-    setComments(prev => [...prev, newComment]);
+    
+    const messagesCollectionRef = collection(firestore, 'broadcasts', broadcastId, 'messages');
+    addDocumentNonBlocking(messagesCollectionRef, newComment);
     setNewMessage('');
   }
   
-  const handleEndStream = () => {
-    // Release camera and microphone
+  const handleEndStream = async () => {
     if (videoRef.current && videoRef.current.srcObject) {
         const stream = videoRef.current.srcObject as MediaStream;
         stream.getTracks().forEach(track => track.stop());
     }
-    // Navigate to homepage
+    if (broadcastDocRef) {
+        await updateDoc(broadcastDocRef, { isLive: false });
+    }
     router.push('/');
   }
 
@@ -190,8 +224,6 @@ export default function AgoraTestPage() {
         title: "Guest Link Copied!",
         description: "A unique invite link has been copied to your clipboard.",
     });
-    // In a real implementation, you'd generate a link and copy it.
-    // e.g., navigator.clipboard.writeText('https://agorademo.live/join/UNIQUE_TOKEN');
   }
 
   const handleReaction = () => {
@@ -203,11 +235,9 @@ export default function AgoraTestPage() {
     const newReaction: Reaction = {
         id: Date.now() + Math.random(),
         emoji: emojis[Math.floor(Math.random() * emojis.length)],
-        x: Math.random() * 80 + 10, // Horizontal position percentage (10% to 90%)
+        x: Math.random() * 80 + 10,
     };
     setReactions(prev => [...prev, newReaction]);
-
-    // Remove the reaction after animation completes (5s)
     setTimeout(() => {
         setReactions(prev => prev.filter(r => r.id !== newReaction.id));
     }, 5000);
@@ -216,7 +246,6 @@ export default function AgoraTestPage() {
   return (
     <div className="relative h-screen w-full overflow-hidden">
       <div className="h-screen w-full bg-black text-white flex flex-col relative">
-        {/* Local Video Feed Container */}
         <div className="absolute inset-0 bg-gray-900 flex items-center justify-center">
           
           {!isVideoEnabled && (
@@ -248,7 +277,6 @@ export default function AgoraTestPage() {
           )}
         </div>
 
-        {/* Floating Reactions Container */}
         <div className="absolute bottom-16 left-4 h-96 w-64 z-30 pointer-events-none">
             {reactions.map(reaction => (
                 <div 
@@ -261,16 +289,14 @@ export default function AgoraTestPage() {
             ))}
         </div>
 
-
-        {/* Header */}
         <div className="absolute top-0 left-0 right-0 z-10 p-4 flex items-center justify-between bg-gradient-to-b from-black/50 to-transparent">
           <div className="flex items-center gap-3 bg-black/30 p-2 rounded-full">
              <Avatar className="h-9 w-9 border-2 border-primary">
-                <AvatarImage src={userDocument?.profilePicture || user?.photoURL || ''} alt={userDocument?.username || user?.displayName || ''} />
-                <AvatarFallback>{(userDocument?.username || user?.displayName || 'U').charAt(0)}</AvatarFallback>
+                <AvatarImage src={broadcastData?.hostAvatar || ''} alt={broadcastData?.hostName || ''} />
+                <AvatarFallback>{(broadcastData?.hostName || 'U').charAt(0)}</AvatarFallback>
             </Avatar>
             <div className="flex flex-col">
-                <span className="font-bold text-sm leading-tight">{userDocument?.username || user?.displayName || 'Host'}</span>
+                <span className="font-bold text-sm leading-tight">{broadcastData?.hostName || 'Host'}</span>
                 <div className="flex items-center gap-3">
                     <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-600 text-white animate-pulse">
                         LIVE
@@ -287,7 +313,6 @@ export default function AgoraTestPage() {
           </Button>
         </div>
 
-        {/* Right side controls */}
         <div className="absolute right-4 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-4 p-2 bg-black/40 rounded-full backdrop-blur-sm">
             <Button variant="secondary" size="icon" className="rounded-full h-12 w-12" onClick={handleToggleVideo}>
                 {isVideoEnabled && !isScreenSharing ? <Video className="h-6 w-6"/> : <VideoOff className="h-6 w-6"/>}
@@ -303,13 +328,11 @@ export default function AgoraTestPage() {
             </Button>
         </div>
 
-        {/* Chat and Controls */}
         <div className="absolute bottom-0 left-0 right-0 z-10 p-4 flex flex-col justify-end bg-gradient-to-t from-black/70 to-transparent h-2/5">
           {isChatVisible && (
             <ScrollArea className="h-full max-h-[250px] pr-4">
               <div className="flex flex-col gap-3">
-                {/* Dynamic Comments */}
-                {comments.map((comment) => (
+                {comments && comments.map((comment) => (
                   <div key={comment.id} className="flex items-start gap-3 text-sm text-white bg-black/20 p-2 rounded-lg max-w-xs sm:max-w-sm">
                     <Avatar className="h-6 w-6 border-2 border-secondary">
                       <AvatarImage src={comment.avatar} alt={comment.username} />
@@ -348,3 +371,5 @@ export default function AgoraTestPage() {
     </div>
   );
 }
+
+    
