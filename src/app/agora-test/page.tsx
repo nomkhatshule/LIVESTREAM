@@ -252,17 +252,6 @@ export default function AgoraTestPage() {
           {isChatVisible && (
             <ScrollArea className="h-full max-h-[250px] pr-4">
               <div className="flex flex-col gap-3">
-                {/* Static Chat Message Example */}
-                <div className="flex items-start gap-3 text-sm text-white bg-black/20 p-2 rounded-lg max-w-xs sm:max-w-sm">
-                  <Avatar className="h-6 w-6 border-2 border-primary">
-                    <AvatarImage src="https://picsum.photos/seed/static-avatar/100/100" alt="username" />
-                    <AvatarFallback>U</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <span className="font-bold text-primary mr-1.5">StaticUser:</span>
-                    <p className="break-words inline">This is a static comment!</p>
-                  </div>
-                </div>
                 {/* Dynamic Comments */}
                 {comments.map((comment) => (
                   <div key={comment.id} className="flex items-start gap-3 text-sm text-white bg-black/20 p-2 rounded-lg max-w-xs sm:max-w-sm">
