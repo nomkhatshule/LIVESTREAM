@@ -231,7 +231,7 @@ export default function AgoraTestPage() {
 
           <video 
             ref={videoRef} 
-            className={`w-full h-full object-cover ${!isVideoEnabled ? 'hidden' : ''}`} 
+            className={`w-full h-full object-cover transform -scale-x-100 ${!isVideoEnabled ? 'hidden' : ''}`} 
             autoPlay 
             muted 
             playsInline 
