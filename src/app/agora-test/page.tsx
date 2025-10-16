@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Users, X, Send, Smile, MessageCircle, CameraOff, Video, Mic, UserPlus, ScreenShare, VideoOff } from 'lucide-react';
+import { Users, X, Send, Smile, MessageCircle, CameraOff, Video, Mic, UserPlus, ScreenShare, VideoOff, MicOff } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useEffect, useRef, useState } from 'react';
@@ -13,23 +13,25 @@ export default function AgoraTestPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [hasCameraPermission, setHasCameraPermission] = useState(true);
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
+  const [isMicEnabled, setIsMicEnabled] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
     const getCameraPermission = async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        // Request both video and audio permissions
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         setHasCameraPermission(true);
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
         }
       } catch (error) {
-        console.error('Error accessing camera:', error);
+        console.error('Error accessing media devices:', error);
         setHasCameraPermission(false);
         toast({
           variant: 'destructive',
-          title: 'Camera Access Denied',
-          description: 'Please enable camera permissions in your browser settings to see the local feed.',
+          title: 'Media Access Denied',
+          description: 'Please enable camera and microphone permissions in your browser settings to see the local feed.',
         });
       }
     };
@@ -42,6 +44,16 @@ export default function AgoraTestPage() {
     if (videoRef.current && videoRef.current.srcObject) {
       const stream = videoRef.current.srcObject as MediaStream;
       stream.getVideoTracks().forEach(track => {
+        track.enabled = !track.enabled;
+      });
+    }
+  }
+
+  const handleToggleMic = () => {
+    setIsMicEnabled(prev => !prev);
+    if (videoRef.current && videoRef.current.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream;
+      stream.getAudioTracks().forEach(track => {
         track.enabled = !track.enabled;
       });
     }
@@ -104,8 +116,8 @@ export default function AgoraTestPage() {
             <Button variant="secondary" size="icon" className="rounded-full h-12 w-12" onClick={handleToggleVideo}>
                 {isVideoEnabled ? <Video className="h-6 w-6"/> : <VideoOff className="h-6 w-6"/>}
             </Button>
-            <Button variant="secondary" size="icon" className="rounded-full h-12 w-12">
-                <Mic className="h-6 w-6"/>
+            <Button variant="secondary" size="icon" className="rounded-full h-12 w-12" onClick={handleToggleMic}>
+                {isMicEnabled ? <Mic className="h-6 w-6"/> : <MicOff className="h-6 w-6"/>}
             </Button>
             <Button variant="secondary" size="icon" className="rounded-full h-12 w-12">
                 <ScreenShare className="h-6 w-6"/>
