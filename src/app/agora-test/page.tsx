@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Users, X, Send, Smile, MessageCircle, CameraOff, Video, Mic, UserPlus, ScreenShare, VideoOff, MicOff, ArrowUp } from 'lucide-react';
+import { Users, X, Send, Smile, MessageCircle, CameraOff, Video, Mic, UserPlus, ScreenShare, VideoOff, MicOff, ArrowUp, MessageCircleOff } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useEffect, useRef, useState } from 'react';
@@ -24,6 +24,7 @@ export default function AgoraTestPage() {
   const { toast } = useToast();
   const [comments, setComments] = useState<Comment[]>([]);
   const [newMessage, setNewMessage] = useState('');
+  const [isChatVisible, setIsChatVisible] = useState(true);
 
   useEffect(() => {
     const getCameraPermission = async () => {
@@ -159,34 +160,36 @@ export default function AgoraTestPage() {
 
         {/* Chat and Controls */}
         <div className="absolute bottom-0 left-0 right-0 z-10 p-4 flex flex-col justify-end bg-gradient-to-t from-black/70 to-transparent h-2/5">
-          <ScrollArea className="h-full max-h-[250px] pr-4">
-            <div className="flex flex-col gap-3">
-              {/* Static Chat Message Example */}
-              <div className="flex items-start gap-3 text-sm text-white bg-black/20 p-2 rounded-lg max-w-xs sm:max-w-sm">
-                <Avatar className="h-6 w-6 border-2 border-primary">
-                  <AvatarImage src="https://picsum.photos/seed/static-avatar/100/100" alt="username" />
-                  <AvatarFallback>U</AvatarFallback>
-                </Avatar>
-                <div className="flex-1">
-                  <span className="font-bold text-primary mr-1.5">StaticUser:</span>
-                  <p className="break-words inline">This is a static comment!</p>
-                </div>
-              </div>
-              {/* Dynamic Comments */}
-              {comments.map((comment) => (
-                <div key={comment.id} className="flex items-start gap-3 text-sm text-white bg-black/20 p-2 rounded-lg max-w-xs sm:max-w-sm">
-                  <Avatar className="h-6 w-6 border-2 border-secondary">
-                    <AvatarImage src={comment.avatar} alt={comment.username} />
-                    <AvatarFallback>{comment.username.charAt(0)}</AvatarFallback>
+          {isChatVisible && (
+            <ScrollArea className="h-full max-h-[250px] pr-4">
+              <div className="flex flex-col gap-3">
+                {/* Static Chat Message Example */}
+                <div className="flex items-start gap-3 text-sm text-white bg-black/20 p-2 rounded-lg max-w-xs sm:max-w-sm">
+                  <Avatar className="h-6 w-6 border-2 border-primary">
+                    <AvatarImage src="https://picsum.photos/seed/static-avatar/100/100" alt="username" />
+                    <AvatarFallback>U</AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
-                    <span className="font-bold text-secondary mr-1.5">{comment.username}:</span>
-                    <p className="break-words inline">{comment.message}</p>
+                    <span className="font-bold text-primary mr-1.5">StaticUser:</span>
+                    <p className="break-words inline">This is a static comment!</p>
                   </div>
                 </div>
-              ))}
-            </div>
-          </ScrollArea>
+                {/* Dynamic Comments */}
+                {comments.map((comment) => (
+                  <div key={comment.id} className="flex items-start gap-3 text-sm text-white bg-black/20 p-2 rounded-lg max-w-xs sm:max-w-sm">
+                    <Avatar className="h-6 w-6 border-2 border-secondary">
+                      <AvatarImage src={comment.avatar} alt={comment.username} />
+                      <AvatarFallback>{comment.username.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <span className="font-bold text-secondary mr-1.5">{comment.username}:</span>
+                      <p className="break-words inline">{comment.message}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+          )}
           <div className="mt-4 flex items-center gap-2">
             <form onSubmit={handleSendMessage} className="relative flex-1">
               <Input
@@ -202,8 +205,8 @@ export default function AgoraTestPage() {
             <Button variant="ghost" size="icon" className="text-white bg-black/50 rounded-full h-10 w-10">
               <Smile className="h-5 w-5" />
             </Button>
-            <Button variant="ghost" size="icon" className="text-white bg-black/50 rounded-full h-10 w-10">
-              <MessageCircle className="h-5 w-5" />
+            <Button variant="ghost" size="icon" onClick={() => setIsChatVisible(prev => !prev)} className="text-white bg-black/50 rounded-full h-10 w-10">
+              {isChatVisible ? <MessageCircleOff className="h-5 w-5" /> : <MessageCircle className="h-5 w-5" />}
             </Button>
           </div>
         </div>
