@@ -30,6 +30,7 @@ export default function AgoraTestPage() {
   const [isChatVisible, setIsChatVisible] = useState(true);
   const { user } = useUser();
   const { userDocument } = useUserDocument();
+  const [viewerCount, setViewerCount] = useState(1234);
 
   useEffect(() => {
     const getCameraPermission = async () => {
@@ -53,6 +54,18 @@ export default function AgoraTestPage() {
 
     getCameraPermission();
   }, [toast]);
+  
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setViewerCount(prevCount => {
+        const change = Math.floor(Math.random() * 50) - 25; // Random change between -25 and +25
+        const newCount = prevCount + change;
+        return newCount > 0 ? newCount : 0; // Ensure count doesn't go below zero
+      });
+    }, 3000); // Update every 3 seconds
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handleToggleVideo = () => {
     setIsVideoEnabled(prev => {
@@ -149,7 +162,7 @@ export default function AgoraTestPage() {
             </span>
             <span className="inline-flex items-center text-sm font-medium gap-1.5">
               <Users className="h-4 w-4" />
-              1,234
+              {viewerCount.toLocaleString()}
             </span>
           </div>
           <Button variant="destructive" size="sm" onClick={handleEndStream}>
