@@ -19,6 +19,8 @@ import {
   StreamCall,
   StreamVideo,
   StreamVideoClient,
+  useCall,
+  useCallStateHooks,
 } from '@stream-io/video-react-sdk';
 
 interface Comment {
@@ -56,8 +58,6 @@ function AgoraTestPageUI() {
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const [hasCameraPermission, setHasCameraPermission] = useState(true);
-  const [isVideoEnabled, setIsVideoEnabled] = useState(true);
-  const [isMicEnabled, setIsMicEnabled] = useState(true);
   const { toast } = useToast();
   
   const [newMessage, setNewMessage] = useState('');
@@ -66,6 +66,17 @@ function AgoraTestPageUI() {
   const [viewerCount, setViewerCount] = useState(1234);
   const [reactions, setReactions] = useState<Reaction[]>([]);
 
+  // Stream SDK Hooks
+  const call = useCall();
+  const { useCameraState, useMicrophoneState, useScreenShareState } = useCallStateHooks();
+  const { isMute: isVideoMute, camera } = useCameraState();
+  const { isMute: isMicMute, microphone } = useMicrophoneState();
+  const { isScreenSharing } = useScreenShareState();
+  
+  const isVideoEnabled = !isVideoMute;
+  const isMicEnabled = !isMicMute;
+
+
   // Real-time broadcast document
   const broadcastDocRef = useMemoFirebase(() => {
     if (!broadcastId) return undefined;
@@ -73,8 +84,6 @@ function AgoraTestPageUI() {
   }, [broadcastId, firestore]);
   
   const { data: broadcastData, isLoading: isBroadcastLoading } = useDoc<BroadcastData>(broadcastDocRef);
-
-  const isScreenSharing = broadcastData?.streamDetails?.isScreenSharing ?? false;
 
   // Real-time chat messages
    const messagesQuery = useMemoFirebase(() => {
@@ -87,22 +96,19 @@ function AgoraTestPageUI() {
   }, [broadcastId, firestore]);
   const { data: comments } = useCollection<Comment>(messagesQuery);
 
-
+  
   useEffect(() => {
     const getCameraPermission = async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         setHasCameraPermission(true);
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
       } catch (error) {
         console.error('Error accessing media devices:', error);
         setHasCameraPermission(false);
         toast({
           variant: 'destructive',
           title: 'Media Access Denied',
-          description: 'Please enable camera and microphone permissions in your browser settings to see the local feed.',
+          description: 'Please enable camera and microphone permissions in your browser settings to go live.',
         });
       }
     };
@@ -120,84 +126,43 @@ function AgoraTestPageUI() {
     return () => clearInterval(interval);
   }, []);
 
-  const handleToggleVideo = () => {
+  const handleToggleVideo = async () => {
     if (isScreenSharing) {
-        handleToggleScreenShare();
-        return;
+        await handleToggleScreenShare();
     }
-    setIsVideoEnabled(prev => {
-        const nextState = !prev;
-        if (videoRef.current && videoRef.current.srcObject) {
-            const stream = videoRef.current.srcObject as MediaStream;
-            stream.getVideoTracks().forEach(track => { track.enabled = nextState; });
-        }
-        return nextState;
-    });
+    await camera.toggle();
   }
 
-  const handleToggleMic = () => {
-    setIsMicEnabled(prev => {
-      const nextState = !prev;
-      if (videoRef.current && videoRef.current.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
-        stream.getAudioTracks().forEach(track => { track.enabled = nextState; });
-      }
-      return nextState;
-    });
+  const handleToggleMic = async () => {
+    await microphone.toggle();
   }
 
   const handleToggleScreenShare = async () => {
+    if (!call) return;
     const nextIsScreenSharing = !isScreenSharing;
-    if (broadcastDocRef) {
-        // Optimistically update Firestore first
-        updateDoc(broadcastDocRef, { 'streamDetails.isScreenSharing': nextIsScreenSharing });
-    }
-
-    if (nextIsScreenSharing) {
-        try {
-            const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
-            if (videoRef.current) {
-                const existingStream = videoRef.current.srcObject as MediaStream;
-                existingStream?.getTracks().forEach(track => track.stop());
-                videoRef.current.srcObject = screenStream;
-            }
-            setIsVideoEnabled(true);
-            screenStream.getVideoTracks()[0].onended = () => {
-                if (broadcastDocRef) {
-                   updateDoc(broadcastDocRef, { 'streamDetails.isScreenSharing': false });
-                }
-                setIsVideoEnabled(false);
-                 if (videoRef.current) {
-                    const oldStream = videoRef.current.srcObject as MediaStream;
-                    oldStream?.getTracks().forEach(track => track.stop());
-                    videoRef.current.srcObject = null;
-                }
-            };
-        } catch (error) {
-            console.error('Error starting screen share:', error);
-            if (broadcastDocRef) {
-               updateDoc(broadcastDocRef, { 'streamDetails.isScreenSharing': false });
-            }
-            toast({
-                variant: 'destructive',
-                title: 'Screen Share Failed',
-                description: 'Could not start screen sharing.',
-            });
+    try {
+        if (nextIsScreenSharing) {
+            await call.startScreenShare();
+        } else {
+            await call.stopScreenShare();
         }
-    } else {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-            if (videoRef.current) {
-                const oldStream = videoRef.current.srcObject as MediaStream;
-                oldStream?.getTracks().forEach(track => track.stop());
-                videoRef.current.srcObject = stream;
-            }
-            setIsVideoEnabled(true);
-        } catch (error) {
-            console.error('Error switching back to camera:', error);
+        if (broadcastDocRef) {
+            updateDoc(broadcastDocRef, { 'streamDetails.isScreenSharing': nextIsScreenSharing });
+        }
+    } catch (error) {
+        console.error('Error toggling screen share:', error);
+        toast({
+            variant: 'destructive',
+            title: 'Screen Share Failed',
+            description: 'Could not change screen sharing state.',
+        });
+        // Revert firestore state if SDK call fails
+        if (broadcastDocRef) {
+            updateDoc(broadcastDocRef, { 'streamDetails.isScreenSharing': isScreenSharing });
         }
     }
   }
+
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
@@ -217,17 +182,11 @@ function AgoraTestPageUI() {
   }
   
   const handleEndStream = async () => {
-    // First, stop all local media tracks to release the camera/mic
-    if (videoRef.current && videoRef.current.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
-        stream.getTracks().forEach(track => track.stop());
-    }
-    // Then, update the broadcast status in Firestore
+    // Let the cleanup effect in AgoraTestWrapper handle SDK disconnection.
+    // Just update firestore and navigate away.
     if (broadcastDocRef) {
         await updateDoc(broadcastDocRef, { isLive: false });
     }
-    // Finally, redirect to the homepage. This will unmount the component
-    // and trigger the Stream SDK cleanup in the wrapper component.
     router.push('/');
   }
 
@@ -260,7 +219,7 @@ function AgoraTestPageUI() {
       <div className="h-screen w-full bg-black text-white flex flex-col relative">
         <div className="absolute inset-0 bg-gray-900 flex items-center justify-center">
           
-          {!isVideoEnabled && (
+          {!isVideoEnabled && !isScreenSharing && (
              <Image
                 src="https://picsum.photos/seed/agora-bg/1920/1080"
                 alt="Video feed off background"
@@ -270,14 +229,9 @@ function AgoraTestPageUI() {
               />
           )}
 
-          <video 
-            ref={videoRef} 
-            className={`w-full h-full object-cover transform -scale-x-100 ${!isVideoEnabled ? 'hidden' : ''}`} 
-            autoPlay 
-            muted 
-            playsInline 
-          />
-
+          {/* This video tag is now managed by the Stream SDK's ParticipantView */}
+          {/* We will implement that in the next step */}
+          
           {!hasCameraPermission && (
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 text-white z-10">
                 <CameraOff className="h-16 w-16 mb-4" />
@@ -327,7 +281,7 @@ function AgoraTestPageUI() {
 
         <div className="absolute right-4 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-4 p-2 bg-black/40 rounded-full backdrop-blur-sm">
             <Button variant="secondary" size="icon" className="rounded-full h-12 w-12" onClick={handleToggleVideo}>
-                {isVideoEnabled && !isScreenSharing ? <Video className="h-6 w-6"/> : <VideoOff className="h-6 w-6"/>}
+                {isVideoEnabled ? <Video className="h-6 w-6"/> : <VideoOff className="h-6 w-6"/>}
             </Button>
             <Button variant="secondary" size="icon" className="rounded-full h-12 w-12" onClick={handleToggleMic}>
                 {isMicEnabled ? <Mic className="h-6 w-6"/> : <MicOff className="h-6 w-6"/>}
