@@ -163,7 +163,7 @@ export default function AgoraTestPage() {
             <div className="flex flex-col">
                 <span className="font-bold text-sm leading-tight">{userDocument?.username || user?.displayName || 'Host'}</span>
                 <div className="flex items-center gap-3">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-600 text-white">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-600 text-white animate-pulse">
                         LIVE
                     </span>
                     <span className="inline-flex items-center text-xs font-medium gap-1">
