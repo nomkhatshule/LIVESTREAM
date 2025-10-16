@@ -30,7 +30,6 @@ export default function ProfilePage() {
   const { user, isUserLoading } = useUser();
   const { userDocument, isDocLoading } = useUserDocument();
   const firestore = useFirestore();
-  const storage = useStorage();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -64,30 +63,34 @@ export default function ProfilePage() {
       return;
     }
     const file = event.target.files[0];
-    const storageRef = ref(storage, `avatars/${user.uid}/${file.name}`);
-
+    
     setIsUploading(true);
 
     try {
-      // 1. Await the upload
-      await uploadBytes(storageRef, file);
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('userId', user.uid);
       
-      // 2. Await the download URL
-      const downloadURL = await getDownloadURL(storageRef);
+      const response = await fetch('/api/avatar-upload', {
+        method: 'POST',
+        body: formData,
+      });
 
-      // 3. Update the form value to optimistically show the new image
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Avatar upload failed');
+      }
+
+      const { downloadURL } = await response.json();
+
       form.setValue('profilePicture', downloadURL);
 
-      // 4. Update the document in Firestore
-      const userDocRef = doc(firestore, 'users', user.uid);
-      setDocumentNonBlocking(userDocRef, { profilePicture: downloadURL }, { merge: true });
-      
-      // 5. Revalidate paths to update avatar in header/other components
+      // The server now handles the Firestore update, so we just revalidate
       await revalidateProfilePaths();
 
       toast({
         title: 'Avatar Updated',
-        description: 'Your new avatar has been saved and is now visible.',
+        description: 'Your new avatar has been saved.',
       });
 
     } catch (error: any) {
@@ -95,10 +98,9 @@ export default function ProfilePage() {
       toast({
         variant: 'destructive',
         title: 'Upload Failed',
-        description: error.message || 'Could not upload your new avatar. Please check file permissions and security rules.',
+        description: error.message || 'Could not upload your new avatar.',
       });
     } finally {
-      // 6. ALWAYS ensure the loading state is turned off
       setIsUploading(false);
     }
   };
@@ -107,7 +109,6 @@ export default function ProfilePage() {
     if (!user) return;
     
     const userDocRef = doc(firestore, 'users', user.uid);
-    // Exclude profilePicture as it's handled separately by the upload logic
     const { profilePicture, ...profileData } = data; 
     
     setDocumentNonBlocking(userDocRef, profileData, { merge: true });
