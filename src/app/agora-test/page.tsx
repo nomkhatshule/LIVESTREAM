@@ -2,15 +2,17 @@
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Users, X, Send, Smile, MessageCircle, CameraOff, Video, Mic, UserPlus, ScreenShare } from 'lucide-react';
+import { Users, X, Send, Smile, MessageCircle, CameraOff, Video, Mic, UserPlus, ScreenShare, VideoOff } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useEffect, useRef, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import Image from 'next/image';
 
 export default function AgoraTestPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [hasCameraPermission, setHasCameraPermission] = useState(true);
+  const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -35,12 +37,40 @@ export default function AgoraTestPage() {
     getCameraPermission();
   }, [toast]);
 
+  const handleToggleVideo = () => {
+    setIsVideoEnabled(prev => !prev);
+    if (videoRef.current && videoRef.current.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream;
+      stream.getVideoTracks().forEach(track => {
+        track.enabled = !track.enabled;
+      });
+    }
+  }
+
   return (
     <div className="relative h-screen w-full">
       <div className="h-screen w-full bg-black text-white flex flex-col relative">
-        {/* Local Video Feed */}
+        {/* Local Video Feed Container */}
         <div className="absolute inset-0 bg-gray-900 flex items-center justify-center">
-          <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
+          
+          {!isVideoEnabled && (
+             <Image
+                src="https://picsum.photos/seed/agora-bg/1920/1080"
+                alt="Video feed off background"
+                layout="fill"
+                objectFit="cover"
+                data-ai-hint="abstract background"
+              />
+          )}
+
+          <video 
+            ref={videoRef} 
+            className={`w-full h-full object-cover ${!isVideoEnabled ? 'hidden' : ''}`} 
+            autoPlay 
+            muted 
+            playsInline 
+          />
+
           {!hasCameraPermission && (
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 text-white z-10">
                 <CameraOff className="h-16 w-16 mb-4" />
@@ -71,8 +101,8 @@ export default function AgoraTestPage() {
 
         {/* Right side controls */}
         <div className="absolute right-4 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-4 p-2 bg-black/40 rounded-full backdrop-blur-sm">
-            <Button variant="secondary" size="icon" className="rounded-full h-12 w-12">
-                <Video className="h-6 w-6"/>
+            <Button variant="secondary" size="icon" className="rounded-full h-12 w-12" onClick={handleToggleVideo}>
+                {isVideoEnabled ? <Video className="h-6 w-6"/> : <VideoOff className="h-6 w-6"/>}
             </Button>
             <Button variant="secondary" size="icon" className="rounded-full h-12 w-12">
                 <Mic className="h-6 w-6"/>
