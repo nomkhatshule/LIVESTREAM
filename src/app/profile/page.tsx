@@ -30,6 +30,7 @@ export default function ProfilePage() {
   const { user, isUserLoading } = useUser();
   const { userDocument, isDocLoading } = useUserDocument();
   const firestore = useFirestore();
+  const storage = useStorage();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -63,29 +64,26 @@ export default function ProfilePage() {
       return;
     }
     const file = event.target.files[0];
-    
+    if (!file) return;
+
     setIsUploading(true);
 
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('userId', user.uid);
-      
-      const response = await fetch('/api/avatar-upload', {
-        method: 'POST',
-        body: formData,
-      });
+      // 1. Create a storage reference
+      const storageRef = ref(storage, `avatars/${user.uid}/${file.name}`);
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Avatar upload failed');
-      }
+      // 2. Upload the file
+      const uploadTask = await uploadBytes(storageRef, file);
 
-      const { downloadURL } = await response.json();
+      // 3. Get the download URL
+      const downloadURL = await getDownloadURL(uploadTask.ref);
 
+      // 4. Update the form state and the Firestore document
       form.setValue('profilePicture', downloadURL);
+      const userDocRef = doc(firestore, 'users', user.uid);
+      setDocumentNonBlocking(userDocRef, { profilePicture: downloadURL }, { merge: true });
 
-      // The server now handles the Firestore update, so we just revalidate
+      // 5. Revalidate paths to update UI across the app
       await revalidateProfilePaths();
 
       toast({
@@ -98,20 +96,20 @@ export default function ProfilePage() {
       toast({
         variant: 'destructive',
         title: 'Upload Failed',
-        description: error.message || 'Could not upload your new avatar.',
+        description: error.message || 'Could not upload your new avatar. Please check storage rules.',
       });
     } finally {
       setIsUploading(false);
     }
   };
 
+
   const onSubmit = async (data: ProfileFormValues) => {
     if (!user) return;
     
     const userDocRef = doc(firestore, 'users', user.uid);
-    const { profilePicture, ...profileData } = data; 
     
-    setDocumentNonBlocking(userDocRef, profileData, { merge: true });
+    setDocumentNonBlocking(userDocRef, data, { merge: true });
 
     await revalidateProfilePaths();
     
