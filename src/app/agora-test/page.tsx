@@ -203,7 +203,7 @@ export default function AgoraTestPage() {
     const newReaction: Reaction = {
         id: Date.now() + Math.random(),
         emoji: emojis[Math.floor(Math.random() * emojis.length)],
-        x: Math.random() * 20 + 40, // Horizontal position percentage (40% to 60%)
+        x: Math.random() * 80 + 10, // Horizontal position percentage (10% to 90%)
     };
     setReactions(prev => [...prev, newReaction]);
 
@@ -249,7 +249,7 @@ export default function AgoraTestPage() {
         </div>
 
         {/* Floating Reactions Container */}
-        <div className="absolute bottom-24 right-4 h-96 w-20 z-20 pointer-events-none">
+        <div className="absolute bottom-16 left-4 h-96 w-64 z-30 pointer-events-none">
             {reactions.map(reaction => (
                 <div 
                     key={reaction.id}
@@ -260,6 +260,7 @@ export default function AgoraTestPage() {
                 </div>
             ))}
         </div>
+
 
         {/* Header */}
         <div className="absolute top-0 left-0 right-0 z-10 p-4 flex items-center justify-between bg-gradient-to-b from-black/50 to-transparent">
@@ -347,5 +348,3 @@ export default function AgoraTestPage() {
     </div>
   );
 }
-
-    
