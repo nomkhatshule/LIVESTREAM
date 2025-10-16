@@ -1,7 +1,7 @@
 'use client';
 import { Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { useUser, useDoc, useFirestore, useMemoFirebase, useUserDocument } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { Button } from '@/components/ui/button';
@@ -21,7 +21,6 @@ import {
 } from '@stream-io/video-react-sdk';
 import VideoPlayer from '@/components/broadcast/video-player';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { useUserDocument } from '../profile/page';
 import { serverTimestamp, collection, query, orderBy, limit, updateDoc } from 'firebase/firestore';
 
 
