@@ -1,4 +1,5 @@
 
+
 'use client';
 import { broadcasts, users } from '@/lib/data';
 import { notFound, useParams } from 'next/navigation';
@@ -96,18 +97,18 @@ export default function BroadcastPage() {
           
           {/* Right side: Action Buttons */}
           <div className="flex flex-col items-center space-y-5">
-            <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full bg-white/20 hover:bg-white/30 text-white flex flex-col">
+            <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white flex flex-col drop-shadow-md">
               <Heart className="h-7 w-7" />
               <span className="text-xs mt-1">1.2k</span>
             </Button>
-            <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full bg-white/20 hover:bg-white/30 text-white flex flex-col">
+            <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white flex flex-col drop-shadow-md">
               <MessageCircle className="h-7 w-7" />
                <span className="text-xs mt-1">203</span>
             </Button>
-            <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full bg-white/20 hover:bg-white/30 text-white">
+            <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white drop-shadow-md">
               <Share2 className="h-7 w-7" />
             </Button>
-             <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full bg-white/20 hover:bg-white/30 text-white">
+             <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white drop-shadow-md">
               <MoreVertical className="h-7 w-7" />
             </Button>
           </div>
