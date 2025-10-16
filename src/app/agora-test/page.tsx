@@ -9,12 +9,21 @@ import { useEffect, useRef, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 
+interface Comment {
+  id: number;
+  username: string;
+  avatar: string;
+  message: string;
+}
+
 export default function AgoraTestPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [hasCameraPermission, setHasCameraPermission] = useState(true);
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const [isMicEnabled, setIsMicEnabled] = useState(true);
   const { toast } = useToast();
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [newMessage, setNewMessage] = useState('');
 
   useEffect(() => {
     const getCameraPermission = async () => {
@@ -40,23 +49,44 @@ export default function AgoraTestPage() {
   }, [toast]);
 
   const handleToggleVideo = () => {
-    setIsVideoEnabled(prev => !prev);
-    if (videoRef.current && videoRef.current.srcObject) {
-      const stream = videoRef.current.srcObject as MediaStream;
-      stream.getVideoTracks().forEach(track => {
-        track.enabled = !track.enabled;
-      });
-    }
+    setIsVideoEnabled(prev => {
+        const nextState = !prev;
+        if (videoRef.current && videoRef.current.srcObject) {
+            const stream = videoRef.current.srcObject as MediaStream;
+            stream.getVideoTracks().forEach(track => {
+            track.enabled = nextState;
+            });
+        }
+        return nextState;
+    });
   }
 
   const handleToggleMic = () => {
-    setIsMicEnabled(prev => !prev);
-    if (videoRef.current && videoRef.current.srcObject) {
-      const stream = videoRef.current.srcObject as MediaStream;
-      stream.getAudioTracks().forEach(track => {
-        track.enabled = !track.enabled;
-      });
-    }
+    setIsMicEnabled(prev => {
+      const nextState = !prev;
+      if (videoRef.current && videoRef.current.srcObject) {
+        const stream = videoRef.current.srcObject as MediaStream;
+        stream.getAudioTracks().forEach(track => {
+          track.enabled = nextState;
+        });
+      }
+      return nextState;
+    });
+  }
+
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newMessage.trim() === '') return;
+
+    const newComment: Comment = {
+        id: Date.now(),
+        username: 'You', // Example username
+        avatar: 'https://picsum.photos/seed/my-avatar/100/100',
+        message: newMessage,
+    };
+
+    setComments(prev => [...prev, newComment]);
+    setNewMessage('');
   }
 
   return (
@@ -69,7 +99,7 @@ export default function AgoraTestPage() {
              <Image
                 src="https://picsum.photos/seed/agora-bg/1920/1080"
                 alt="Video feed off background"
-                layout="fill"
+                fill={true}
                 objectFit="cover"
                 data-ai-hint="abstract background"
               />
@@ -142,12 +172,27 @@ export default function AgoraTestPage() {
                   <p className="break-words inline">This is a static comment!</p>
                 </div>
               </div>
+              {/* Dynamic Comments */}
+              {comments.map((comment) => (
+                <div key={comment.id} className="flex items-start gap-3 text-sm text-white bg-black/20 p-2 rounded-lg max-w-xs sm:max-w-sm">
+                  <Avatar className="h-6 w-6 border-2 border-secondary">
+                    <AvatarImage src={comment.avatar} alt={comment.username} />
+                    <AvatarFallback>{comment.username.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <span className="font-bold text-secondary mr-1.5">{comment.username}:</span>
+                    <p className="break-words inline">{comment.message}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </ScrollArea>
           <div className="mt-4 flex items-center gap-2">
-            <form onSubmit={(e) => e.preventDefault()} className="relative flex-1">
+            <form onSubmit={handleSendMessage} className="relative flex-1">
               <Input
                 placeholder="Add a comment..."
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
                 className="bg-black/50 border-white/20 text-white placeholder:text-gray-400 pr-10"
               />
               <Button variant="ghost" size="icon" type="submit" className="absolute inset-y-0 right-0 text-white">
