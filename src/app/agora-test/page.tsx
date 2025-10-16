@@ -58,6 +58,7 @@ function AgoraTestPageUI() {
   const searchParams = useSearchParams();
   const broadcastId = searchParams.get('id');
   const firestore = useFirestore();
+  const call = useCall();
 
   const [hasCameraPermission, setHasCameraPermission] = useState(true);
   const { toast } = useToast();
@@ -65,15 +66,15 @@ function AgoraTestPageUI() {
   const [newMessage, setNewMessage] = useState('');
   const [isChatVisible, setIsChatVisible] = useState(true);
   const { user } = useUser();
-  const [viewerCount, setViewerCount] = useState(1234);
   const [reactions, setReactions] = useState<Reaction[]>([]);
 
   // Stream SDK Hooks
-  const { useCameraState, useMicrophoneState, useScreenShareState, useLocalParticipant } = useCallStateHooks();
+  const { useCameraState, useMicrophoneState, useScreenShareState, useLocalParticipant, useParticipants } = useCallStateHooks();
   const { isMute: isVideoMute, camera } = useCameraState();
   const { isMute: isMicMute, microphone } = useMicrophoneState();
   const { isScreenSharing, screenShare } = useScreenShareState();
   const localParticipant = useLocalParticipant();
+  const participants = useParticipants();
   
   const isVideoEnabled = !isVideoMute;
   const isMicEnabled = !isMicMute;
@@ -116,17 +117,6 @@ function AgoraTestPageUI() {
     };
     getCameraPermission();
   }, [toast]);
-  
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setViewerCount(prevCount => {
-        const change = Math.floor(Math.random() * 50) - 25;
-        const newCount = prevCount + change;
-        return newCount > 0 ? newCount : 0;
-      });
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
 
   const handleToggleVideo = async () => {
     if (isScreenSharing) {
@@ -267,7 +257,7 @@ function AgoraTestPageUI() {
                     </span>
                     <span className="inline-flex items-center text-xs font-medium gap-1">
                         <Users className="h-3 w-3" />
-                        {viewerCount.toLocaleString()}
+                        {participants.length.toLocaleString()}
                     </span>
                 </div>
             </div>
