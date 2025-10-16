@@ -3,9 +3,9 @@ import { Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useUser, useDoc, useFirestore, useUserDocument, useMemoFirebase, addDocumentNonBlocking } from '@/firebase';
 import { doc, collection, serverTimestamp, query, orderBy, limit, updateDoc } from 'firebase/firestore';
-import { useEffect, useState, useMemo, useRef, ReactNode } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Mic, MicOff, Video, VideoOff, ScreenShare, ScreenShareOff, X, Users, MessageCircle, Send, Smile, MessageCircleOff } from 'lucide-react';
+import { Mic, MicOff, Video, VideoOff, X, Users, MessageCircle, Send, Smile, MessageCircleOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
@@ -19,36 +19,41 @@ import {
   StreamTheme,
   StreamVideo,
   StreamVideoClient,
-  useCall,
   useCallStateHooks,
 } from '@stream-io/video-react-sdk';
-
-const VideoPlayer = dynamic(() => import('@/components/broadcast/video-player'), {
-    ssr: false,
-    loading: () => <div className="absolute inset-0 flex items-center justify-center bg-black/50"><p className="text-white text-lg">Loading Player...</p></div>
-});
+import VideoPlayer from '@/components/broadcast/video-player';
 
 
-function LiveStudioContent({
-    liveBroadcast,
-    messages,
-    isAudioEnabled,
-    isVideoEnabled,
-}: {
-    liveBroadcast: Broadcast;
-    messages: ChatMessageType[] | null;
-    isAudioEnabled: boolean;
-    isVideoEnabled: boolean;
-}) {
-    const router = useRouter();
+function LiveStudio({ liveBroadcast }: { liveBroadcast: Broadcast }) {
     const firestore = useFirestore();
     const { user } = useUser();
     const { userDocument: hostUserDocument } = useUserDocument();
     const scrollAreaRef = useRef<HTMLDivElement>(null);
+    const router = useRouter();
 
     const [newMessage, setNewMessage] = useState('');
     const [isChatVisible, setIsChatVisible] = useState(true);
+
+    const { useCameraState, useMicrophoneState } = useCallStateHooks();
+    const { camera, isMute: isCameraMute } = useCameraState();
+    const { microphone, isMute: isMicrophoneMute } = useMicrophoneState();
+
+    const messagesQuery = useMemoFirebase(() => {
+        if (!liveBroadcast.id) return undefined;
+        return query(
+            collection(firestore, `broadcasts/${liveBroadcast.id}/messages`),
+            orderBy('timestamp', 'asc'),
+            limit(100)
+        );
+    }, [liveBroadcast.id, firestore]);
+    const { data: messages } = useCollection<ChatMessageType>(messagesQuery);
     
+    // Auto-enable camera and mic for the host on component mount
+    useEffect(() => {
+        if (isCameraMute) camera.enable();
+        if (isMicrophoneMute) microphone.enable();
+    }, [camera, microphone, isCameraMute, isMicrophoneMute]);
+
     useEffect(() => {
         // Auto-scroll chat
         if (scrollAreaRef.current) {
@@ -86,96 +91,80 @@ function LiveStudioContent({
         setNewMessage('');
     };
 
-    return (
-        <div className="h-screen w-full bg-black text-white flex flex-col relative">
-            <VideoPlayer broadcast={liveBroadcast} isHost={true} />
-            
-            <div className="absolute top-0 left-0 right-0 z-10 p-4 flex items-center justify-between bg-gradient-to-b from-black/50 to-transparent">
-                <div className="flex items-center gap-4">
-                     <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-600 text-white animate-pulse">
-                        <span className="w-2 h-2 mr-2 bg-white rounded-full"></span>
-                        LIVE
-                    </span>
-                    <span className="inline-flex items-center text-sm font-medium gap-1.5">
-                        <Users className="h-4 w-4" />
-                        {liveBroadcast.viewers}
-                    </span>
-                </div>
-                 <Button variant="destructive" size="sm" onClick={handleEndBroadcast}>
-                    <X className="h-4 w-4 mr-1.5"/> End
-                </Button>
-            </div>
+    const isVideoEnabled = !isCameraMute;
+    const isAudioEnabled = !isMicrophoneMute;
 
-            <div className="absolute bottom-0 left-0 right-0 z-10 p-4 flex flex-col justify-end bg-gradient-to-t from-black/70 to-transparent h-2/5">
-                {isChatVisible && (
-                    <ScrollArea className="h-full max-h-[250px] pr-4" ref={scrollAreaRef}>
-                        <div className="flex flex-col gap-3">
-                            {messages && messages.map((msg) => (
-                                <div key={msg.id} className="flex items-start gap-3 text-sm text-white bg-black/20 p-2 rounded-lg max-w-xs sm:max-w-sm">
-                                    <Avatar className="h-6 w-6 border-2 border-primary">
-                                        <AvatarImage src={msg.userAvatar} alt={msg.username} />
-                                        <AvatarFallback>{msg.username.charAt(0)}</AvatarFallback>
-                                    </Avatar>
-                                    <div className="flex-1">
-                                        <span className="font-bold text-primary mr-1.5">{msg.username}:</span>
-                                        <p className="break-words inline">{msg.message}</p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </ScrollArea>
-                )}
-                <div className="mt-4 flex items-center gap-2">
-                    <form onSubmit={handleSendMessage} className="relative flex-1">
-                        <Input
-                            placeholder="Add a comment..."
-                            value={newMessage}
-                            onChange={(e) => setNewMessage(e.target.value)}
-                            className="bg-black/50 border-white/20 text-white placeholder:text-gray-400 pr-10"
-                        />
-                        <Button variant="ghost" size="icon" type="submit" className="absolute inset-y-0 right-0 text-white">
-                            <Send className="h-5 w-5"/>
-                        </Button>
-                    </form>
-                    <Button variant="ghost" size="icon" className="text-white bg-black/50 rounded-full h-10 w-10">
-                        <Smile className="h-5 w-5" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => setIsChatVisible(prev => !prev)} className="text-white bg-black/50 rounded-full h-10 w-10">
-                        {isChatVisible ? <MessageCircleOff className="h-5 w-5" /> : <MessageCircle className="h-5 w-5" />}
+    return (
+        <div className="relative h-screen w-full">
+            <div className="h-screen w-full bg-black text-white flex flex-col relative">
+                <VideoPlayer broadcast={liveBroadcast} isHost={true} />
+                
+                <div className="absolute top-0 left-0 right-0 z-10 p-4 flex items-center justify-between bg-gradient-to-b from-black/50 to-transparent">
+                    <div className="flex items-center gap-4">
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-600 text-white animate-pulse">
+                            <span className="w-2 h-2 mr-2 bg-white rounded-full"></span>
+                            LIVE
+                        </span>
+                        <span className="inline-flex items-center text-sm font-medium gap-1.5">
+                            <Users className="h-4 w-4" />
+                            {liveBroadcast.viewers}
+                        </span>
+                    </div>
+                    <Button variant="destructive" size="sm" onClick={handleEndBroadcast}>
+                        <X className="h-4 w-4 mr-1.5"/> End
                     </Button>
                 </div>
+
+                <div className="absolute bottom-0 left-0 right-0 z-10 p-4 flex flex-col justify-end bg-gradient-to-t from-black/70 to-transparent h-2/5">
+                    {isChatVisible && (
+                        <ScrollArea className="h-full max-h-[250px] pr-4" ref={scrollAreaRef}>
+                            <div className="flex flex-col gap-3">
+                                {messages && messages.map((msg) => (
+                                    <div key={msg.id} className="flex items-start gap-3 text-sm text-white bg-black/20 p-2 rounded-lg max-w-xs sm:max-w-sm">
+                                        <Avatar className="h-6 w-6 border-2 border-primary">
+                                            <AvatarImage src={msg.userAvatar} alt={msg.username} />
+                                            <AvatarFallback>{msg.username.charAt(0)}</AvatarFallback>
+                                        </Avatar>
+                                        <div className="flex-1">
+                                            <span className="font-bold text-primary mr-1.5">{msg.username}:</span>
+                                            <p className="break-words inline">{msg.message}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </ScrollArea>
+                    )}
+                    <div className="mt-4 flex items-center gap-2">
+                        <form onSubmit={handleSendMessage} className="relative flex-1">
+                            <Input
+                                placeholder="Add a comment..."
+                                value={newMessage}
+                                onChange={(e) => setNewMessage(e.target.value)}
+                                className="bg-black/50 border-white/20 text-white placeholder:text-gray-400 pr-10"
+                            />
+                            <Button variant="ghost" size="icon" type="submit" className="absolute inset-y-0 right-0 text-white">
+                                <Send className="h-5 w-5"/>
+                            </Button>
+                        </form>
+                        <Button variant="ghost" size="icon" className="text-white bg-black/50 rounded-full h-10 w-10">
+                            <Smile className="h-5 w-5" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => setIsChatVisible(prev => !prev)} className="text-white bg-black/50 rounded-full h-10 w-10">
+                            {isChatVisible ? <MessageCircleOff className="h-5 w-5" /> : <MessageCircle className="h-5 w-5" />}
+                        </Button>
+                    </div>
+                </div>
+            </div>
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-4 p-2 bg-black/40 rounded-full backdrop-blur-sm">
+                <Button variant={isAudioEnabled ? "secondary" : "destructive"} size="icon" className="rounded-full h-12 w-12" onClick={() => microphone.toggle()}>
+                    {isAudioEnabled ? <Mic className="h-6 w-6"/> : <MicOff className="h-6 w-6"/>}
+                </Button>
+                <Button variant={isVideoEnabled ? "secondary" : "destructive"} size="icon" className="rounded-full h-12 w-12" onClick={() => camera.toggle()}>
+                    {isVideoEnabled ? <Video className="h-6 w-6"/> : <VideoOff className="h-6 w-6"/>}
+                </Button>
             </div>
         </div>
     );
-}
-
-function LiveStudio({
-  children,
-  onToggleAudio,
-  onToggleVideo,
-  isAudioEnabled,
-  isVideoEnabled,
-}: {
-  children: ReactNode;
-  onToggleAudio: () => void;
-  onToggleVideo: () => void;
-  isAudioEnabled: boolean;
-  isVideoEnabled: boolean;
-}) {
-
-  return (
-    <div className='relative h-screen w-full'>
-      {children}
-      <div className="absolute right-4 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-4 p-2 bg-black/40 rounded-full backdrop-blur-sm">
-          <Button variant={isAudioEnabled ? "secondary" : "destructive"} size="icon" className="rounded-full h-12 w-12" onClick={onToggleAudio}>
-              {isAudioEnabled ? <Mic className="h-6 w-6"/> : <MicOff className="h-6 w-6"/>}
-          </Button>
-            <Button variant={isVideoEnabled ? "secondary" : "destructive"} size="icon" className="rounded-full h-12 w-12" onClick={onToggleVideo}>
-              {isVideoEnabled ? <Video className="h-6 w-6"/> : <VideoOff className="h-6 w-6"/>}
-          </Button>
-      </div>
-    </div>
-  )
 }
 
 const apiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY || '';
@@ -190,27 +179,13 @@ function LiveStudioWrapper() {
     const [client, setClient] = useState<StreamVideoClient | null>(null);
     const [call, setCall] = useState<Call | null>(null);
 
-    // State for media controls is lifted here.
-    const [isAudioEnabled, setIsAudioEnabled] = useState(true);
-    const [isVideoEnabled, setIsVideoEnabled] = useState(true);
-
     const broadcastDocRef = useMemoFirebase(() => {
         if (!broadcastId) return undefined;
         return doc(firestore, 'broadcasts', broadcastId);
     }, [broadcastId, firestore]);
 
-    const messagesQuery = useMemoFirebase(() => {
-        if (!broadcastId) return undefined;
-        return query(
-            collection(firestore, `broadcasts/${broadcastId}/messages`),
-            orderBy('timestamp', 'asc'),
-            limit(100)
-        );
-    }, [broadcastId, firestore]);
-
     const { data: broadcastData, isLoading: isBroadcastLoading } = useDoc<any>(broadcastDocRef);
-    const { data: messages } = useCollection<ChatMessageType>(messagesQuery);
-
+    
     const liveBroadcast: Broadcast | null = useMemo(() => {
         if (!broadcastId || !broadcastData) return null;
         
@@ -271,7 +246,7 @@ function LiveStudioWrapper() {
 
                 setClient(videoClient);
                 const callInstance = videoClient.call('livestream', broadcastId);
-                await callInstance.join({ create: true }); // Always create as host
+                await callInstance.join({ create: true });
                 setCall(callInstance);
 
             } catch (error: any) {
@@ -329,19 +304,7 @@ function LiveStudioWrapper() {
     return (
         <StreamVideo client={client}>
             <StreamCall call={call}>
-                <LiveStudio
-                  isAudioEnabled={isAudioEnabled}
-                  isVideoEnabled={isVideoEnabled}
-                  onToggleAudio={() => setIsAudioEnabled(prev => !prev)}
-                  onToggleVideo={() => setIsVideoEnabled(prev => !prev)}
-                >
-                    <LiveStudioContent
-                        liveBroadcast={liveBroadcast}
-                        messages={messages}
-                        isAudioEnabled={isAudioEnabled}
-                        isVideoEnabled={isVideoEnabled}
-                    />
-                </LiveStudio>
+                <LiveStudio liveBroadcast={liveBroadcast} />
             </StreamCall>
         </StreamVideo>
     )

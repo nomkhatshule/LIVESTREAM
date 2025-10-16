@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect } from 'react';
 import type { Broadcast } from '@/lib/data';
 import {
   StreamTheme,
@@ -14,18 +13,14 @@ interface VideoPlayerProps {
   isHost: boolean;
 }
 
-const PlayerUI = ({ 
+export default function VideoPlayer({ 
     broadcast, 
-    isHost
-}: { 
-    broadcast: Broadcast; 
-    isHost: boolean;
-}) => {
+    isHost,
+}: VideoPlayerProps) {
     const { useCallCallingState, useParticipants } = useCallStateHooks();
     const callingState = useCallCallingState();
     const participants = useParticipants();
 
-    // For the host, find the local participant. For viewers, find the host by their ID.
     const participantToDisplay = isHost
       ? participants.find((p) => p.isLocal)
       : participants.find((p) => p.userId === broadcast.user.id);
@@ -39,34 +34,10 @@ const PlayerUI = ({
     }
 
     return (
+      <div className="absolute inset-0 w-full h-full bg-black">
         <StreamTheme as="main" className="w-full h-full">
             <ParticipantView participant={participantToDisplay} />
         </StreamTheme>
-    );
-};
-
-
-export default function VideoPlayer({ 
-    broadcast, 
-    isHost,
-}: VideoPlayerProps) {
-    const { useCameraState, useMicrophoneState } = useCallStateHooks();
-    const { camera, isMute: isCameraMute } = useCameraState();
-    const { microphone, isMute: isMicrophoneMute } = useMicrophoneState();
-
-    useEffect(() => {
-        if(isHost) {
-            if (isCameraMute) camera.enable();
-            if (isMicrophoneMute) microphone.enable();
-        }
-    }, [isHost, camera, microphone, isCameraMute, isMicrophoneMute]);
-
-  return (
-    <div className="absolute inset-0 w-full h-full bg-black">
-        <PlayerUI 
-            broadcast={broadcast} 
-            isHost={isHost}
-        />
     </div>
   );
 }
