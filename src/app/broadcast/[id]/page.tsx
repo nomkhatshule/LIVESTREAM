@@ -16,6 +16,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 
+const initialMockComments = [
+    { id: 1, username: 'User123', avatar: 'https://picsum.photos/seed/chat1/40/40', message: 'This is awesome! 🚀' },
+    { id: 2, username: 'StreamFan', avatar: 'https://picsum.photos/seed/chat2/40/40', message: 'Love this content!' },
+    { id: 3, username: 'Newbie', avatar: 'https://picsum.photos/seed/chat3/40/40', message: 'What is this song called?' },
+    { id: 4, username: 'AnotherViewer', avatar: 'https://picsum.photos/seed/chat4/40/40', message: 'So cool!' },
+];
 
 export default function BroadcastPage() {
   const params = useParams();
@@ -24,6 +30,7 @@ export default function BroadcastPage() {
   const firestore = useFirestore();
   const [newMessage, setNewMessage] = useState('');
   const [isChatVisible, setIsChatVisible] = useState(true);
+  const [comments, setComments] = useState(initialMockComments);
 
   const broadcastDocRef = useMemo(() => {
     if (!id) return undefined;
@@ -52,16 +59,18 @@ export default function BroadcastPage() {
     };
   }, [broadcastData, id]);
 
-  const mockComments = [
-    { id: 1, username: 'User123', avatar: 'https://picsum.photos/seed/chat1/40/40', message: 'This is awesome! 🚀' },
-    { id: 2, username: 'StreamFan', avatar: 'https://picsum.photos/seed/chat2/40/40', message: 'Love this content!' },
-    { id: 3, username: 'Newbie', avatar: 'https://picsum.photos/seed/chat3/40/40', message: 'What is this song called?' },
-    { id: 4, username: 'AnotherViewer', avatar: 'https://picsum.photos/seed/chat4/40/40', message: 'So cool!' },
-  ];
-
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    // Logic will be added later
+    if (newMessage.trim() === '') return;
+
+    const newComment = {
+        id: Date.now(),
+        username: 'You', // Simulate current user
+        avatar: user?.photoURL || 'https://picsum.photos/seed/me/40/40',
+        message: newMessage,
+    };
+    setComments(prev => [...prev, newComment]);
+    setNewMessage('');
   }
 
   const handleLike = () => {
@@ -95,17 +104,15 @@ export default function BroadcastPage() {
             <div>
               <div className="flex items-center gap-2">
                 <p className="font-bold text-lg">{broadcast.user.name}</p>
-              </div>
-              <div className="flex items-center gap-3 mt-1">
-                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-600 text-white animate-pulse">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-600 text-white animate-pulse">
                     LIVE
                 </span>
-                  <span className="inline-flex items-center text-xs font-medium gap-1">
+              </div>
+               <p className="text-base font-semibold mt-1">{broadcast.title}</p>
+                 <span className="inline-flex items-center text-xs font-medium gap-1 mt-1">
                       <Users className="h-3 w-3" />
                       {broadcast.viewers.toLocaleString()}
                   </span>
-              </div>
-               <p className="text-base font-semibold mt-1">{broadcast.title}</p>
             </div>
           </div>
       </div>
@@ -118,7 +125,7 @@ export default function BroadcastPage() {
                 <>
                     <ScrollArea className="h-48 w-full pr-4">
                     <div className="flex flex-col gap-3">
-                        {mockComments.map((comment) => (
+                        {comments.map((comment) => (
                         <div key={comment.id} className="flex items-start gap-3 text-sm text-white bg-black/20 p-2 rounded-lg">
                             <Avatar className="h-6 w-6 border border-secondary">
                             <AvatarImage src={comment.avatar} alt={comment.username} />
