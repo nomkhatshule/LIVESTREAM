@@ -2,10 +2,10 @@
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Users, X, Send, Smile, MessageCircle, CameraOff, Video, Mic, UserPlus, ScreenShare, VideoOff, MicOff, ArrowUp, MessageCircleOff, MonitorUp, Heart, ThumbsUp } from 'lucide-react';
+import { Users, X, Send, Smile, MessageCircle, CameraOff, Video, Mic, UserPlus, ScreenShare, VideoOff, MicOff, ArrowUp, MessageCircleOff, MonitorUp, Heart, ThumbsUp, Loader2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useEffect, useRef, useState, useMemo } from 'react';
+import { useEffect, useRef, useState, useMemo, Suspense } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
@@ -14,6 +14,12 @@ import { doc, updateDoc, collection, query, orderBy, limit } from 'firebase/fire
 import { useCollection } from '@/firebase';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { serverTimestamp } from 'firebase/firestore';
+import {
+  Call,
+  StreamCall,
+  StreamVideo,
+  StreamVideoClient,
+} from '@stream-io/video-react-sdk';
 
 interface Comment {
   id: string;
@@ -40,7 +46,9 @@ interface BroadcastData {
     }
 }
 
-export default function AgoraTestPage() {
+const apiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY || '';
+
+function AgoraTestPageUI() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const broadcastId = searchParams.get('id');
@@ -372,4 +380,136 @@ export default function AgoraTestPage() {
   );
 }
 
+function AgoraTestWrapper() {
+    const searchParams = useSearchParams();
+    const broadcastId = searchParams.get('id');
+    const { user, isUserLoading } = useUser();
+    const { toast } = useToast();
+    const router = useRouter();
+
+    const [client, setClient] = useState<StreamVideoClient | null>(null);
+    const [call, setCall] = useState<Call | null>(null);
+    
+    // Authorization check
+    const firestore = useFirestore();
+    const broadcastDocRef = useMemoFirebase(() => {
+        if (!broadcastId) return undefined;
+        return doc(firestore, 'broadcasts', broadcastId);
+    }, [broadcastId, firestore]);
+    const { data: broadcastData, isLoading: isBroadcastLoading } = useDoc<BroadcastData>(broadcastDocRef);
+
+    useEffect(() => {
+        if (isUserLoading || isBroadcastLoading) return;
+        
+        if (!user) {
+            router.push('/login');
+            return;
+        }
+
+        if (broadcastData && broadcastData.hostId !== user.uid) {
+            toast({
+                title: 'Unauthorized',
+                description: "You are not the host of this stream.",
+                variant: 'destructive',
+            });
+            router.push('/');
+        }
+
+    }, [user, isUserLoading, broadcastData, isBroadcastLoading, router, toast]);
+
+
+    useEffect(() => {
+        if (!user || !broadcastId || client) return;
+
+        let videoClient: StreamVideoClient;
+
+        const initStream = async () => {
+            if (!apiKey) {
+                toast({ variant: 'destructive', title: 'Stream API Key is missing.' });
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/stream/token', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ userId: user.uid }),
+                });
+                if (!response.ok) throw new Error('Failed to fetch stream token');
+                
+                const { token } = await response.json();
+                
+                videoClient = new StreamVideoClient({
+                    apiKey,
+                    user: {
+                        id: user.uid,
+                        name: user.displayName || 'Anonymous',
+                        image: user.photoURL || undefined,
+                    },
+                    token,
+                });
+
+                setClient(videoClient);
+                const callInstance = videoClient.call('livestream', broadcastId);
+                await callInstance.join({ create: true });
+                setCall(callInstance);
+
+            } catch (error: any) {
+                console.error("Stream initialization failed:", error);
+                toast({ variant: 'destructive', title: 'Connection Failed', description: error.message || 'Could not connect to the broadcast.'});
+            }
+        };
+        
+        initStream();
+
+        return () => {
+            if (call) {
+                call.leave().catch(err => console.error("Failed to leave call on cleanup", err));
+            }
+            if (client) {
+                client.disconnectUser().catch(err => console.error("Failed to disconnect user on cleanup", err));
+            }
+        };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [broadcastId, user, client]);
+
+    if (isUserLoading || isBroadcastLoading || !broadcastId) {
+        return (
+            <div className="flex h-screen w-full items-center justify-center bg-background">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="ml-2">Loading your studio...</p>
+            </div>
+        );
+    }
+    
+    if (!client || !call) {
+         return (
+            <div className="flex h-screen w-full items-center justify-center bg-background">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="ml-2">Connecting to broadcast channel...</p>
+            </div>
+        );
+    }
+
+
+    return (
+        <StreamVideo client={client}>
+            <StreamCall call={call}>
+                <AgoraTestPageUI />
+            </StreamCall>
+        </StreamVideo>
+    )
+}
+
+export default function AgoraTestPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex h-screen w-full items-center justify-center bg-background">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        }>
+            <AgoraTestWrapper />
+        </Suspense>
+    )
+}
     
