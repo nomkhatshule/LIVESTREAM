@@ -162,6 +162,15 @@ export default function AgoraTestPage() {
     router.push('/');
   }
 
+  const handleInviteGuest = () => {
+    toast({
+        title: "Guest Link Copied!",
+        description: "A unique invite link has been copied to your clipboard.",
+    });
+    // In a real implementation, you'd generate a link and copy it.
+    // e.g., navigator.clipboard.writeText('https://agorademo.live/join/UNIQUE_TOKEN');
+  }
+
   return (
     <div className="relative h-screen w-full">
       <div className="h-screen w-full bg-black text-white flex flex-col relative">
@@ -233,7 +242,7 @@ export default function AgoraTestPage() {
             <Button variant={isScreenSharing ? "primary" : "secondary"} size="icon" className="rounded-full h-12 w-12" onClick={handleToggleScreenShare}>
                 {isScreenSharing ? <MonitorUp className="h-6 w-6"/> : <ScreenShare className="h-6 w-6"/>}
             </Button>
-            <Button variant="secondary" size="icon" className="rounded-full h-12 w-12">
+            <Button variant="secondary" size="icon" className="rounded-full h-12 w-12" onClick={handleInviteGuest}>
                 <UserPlus className="h-6 w-6"/>
             </Button>
         </div>
