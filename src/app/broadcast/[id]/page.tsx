@@ -1,12 +1,11 @@
 'use client';
 import { broadcasts, users } from '@/lib/data';
-import { notFound, useSearchParams, useParams } from 'next/navigation';
+import { notFound, useParams } from 'next/navigation';
 import VideoPlayer from '@/components/broadcast/video-player';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Heart, Share2, Star, MessageCircle, MoreVertical } from 'lucide-react';
-import { useUser, useUserDocument } from '@/firebase';
+import { Heart, Share2, Star, MessageCircle, MoreVertical, PlusCircle } from 'lucide-react';
+import { useUser } from '@/firebase';
 import type { Broadcast } from '@/lib/data';
 import { useDoc, useFirestore } from '@/firebase';
 import { doc } from 'firebase/firestore';
@@ -69,20 +68,17 @@ export default function BroadcastPage() {
         <div className="flex items-end justify-between">
           {/* Left side: Broadcaster Info & Title */}
           <div className="flex-1 mr-8">
-            <div className="flex items-center mb-2">
-              <Avatar className="h-10 w-10 mr-3 border-2 border-primary">
+             <div className="relative w-12 h-12 mb-3">
+              <Avatar className="h-12 w-12 border-2 border-primary">
                 <AvatarImage src={broadcast.user.avatarUrl} alt={broadcast.user.name} data-ai-hint={broadcast.user.avatarHint} />
                 <AvatarFallback>{broadcast.user.name.charAt(0)}</AvatarFallback>
               </Avatar>
-              <div>
-                <p className="font-bold text-lg">{broadcast.user.name}</p>
-                <div className="flex items-center gap-2">
-                  <Button size="sm" className="h-7 text-xs px-2.5 bg-primary">Follow</Button>
-                  <Button size="sm" variant="secondary" className="h-7 text-xs px-2.5">Subscribe <Star className="ml-1.5 h-3 w-3" /></Button>
-                </div>
-              </div>
+               <Button size="icon" className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-primary hover:bg-primary/90">
+                  <PlusCircle className="h-5 w-5"/>
+               </Button>
             </div>
-            <h1 className="text-lg font-semibold mb-1">{broadcast.title}</h1>
+            <p className="font-bold text-lg">{broadcast.user.name}</p>
+            <h1 className="text-base font-semibold">{broadcast.title}</h1>
           </div>
           
           {/* Right side: Action Buttons */}
@@ -115,16 +111,11 @@ function BroadcastSkeleton() {
         <div className="flex items-end justify-between">
           <div className="flex-1 mr-8 space-y-3">
             <div className="flex items-center gap-3">
-              <Skeleton className="h-10 w-10 rounded-full" />
+              <Skeleton className="h-12 w-12 rounded-full" />
               <div className="space-y-2">
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-7 w-32" />
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-4 w-48" />
               </div>
-            </div>
-            <Skeleton className="h-5 w-3/4" />
-            <div className="flex gap-2">
-              <Skeleton className="h-5 w-16" />
-              <Skeleton className="h-5 w-16" />
             </div>
           </div>
           <div className="flex flex-col items-center space-y-5">
