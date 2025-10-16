@@ -1,10 +1,11 @@
+
 'use client';
 import { broadcasts, users } from '@/lib/data';
 import { notFound, useParams } from 'next/navigation';
 import VideoPlayer from '@/components/broadcast/video-player';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Heart, Share2, Star, MessageCircle, MoreVertical, PlusCircle } from 'lucide-react';
+import { Heart, Share2, Star, MessageCircle, MoreVertical, PlusCircle, Users } from 'lucide-react';
 import { useUser } from '@/firebase';
 import type { Broadcast } from '@/lib/data';
 import { useDoc, useFirestore } from '@/firebase';
@@ -39,7 +40,7 @@ export default function BroadcastPage() {
       user: { ...hostUser, name: broadcastData.hostName, avatarUrl: broadcastData.hostAvatar },
       thumbnailUrl: '', // Not needed on live view
       thumbnailHint: '',
-      viewers: broadcastData.viewers || 0,
+      viewers: broadcastData.viewerCount || 0,
       category: broadcastData.category,
       isLive: broadcastData.isLive,
       tags: broadcastData.tags || [],
@@ -73,6 +74,15 @@ export default function BroadcastPage() {
             <div>
                 <p className="font-bold text-lg">{broadcast.user.name}</p>
                 <h1 className="text-base font-semibold">{broadcast.title}</h1>
+                <div className="flex items-center gap-3 mt-1">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-600 text-white animate-pulse">
+                        LIVE
+                    </span>
+                    <span className="inline-flex items-center text-xs font-medium gap-1">
+                        <Users className="h-3 w-3" />
+                        {broadcast.viewers.toLocaleString()}
+                    </span>
+                </div>
             </div>
           </div>
       </div>
@@ -80,7 +90,6 @@ export default function BroadcastPage() {
       {/* Overlay for information and actions */}
       <div className="absolute bottom-0 left-0 right-0 p-4 pb-8 bg-gradient-to-t from-black/70 to-transparent text-white">
         <div className="flex items-end justify-between">
-          {/* Left side: Broadcaster Info & Title is now moved to top */}
           <div className="flex-1 mr-8" />
           
           {/* Right side: Action Buttons */}
