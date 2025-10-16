@@ -59,15 +59,8 @@ export default function BroadcastPage() {
     <div className="relative h-[calc(100vh-4rem)] w-full bg-black snap-start">
       <VideoPlayer broadcast={broadcast} isHost={false} />
       
-      <div className="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/50 to-transparent">
-         {/* Header can go here if needed, for now it's clean */}
-      </div>
-
-      {/* Overlay for information and actions */}
-      <div className="absolute bottom-0 left-0 right-0 p-4 pb-8 bg-gradient-to-t from-black/70 to-transparent text-white">
-        <div className="flex items-end justify-between">
-          {/* Left side: Broadcaster Info & Title */}
-          <div className="flex-1 mr-8">
+      <div className="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/50 to-transparent text-white">
+         <div className="flex-1 mr-8">
              <div className="relative w-12 h-12 mb-3">
               <Avatar className="h-12 w-12 border-2 border-primary">
                 <AvatarImage src={broadcast.user.avatarUrl} alt={broadcast.user.name} data-ai-hint={broadcast.user.avatarHint} />
@@ -80,6 +73,13 @@ export default function BroadcastPage() {
             <p className="font-bold text-lg">{broadcast.user.name}</p>
             <h1 className="text-base font-semibold">{broadcast.title}</h1>
           </div>
+      </div>
+
+      {/* Overlay for information and actions */}
+      <div className="absolute bottom-0 left-0 right-0 p-4 pb-8 bg-gradient-to-t from-black/70 to-transparent text-white">
+        <div className="flex items-end justify-between">
+          {/* Left side: Broadcaster Info & Title is now moved to top */}
+          <div className="flex-1 mr-8" />
           
           {/* Right side: Action Buttons */}
           <div className="flex flex-col items-center space-y-5">
@@ -107,22 +107,23 @@ export default function BroadcastPage() {
 function BroadcastSkeleton() {
   return (
     <div className="relative h-[calc(100vh-4rem)] w-full bg-black">
-      <div className="absolute bottom-0 left-0 right-0 p-4 pb-8 bg-gradient-to-t from-black/70 to-transparent text-white">
-        <div className="flex items-end justify-between">
-          <div className="flex-1 mr-8 space-y-3">
-            <div className="flex items-center gap-3">
-              <Skeleton className="h-12 w-12 rounded-full" />
-              <div className="space-y-2">
-                <Skeleton className="h-5 w-24" />
-                <Skeleton className="h-4 w-48" />
-              </div>
-            </div>
+      {/* Top left skeleton */}
+      <div className="absolute top-0 left-0 p-4">
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-12 w-12 rounded-full" />
+          <div className="space-y-2">
+            <Skeleton className="h-5 w-24" />
+            <Skeleton className="h-4 w-48" />
           </div>
-          <div className="flex flex-col items-center space-y-5">
-            <Skeleton className="h-12 w-12 rounded-full" />
-            <Skeleton className="h-12 w-12 rounded-full" />
-            <Skeleton className="h-12 w-12 rounded-full" />
-          </div>
+        </div>
+      </div>
+
+      {/* Bottom right skeleton */}
+      <div className="absolute bottom-0 right-0 p-4 pb-8">
+        <div className="flex flex-col items-center space-y-5">
+          <Skeleton className="h-12 w-12 rounded-full" />
+          <Skeleton className="h-12 w-12 rounded-full" />
+          <Skeleton className="h-12 w-12 rounded-full" />
         </div>
       </div>
     </div>
