@@ -79,13 +79,13 @@ export default function BroadcastPage() {
                     LIVE
                 </span>
               </div>
-                <h1 className="text-base font-semibold">{broadcast.title}</h1>
-                <div className="flex items-center gap-3 mt-1">
-                    <span className="inline-flex items-center text-xs font-medium gap-1">
-                        <Users className="h-3 w-3" />
-                        {broadcast.viewers.toLocaleString()}
-                    </span>
-                </div>
+              <h1 className="text-base font-semibold">{broadcast.title}</h1>
+              <div className="flex items-center gap-3 mt-1">
+                  <span className="inline-flex items-center text-xs font-medium gap-1">
+                      <Users className="h-3 w-3" />
+                      {broadcast.viewers.toLocaleString()}
+                  </span>
+              </div>
             </div>
           </div>
       </div>
@@ -97,18 +97,18 @@ export default function BroadcastPage() {
           
           {/* Right side: Action Buttons */}
           <div className="flex flex-col items-center space-y-5">
-            <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white flex flex-col drop-shadow-md">
+            <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white flex flex-col drop-shadow-md hover:bg-transparent">
               <Heart className="h-7 w-7" />
               <span className="text-xs mt-1">1.2k</span>
             </Button>
-            <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white flex flex-col drop-shadow-md">
+            <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white flex flex-col drop-shadow-md hover:bg-transparent">
               <MessageCircle className="h-7 w-7" />
                <span className="text-xs mt-1">203</span>
             </Button>
-            <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white drop-shadow-md">
+            <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white drop-shadow-md hover:bg-transparent">
               <Share2 className="h-7 w-7" />
             </Button>
-             <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white drop-shadow-md">
+             <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white drop-shadow-md hover:bg-transparent">
               <MoreVertical className="h-7 w-7" />
             </Button>
           </div>
