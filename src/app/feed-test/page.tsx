@@ -1,4 +1,3 @@
-
 'use client';
 
 import { broadcasts, users } from '@/lib/data';
@@ -98,13 +97,17 @@ export default function FeedTestPage() {
       
       <div className="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/50 to-transparent text-white">
          <div className="flex items-start gap-4">
-            <Avatar className="h-14 w-14 border-2 border-primary">
-                <AvatarImage src={broadcast.user.avatarUrl} alt={broadcast.user.name} data-ai-hint={broadcast.user.avatarHint} />
-                <AvatarFallback>{broadcast.user.name.charAt(0)}</AvatarFallback>
-            </Avatar>
+            <Link href={`/profile/${broadcast.user.id}`}>
+              <Avatar className="h-14 w-14 border-2 border-primary">
+                  <AvatarImage src={broadcast.user.avatarUrl} alt={broadcast.user.name} data-ai-hint={broadcast.user.avatarHint} />
+                  <AvatarFallback>{broadcast.user.name.charAt(0)}</AvatarFallback>
+              </Avatar>
+            </Link>
             <div>
               <div className="flex items-center gap-3">
-                <p className="font-bold text-lg">{broadcast.user.name}</p>
+                <Link href={`/profile/${broadcast.user.id}`}>
+                  <p className="font-bold text-lg">{broadcast.user.name}</p>
+                </Link>
                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-600 text-white animate-pulse">
                     LIVE
                 </span>
