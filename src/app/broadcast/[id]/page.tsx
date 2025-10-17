@@ -161,19 +161,19 @@ export default function BroadcastPage() {
           
           {/* Right side: Action Buttons */}
           <div className="flex flex-col items-center space-y-5">
-            <Button variant="ghost" size="icon" className="h-14 w-14 rounded-full text-white flex-col justify-center items-center drop-shadow-md hover:bg-transparent hover:text-white">
-                <PlusCircle className="h-10 w-10"/>
+            <Button variant="ghost" size="icon" className="h-15 w-15 rounded-full text-white flex-col justify-center items-center drop-shadow-md hover:bg-transparent hover:text-white">
+                <PlusCircle className="h-20 w-20"/>
             </Button>
-            <Button variant="ghost" size="icon" className="h-14 w-14 rounded-full text-white flex-col drop-shadow-md hover:bg-transparent hover:text-white" onClick={handleLike}>
-              <Heart className="h-10 w-10" />
+            <Button variant="ghost" size="icon" className="h-15 w-15 rounded-full text-white flex-col drop-shadow-md hover:bg-transparent hover:text-white" onClick={handleLike}>
+              <Heart className="h-16 w-16" />
               <span className="text-xs mt-1">1.2k</span>
             </Button>
-            <Button variant="ghost" size="icon" onClick={() => setIsChatVisible(!isChatVisible)} className="h-14 w-14 rounded-full text-white flex-col justify-center items-center drop-shadow-md hover:bg-transparent hover:text-white">
-               <MessageSquareMore className="h-10 w-10" />
+            <Button variant="ghost" size="icon" onClick={() => setIsChatVisible(!isChatVisible)} className="h-15 w-15 rounded-full text-white flex-col justify-center items-center drop-shadow-md hover:bg-transparent hover:text-white">
+               <MessageSquareMore className="h-16 w-16" />
                <span className="text-xs mt-1">{comments.length}</span>
             </Button>
-            <Button variant="ghost" size="icon" className="h-14 w-14 rounded-full text-white flex-col justify-center items-center drop-shadow-md hover:bg-transparent hover:text-white">
-                <svg xmlns="http://www.w3.org/2000/svg" height="48px" viewBox="0 -960 960 960" width="48px" fill="currentColor"><path d="m608-368 46-166-142-98-46 166 142 98ZM160-207l-33-16q-31-13-42-44.5t3-62.5l72-156v279Zm160 87q-33 0-56.5-24T240-201v-239l107 294q3 7 5 13.5t7 12.5h-39Zm206-5q-31 11-62-3t-42-45L245-662q-11-31 3-61.5t45-41.5l301-110q31-11 61.5 3t41.5 45l178 489q11 31-3 61.5T827-235L526-125Zm-28-75 302-110-179-490-301 110 178 490Zm62-300Z"/></svg>
+            <Button variant="ghost" size="icon" className="h-15 w-15 rounded-full text-white flex-col justify-center items-center drop-shadow-md hover:bg-transparent hover:text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" height="66px" viewBox="0 -960 960 960" width="66px" fill="currentColor"><path d="m608-368 46-166-142-98-46 166 142 98ZM160-207l-33-16q-31-13-42-44.5t3-62.5l72-156v279Zm160 87q-33 0-56.5-24T240-201v-239l107 294q3 7 5 13.5t7 12.5h-39Zm206-5q-31 11-62-3t-42-45L245-662q-11-31 3-61.5t45-41.5l301-110q31-11 61.5 3t41.5 45l178 489q11 31-3 61.5T827-235L526-125Zm-28-75 302-110-179-490-301 110 178 490Zm62-300Z"/></svg>
             </Button>
              <DropdownMenu>
               <DropdownMenuTrigger asChild>
