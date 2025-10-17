@@ -82,7 +82,7 @@ function AgoraTestPageUI() {
 
   // Real-time broadcast document
   const broadcastDocRef = useMemoFirebase(() => {
-    if (!broadcastId) return undefined;
+    if (!broadcastId || !firestore) return null;
     return doc(firestore, 'broadcasts', broadcastId);
   }, [broadcastId, firestore]);
   
@@ -90,7 +90,7 @@ function AgoraTestPageUI() {
 
   // Real-time chat messages
    const messagesQuery = useMemoFirebase(() => {
-    if (!broadcastId) return undefined;
+    if (!broadcastId || !firestore) return null;
     return query(
         collection(firestore, `broadcasts/${broadcastId}/messages`),
         orderBy('timestamp', 'asc'),
@@ -339,7 +339,7 @@ function AgoraTestWrapper() {
     // Authorization check
     const firestore = useFirestore();
     const broadcastDocRef = useMemoFirebase(() => {
-        if (!broadcastId) return undefined;
+        if (!broadcastId || !firestore) return null;
         return doc(firestore, 'broadcasts', broadcastId);
     }, [broadcastId, firestore]);
     const { data: broadcastData, isLoading: isBroadcastLoading } = useDoc<BroadcastData>(broadcastDocRef);
