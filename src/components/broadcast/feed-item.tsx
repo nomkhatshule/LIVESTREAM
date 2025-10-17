@@ -67,27 +67,29 @@ export default function FeedItem({ client, broadcast, isActive }: FeedItemProps)
         limit(50)
     );
   }, [broadcast.id, firestore]);
+
   const { data: comments } = useCollection<ChatMessage>(messagesQuery);
   const reversedComments = comments ? [...comments].reverse() : [];
 
 
   useEffect(() => {
-    if (!isActive || !client || call) return;
-
-    const callInstance = client.call('livestream', broadcast.id);
-    // Join call but don't publish audio/video
-    callInstance.join().catch(err => {
-      console.error(`Failed to join call ${broadcast.id}`, err);
-    });
-    setCall(callInstance);
+    let callInstance: Call;
+    if (isActive && client) {
+        callInstance = client.call('livestream', broadcast.id);
+        // Join call but don't publish audio/video
+        callInstance.join().catch(err => {
+            console.error(`Failed to join call ${broadcast.id}`, err);
+        });
+        setCall(callInstance);
+    }
 
     return () => {
       if (callInstance) {
-        callInstance.leave().catch(err => console.error(`Failed to leave call ${broadcast.id}`, err));
+        callInstance.leave().catch(err => console.error(`Failed to leave call ${broadcast.id} on cleanup`, err));
+        setCall(null);
       }
-      setCall(null);
     };
-  }, [isActive, client, broadcast.id, call]);
+  }, [isActive, client, broadcast.id]);
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();

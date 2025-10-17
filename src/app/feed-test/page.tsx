@@ -153,7 +153,7 @@ function FeedTestManager() {
     );
 }
 
-export default function FeedTestPage() {
+function FeedTestPageComponent() {
     return (
         <Suspense fallback={
              <div className="flex h-screen w-full items-center justify-center bg-background">
@@ -164,3 +164,5 @@ export default function FeedTestPage() {
         </Suspense>
     )
 }
+
+export default FeedTestPageComponent;
