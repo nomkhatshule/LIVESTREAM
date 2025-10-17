@@ -4,7 +4,7 @@ import type { Broadcast, User, Category } from '@/lib/data';
 import RecommendedForYou from '@/components/recommended-for-you';
 import BroadcastCard from '@/components/broadcast-card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Clapperboard } from 'lucide-react';
 import Link from 'next/link';
@@ -24,6 +24,12 @@ export default function HomePageClient({
 }: HomePageClientProps) {
   const [filteredBroadcasts, setFilteredBroadcasts] = useState(liveBroadcasts);
   const [activeTab, setActiveTab] = useState('All');
+
+  // This effect ensures that if the server-provided broadcasts change, the UI updates.
+  useEffect(() => {
+    handleTabChange(activeTab);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [liveBroadcasts]);
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
