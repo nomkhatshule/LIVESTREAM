@@ -6,19 +6,17 @@ export function useIsMobile() {
   const [isMobile, setIsMobile] = React.useState<boolean | undefined>(undefined)
 
   React.useEffect(() => {
+    // Set the initial value only on the client side
+    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+    
     const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
     const onChange = () => {
-      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
+      setIsMobile(mql.matches)
     }
     mql.addEventListener("change", onChange)
-    
-    // Set the initial value
-    if (isMobile === undefined) {
-      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
-    }
 
     return () => mql.removeEventListener("change", onChange)
-  }, [isMobile])
+  }, []) // Empty dependency array ensures this runs only once on mount
 
   return !!isMobile
 }
