@@ -172,9 +172,6 @@ export default function BroadcastPage() {
                 {isChatVisible ? <MessageCircleOff className="h-8 w-8" /> : <MessageCircle className="h-8 w-8" />}
                <span className="text-xs mt-1">Chat</span>
             </Button>
-            <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white drop-shadow-md hover:bg-transparent hover:text-white">
-              <UserSearch className="h-8 w-8" />
-            </Button>
              <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white drop-shadow-md hover:bg-transparent hover:text-white">
@@ -185,6 +182,10 @@ export default function BroadcastPage() {
                 <DropdownMenuItem>
                   <Share2 className="mr-2 h-4 w-4" />
                   <span>Share</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <UserSearch className="mr-2 h-4 w-4" />
+                  <span>User Search</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/broadcast/create">
