@@ -7,9 +7,16 @@ const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_KEY
   : undefined;
 
 if (getApps().length === 0) {
-  initializeApp({
-    credential: serviceAccount ? cert(serviceAccount) : undefined,
-  });
+  if (serviceAccount) {
+    // Initialize with explicit service account credentials
+    initializeApp({
+      credential: cert(serviceAccount),
+    });
+  } else {
+    // Initialize without arguments, relying on Application Default Credentials
+    // This is the standard for App Hosting and other Google Cloud environments.
+    initializeApp();
+  }
 }
 
 export const db = getFirestore();
