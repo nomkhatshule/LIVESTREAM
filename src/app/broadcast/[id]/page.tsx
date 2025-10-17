@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { broadcasts, users } from '@/lib/data';
@@ -6,7 +7,7 @@ import { notFound, useParams } from 'next/navigation';
 import VideoPlayer from '@/components/broadcast/video-player';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Heart, Share2, MoreVertical, PlusCircle, Users, ArrowUp, MessageCircleOff, MessageCircle } from 'lucide-react';
+import { Heart, UserSearch, MoreVertical, PlusCircle, Users, ArrowUp, MessageCircleOff, MessageCircle } from 'lucide-react';
 import { useUser } from '@/firebase';
 import type { Broadcast } from '@/lib/data';
 import { useDoc, useFirestore } from '@/firebase';
@@ -165,7 +166,7 @@ export default function BroadcastPage() {
                <span className="text-xs mt-1">Chat</span>
             </Button>
             <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white drop-shadow-md hover:bg-transparent hover:text-white">
-              <Share2 className="h-8 w-8" />
+              <UserSearch className="h-8 w-8" />
             </Button>
              <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white drop-shadow-md hover:bg-transparent hover:text-white">
               <MoreVertical className="h-8 w-8" />
