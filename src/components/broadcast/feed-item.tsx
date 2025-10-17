@@ -68,7 +68,7 @@ export default function FeedItem({ client, broadcast, isActive }: FeedItemProps)
     );
   }, [broadcast.id, firestore]);
   const { data: comments } = useCollection<ChatMessage>(messagesQuery);
-  const reversedComments = useMemo(() => comments ? [...comments].reverse() : [], [comments]);
+  const reversedComments = comments ? [...comments].reverse() : [];
 
 
   useEffect(() => {
