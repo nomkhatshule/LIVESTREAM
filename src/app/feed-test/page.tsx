@@ -1,3 +1,4 @@
+
 'use client';
 
 import { broadcasts, users } from '@/lib/data';
@@ -6,7 +7,7 @@ import VideoPlayer from '@/components/broadcast/video-player';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Heart, UserSearch, MoreVertical, PlusCircle, Users, ArrowUp, MessageSquareMore, Share2, Clapperboard, User as UserIcon } from 'lucide-react';
-import { useUser } from '@/firebase';
+import { useUser, useMemoFirebase } from '@/firebase';
 import type { Broadcast } from '@/lib/data';
 import { useDoc, useFirestore } from '@/firebase';
 import { doc } from 'firebase/firestore';
@@ -37,9 +38,8 @@ export default function FeedTestPage() {
   const [isChatVisible, setIsChatVisible] = useState(true);
   const [comments, setComments] = useState(initialMockComments);
 
-  const broadcastDocRef = useMemo(() => {
-    if (!id) return undefined;
-    // The document ID in Firestore is just the ID, not prefixed.
+  const broadcastDocRef = useMemoFirebase(() => {
+    if (!id || !firestore) return undefined;
     return doc(firestore, 'broadcasts', id);
   }, [id, firestore]);
 
