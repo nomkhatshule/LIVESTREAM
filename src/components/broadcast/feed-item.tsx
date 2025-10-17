@@ -176,7 +176,7 @@ export default function FeedItem({ client, broadcast, isActive }: FeedItemProps)
                     ))}
                   </div>
                 </ScrollArea>
-                <form onSubmit={handleSendMessage} className="relative flex-1 mt-2">
+                <form onSubmit={handleSendMessage} className="relative flex-1 mt-2 w-full">
                   <Input
                     placeholder="Add a comment..."
                     value={newMessage}

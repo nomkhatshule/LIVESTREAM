@@ -1,6 +1,5 @@
 
 
-
 'use client';
 
 import { broadcasts, users } from '@/lib/data';
@@ -144,7 +143,7 @@ export default function BroadcastPage() {
                         ))}
                     </div>
                     </ScrollArea>
-                    <form onSubmit={handleSendMessage} className="relative flex-1 mt-3">
+                    <form onSubmit={handleSendMessage} className="relative flex-1 mt-3 w-full">
                         <Input
                             placeholder="Add a comment..."
                             value={newMessage}
