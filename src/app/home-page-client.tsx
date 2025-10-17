@@ -4,31 +4,44 @@ import type { Broadcast, User, Category } from '@/lib/data';
 import RecommendedForYou from '@/components/recommended-for-you';
 import BroadcastCard from '@/components/broadcast-card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Clapperboard } from 'lucide-react';
 import Link from 'next/link';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, query, where } from 'firebase/firestore';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface HomePageClientProps {
-  liveBroadcasts: Broadcast[];
   upcomingBroadcasts: Broadcast[];
   categories: Omit<Category, 'icon'>[];
   currentUser: User;
 }
 
 export default function HomePageClient({
-  liveBroadcasts,
   upcomingBroadcasts,
   categories,
   currentUser,
 }: HomePageClientProps) {
-  const [filteredBroadcasts, setFilteredBroadcasts] = useState(liveBroadcasts);
+  const firestore = useFirestore();
+
+  // Fetch live broadcasts on the client
+  const liveBroadcastsQuery = useMemoFirebase(
+    () =>
+      firestore
+        ? query(collection(firestore, 'broadcasts'), where('isLive', '==', true))
+        : null,
+    [firestore]
+  );
+  const { data: liveBroadcasts, isLoading: isLoadingBroadcasts } = useCollection<Broadcast>(liveBroadcastsQuery);
+
+  const [filteredBroadcasts, setFilteredBroadcasts] = useState<Broadcast[] | null>(liveBroadcasts);
   const [activeTab, setActiveTab] = useState('All');
 
   // This effect ensures that if the server-provided broadcasts change, the UI updates.
   useEffect(() => {
     handleTabChange(activeTab);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [liveBroadcasts]);
 
   const handleTabChange = (value: string) => {
@@ -37,7 +50,7 @@ export default function HomePageClient({
       setFilteredBroadcasts(liveBroadcasts);
     } else {
       setFilteredBroadcasts(
-        liveBroadcasts.filter((b) => b.category === value)
+        liveBroadcasts?.filter((b) => b.category === value) || []
       );
     }
   };
@@ -45,24 +58,24 @@ export default function HomePageClient({
   return (
     <div className="container mx-auto px-4 py-8">
       <section className="relative w-full h-96 rounded-2xl overflow-hidden flex items-center justify-center text-center p-8 bg-gradient-to-br from-primary via-primary/70 to-background">
-         <div className="absolute inset-0 bg-black/50" />
-         <div className="relative z-10 flex flex-col items-center">
-            <h1 className="text-5xl md:text-7xl font-bold font-headline text-primary-foreground mb-4 drop-shadow-lg">
-                The Stage is Yours
-            </h1>
-            <p className="text-xl text-primary-foreground/90 max-w-2xl mb-8 drop-shadow-md">
-                Discover live streams from creators around the world, or go live and share your passion.
-            </p>
-            <Button size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90" asChild>
-                <Link href="/feed">
-                    <Clapperboard className="mr-2 h-5 w-5" />
-                    Watch Now
-                </Link>
-            </Button>
-         </div>
+        <div className="absolute inset-0 bg-black/50" />
+        <div className="relative z-10 flex flex-col items-center">
+          <h1 className="text-5xl md:text-7xl font-bold font-headline text-primary-foreground mb-4 drop-shadow-lg">
+            The Stage is Yours
+          </h1>
+          <p className="text-xl text-primary-foreground/90 max-w-2xl mb-8 drop-shadow-md">
+            Discover live streams from creators around the world, or go live and share your passion.
+          </p>
+          <Button size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90" asChild>
+            <Link href="/feed-test">
+              <Clapperboard className="mr-2 h-5 w-5" />
+              Watch Now
+            </Link>
+          </Button>
+        </div>
       </section>
 
-      <RecommendedForYou currentUser={currentUser} allBroadcasts={liveBroadcasts} />
+      {liveBroadcasts && <RecommendedForYou currentUser={currentUser} allBroadcasts={liveBroadcasts} />}
 
       <section className="mt-12">
         <h2 className="text-3xl font-bold font-headline mb-4">Live Now</h2>
@@ -78,16 +91,28 @@ export default function HomePageClient({
           </TabsList>
         </Tabs>
 
+        {isLoadingBroadcasts && (
+           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="space-y-2">
+                  <Skeleton className="h-48 w-full" />
+                  <Skeleton className="h-6 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
+                </div>
+              ))}
+            </div>
+        )}
+
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {filteredBroadcasts.map((broadcast) => (
+          {filteredBroadcasts && filteredBroadcasts.map((broadcast) => (
             <BroadcastCard key={broadcast.id} broadcast={broadcast} />
           ))}
         </div>
-         {filteredBroadcasts.length === 0 && (
-            <div className="col-span-full text-center text-muted-foreground py-16">
-                <p className="text-lg">No live streams in this category right now.</p>
-                <p>Why not explore another?</p>
-            </div>
+        {!isLoadingBroadcasts && (!filteredBroadcasts || filteredBroadcasts.length === 0) && (
+          <div className="col-span-full text-center text-muted-foreground py-16">
+            <p className="text-lg">No live streams in this category right now.</p>
+            <p>Why not explore another?</p>
+          </div>
         )}
       </section>
     </div>
