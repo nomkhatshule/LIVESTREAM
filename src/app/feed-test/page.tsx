@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Suspense, useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { collection, query, where } from 'firebase/firestore';
@@ -24,7 +24,6 @@ function FeedTestManager() {
     
     // We no longer need to track the active broadcast here, 
     // as each FeedItem will manage its own play state.
-    // const [activeBroadcastId, setActiveBroadcastId] = useState<string | null>(null);
 
     const liveBroadcastsQuery = useMemoFirebase(() => {
         if (!firestore) return null;
@@ -34,7 +33,6 @@ function FeedTestManager() {
     const { data: liveBroadcasts, isLoading: areBroadcastsLoading } = useCollection<Broadcast>(liveBroadcastsQuery);
 
     // The IntersectionObserver is no longer needed.
-    // const observer = useRef<IntersectionObserver | null>(null);
 
     // Effect to initialize the single StreamVideoClient
     useEffect(() => {
@@ -118,7 +116,6 @@ function FeedTestManager() {
                     key={broadcast.id}
                     client={videoClient}
                     broadcast={broadcast}
-                    // isActive prop is no longer needed as play is manually controlled
                 />
             ))}
             {(!liveBroadcasts || liveBroadcasts.length === 0) && (

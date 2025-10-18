@@ -40,7 +40,7 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
   const { toast } = useToast();
   const [call, setCall] = useState<Call | null>(null);
   
-  // NEW: State to manage if user wants to play and the joining status
+  // State to manage if user wants to play and the joining status
   const [isPlaying, setIsPlaying] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
   const [isJoined, setIsJoined] = useState(false);
