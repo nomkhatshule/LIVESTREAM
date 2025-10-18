@@ -90,11 +90,12 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
         callInstance = client.call('livestream', broadcast.id);
         
         try {
-            await callInstance.join();
+            // FIX: Viewers should `watch()` a livestream, not `join()` it.
+            await callInstance.watch();
             setCall(callInstance);
             setIsJoined(true);
         } catch (err) {
-             console.error(`Failed to join call ${broadcast.id}`, err);
+             console.error(`Failed to watch call ${broadcast.id}`, err);
              toast({
                 title: 'Error Joining Stream',
                 description: 'Could not connect to the broadcast.',
