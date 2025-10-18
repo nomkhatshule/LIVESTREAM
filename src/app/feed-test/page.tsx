@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { collection, query, where } from 'firebase/firestore';
@@ -21,7 +21,10 @@ function FeedTestManager() {
     const { toast } = useToast();
     
     const [videoClient, setVideoClient] = useState<StreamVideoClient | null>(null);
-    const [activeBroadcastId, setActiveBroadcastId] = useState<string | null>(null);
+    
+    // We no longer need to track the active broadcast here, 
+    // as each FeedItem will manage its own play state.
+    // const [activeBroadcastId, setActiveBroadcastId] = useState<string | null>(null);
 
     const liveBroadcastsQuery = useMemoFirebase(() => {
         if (!firestore) return null;
@@ -30,7 +33,8 @@ function FeedTestManager() {
 
     const { data: liveBroadcasts, isLoading: areBroadcastsLoading } = useCollection<Broadcast>(liveBroadcastsQuery);
 
-    const observer = useRef<IntersectionObserver | null>(null);
+    // The IntersectionObserver is no longer needed.
+    // const observer = useRef<IntersectionObserver | null>(null);
 
     // Effect to initialize the single StreamVideoClient
     useEffect(() => {
@@ -82,33 +86,6 @@ function FeedTestManager() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user, videoClient]);
 
-    // Effect for the IntersectionObserver to find the active broadcast
-    useEffect(() => {
-        if (observer.current) {
-            observer.current.disconnect();
-        }
-
-        observer.current = new IntersectionObserver(
-            (entries) => {
-                entries.forEach((entry) => {
-                    if (entry.isIntersecting) {
-                        const broadcastId = (entry.target as HTMLElement).dataset.broadcastId;
-                        if (broadcastId) {
-                            setActiveBroadcastId(broadcastId);
-                        }
-                    }
-                });
-            },
-            { threshold: 0.7 } // ~70% of the item must be visible
-        );
-
-        const feedItems = document.querySelectorAll('[data-broadcast-id]');
-        feedItems.forEach((item) => observer.current?.observe(item));
-
-        return () => {
-            observer.current?.disconnect();
-        };
-    }, [liveBroadcasts]); // Re-run when the list of broadcasts changes
 
     // Loading and redirection logic
     if (isUserLoading || areBroadcastsLoading) {
@@ -141,7 +118,7 @@ function FeedTestManager() {
                     key={broadcast.id}
                     client={videoClient}
                     broadcast={broadcast}
-                    isActive={broadcast.id === activeBroadcastId}
+                    // isActive prop is no longer needed as play is manually controlled
                 />
             ))}
             {(!liveBroadcasts || liveBroadcasts.length === 0) && (

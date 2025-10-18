@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -15,7 +16,7 @@ import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import VideoPlayer from '@/components/broadcast/video-player';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Heart, MoreVertical, PlusCircle, Users, ArrowUp, MessageSquare, Share2, Clapperboard, User as UserIcon } from 'lucide-react';
+import { Heart, MoreVertical, PlusCircle, Users, ArrowUp, MessageSquare, Share2, Clapperboard, User as UserIcon, PlayCircle, Loader2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import {
@@ -31,15 +32,19 @@ import { useToast } from '@/hooks/use-toast';
 interface FeedItemProps {
   client: StreamVideoClient;
   broadcast: any; // Using any to match Firestore data structure
-  isActive: boolean;
 }
 
-export default function FeedItem({ client, broadcast, isActive }: FeedItemProps) {
+export default function FeedItem({ client, broadcast }: FeedItemProps) {
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
   const [call, setCall] = useState<Call | null>(null);
+  
+  // NEW: State to manage if user wants to play and the joining status
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isJoining, setIsJoining] = useState(false);
   const [isJoined, setIsJoined] = useState(false);
+
   const [newMessage, setNewMessage] = useState('');
   const [isChatVisible, setIsChatVisible] = useState(true);
 
@@ -76,29 +81,36 @@ export default function FeedItem({ client, broadcast, isActive }: FeedItemProps)
 
 
   useEffect(() => {
+    // This effect now only runs when the user explicitly clicks play
+    if (!isPlaying || !client || call) return;
+
     let callInstance: Call;
-    if (isActive && client) {
+    const joinCall = async () => {
+        setIsJoining(true);
         callInstance = client.call('livestream', broadcast.id);
         
-        const joinCall = async () => {
-            try {
-                await callInstance.join();
-                setCall(callInstance);
-                setIsJoined(true);
-            } catch (err) {
-                 console.error(`Failed to join call ${broadcast.id}`, err);
-                 toast({
-                    title: 'Error Joining Stream',
-                    description: 'Could not connect to the broadcast.',
-                    variant: 'destructive',
-                 });
-                 setIsJoined(false);
-            }
-        };
-        joinCall();
-    }
+        try {
+            await callInstance.join();
+            setCall(callInstance);
+            setIsJoined(true);
+        } catch (err) {
+             console.error(`Failed to join call ${broadcast.id}`, err);
+             toast({
+                title: 'Error Joining Stream',
+                description: 'Could not connect to the broadcast.',
+                variant: 'destructive',
+             });
+             setIsJoined(false);
+             setIsPlaying(false); // Reset play state on failure
+        } finally {
+            setIsJoining(false);
+        }
+    };
+    
+    joinCall();
 
     return () => {
+      // Cleanup when the component unmounts
       if (callInstance) {
         callInstance.leave().catch(err => console.error(`Failed to leave call ${broadcast.id} on cleanup`, err));
         setCall(null);
@@ -106,7 +118,7 @@ export default function FeedItem({ client, broadcast, isActive }: FeedItemProps)
       }
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isActive, client, broadcast.id]);
+  }, [isPlaying, client, broadcast.id]);
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
@@ -130,25 +142,45 @@ export default function FeedItem({ client, broadcast, isActive }: FeedItemProps)
     console.log('Like button clicked!');
   };
 
+  const handlePlay = () => {
+    setIsPlaying(true);
+  }
+
   return (
     <div className="relative h-[calc(100vh-4rem)] w-full snap-start" data-broadcast-id={broadcast.id}>
-      {call && isActive && isJoined ? (
+      
+      {/* Show the video player if joined, otherwise show the placeholder/button */}
+      {call && isPlaying && isJoined ? (
         <StreamVideo client={client}>
           <StreamCall call={call}>
             <VideoPlayer broadcast={fullBroadcast} isHost={false} />
           </StreamCall>
         </StreamVideo>
       ) : (
-        <div className="w-full h-full bg-black flex items-center justify-center text-white">
-            <p>Loading Stream...</p>
+        <div className="w-full h-full bg-black flex items-center justify-center text-white relative">
+            <div className="absolute inset-0 bg-black/50 z-10" />
+            <img src={broadcast.thumbnailUrl || `https://picsum.photos/seed/${broadcast.id}/1280/720`} alt="Broadcast thumbnail" className="w-full h-full object-cover blur-sm"/>
+            
+            <div className="absolute z-20 flex flex-col items-center">
+                {isJoining ? (
+                    <>
+                        <Loader2 className="h-16 w-16 animate-spin text-white mb-4" />
+                        <p className="text-lg font-semibold">Joining Stream...</p>
+                    </>
+                ) : (
+                     <Button variant="ghost" size="icon" className="h-32 w-32 text-white/80 hover:text-white hover:bg-transparent" onClick={handlePlay}>
+                        <PlayCircle className="h-32 w-32" />
+                    </Button>
+                )}
+            </div>
         </div>
       )}
 
       {/* UI Overlay */}
-      <div className="absolute inset-0 flex flex-col justify-between p-4 text-white">
+      <div className="absolute inset-0 flex flex-col justify-between p-4 text-white z-30 pointer-events-none">
         {/* Top Info */}
         <div className="bg-gradient-to-b from-black/50 to-transparent -m-4 p-4">
-          <div className="flex items-start gap-4">
+          <div className="flex items-start gap-4 pointer-events-auto">
             <Link href={`/profile/${broadcast.hostId}`}>
               <Avatar className="h-14 w-14 border-2 border-primary">
                 <AvatarImage src={broadcast.hostAvatar} alt={broadcast.hostName} />
@@ -174,7 +206,7 @@ export default function FeedItem({ client, broadcast, isActive }: FeedItemProps)
         </div>
 
         {/* Bottom Actions and Chat */}
-        <div className="bg-gradient-to-t from-black/70 to-transparent -m-4 p-4 flex items-end gap-4">
+        <div className="bg-gradient-to-t from-black/70 to-transparent -m-4 p-4 flex items-end gap-4 pointer-events-auto">
           <div className="flex-1">
             {isChatVisible && (
               <div className="w-full max-w-sm">
