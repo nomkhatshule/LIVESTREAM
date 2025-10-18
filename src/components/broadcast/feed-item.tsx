@@ -6,7 +6,7 @@ import {
   Call,
   StreamVideoClient,
 } from '@stream-io/video-react-sdk';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { Broadcast, User as AppUser, ChatMessage } from '@/lib/data';
 import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy, limit, serverTimestamp } from 'firebase/firestore';
@@ -15,7 +15,7 @@ import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import VideoPlayer from '@/components/broadcast/video-player';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Heart, UserSearch, MoreVertical, PlusCircle, Users, ArrowUp, MessageSquareMore, Share2, Clapperboard, User as UserIcon, MessageSquare } from 'lucide-react';
+import { Heart, MoreVertical, PlusCircle, Users, ArrowUp, MessageSquare, Share2, Clapperboard, User as UserIcon } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import {
@@ -25,6 +25,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
+import { useToast } from '@/hooks/use-toast';
+
 
 interface FeedItemProps {
   client: StreamVideoClient;
@@ -35,7 +37,9 @@ interface FeedItemProps {
 export default function FeedItem({ client, broadcast, isActive }: FeedItemProps) {
   const { user } = useUser();
   const firestore = useFirestore();
+  const { toast } = useToast();
   const [call, setCall] = useState<Call | null>(null);
+  const [isJoined, setIsJoined] = useState(false);
   const [newMessage, setNewMessage] = useState('');
   const [isChatVisible, setIsChatVisible] = useState(true);
 
@@ -75,19 +79,33 @@ export default function FeedItem({ client, broadcast, isActive }: FeedItemProps)
     let callInstance: Call;
     if (isActive && client) {
         callInstance = client.call('livestream', broadcast.id);
-        // Join call but don't publish audio/video
-        callInstance.join().catch(err => {
-            console.error(`Failed to join call ${broadcast.id}`, err);
-        });
-        setCall(callInstance);
+        
+        const joinCall = async () => {
+            try {
+                await callInstance.join();
+                setCall(callInstance);
+                setIsJoined(true);
+            } catch (err) {
+                 console.error(`Failed to join call ${broadcast.id}`, err);
+                 toast({
+                    title: 'Error Joining Stream',
+                    description: 'Could not connect to the broadcast.',
+                    variant: 'destructive',
+                 });
+                 setIsJoined(false);
+            }
+        };
+        joinCall();
     }
 
     return () => {
       if (callInstance) {
         callInstance.leave().catch(err => console.error(`Failed to leave call ${broadcast.id} on cleanup`, err));
         setCall(null);
+        setIsJoined(false);
       }
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isActive, client, broadcast.id]);
 
   const handleSendMessage = (e: React.FormEvent) => {
@@ -114,7 +132,7 @@ export default function FeedItem({ client, broadcast, isActive }: FeedItemProps)
 
   return (
     <div className="relative h-[calc(100vh-4rem)] w-full snap-start" data-broadcast-id={broadcast.id}>
-      {call && isActive ? (
+      {call && isActive && isJoined ? (
         <StreamVideo client={client}>
           <StreamCall call={call}>
             <VideoPlayer broadcast={fullBroadcast} isHost={false} />
@@ -176,12 +194,12 @@ export default function FeedItem({ client, broadcast, isActive }: FeedItemProps)
                     ))}
                   </div>
                 </ScrollArea>
-                <form onSubmit={handleSendMessage} className="relative flex-1 mt-2 w-full">
+                <form onSubmit={handleSendMessage} className="relative w-full mt-2">
                   <Input
                     placeholder="Add a comment..."
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
-                    className="bg-black/50 border-white/20 placeholder:text-gray-400 pr-10 h-10"
+                    className="bg-black/50 border-white/20 placeholder:text-gray-400 pr-10 h-10 w-full"
                   />
                   <Button variant="ghost" size="icon" type="submit" className="absolute inset-y-0 right-0">
                     <ArrowUp className="h-5 w-5" />
