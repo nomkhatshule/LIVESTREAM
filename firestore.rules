@@ -128,6 +128,15 @@ service cloud.firestore {
         allow update: if false;
         allow delete: if false;
      }
+    
+      /**
+       * @description Allows listing likes for a specific broadcast.
+       * @path /broadcasts/{broadcastId}/likes
+       * @allow (list) Any authenticated user can list likes for a broadcast.
+       */
+      match /broadcasts/{broadcastId}/likes {
+        allow list: if isSignedIn();
+      }
 
     function isSignedIn() {
       return request.auth != null;
