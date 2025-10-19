@@ -18,7 +18,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Heart, MoreVertical, PlusCircle, Users, ArrowUp, MessageSquare, Share2, Clapperboard, User as UserIcon, PlayCircle, Loader2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -227,13 +227,19 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
                   </div>
                 </ScrollArea>
                 <form onSubmit={handleSendMessage} className="relative w-full mt-2">
-                  <Input
+                  <Textarea
                     placeholder="Add a comment..."
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
-                    className="bg-black/50 border-white/20 placeholder:text-gray-400 pr-10 h-10 w-full"
+                    className="bg-black/50 border-white/20 placeholder:text-gray-400 pr-10 w-full min-h-[40px] h-10 resize-none"
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            handleSendMessage(e);
+                        }
+                    }}
                   />
-                  <Button variant="ghost" size="icon" type="submit" className="absolute inset-y-0 right-0">
+                  <Button variant="ghost" size="icon" type="submit" className="absolute top-1/2 -translate-y-1/2 right-1 text-white">
                     <ArrowUp className="h-5 w-5" />
                   </Button>
                 </form>
