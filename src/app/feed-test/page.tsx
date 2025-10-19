@@ -21,9 +21,6 @@ function FeedTestManager() {
     const { toast } = useToast();
     
     const [videoClient, setVideoClient] = useState<StreamVideoClient | null>(null);
-    
-    // We no longer need to track the active broadcast here, 
-    // as each FeedItem will manage its own play state.
 
     const liveBroadcastsQuery = useMemoFirebase(() => {
         if (!firestore) return null;
@@ -32,9 +29,6 @@ function FeedTestManager() {
 
     const { data: liveBroadcasts, isLoading: areBroadcastsLoading } = useCollection<Broadcast>(liveBroadcastsQuery);
 
-    // The IntersectionObserver is no longer needed.
-
-    // Effect to initialize the single StreamVideoClient
     useEffect(() => {
         if (!user || videoClient || !apiKey) return;
 
@@ -82,10 +76,9 @@ function FeedTestManager() {
             }
         };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [user, videoClient]);
+    }, [user]);
 
 
-    // Loading and redirection logic
     if (isUserLoading || areBroadcastsLoading) {
         return (
             <div className="flex h-screen w-full items-center justify-center bg-background">
