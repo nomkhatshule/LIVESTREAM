@@ -82,17 +82,17 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
   const reversedComments = useMemo(() => comments ? [...comments].reverse() : [], [comments]);
   
   // Real-time likes
-  const likesCollectionRef = useMemoFirebase(() => {
-    if (!broadcast.id || !firestore) return null;
-    return collection(firestore, `broadcasts/${broadcast.id}/likes`);
-  }, [broadcast.id, firestore]);
+  // const likesCollectionRef = useMemoFirebase(() => {
+  //   if (!broadcast.id || !firestore) return null;
+  //   return collection(firestore, `broadcasts/${broadcast.id}/likes`);
+  // }, [broadcast.id, firestore]);
 
-  const { data: likes } = useCollection(likesCollectionRef);
+  // const { data: likes } = useCollection(likesCollectionRef);
 
-  const hasLiked = useMemo(() => {
-    if (!user || !likes) return false;
-    return likes.some(like => like.id === user.uid);
-  }, [user, likes]);
+  // const hasLiked = useMemo(() => {
+  //   if (!user || !likes) return false;
+  //   return likes.some(like => like.id === user.uid);
+  // }, [user, likes]);
 
 
   useEffect(() => {
@@ -160,37 +160,37 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
   };
 
   const handleLike = () => {
-    if (!broadcast.isLive) {
-        toast({
-            title: 'Stream is offline',
-            description: 'You can only like live streams.',
-            variant: 'destructive'
-        });
-        return;
-    }
-    if (!user) {
-      toast({
-        title: 'Login Required',
-        description: 'You must be logged in to like a stream.',
-        variant: 'destructive',
-      });
-      return;
-    }
-    if (!firestore || !broadcast.id) return;
+    // if (!broadcast.isLive) {
+    //     toast({
+    //         title: 'Stream is offline',
+    //         description: 'You can only like live streams.',
+    //         variant: 'destructive'
+    //     });
+    //     return;
+    // }
+    // if (!user) {
+    //   toast({
+    //     title: 'Login Required',
+    //     description: 'You must be logged in to like a stream.',
+    //     variant: 'destructive',
+    //   });
+    //   return;
+    // }
+    // if (!firestore || !broadcast.id) return;
     
-    // Use user's UID as document ID to prevent multiple likes
-    const likeDocRef = doc(firestore, 'broadcasts', broadcast.id, 'likes', user.uid);
+    // // Use user's UID as document ID to prevent multiple likes
+    // const likeDocRef = doc(firestore, 'broadcasts', broadcast.id, 'likes', user.uid);
     
-    if (hasLiked) {
-      // User has already liked, so "unlike"
-      deleteDocumentNonBlocking(likeDocRef);
-    } else {
-      // User has not liked yet, so "like"
-      setDocumentNonBlocking(likeDocRef, { 
-        userId: user.uid,
-        timestamp: serverTimestamp() 
-      }, {});
-    }
+    // if (hasLiked) {
+    //   // User has already liked, so "unlike"
+    //   deleteDocumentNonBlocking(likeDocRef);
+    // } else {
+    //   // User has not liked yet, so "like"
+    //   setDocumentNonBlocking(likeDocRef, { 
+    //     userId: user.uid,
+    //     timestamp: serverTimestamp() 
+    //   }, {});
+    // }
   };
 
   const handlePlay = () => {
@@ -338,10 +338,10 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
                <MessageSquare className="h-8 w-8" />
                <span className="text-xs mt-1">{comments?.length || 0}</span>
             </Button>
-            <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white flex-col hover:bg-white/20" onClick={handleLike} disabled={!broadcast.isLive}>
+            {/* <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white flex-col hover:bg-white/20" onClick={handleLike} disabled={!broadcast.isLive}>
               <Heart className={cn("h-8 w-8", hasLiked && "fill-red-500 text-red-500")} />
               <span className="text-xs mt-1 tabular-nums">{likes?.length || 0}</span>
-            </Button>
+            </Button> */}
              <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white flex-col hover:bg-white/20">
                 <PlusCircle className="h-8 w-8"/>
             </Button>
