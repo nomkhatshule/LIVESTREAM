@@ -10,9 +10,9 @@ import {
 import { useEffect, useState } from 'react';
 import type { Broadcast, User as AppUser, ChatMessage } from '@/lib/data';
 import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, limit, serverTimestamp } from 'firebase/firestore';
+import { collection, query, orderBy, limit, serverTimestamp, doc } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
-import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import VideoPlayer from '@/components/broadcast/video-player';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 
 interface FeedItemProps {
@@ -78,6 +79,17 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
 
   const { data: comments } = useCollection<ChatMessage>(messagesQuery);
   const reversedComments = comments ? [...comments].reverse() : [];
+  
+  // Real-time likes
+  const likesQuery = useMemoFirebase(() => {
+    if (!broadcast.id || !firestore) return null;
+    return collection(firestore, `broadcasts/${broadcast.id}/likes`);
+  }, [broadcast.id, firestore]);
+  const { data: likes } = useCollection(likesQuery);
+  const hasLiked = useMemo(() => {
+    if (!user || !likes) return false;
+    return likes.some(like => like.id === user.uid);
+  }, [user, likes]);
 
 
   useEffect(() => {
@@ -139,7 +151,24 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
   };
 
   const handleLike = () => {
-    console.log('Like button clicked!');
+    if (!user) {
+      toast({
+        title: 'Login Required',
+        description: 'You must be logged in to like a stream.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    if (!firestore || !broadcast.id) return;
+    
+    // Use user's UID as document ID to prevent multiple likes
+    const likeDocRef = doc(firestore, 'broadcasts', broadcast.id, 'likes', user.uid);
+    
+    // This is an idempotent operation.
+    setDocumentNonBlocking(likeDocRef, { 
+      userId: user.uid,
+      timestamp: serverTimestamp() 
+    }, {});
   };
 
   const handlePlay = () => {
@@ -277,8 +306,8 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
                <span className="text-xs mt-1">{comments?.length || 0}</span>
             </Button>
             <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white flex-col hover:bg-white/20" onClick={handleLike}>
-              <Heart className="h-8 w-8" />
-              <span className="text-xs mt-1">1.2k</span>
+              <Heart className={cn("h-8 w-8", hasLiked && "fill-red-500 text-red-500")} />
+              <span className="text-xs mt-1 tabular-nums">{likes?.length || 0}</span>
             </Button>
              <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white flex-col hover:bg-white/20">
                 <PlusCircle className="h-8 w-8"/>

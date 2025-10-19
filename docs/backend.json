@@ -193,6 +193,24 @@
         "userId",
         "status"
       ]
+    },
+     "Like": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Like",
+      "type": "object",
+      "description": "Represents a user's 'like' on a broadcast.",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The ID of the user who liked the broadcast."
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of when the like occurred."
+        }
+      },
+      "required": ["userId", "timestamp"]
     }
   },
   "auth": {
@@ -253,9 +271,18 @@
           },
           "description": "Sub-collection managing the state of guests (co-hosts) for a broadcast."
         }
+      },
+       {
+        "path": "/broadcasts/{broadcastId}/likes/{userId}",
+        "definition": {
+          "entityName": "Like",
+          "schema": {
+            "$ref": "#/entities/Like"
+          },
+          "description": "Sub-collection storing likes for a broadcast. The document ID is the UID of the user who liked it."
+        }
       }
     ],
-    "reasoning": "This Firestore structure is designed for a scalable and feature-rich live streaming application. It uses a root `broadcasts` collection for discoverability and nests ephemeral or stream-specific data like chat, reactions, and guests in sub-collections. This approach is efficient for queries and security rules. User profiles are kept in a separate root collection to avoid data duplication. Denormalization of host information on the `Broadcast` document optimizes for read-heavy client scenarios, reducing the need for extra lookups."
+    "reasoning": "This Firestore structure is designed for a scalable and feature-rich live streaming application. It uses a root `broadcasts` collection for discoverability and nests ephemeral or stream-specific data like chat, reactions, likes, and guests in sub-collections. This approach is efficient for queries and security rules. User profiles are kept in a separate root collection to avoid data duplication. Denormalization of host information on the `Broadcast` document optimizes for read-heavy client scenarios, reducing the need for extra lookups."
   }
 }
-    
