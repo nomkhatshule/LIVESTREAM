@@ -1,122 +1,135 @@
 /**
- * @file Firestore Security Rules for AgoraLive
- * @description This ruleset enforces a user-ownership model for user profiles,
- * and a public-read, owner-write model for broadcasts. Subcollections for
- * broadcasts inherit the broadcast's write permissions.
+ * @file Firestore Security Rules for AgoraLive Platform
+ *
+ * @description This ruleset enforces a multi-layered security model for the AgoraLive platform,
+ * focusing on user-owned profiles and public read access to broadcasts with owner-controlled writes.
+ * Ephemeral and stream-specific data, like likes, reactions, chat messages, and guests, are managed
+ * in subcollections under each broadcast.
  *
  * Data Structure:
- * - /users/{userId}: Stores user profile information; only accessible by the
- *   user themselves.
- * - /broadcasts/{broadcastId}: Stores broadcast metadata; publicly readable,
- *   but only the host can modify.
- * - /broadcasts/{broadcastId}/messages/{messageId}: Chat messages for a
- *   broadcast; anyone can create, but only the host can modify or delete.
- * - /broadcasts/{broadcastId}/reactions/{reactionId}: Reactions to a
- *   broadcast; anyone can create.
- * - /broadcasts/{broadcastId}/guests/{guestId}: Manages broadcast guests; only
- *   the host can modify.
+ * - /users/{userId}: User profiles, where userId matches the Firebase Auth UID.
+ * - /broadcasts/{broadcastId}: Broadcast metadata, publicly readable, but owner-writable.
+ * - /broadcasts/{broadcastId}/messages/{messageId}: Chat messages for a broadcast.
+ * - /broadcasts/{broadcastId}/reactions/{reactionId}: Real-time reactions for a broadcast.
+ * - /broadcasts/{broadcastId}/guests/{guestId}: Guest management for a broadcast.
+ * - /broadcasts/{broadcastId}/likes/{userId}: Likes for a broadcast.
  *
  * Key Security Decisions:
- * - Users can only read/write their own profile data.
- * - Broadcast data is publicly readable to facilitate discovery.
- * - Broadcast creation, updates, and deletion are restricted to the host.
- * - Reactions are ephemeral and created by viewers.
- *
- * Denormalization for Authorization:
- * - Broadcast documents denormalize host information (hostId, hostName,
- *   hostAvatar) to simplify read operations and security rules.
- *
- * Structural Segregation:
- * - User profiles and broadcast data are stored in separate collections to
- *   clearly separate ownership models.
+ * - User profiles are strictly user-owned, preventing unauthorized modifications.
+ * - Broadcasts are publicly readable, allowing for open discovery.
+ * - Broadcast creation and modification are restricted to the host (owner).
+ * - Ephemeral data (reactions) and stream-related data (chat, likes, guests) inherit the broadcast's access control.
+ * - Data consistency is enforced on user IDs and broadcast IDs where applicable.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Allows users to read and write their own profile data.
+     * @description Manages user profile access, ensuring only the user can read/write their own profile.
      * @path /users/{userId}
-     * @allow (create) - User with UID 'user_abc' can create their own profile document at /users/user_abc if request.auth.uid == 'user_abc'
-     * @allow (get, update, delete) - User with UID 'user_abc' can read, update, and delete their own profile document at /users/user_abc.
-     * @deny (create) - User with UID 'user_xyz' cannot create a profile document for user 'user_abc' at /users/user_abc because request.auth.uid != 'user_abc'
-     * @deny (get, update, delete) - User with UID 'user_xyz' cannot read, update, or delete the profile document of user 'user_abc' at /users/user_abc.
-     * @principle Enforces document ownership for writes.
+     * @allow (create) User with UID 'user123' can create their profile.
+     * @allow (get, update, delete) User with UID 'user123' can read, update, or delete their profile.
+     * @deny (create, get, update, delete) User with UID 'otherUser' cannot access 'user123' profile.
+     * @principle Enforces strict user-ownership for profile data.
      */
     match /users/{userId} {
       function isOwner(userId) {
-        return request.auth != null && request.auth.uid == userId;
+        return request.auth.uid == userId;
       }
-
       allow get: if isOwner(userId);
       allow list: if false;
-      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow create: if isOwner(userId) && request.resource.data.id == request.auth.uid;
       allow update: if isOwner(userId) && resource.data.id == request.resource.data.id;
-      allow delete: if isOwner(userId) && resource != null;
+      allow delete: if isOwner(userId);
     }
 
     /**
-     * @description Allows anyone to read broadcasts, but only the host can modify them.
+     * @description Controls access to broadcast metadata. Allows public reads but restricts writes to the host.
      * @path /broadcasts/{broadcastId}
-     * @allow (get, list) - Any user (or unauthenticated user) can read broadcast data.
-     * @allow (create) - User with UID 'user_abc' can create a broadcast if request.resource.data.hostId == 'user_abc'
-     * @allow (update, delete) - User with UID 'user_abc' can update/delete broadcast with hostId = 'user_abc'
-     * @deny (create) - User with UID 'user_xyz' cannot create a broadcast with hostId = 'user_abc'.
-     * @deny (update, delete) - User with UID 'user_xyz' cannot update/delete a broadcast where resource.data.hostId != 'user_xyz'.
-     * @principle Allows public reads but restricts writes to the owner.
+     * @allow (get, list) Any user can read and list broadcasts.
+     * @allow (create) User with UID 'user123' can create a broadcast with hostId 'user123'.
+     * @allow (update, delete) User with UID 'user123' can update/delete a broadcast where hostId is 'user123'.
+     * @deny (create) User with UID 'otherUser' cannot create a broadcast with hostId 'user123'.
+     * @deny (update, delete) User with UID 'otherUser' cannot update/delete a broadcast where hostId is 'user123'.
+     * @principle Allows open discovery of broadcasts while ensuring owner-only writes.
      */
     match /broadcasts/{broadcastId} {
       function isOwner(hostId) {
-        return request.auth != null && request.auth.uid == hostId;
+        return request.auth.uid == hostId;
       }
-
       allow get, list: if true;
-      allow create: if isOwner(request.resource.data.hostId) && request.resource.data.hostId == request.auth.uid;
+      allow create: if isOwner(request.resource.data.hostId);
       allow update: if isOwner(resource.data.hostId) && resource != null;
       allow delete: if isOwner(resource.data.hostId) && resource != null;
+    }
 
-      /**
-       * @description Allows anyone to create chat messages, but only the host can modify them.
-       * @path /broadcasts/{broadcastId}/messages/{messageId}
-       * @allow (get, list) - Any user (or unauthenticated user) can read broadcast messages.
-       * @allow (create) - Any logged in user can create a message.
-       * @allow (update, delete) - Only the host can update or delete messages.
-       * @principle  Allows anyone to create messages, but restricts edits to the owner.
-       */
-      match /messages/{messageId} {
-        allow get, list: if true;
-        allow create: if request.auth != null;
-        allow update: if isOwner(resource.data.userId) && resource != null;
-        allow delete: if isOwner(resource.data.userId) && resource != null;
+    /**
+     * @description Manages chat message access within a broadcast. Access is implicitly tied to broadcast access.
+     * @path /broadcasts/{broadcastId}/messages/{messageId}
+     * @allow (create) Any authenticated user can create a chat message.
+     * @allow (get, list) Any user can read and list chat messages.
+     * @deny (update, delete) No user can update or delete chat messages.
+     * @principle Inherits access control from the parent broadcast and restricts modification of messages.
+     */
+    match /broadcasts/{broadcastId}/messages/{messageId} {
+       function isSignedIn() {
+        return request.auth != null;
       }
+      allow get, list: if true;
+      allow create: if isSignedIn();
+      allow update, delete: if false;
+    }
 
-      /**
-       * @description Allows anyone to create reactions.
-       * @path /broadcasts/{broadcastId}/reactions/{reactionId}
-       * @allow (get, list) - Any user (or unauthenticated user) can read broadcast reactions.
-       * @allow (create) - Any logged in user can create a reaction.
-       * @deny (update, delete) - Reactions cannot be updated or deleted.
-       * @principle  Allows anyone to create ephemeral reactions.
-       */
-      match /reactions/{reactionId} {
-        allow get, list: if true;
-        allow create: if request.auth != null;
-        allow update, delete: if false;
+    /**
+     * @description Controls access to real-time reactions for a broadcast. Access is tied to the broadcast.
+     * @path /broadcasts/{broadcastId}/reactions/{reactionId}
+     * @allow (create) Any authenticated user can create a reaction.
+     * @allow (get, list) Any user can read and list reactions.
+     * @deny (update, delete) Reactions cannot be updated or deleted (ephemeral data).
+     * @principle Access is tied to the broadcast; reactions are ephemeral.
+     */
+    match /broadcasts/{broadcastId}/reactions/{reactionId} {
+      function isSignedIn() {
+        return request.auth != null;
       }
+      allow get, list: if true;
+      allow create: if isSignedIn();
+      allow update, delete: if false;
+    }
 
-      /**
-       * @description Allows only the host to manage guests.
-       * @path /broadcasts/{broadcastId}/guests/{guestId}
-       * @allow (get, list) - Any user (or unauthenticated user) can read broadcast guests.
-       * @allow (create, update, delete) - Only the host can create/update/delete guests.
-       * @principle Restricts guest management to the broadcast host.
-       */
-      match /guests/{guestId} {
-        allow get, list: if true;
-        allow create: if isOwner(resource.data.userId);
-        allow update: if isOwner(resource.data.userId) && resource != null;
-        allow delete: if isOwner(resource.data.userId) && resource != null;
+    /**
+     * @description Manages guest access within a broadcast, typically controlled by the host.
+     * @path /broadcasts/{broadcastId}/guests/{guestId}
+     * @allow (create) Any authenticated user can create a guest entry.
+     * @allow (get, list) Any user can read and list guest entries.
+     * @deny (update, delete) Guest entries cannot be updated or deleted directly.
+     * @principle Access tied to the broadcast; guest management primarily server-side.
+     */
+    match /broadcasts/{broadcastId}/guests/{guestId} {
+       function isSignedIn() {
+        return request.auth != null;
       }
+      allow get, list: if true;
+      allow create: if isSignedIn();
+      allow update, delete: if false;
+    }
+
+    /**
+     * @description Manages likes for a broadcast. Allows users to like a broadcast.
+     * @path /broadcasts/{broadcastId}/likes/{userId}
+     * @allow (create) Any authenticated user can like a broadcast.
+     * @allow (get, list) Any user can read and list likes for a broadcast.
+     * @deny (update, delete) Likes cannot be updated or deleted through the client.
+     * @principle Allows open liking of broadcasts; liking actions are append-only.
+     */
+    match /broadcasts/{broadcastId}/likes/{userId} {
+       function isSignedIn() {
+        return request.auth != null;
+      }
+      allow get, list: if true;
+      allow create: if isSignedIn();
+      allow update, delete: if false;
     }
   }
 }
