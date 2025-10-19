@@ -54,8 +54,48 @@ service cloud.firestore {
       allow list: if false; // Disabling listing of all users for privacy
 
       allow create: if isOwner(userId) && request.resource.data.id == request.auth.uid;
-      allow update: if isExistingOwner(userId) && request.resource.data.id == request.auth.uid;
+      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
       allow delete: if isExistingOwner(userId);
+
+        /**
+       * @description Allow anyone to read public user profiles,
+       * Users can update their own profile. Nested rules for the 'followers' sub-collection.
+       * @path /users/{userId}/followers/{followerId}
+       * @allow (list, get) if the user is signed in.
+       * @allow (create, delete) if the user is adding/removing THEMSELVES as a follower.
+       * @deny (update) to everyone.
+       * @principle Allow users to manage their OWN list of who they are following.
+       */
+      match /followers/{followerId} {
+        // Anyone signed in can see the list of followers (for counting)
+        allow list, get: if request.auth != null;
+
+        // A user can only add/remove THEMSELVES as a follower
+        allow create, delete: if request.auth.uid == followerId;
+
+        // No one can update a follow record
+        allow update: if false;
+      }
+
+      /**
+       * @description Allow anyone to read public user profiles,
+       * Users can update their own profile. Nested rules for the 'following' sub-collection.
+       * @path /users/{userId}/following/{targetUserId}
+       * @allow (list, get) if the user is signed in.
+       * @allow (create, delete) if the user is managing their OWN list of who they are following.
+       * @deny (update) to everyone.
+       * @principle Allow users to manage their OWN list of who they are following.
+       */
+      match /following/{targetUserId} {
+        // Anyone signed in can see who a user is following
+        allow list, get: if request.auth != null;
+
+        // A user can only manage their OWN list of who they are following
+        allow create, delete: if request.auth.uid == userId;
+
+        // No one can update a following record
+        allow update: if false;
+      }
     }
 
     /**
@@ -87,6 +127,42 @@ service cloud.firestore {
       allow create: if isSignedIn() && request.resource.data.hostId == request.auth.uid;
       allow update: if isSignedIn() && isHost(resource.data.hostId);
       allow delete: if isSignedIn() && isHost(resource.data.hostId);
+
+         /**
+         * @description Rules for the 'likes' sub-collection.
+         * Allow a user to create/delete their own like, BUT ONLY if the broadcast is live.
+         * @path /broadcasts/{broadcastId}/likes/{userId}
+         * @allow (list, get) to any signed-in user to read the list of likes for counting.
+         * @allow (create, delete) if the user is the owner and if the broadcast is live.
+         * @deny (update) to everyone.
+         * @principle Allow users to manage their OWN list of who they are following.
+        */
+        match /likes/{userId} {
+          // Allow any signed-in user to read the list of likes for counting.
+          allow list, get: if request.auth != null;
+
+          // Allow a user to create/delete their own like, BUT ONLY if the broadcast is live.
+          // get() is a function that lets us read another document in our rules.
+          // We read the parent broadcast document to check its 'isLive' status.
+          allow create: if request.auth.uid == userId && get(/databases/$(database)/documents/broadcasts/$(broadcastId)).data.isLive == true;
+          allow delete: if request.auth.uid == userId && get(/databases/$(database)/documents/broadcasts/$(broadcastId)).data.isLive == true;
+
+
+          // Nobody can ever update a like document.
+          allow update: if false;
+        }
+
+        match /messages/{messageId} {
+            allow read, write: if request.auth != null;
+        }
+
+        match /reactions/{reactionId} {
+            allow read, write: if request.auth != null;
+        }
+
+        match /guests/{guestId} {
+            allow read, write: if false;
+        }
     }
 
     /**
@@ -190,7 +266,7 @@ service cloud.firestore {
       }
       allow get: if isOwner(userId);
       allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && request.auth.uid == userId;
+      allow create: if isOwner(userId);
       allow update: if false;
       allow delete: if false;
     }
