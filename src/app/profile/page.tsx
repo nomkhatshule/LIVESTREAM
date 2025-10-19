@@ -60,11 +60,10 @@ export default function ProfilePage() {
   };
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (!event.target.files || event.target.files.length === 0 || !user) {
+    const file = event.target.files?.[0];
+    if (!file || !user || !storage) {
       return;
     }
-    const file = event.target.files[0];
-    if (!file) return;
 
     setIsUploading(true);
 
@@ -80,7 +79,7 @@ export default function ProfilePage() {
       // 3. Get the download URL.
       const downloadURL = await getDownloadURL(uploadTask.ref);
 
-      // 4. Update the form state and the Firestore document.
+      // 4. Update the form state and the Firestore document non-blockingly.
       form.setValue('profilePicture', downloadURL);
       const userDocRef = doc(firestore, 'users', user.uid);
       setDocumentNonBlocking(userDocRef, { profilePicture: downloadURL }, { merge: true });
@@ -89,8 +88,8 @@ export default function ProfilePage() {
       await revalidateProfilePaths();
 
       toast({
-        title: 'Avatar Updated',
-        description: 'Your new avatar has been saved.',
+        title: 'Avatar Updated!',
+        description: 'Your new avatar has been saved and will be updated across the app.',
       });
 
     } catch (error: any) {
@@ -98,9 +97,12 @@ export default function ProfilePage() {
       toast({
         variant: 'destructive',
         title: 'Upload Failed',
-        description: error.message || 'Could not upload your new avatar. Please check storage rules.',
+        description: error.code === 'storage/unauthorized' 
+            ? 'You do not have permission to upload. Please check storage rules.'
+            : 'Could not upload your new avatar. Please try again.',
       });
     } finally {
+      // 6. ALWAYS ensure the loading state is reset.
       setIsUploading(false);
     }
   };
