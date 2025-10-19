@@ -134,6 +134,10 @@
           "type": "string",
           "description": "The server timestamp when the message was created.",
           "format": "date-time"
+        },
+        "replyingTo": {
+          "type": "string",
+          "description": "The username of the user being replied to."
         }
       },
       "required": [

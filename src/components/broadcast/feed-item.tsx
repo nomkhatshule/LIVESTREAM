@@ -7,7 +7,7 @@ import {
   Call,
   StreamVideoClient,
 } from '@stream-io/video-react-sdk';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import type { Broadcast, User as AppUser, ChatMessage } from '@/lib/data';
 import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy, limit, serverTimestamp, doc } from 'firebase/firestore';
@@ -16,7 +16,7 @@ import { addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase/non-b
 import VideoPlayer from '@/components/broadcast/video-player';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Heart, MoreVertical, PlusCircle, Users, ArrowUp, MessageSquare, Share2, Clapperboard, User as UserIcon, PlayCircle, Loader2 } from 'lucide-react';
+import { Heart, MoreVertical, PlusCircle, Users, ArrowUp, MessageSquare, Share2, Clapperboard, User as UserIcon, PlayCircle, Loader2, CornerUpLeft } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -40,6 +40,7 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
   const firestore = useFirestore();
   const { toast } = useToast();
   const [call, setCall] = useState<Call | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   
   // State to manage if user wants to play and the joining status
   const [isPlaying, setIsPlaying] = useState(false);
@@ -78,7 +79,7 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
   }, [broadcast.id, firestore]);
 
   const { data: comments } = useCollection<ChatMessage>(messagesQuery);
-  const reversedComments = comments ? [...comments].reverse() : [];
+  const reversedComments = useMemo(() => comments ? [...comments].reverse() : [], [comments]);
   
   // Real-time likes
   const likesQuery = useMemoFirebase(() => {
@@ -138,13 +139,19 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
 
     const messagesCollectionRef = collection(firestore, 'broadcasts', broadcast.id, 'messages');
     
-    const newComment: Omit<ChatMessage, 'id'|'timestamp'> & {timestamp: any} = {
+    const newComment: Omit<ChatMessage, 'id'|'timestamp'> & {timestamp: any, replyingTo?: string} = {
         userId: user.uid,
         username: user.displayName || "Anonymous",
         userAvatar: user.photoURL || '',
         message: newMessage,
         timestamp: serverTimestamp(),
     };
+    
+    const mentionMatch = newMessage.match(/^@(\w+)\s/);
+    if (mentionMatch) {
+      newComment.replyingTo = mentionMatch[1];
+    }
+
 
     addDocumentNonBlocking(messagesCollectionRef, newComment);
     setNewMessage('');
@@ -174,6 +181,12 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
   const handlePlay = () => {
     setIsPlaying(true);
   }
+  
+  const handleReply = (username: string) => {
+    setNewMessage(`@${username} `);
+    textareaRef.current?.focus();
+  }
+
 
   return (
     <div className="relative h-[calc(100vh-4rem)] w-full snap-start" data-broadcast-id={broadcast.id}>
@@ -242,21 +255,26 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
                 <ScrollArea className="h-48 w-full pr-4">
                   <div className="flex flex-col gap-2">
                     {reversedComments.map((comment) => (
-                      <div key={comment.id} className="flex items-start gap-2 text-sm bg-black/25 p-2 rounded-lg">
+                      <div key={comment.id} className="group flex items-start gap-2 text-sm bg-black/25 p-2 rounded-lg">
                         <Avatar className="h-6 w-6 border-secondary">
                           <AvatarImage src={comment.userAvatar} alt={comment.username} />
                           <AvatarFallback>{comment.username.charAt(0)}</AvatarFallback>
                         </Avatar>
-                        <div>
+                        <div className="flex-1">
                           <span className="font-bold text-primary mr-1.5">{comment.username}:</span>
-                          <span className="break-words">{comment.message}</span>
+                          {comment.replyingTo && <Link href={`/profile/`} className="text-accent font-semibold mr-1.5 hover:underline">@{comment.replyingTo}</Link>}
+                          <span className="break-words">{comment.message.replace(/^@\w+\s/, '')}</span>
                         </div>
+                        <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => handleReply(comment.username)}>
+                            <CornerUpLeft className="h-4 w-4" />
+                        </Button>
                       </div>
                     ))}
                   </div>
                 </ScrollArea>
                 <form onSubmit={handleSendMessage} className="relative w-full mt-2">
                   <Textarea
+                    ref={textareaRef}
                     placeholder="Add a comment..."
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
