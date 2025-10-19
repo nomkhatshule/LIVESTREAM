@@ -1,172 +1,215 @@
 /**
- * @file Firestore Security Rules for AgoraLive
- * @core_philosophy This ruleset enforces a user-ownership model for user profiles and allows public read access to broadcasts while restricting write access to the host.
- *  Chat messages and reactions are tied to specific broadcasts and inherit their access control.
- *  The rules prioritize security by default, explicitly denying access when the conditions are not met.
- * @data_structure
- *  - /users/{userId}: Stores public user profile information.
- *  - /broadcasts/{broadcastId}: Stores metadata about a live stream.
- *  - /broadcasts/{broadcastId}/messages/{messageId}: Stores chat messages for a broadcast.
- *  - /broadcasts/{broadcastId}/reactions/{reactionId}: Stores real-time reactions for a broadcast.
- *  - /broadcasts/{broadcastId}/guests/{guestId}: Manages guest status in a broadcast.
- *  - /broadcasts/{broadcastId}/likes/{userId}: Stores likes for a broadcast.
- *  - /users/{userId}/following/{targetUserId}: Stores users that a user is following.
- *  - /users/{userId}/followers/{followerUserId}: Stores users that are following a user.
- * @key_security_decisions
- *  - Users can only read and write their own profile data.
- *  - Broadcasts are publicly readable, but only the host can modify them.
- *  - Chat messages and reactions inherit the broadcast's access control.
- *  - Listing of users is disallowed for privacy.
- *  - Likes can be created by any signed-in user, but only if the `userId` matches the authenticated user's UID.
- * @denormalization_for_authorization
- *  - Broadcast documents denormalize host information (hostId, hostName, hostAvatar) to simplify read operations.
+ * @fileoverview Firestore Security Rules for AgoraLive.
+ *
+ * Core Philosophy:
+ * This ruleset enforces a user-ownership model for user profiles and uses a
+ * public-read, owner-write model for broadcasts. Subcollections inherit
+ * the access control of their parent documents, with some exceptions.
+ *
+ * Data Structure:
+ * - /users/{userId}: User profile data, owned by the user with matching UID.
+ * - /broadcasts/{broadcastId}: Broadcast metadata, publicly readable, but only
+ *   modifiable by the host.
+ * - /broadcasts/{broadcastId}/messages/{messageId}: Chat messages within a
+ *   broadcast.
+ * - /broadcasts/{broadcastId}/reactions/{reactionId}: Real-time reactions to a
+ *   broadcast.
+ * - /broadcasts/{broadcastId}/guests/{guestId}: Guest management for broadcasts.
+ * - /broadcasts/{broadcastId}/likes/{userId}: Likes for a broadcast.
+ * - /users/{userId}/following/{targetUserId}: Users followed by a given user.
+ * - /users/{userId}/followers/{followerUserId}: Followers of a given user.
+ *
+ * Key Security Decisions:
+ * - Users can only read and write their own profile data.
+ * - Broadcasts are publicly readable to maximize discoverability.
+ * - Only the host of a broadcast can modify it.
+ * - Listing of users is disallowed for privacy.
+ * - Data validation is minimal in this prototyping phase.
+ *
+ * Denormalization for Authorization:
+ * Host information (hostId, hostName, hostAvatar) is denormalized onto the
+ * Broadcast document to simplify authorization rules. This avoids the need for
+ * costly `get()` calls to the `/users/{hostId}` document to verify ownership.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Manages access to user profile data. Users can only read and write their own profile.
+     * @description Controls access to user profile documents.
      * @path /users/{userId}
-     * @allow (create) User A with id 'user_a' can create a profile with id 'user_a'.
-     * @allow (get,update,delete) User A with id 'user_a' can get, update and delete their profile.
-     * @deny (create) User A with id 'user_a' cannot create a profile with id 'user_b'.
-     * @deny (get,update,delete) User A with id 'user_a' cannot get, update or delete User B's profile.
-     * @principle Enforces document ownership for user profiles.
+     * @allow (create) User with matching UID can create their profile.
+     * @allow (get, update, delete) User with matching UID can read, update, and delete their profile.
+     * @deny (create) User cannot create a profile with a mismatched UID.
+     * @deny (list) Listing users is not allowed.
+     * @principle Enforces user-ownership.
      */
     match /users/{userId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
       function isOwner(userId) {
-        return request.auth != null && request.auth.uid == userId;
+        return request.auth.uid == userId;
       }
 
       function isExistingOwner(userId) {
-        return isOwner(userId) && resource != null;
+        return isOwner(userId) && existsAfter(/databases/$(database)/documents/users/$(userId));
       }
 
-      allow get: if isOwner(userId);
+      allow get: if isSignedIn() && isOwner(userId);
       allow list: if false;
-      allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
-      allow delete: if isExistingOwner(userId);
+      allow create: if isSignedIn() && isOwner(userId);
+      allow update: if isSignedIn() && isExistingOwner(userId);
+      allow delete: if isSignedIn() && isExistingOwner(userId);
     }
 
     /**
-     * @description Manages access to broadcast data.  Broadcasts are publicly readable, but only the host can modify them.
+     * @description Controls access to broadcast documents.
      * @path /broadcasts/{broadcastId}
-     * @allow (get,list) Any user can read and list broadcasts.
-     * @allow (create) User A with id 'user_a' can create a broadcast with hostId 'user_a'.
-     * @allow (update,delete) User A with id 'user_a' can update and delete a broadcast where hostId is 'user_a'.
-     * @deny (create) User A with id 'user_a' cannot create a broadcast with hostId 'user_b'.
-     * @deny (update,delete) User A with id 'user_a' cannot update or delete a broadcast where hostId is 'user_b'.
-     * @principle  Enforces document ownership for broadcast writes.
+     * @allow (get, list) All users can read and list broadcasts.
+     * @allow (create) Authenticated users can create broadcasts.
+     * @allow (update, delete) Only the host can update or delete a broadcast.
+     * @deny (create) Broadcast creation must have the correct hostId.
+     * @principle Allows public read, enforces host-only writes.
      */
     match /broadcasts/{broadcastId} {
-      function isOwner(hostId) {
-        return request.auth != null && request.auth.uid == hostId;
+      function isSignedIn() {
+        return request.auth != null;
       }
 
-      function isExistingOwner(hostId) {
-        return isOwner(hostId) && resource != null;
+      function isOwner() {
+        return request.auth.uid == resource.data.hostId;
+      }
+
+        function isNewOwner() {
+        return request.auth.uid == request.resource.data.hostId;
+      }
+
+
+      function isExistingOwner() {
+        return request.auth.uid == resource.data.hostId && existsAfter(/databases/$(database)/documents/broadcasts/$(broadcastId));
       }
 
       allow get, list: if true;
-      allow create: if isOwner(request.resource.data.hostId) && request.resource.data.hostId == request.auth.uid;
-      allow update: if isExistingOwner(resource.data.hostId);
-      allow delete: if isExistingOwner(resource.data.hostId);
-
-      /**
-       * @description Manages access to chat messages within a broadcast.
-       * @path /broadcasts/{broadcastId}/messages/{messageId}
-       * @allow (get,list,create) Any signed-in user can read, list and create messages within a broadcast.
-       * @deny (update,delete) No user can update or delete chat messages.
-       */
-      match /messages/{messageId} {
-        function isSignedIn() {
-          return request.auth != null;
-        }
-
-        allow get, list: if isSignedIn();
-        allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-        allow update, delete: if false;
-      }
-
-      /**
-       * @description Manages access to reactions within a broadcast.
-       * @path /broadcasts/{broadcastId}/reactions/{reactionId}
-       * @allow (get,list,create) Any signed-in user can read, list and create reactions within a broadcast.
-       * @deny (update,delete) No user can update or delete reactions.
-       */
-      match /reactions/{reactionId} {
-        function isSignedIn() {
-          return request.auth != null;
-        }
-
-        allow get, list: if isSignedIn();
-        allow create: if isSignedIn() && request.resource.data.senderId == request.auth.uid;
-        allow update, delete: if false;
-      }
-
-      /**
-       * @description Manages access to guests within a broadcast.
-       * @path /broadcasts/{broadcastId}/guests/{guestId}
-       * @allow (get,list,create,update,delete) Only the host can manage guests within a broadcast.
-       * @deny (get,list,create,update,delete) Non-hosts cannot manage guests.
-       */
-      match /guests/{guestId} {
-        function isBroadcastOwner(broadcastId) {
-            return get(/databases/$(database)/documents/broadcasts/$(broadcastId)).data.hostId == request.auth.uid;
-        }
-
-        allow get, list, create, update, delete: if isBroadcastOwner(broadcastId);
-      }
-
-       /**
-        * @description Manages access to likes within a broadcast.
-        * @path /broadcasts/{broadcastId}/likes/{userId}
-        * @allow (get,list) Any signed-in user can read and list likes for a broadcast.
-        * @allow (create) Any signed-in user can create a like, if the document ID matches their UID.
-        * @deny (update,delete) Likes cannot be updated or deleted directly.
-        * @principle Likes are associated with a specific broadcast and user.
-        */
-      match /likes/{userId} {
-        function isSignedIn() {
-          return request.auth != null;
-        }
-
-        allow get, list: if true;
-        allow create: if isSignedIn() && request.auth.uid == userId && request.resource.data.userId == request.auth.uid;
-        allow update, delete: if false;
-      }
+      allow create: if isSignedIn() && isNewOwner();
+      allow update: if isSignedIn() && isOwner();
+      allow delete: if isSignedIn() && isOwner();
     }
 
     /**
-     * @description Manages access to user follow relationships. Users can only manage their own follow relationships.
-     * @path /users/{userId}/following/{targetUserId}
-     * @allow (get,list,create,delete) User A can read, list, create, and delete users they are following.
-     * @deny (get,list,create,delete) User A cannot manage User B's follow relationships.
+     * @description Controls access to chat messages within a broadcast.
+     * @path /broadcasts/{broadcastId}/messages/{messageId}
+     * @allow (get, list, create) Any authenticated user can read and create chat messages in a broadcast.
+     * @deny (update, delete) Chat messages cannot be updated or deleted.
+     * @principle Allows public chat participation, no message editing.
      */
-    match /users/{userId}/following/{targetUserId} {
-      function isOwner(userId) {
-        return request.auth != null && request.auth.uid == userId;
+    match /broadcasts/{broadcastId}/messages/{messageId} {
+      function isSignedIn() {
+        return request.auth != null;
       }
 
-      allow get, list, create, delete: if isOwner(userId) && request.resource.data.userId == request.auth.uid;
-      allow update: if false;
+      allow get, list, create: if isSignedIn();
+      allow update, delete: if false;
     }
 
-     /**
-      * @description Manages access to user follower relationships.  Users can only view their own followers.  Follower relationships are managed through the "following" collection.
-      * @path /users/{userId}/followers/{followerUserId}
-      * @allow (get,list) User A can read and list their followers.
-      * @deny (create,update,delete) No user can create, update, or delete follower relationships directly.
-      * @principle  Follower relationships are implicitly managed via the "following" collection.
-      */
-    match /users/{userId}/followers/{followerUserId} {
-      function isOwner(userId) {
-        return request.auth != null && request.auth.uid == userId;
+    /**
+     * @description Controls access to reactions within a broadcast.
+     * @path /broadcasts/{broadcastId}/reactions/{reactionId}
+     * @allow (get, list, create) Any authenticated user can read and create reactions.
+     * @deny (update, delete) Reactions cannot be updated or deleted.
+     * @principle Open participation, ephemeral data.
+     */
+    match /broadcasts/{broadcastId}/reactions/{reactionId} {
+      function isSignedIn() {
+        return request.auth != null;
       }
 
-      allow get, list: if isOwner(userId);
+      allow get, list, create: if isSignedIn();
+      allow update, delete: if false;
+    }
+
+    /**
+     * @description Controls access to guest management within a broadcast.
+     * @path /broadcasts/{broadcastId}/guests/{guestId}
+     * @allow (get, list) Any authenticated user can view the guest list.
+     * @allow (create, update, delete) Only the host can manage guests.
+     * @principle Host-controlled guest management.
+     */
+    match /broadcasts/{broadcastId}/guests/{guestId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function isBroadcastOwner(broadcastId) {
+        return get(/databases/$(database)/documents/broadcasts/$(broadcastId)).data.hostId == request.auth.uid;
+      }
+
+      allow get, list: if isSignedIn();
+      allow create, update, delete: if isSignedIn() && isBroadcastOwner(broadcastId);
+    }
+
+    /**
+     * @description Controls access to likes for a broadcast.
+     * @path /broadcasts/{broadcastId}/likes/{userId}
+     * @allow (get, list) Any authenticated user can read the like count.
+     * @allow (create) Any authenticated user can like a broadcast.
+     * @allow (delete) A user can delete their like (unlike).
+     * @deny (update) Likes cannot be updated.
+     * @principle Users can like/unlike broadcasts.
+     */
+    match /broadcasts/{broadcastId}/likes/{userId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      allow get, list: if true;
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update: if false;
+      allow delete: if isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * @description Controls access to the users that a user is following.
+     * @path /users/{userId}/following/{targetUserId}
+     * @allow (get, list) Only the owner can read the list of followed users.
+     * @allow (create) Only the owner can follow new users.
+     * @allow (delete) Only the owner can unfollow users.
+     * @deny (update) Follow relationships cannot be updated.
+     * @principle User-controlled following.
+     */
+    match /users/{userId}/following/{targetUserId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+
+      allow get, list: if isSignedIn() && isOwner(userId);
+      allow create: if isSignedIn() && isOwner(userId) && request.auth.uid == userId;
+      allow update: if false;
+      allow delete: if isSignedIn() && isOwner(userId) && request.auth.uid == userId;
+    }
+
+    /**
+     * @description Controls access to the followers of a user.
+     * @path /users/{userId}/followers/{followerUserId}
+     * @allow (get, list) Only the owner can read their list of followers.
+     * @deny (create, update, delete) Followers are managed implicitly and cannot be directly created or modified here.
+     * @principle User-controlled follower visibility.
+     */
+    match /users/{userId}/followers/{followerUserId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+
+      allow get, list: if isSignedIn() && isOwner(userId);
       allow create, update, delete: if false;
     }
   }
