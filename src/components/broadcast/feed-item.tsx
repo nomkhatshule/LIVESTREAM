@@ -160,6 +160,14 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
   };
 
   const handleLike = () => {
+    if (!broadcast.isLive) {
+        toast({
+            title: 'Stream is offline',
+            description: 'You can only like live streams.',
+            variant: 'destructive'
+        });
+        return;
+    }
     if (!user) {
       toast({
         title: 'Login Required',
@@ -330,7 +338,7 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
                <MessageSquare className="h-8 w-8" />
                <span className="text-xs mt-1">{comments?.length || 0}</span>
             </Button>
-            <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white flex-col hover:bg-white/20" onClick={handleLike}>
+            <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white flex-col hover:bg-white/20" onClick={handleLike} disabled={!broadcast.isLive}>
               <Heart className={cn("h-8 w-8", hasLiked && "fill-red-500 text-red-500")} />
               <span className="text-xs mt-1 tabular-nums">{likes?.length || 0}</span>
             </Button>
