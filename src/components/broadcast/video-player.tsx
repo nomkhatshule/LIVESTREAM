@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Broadcast } from '@/lib/data';
@@ -47,7 +48,10 @@ export default function VideoPlayer({
       )}>
         {/* StreamTheme can be removed from here if it's applied at a higher level, but it's fine to keep. */}
         <StreamTheme as="main" className="w-full h-full">
-            <ParticipantView participant={participantToDisplay} />
+            <ParticipantView 
+              participant={participantToDisplay} 
+              mirrored={isHost} // Host sees a mirror, viewers see the real orientation
+            />
         </StreamTheme>
     </div>
   );
