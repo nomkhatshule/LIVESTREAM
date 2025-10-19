@@ -69,21 +69,23 @@ export default function ProfilePage() {
     setIsUploading(true);
 
     try {
-      // 1. Create a storage reference
-      const storageRef = ref(storage, `avatars/${user.uid}/${file.name}`);
+      // 1. Create a storage reference with a standardized path.
+      const storageRef = ref(storage, `avatars/${user.uid}/profile.png`);
 
-      // 2. Upload the file
-      const uploadTask = await uploadBytes(storageRef, file);
+      // 2. Upload the file with content type metadata.
+      const uploadTask = await uploadBytes(storageRef, file, {
+        contentType: file.type,
+      });
 
-      // 3. Get the download URL
+      // 3. Get the download URL.
       const downloadURL = await getDownloadURL(uploadTask.ref);
 
-      // 4. Update the form state and the Firestore document
+      // 4. Update the form state and the Firestore document.
       form.setValue('profilePicture', downloadURL);
       const userDocRef = doc(firestore, 'users', user.uid);
       setDocumentNonBlocking(userDocRef, { profilePicture: downloadURL }, { merge: true });
 
-      // 5. Revalidate paths to update UI across the app
+      // 5. Revalidate paths to update UI across the app.
       await revalidateProfilePaths();
 
       toast({
