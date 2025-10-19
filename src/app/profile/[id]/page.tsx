@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { doc, writeBatch, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { useMemo } from 'react';
-import { collection, query, where, orderBy, limit } from 'firebase/firestore';
+import { collection } from 'firebase/firestore';
 import { UserPlus, UserCheck, MessageSquare } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Link from 'next/link';
@@ -32,14 +32,21 @@ export default function UserProfilePage() {
   const { userDocument, isDocLoading } = useUserDocumentById(profileUserId);
 
   // --- Follower/Following Logic ---
-  const followingRef = useMemoFirebase(() => currentUser ? collection(firestore, `users/${currentUser.uid}/following`) : null, [currentUser, firestore]);
-  const followersRef = useMemoFirebase(() => collection(firestore, `users/${profileUserId}/followers`), [profileUserId, firestore]);
-  const { data: followingList, isLoading: isFollowingLoading } = useCollection(followingRef);
-  const { data: followersList, isLoading: isFollowersLoading } = useCollection(followersRef);
+  // Get the list of users the CURRENT user is following, to check if they follow the profile user
+  const currentUserFollowingRef = useMemoFirebase(() => currentUser ? collection(firestore, `users/${currentUser.uid}/following`) : null, [currentUser, firestore]);
+  const { data: currentUserFollowingList, isLoading: isCurrentUserFollowingLoading } = useCollection(currentUserFollowingRef);
   
+  // Get the list of followers FOR THE PROFILE USER
+  const profileFollowersRef = useMemoFirebase(() => collection(firestore, `users/${profileUserId}/followers`), [profileUserId, firestore]);
+  const { data: followersList, isLoading: isFollowersLoading } = useCollection(profileFollowersRef);
+  
+  // Get the list of users the PROFILE USER is following
+  const profileFollowingRef = useMemoFirebase(() => collection(firestore, `users/${profileUserId}/following`), [profileUserId, firestore]);
+  const { data: followingList, isLoading: isFollowingLoading } = useCollection(profileFollowingRef);
+
   const isFollowing = useMemo(() => {
-    return followingList?.some(follow => follow.id === profileUserId) || false;
-  }, [followingList, profileUserId]);
+    return currentUserFollowingList?.some(follow => follow.id === profileUserId) || false;
+  }, [currentUserFollowingList, profileUserId]);
 
   const handleFollowToggle = async () => {
     if (!currentUser) {
@@ -81,7 +88,7 @@ export default function UserProfilePage() {
   };
   
   const isOwnProfile = currentUser?.uid === profileUserId;
-  const isLoading = isDocLoading || isFollowingLoading || isFollowersLoading;
+  const isLoading = isDocLoading || isCurrentUserFollowingLoading || isFollowersLoading || isFollowingLoading;
 
   if (isLoading) {
     return <ProfileSkeleton />;
@@ -215,5 +222,3 @@ function ProfileSkeleton() {
     </div>
   );
 }
-
-    
