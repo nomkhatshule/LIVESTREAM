@@ -10,9 +10,9 @@ import {
 import { useEffect, useState, useMemo, useRef } from 'react';
 import type { Broadcast, User as AppUser, ChatMessage } from '@/lib/data';
 import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, limit, serverTimestamp, doc } from 'firebase/firestore';
+import { collection, query, orderBy, limit, serverTimestamp, doc, deleteDoc } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
-import { addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { addDocumentNonBlocking, setDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import VideoPlayer from '@/components/broadcast/video-player';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -82,11 +82,13 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
   const reversedComments = useMemo(() => comments ? [...comments].reverse() : [], [comments]);
   
   // Real-time likes
-  const likesQuery = useMemoFirebase(() => {
+  const likesCollectionRef = useMemoFirebase(() => {
     if (!broadcast.id || !firestore) return null;
     return collection(firestore, `broadcasts/${broadcast.id}/likes`);
   }, [broadcast.id, firestore]);
-  const { data: likes } = useCollection(likesQuery);
+
+  const { data: likes } = useCollection(likesCollectionRef);
+
   const hasLiked = useMemo(() => {
     if (!user || !likes) return false;
     return likes.some(like => like.id === user.uid);
@@ -171,11 +173,16 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
     // Use user's UID as document ID to prevent multiple likes
     const likeDocRef = doc(firestore, 'broadcasts', broadcast.id, 'likes', user.uid);
     
-    // This is an idempotent operation.
-    setDocumentNonBlocking(likeDocRef, { 
-      userId: user.uid,
-      timestamp: serverTimestamp() 
-    }, {});
+    if (hasLiked) {
+      // User has already liked, so "unlike"
+      deleteDocumentNonBlocking(likeDocRef);
+    } else {
+      // User has not liked yet, so "like"
+      setDocumentNonBlocking(likeDocRef, { 
+        userId: user.uid,
+        timestamp: serverTimestamp() 
+      }, {});
+    }
   };
 
   const handlePlay = () => {
@@ -262,7 +269,7 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
                         </Avatar>
                         <div className="flex-1">
                           <span className="font-bold text-primary mr-1.5">{comment.username}:</span>
-                          {comment.replyingTo && <Link href={`/profile/`} className="text-accent font-semibold mr-1.5 hover:underline">@{comment.replyingTo}</Link>}
+                          {comment.replyingTo && <Link href={`/profile/${comment.replyingTo}`} className="text-accent font-semibold mr-1.5 hover:underline">@{comment.replyingTo}</Link>}
                           <span className="break-words">{comment.message.replace(/^@\w+\s/, '')}</span>
                         </div>
                         <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => handleReply(comment.username)}>
