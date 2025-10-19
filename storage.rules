@@ -2,17 +2,15 @@ rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
-    // Grant read access to all files to any user.
-    // This allows public read access for assets like avatars.
-    match /{allPaths=**} {
+    // Match the path for user avatars. The {userId} wildcard captures the user's ID.
+    // This rule applies to files like "avatars/user123/profile.png"
+    match /avatars/{userId}/{allPaths=**} {
+      // Allow public read access to all avatars so they can be displayed in the app.
       allow read: if true;
-    }
 
-    // Grant write access only to a user's own avatar path.
-    // - The user must be authenticated (request.auth != null).
-    // - The user's UID must match the {userId} wildcard in the path.
-    // - This prevents users from writing to other users' avatar paths.
-    match /avatars/{userId}/profile.png {
+      // Allow write (create, update, delete) only if the requesting user
+      // is authenticated AND their UID matches the {userId} in the file path.
+      // This ensures users can only change their own avatar.
       allow write: if request.auth != null && request.auth.uid == userId;
     }
   }
