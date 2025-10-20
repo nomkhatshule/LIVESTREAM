@@ -285,42 +285,51 @@ function AgoraTestPageUI() {
 
         <div className="absolute bottom-0 left-0 right-0 z-10 p-4 flex flex-col justify-end bg-gradient-to-t from-black/70 to-transparent h-2/5">
           {isChatVisible && (
-            <ScrollArea className="h-full max-h-[250px] pr-4">
-              <div className="flex flex-col gap-3">
-                {comments && comments.map((comment) => (
-                  <div key={comment.id} className="flex items-start gap-3 text-sm text-white bg-black/20 p-2 rounded-lg max-w-xs sm:max-w-sm">
-                    <Avatar className="h-6 w-6 border-2 border-secondary">
-                      <AvatarImage src={comment.avatar} alt={comment.username} />
-                      <AvatarFallback>{comment.username.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <span className="font-bold text-secondary mr-1.5">{comment.username}:</span>
-                      <p className="break-words inline">{comment.message}</p>
+            <>
+              <ScrollArea className="h-full max-h-[250px] pr-4">
+                <div className="flex flex-col gap-3">
+                  {comments && comments.map((comment) => (
+                    <div key={comment.id} className="flex items-start gap-3 text-sm text-white bg-black/20 p-2 rounded-lg max-w-xs sm:max-w-sm">
+                      <Avatar className="h-6 w-6 border-2 border-secondary">
+                        <AvatarImage src={comment.avatar} alt={comment.username} />
+                        <AvatarFallback>{comment.username.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <span className="font-bold text-secondary mr-1.5">{comment.username}:</span>
+                        <p className="break-words inline">{comment.message}</p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
+              </ScrollArea>
+              <div className="mt-4 flex items-center gap-2">
+                <form onSubmit={handleSendMessage} className="relative flex-1">
+                  <Input
+                    placeholder="Add a comment..."
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    className="bg-black/50 border-white/20 text-white placeholder:text-gray-400 pr-10"
+                  />
+                  <Button variant="ghost" size="icon" type="submit" className="absolute inset-y-0 right-0 text-white">
+                    <ArrowUp className="h-5 w-5" />
+                  </Button>
+                </form>
+                <Button variant="ghost" size="icon" onClick={handleReaction} className="text-white bg-black/50 rounded-full h-10 w-10">
+                  <Smile className="h-5 w-5" />
+                </Button>
+                <Button variant="ghost" size="icon" onClick={() => setIsChatVisible(prev => !prev)} className="text-white bg-black/50 rounded-full h-10 w-10">
+                  {isChatVisible ? <MessageCircleOff className="h-5 w-5" /> : <MessageCircle className="h-5 w-5" />}
+                </Button>
               </div>
-            </ScrollArea>
+            </>
           )}
-          <div className="mt-4 flex items-center gap-2">
-            <form onSubmit={handleSendMessage} className="relative flex-1">
-              <Input
-                placeholder="Add a comment..."
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                className="bg-black/50 border-white/20 text-white placeholder:text-gray-400 pr-10"
-              />
-              <Button variant="ghost" size="icon" type="submit" className="absolute inset-y-0 right-0 text-white">
-                <ArrowUp className="h-5 w-5" />
-              </Button>
-            </form>
-            <Button variant="ghost" size="icon" onClick={handleReaction} className="text-white bg-black/50 rounded-full h-10 w-10">
-              <Smile className="h-5 w-5" />
-            </Button>
-            <Button variant="ghost" size="icon" onClick={() => setIsChatVisible(prev => !prev)} className="text-white bg-black/50 rounded-full h-10 w-10">
-              {isChatVisible ? <MessageCircleOff className="h-5 w-5" /> : <MessageCircle className="h-5 w-5" />}
-            </Button>
-          </div>
+           {!isChatVisible && (
+            <div className="flex justify-end">
+                 <Button variant="ghost" size="icon" onClick={() => setIsChatVisible(prev => !prev)} className="text-white bg-black/50 rounded-full h-10 w-10">
+                    <MessageCircle className="h-5 w-5" />
+                </Button>
+            </div>
+           )}
         </div>
       </div>
     </div>
