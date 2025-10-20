@@ -1,19 +1,17 @@
-
 rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
-    // Allow public read access to all files
+    // Allow public read access to all files.
+    // This is common for files like profile pictures that need to be
+    // displayed to any visitor of the site.
     match /{allPaths=**} {
       allow read;
     }
 
-    // Allow authenticated users to write to their own 'uploads' and 'avatars' folders.
-    // This rule is secure because it's based on the user's unique ID (request.auth.uid).
-    match /uploads/{userId}/{allPaths=**} {
-      allow write: if request.auth != null && request.auth.uid == userId;
-    }
-
+    // Allow an authenticated user to write (upload, update, delete)
+    // only to their own designated avatar folder.
+    // The {userId} in the path must match the UID of the user making the request.
     match /avatars/{userId}/{allPaths=**} {
       allow write: if request.auth != null && request.auth.uid == userId;
     }
