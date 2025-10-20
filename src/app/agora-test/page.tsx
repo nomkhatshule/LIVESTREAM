@@ -207,7 +207,7 @@ function AgoraTestPageUI() {
       <div className="h-screen w-full bg-black text-white flex flex-col relative">
         <div className="absolute inset-0 bg-gray-900 flex items-center justify-center">
           
-          <StreamTheme as="main" className="w-full h-full">
+          <StreamTheme as="main" className="w-full h-full str-video__connection-quality--hidden">
             {localParticipant && <ParticipantView participant={localParticipant} />}
           </StreamTheme>
 
