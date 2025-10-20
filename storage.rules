@@ -2,12 +2,14 @@ rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
-    // Match any file in the 'avatars' directory
-    match /avatars/{userId}/{fileName} {
-      // Allow read access to anyone (for displaying profile pictures)
+    // Rules for user avatars
+    match /avatars/{userId}/{allPaths=**} {
+      // Allow anyone to read (view) any avatar.
+      // This is necessary for other users to see profile pictures.
       allow read;
-      // Allow write access (create, update, delete) only if the user is authenticated
-      // and the `userId` in the path matches their own UID.
+      
+      // Only allow the authenticated user to write (upload, update, delete)
+      // their own avatar. This prevents users from changing other people's pictures.
       allow write: if request.auth != null && request.auth.uid == userId;
     }
   }
