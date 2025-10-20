@@ -1,24 +1,21 @@
+
 rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
-    // Rules for user avatars
-    // Path: /avatars/{userId}/profile.png
-    match /avatars/{userId}/profile.png {
-      // Allow anyone to read avatars.
-      allow read: if true;
-      
-      // Allow a user to write (create, update, delete) to their own avatar path ONLY.
-      // - The user must be authenticated (request.auth != null).
-      // - The user's UID must match the {userId} in the path.
-      // - The uploaded file size must be less than 5MB.
-      // - The uploaded file must be an image.
-      allow write: if request.auth != null && 
-                    request.auth.uid == userId &&
-                    request.resource.size < 5 * 1024 * 1024 &&
-                    request.resource.contentType.matches('image/.*');
+    // Allow public read access to all files
+    match /{allPaths=**} {
+      allow read;
     }
-    
-    // Deny all other read/write operations on all other files by default.
+
+    // Allow authenticated users to write to their own 'uploads' and 'avatars' folders.
+    // This rule is secure because it's based on the user's unique ID (request.auth.uid).
+    match /uploads/{userId}/{allPaths=**} {
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    match /avatars/{userId}/{allPaths=**} {
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
   }
 }
