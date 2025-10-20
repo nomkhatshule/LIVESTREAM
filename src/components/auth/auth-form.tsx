@@ -57,8 +57,9 @@ function AuthFormComponent() {
 
   const onSubmit: SubmitHandler<FormSchema> = data => {
     if (authType === 'signup') {
-      const { email, password } = data as z.infer<typeof signupSchema>;
-      initiateEmailSignUp(auth, email, password);
+      const { email, password, username } = data as z.infer<typeof signupSchema>;
+      // Pass username to the signup function
+      initiateEmailSignUp(auth, email, password, username);
     } else {
       const { email, password } = data as z.infer<typeof loginSchema>;
       initiateEmailSignIn(auth, email, password);
