@@ -8,22 +8,19 @@ import { useEffect, useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Clapperboard } from 'lucide-react';
 import Link from 'next/link';
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, useUserDocument } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface HomePageClientProps {
-  upcomingBroadcasts: Broadcast[];
   categories: Omit<Category, 'icon'>[];
-  currentUser: User;
 }
 
 export default function HomePageClient({
-  upcomingBroadcasts,
   categories,
-  currentUser,
 }: HomePageClientProps) {
   const firestore = useFirestore();
+  const { userDocument: currentUser } = useUserDocument();
 
   // Fetch live broadcasts on the client
   const liveBroadcastsQuery = useMemoFirebase(
@@ -75,7 +72,7 @@ export default function HomePageClient({
         </div>
       </section>
 
-      {liveBroadcasts && <RecommendedForYou currentUser={currentUser} allBroadcasts={liveBroadcasts} />}
+      {liveBroadcasts && currentUser && <RecommendedForYou currentUser={currentUser} allBroadcasts={liveBroadcasts} />}
 
       <section className="mt-12">
         <h2 className="text-3xl font-bold font-headline mb-4">Live Now</h2>

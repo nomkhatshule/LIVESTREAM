@@ -1,17 +1,14 @@
-
-
 'use client';
 
-import { broadcasts, users } from '@/lib/data';
 import { notFound, useParams } from 'next/navigation';
 import VideoPlayer from '@/components/broadcast/video-player';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Heart, UserSearch, MoreVertical, PlusCircle, Users, ArrowUp, MessageSquareMore, Share2, Clapperboard, User as UserIcon } from 'lucide-react';
 import { useUser, useMemoFirebase } from '@/firebase';
-import type { Broadcast } from '@/lib/data';
-import { useDoc, useFirestore } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import type { Broadcast, ChatMessage } from '@/lib/data';
+import { useDoc, useFirestore, useCollection } from '@/firebase';
+import { doc, collection, orderBy, limit, serverTimestamp, setDoc, deleteDoc } from 'firebase/firestore';
 import { useMemo, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -23,40 +20,51 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
+import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
-const initialMockComments = [
-    { id: 1, username: 'User123', avatar: 'https://picsum.photos/seed/chat1/40/40', message: 'This is awesome! 🚀' },
-    { id: 2, username: 'StreamFan', avatar: 'https://picsum.photos/seed/chat2/40/40', message: 'Love this content!' },
-    { id: 3, username: 'Newbie', avatar: 'https://picsum.photos/seed/chat3/40/40', message: 'What is this song called?' },
-    { id: 4, username: 'AnotherViewer', avatar: 'https://picsum.photos/seed/chat4/40/40', message: 'So cool!' },
-];
 
 export default function BroadcastPage() {
   const params = useParams();
   const { id } = params as { id: string };
   const { user } = useUser();
   const firestore = useFirestore();
+  const { toast } = useToast();
+
   const [newMessage, setNewMessage] = useState('');
   const [isChatVisible, setIsChatVisible] = useState(true);
-  const [comments, setComments] = useState(initialMockComments);
 
   const broadcastDocRef = useMemoFirebase(() => {
     if (!id || !firestore) return undefined;
     return doc(firestore, 'broadcasts', id);
   }, [id, firestore]);
-
   const { data: broadcastData, isLoading: isBroadcastLoading } = useDoc<any>(broadcastDocRef);
 
+  const messagesQuery = useMemoFirebase(() => {
+    if (!id || !firestore) return undefined;
+    return query(collection(firestore, `broadcasts/${id}/messages`), orderBy('timestamp', 'asc'), limit(100));
+  }, [id, firestore]);
+  const { data: comments } = useCollection<ChatMessage>(messagesQuery);
+  
+  const likesCollectionRef = useMemoFirebase(() => {
+    if (!id || !firestore) return null;
+    return collection(firestore, 'broadcasts', id, 'likes');
+  }, [id, firestore]);
+  const { data: likes } = useCollection(likesCollectionRef);
+
+  const hasLiked = useMemo(() => {
+    if (!user || !likes) return false;
+    return likes.some(like => like.id === user.uid);
+  }, [user, likes]);
+  
   const broadcast: Broadcast | undefined = useMemo(() => {
-    if (!broadcastData) {
-        // Fallback to mock data if firestore data not available
-        return broadcasts.find((b) => b.id === id);
-    }
-    const hostUser = users.find(u => u.id === broadcastData.hostId) || users[0];
+    if (!broadcastData) return undefined;
+    const hostUser = { name: broadcastData.hostName, avatarUrl: broadcastData.hostAvatar, id: broadcastData.hostId, avatarHint: '', bio: '', interests: [], watchHistory: [] };
     return {
       id: id,
       title: broadcastData.title,
-      user: { ...hostUser, name: broadcastData.hostName, avatarUrl: broadcastData.hostAvatar },
+      user: hostUser,
       thumbnailUrl: '', // Not needed on live view
       thumbnailHint: '',
       viewers: broadcastData.viewerCount || 0,
@@ -68,22 +76,41 @@ export default function BroadcastPage() {
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (newMessage.trim() === '') return;
+    if (newMessage.trim() === '' || !user || !broadcast) return;
 
-    const newComment = {
-        id: Date.now(),
-        username: 'You', // Simulate current user
-        avatar: user?.photoURL || 'https://picsum.photos/seed/me/40/40',
+    const messagesCollection = collection(firestore, `broadcasts/${broadcast.id}/messages`);
+    addDocumentNonBlocking(messagesCollection, {
+        userId: user.uid,
+        username: user.displayName || 'Anonymous',
+        userAvatar: user.photoURL || '',
         message: newMessage,
-    };
-    setComments(prev => [...prev, newComment]);
+        timestamp: serverTimestamp(),
+    });
     setNewMessage('');
   }
 
   const handleLike = () => {
-    console.log('Like button clicked!');
-    // Logic will be added later
-  }
+    if (!broadcast?.isLive) {
+        toast({ title: 'Stream is offline', description: 'You can only like live streams.', variant: 'destructive'});
+        return;
+    }
+    if (!user) {
+      toast({ title: 'Login Required', description: 'You must be logged in to like a stream.', variant: 'destructive'});
+      return;
+    }
+    if (!firestore || !broadcast.id) return;
+    
+    const likeDocRef = doc(firestore, 'broadcasts', broadcast.id, 'likes', user.uid);
+    
+    if (hasLiked) {
+      deleteDoc(likeDocRef);
+    } else {
+      setDoc(likeDocRef, { 
+        userId: user.uid,
+        timestamp: serverTimestamp() 
+      });
+    }
+  };
 
   if (isBroadcastLoading) {
     return <BroadcastSkeleton />;
@@ -113,7 +140,7 @@ export default function BroadcastPage() {
               <div className="flex items-center gap-3 mt-1">
                  <span className="inline-flex items-center text-xs font-medium gap-1">
                       <Users className="h-3 w-3" />
-                      {broadcast.viewers.toLocaleString()}
+                      {(broadcast.viewers || 0).toLocaleString()}
                   </span>
               </div>
                <p className="text-base font-semibold mt-1">{broadcast.title}</p>
@@ -129,10 +156,10 @@ export default function BroadcastPage() {
                 <div className="w-full">
                     <ScrollArea className="h-48 w-full pr-4">
                     <div className="flex flex-col gap-3">
-                        {comments.map((comment) => (
+                        {comments && comments.map((comment) => (
                         <div key={comment.id} className="flex items-start gap-3 text-sm text-white bg-black/20 p-2 rounded-lg">
                             <Avatar className="h-6 w-6 border border-secondary">
-                            <AvatarImage src={comment.avatar} alt={comment.username} />
+                            <AvatarImage src={comment.userAvatar} alt={comment.username} />
                             <AvatarFallback>{comment.username.charAt(0)}</AvatarFallback>
                             </Avatar>
                             <div className="flex-1">
@@ -164,12 +191,12 @@ export default function BroadcastPage() {
                 <PlusCircle className="h-16 w-16"/>
             </Button>
             <Button variant="ghost" size="icon" className="h-15 w-15 rounded-full text-white flex-col drop-shadow-md hover:bg-transparent hover:text-white" onClick={handleLike}>
-              <Heart className="h-16 w-16" />
-              <span className="text-xs mt-1">1.2k</span>
+              <Heart className={cn("h-16 w-16", hasLiked && "fill-red-500 text-red-500")} />
+              <span className="text-xs mt-1">{likes?.length || 0}</span>
             </Button>
             <Button variant="ghost" size="icon" onClick={() => setIsChatVisible(!isChatVisible)} className="h-15 w-15 rounded-full text-white flex-col justify-center items-center drop-shadow-md hover:bg-transparent hover:text-white">
                <MessageSquareMore className="h-16 w-16" />
-               <span className="text-xs mt-1">{comments.length}</span>
+               <span className="text-xs mt-1">{comments?.length || 0}</span>
             </Button>
             <Button variant="ghost" size="icon" className="h-15 w-15 rounded-full text-white flex-col justify-center items-center drop-shadow-md hover:bg-transparent hover:text-white">
                 <svg xmlns="http://www.w3.org/2000/svg" height="64px" viewBox="0 -960 960 960" width="64px" fill="currentColor"><path d="m608-368 46-166-142-98-46 166 142 98ZM160-207l-33-16q-31-13-42-44.5t3-62.5l72-156v279Zm160 87q-33 0-56.5-24T240-201v-239l107 294q3 7 5 13.5t7 12.5h-39Zm206-5q-31 11-62-3t-42-45L245-662q-11-31 3-61.5t45-41.5l301-110q31-11 61.5 3t41.5 45l178 489q11 31-3 61.5T827-235L526-125Zm-28-75 302-110-179-490-301 110 178 490Zm62-300Z"/></svg>
@@ -235,5 +262,3 @@ function BroadcastSkeleton() {
     </div>
   );
 }
-
-    

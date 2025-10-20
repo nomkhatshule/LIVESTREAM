@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import type { User, Broadcast } from '@/lib/data';
+import type { Broadcast } from '@/lib/data';
 import { getPersonalizedRecommendations } from '@/app/actions';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -13,9 +13,10 @@ import {
 } from '@/components/ui/carousel';
 import BroadcastCard from './broadcast-card';
 import { Sparkles } from 'lucide-react';
+import { UserProfile } from '@/firebase';
 
 interface RecommendedForYouProps {
-  currentUser: User;
+  currentUser: UserProfile;
   allBroadcasts: Broadcast[];
 }
 
@@ -24,13 +25,18 @@ export default function RecommendedForYou({ currentUser, allBroadcasts }: Recomm
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    if (!currentUser) return;
+    
     const fetchRecommendations = async () => {
       setIsLoading(true);
       try {
         const { recommendations: recommendedIds } = await getPersonalizedRecommendations({
-          watchHistory: currentUser.watchHistory,
-          profileInformation: currentUser.bio,
-          interests: currentUser.interests,
+          // @ts-ignore
+          watchHistory: currentUser.watchHistory || [],
+          // @ts-ignore
+          profileInformation: currentUser.bio || '',
+          // @ts-ignore
+          interests: currentUser.interests || [],
         });
 
         const recommendedBroadcasts = recommendedIds
