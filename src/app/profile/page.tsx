@@ -14,7 +14,7 @@ import { revalidateProfilePaths } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useRef, useState } from 'react';
 import { doc } from 'firebase/firestore';
-import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
+import { getDownloadURL, ref, uploadBytes, StorageReference, UploadResult } from 'firebase/storage';
 import { Camera, Loader2 } from 'lucide-react';
 
 
@@ -67,42 +67,73 @@ export default function ProfilePage() {
 
     setIsUploading(true);
 
+    let storageRef: StorageReference;
     try {
-      // 1. Create a storage reference with a standardized path.
-      const storageRef = ref(storage, `avatars/${user.uid}/profile.png`);
-
-      // 2. Upload the file with content type metadata.
-      const uploadTask = await uploadBytes(storageRef, file, {
-        contentType: file.type,
+      // Step 1: Create storage reference.
+      storageRef = ref(storage, `avatars/${user.uid}/profile.png`);
+    } catch (error: any) {
+      console.error("Error creating storage reference:", error);
+      toast({
+        variant: 'destructive',
+        title: 'Upload Failed (Step 1)',
+        description: `Could not create storage reference. ${error.message}`,
       });
+      setIsUploading(false);
+      return;
+    }
 
-      // 3. Get the download URL.
-      const downloadURL = await getDownloadURL(uploadTask.ref);
+    let uploadTask: UploadResult;
+    try {
+      // Step 2: Upload the file.
+      uploadTask = await uploadBytes(storageRef, file, { contentType: file.type });
+    } catch (error: any) {
+      console.error("Error uploading bytes:", error);
+      toast({
+        variant: 'destructive',
+        title: 'Upload Failed (Step 2)',
+        description: `Could not upload file bytes. ${error.code || error.message}`,
+      });
+      setIsUploading(false);
+      return;
+    }
+    
+    let downloadURL: string;
+    try {
+      // Step 3: Get download URL.
+      downloadURL = await getDownloadURL(uploadTask.ref);
+    } catch (error: any) {
+      console.error("Error getting download URL:", error);
+      toast({
+        variant: 'destructive',
+        title: 'Upload Failed (Step 3)',
+        description: `Could not get download URL. ${error.code || error.message}`,
+      });
+      setIsUploading(false);
+      return;
+    }
 
-      // 4. Update the form state and the Firestore document non-blockingly.
+    try {
+      // Step 4: Update UI and database.
       form.setValue('profilePicture', downloadURL);
       const userDocRef = doc(firestore, 'users', user.uid);
       setDocumentNonBlocking(userDocRef, { profilePicture: downloadURL }, { merge: true });
 
-      // 5. Revalidate paths to update UI across the app.
+      // Step 5: Revalidate paths to update UI across the app.
       await revalidateProfilePaths();
 
       toast({
         title: 'Avatar Updated!',
         description: 'Your new avatar has been saved and will be updated across the app.',
       });
-
     } catch (error: any) {
-      console.error("Error uploading avatar:", error);
+      console.error("Error updating profile:", error);
       toast({
         variant: 'destructive',
-        title: 'Upload Failed',
-        description: error.code === 'storage/unauthorized' 
-            ? 'You do not have permission to upload. Please check storage rules.'
-            : 'Could not upload your new avatar. Please try again.',
+        title: 'Upload Failed (Step 4)',
+        description: `Could not update your profile with the new avatar. ${error.message}`,
       });
     } finally {
-      // 6. ALWAYS ensure the loading state is reset.
+      // Step 6: ALWAYS ensure the loading state is reset.
       setIsUploading(false);
     }
   };
