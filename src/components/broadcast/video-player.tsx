@@ -9,10 +9,12 @@ import {
 } from '@stream-io/video-react-sdk';
 import '@stream-io/video-react-sdk/dist/css/styles.css';
 import { cn } from '@/lib/utils';
+import { useEffect, useRef } from 'react';
 
 interface VideoPlayerProps {
   broadcast: Broadcast;
   isHost: boolean;
+  isMuted?: boolean;
 }
 
 // This is now a simplified, "presentational" component.
@@ -20,16 +22,25 @@ interface VideoPlayerProps {
 export default function VideoPlayer({ 
     broadcast, 
     isHost,
+    isMuted
 }: VideoPlayerProps) {
     const { useCallCallingState, useParticipants } = useCallStateHooks();
     const callingState = useCallCallingState();
     const participants = useParticipants();
+    const videoRef = useRef<HTMLVideoElement>(null);
 
     // Logic to find the correct participant is still needed here, but it's simpler.
     const participantToDisplay = isHost
       ? participants.find((p) => p.isLocal)
       : participants.find((p) => p.userId === broadcast.user.id);
       
+    useEffect(() => {
+        const videoElement = document.querySelector(`[data-broadcast-id='${broadcast.id}'] video`);
+        if (videoElement instanceof HTMLVideoElement) {
+          videoElement.muted = !!isMuted;
+        }
+    }, [isMuted, broadcast.id]);
+    
     // This loading state is still relevant, as it waits for the SDK to connect.
     if (callingState !== 'joined') {
         return <div className="absolute inset-0 flex items-center justify-center bg-black/50"><p className="text-white text-lg">Connecting to Stream...</p></div>;

@@ -16,7 +16,7 @@ import { addDocumentNonBlocking, setDocumentNonBlocking, deleteDocumentNonBlocki
 import VideoPlayer from '@/components/broadcast/video-player';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Heart, MoreVertical, PlusCircle, Users, ArrowUp, MessageSquare, Share2, Clapperboard, User as UserIcon, PlayCircle, Loader2, CornerUpLeft } from 'lucide-react';
+import { Heart, MoreVertical, PlusCircle, Users, ArrowUp, MessageSquare, Share2, Clapperboard, User as UserIcon, PlayCircle, Loader2, CornerUpLeft, Volume2, VolumeX } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -46,6 +46,7 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
   const [isJoined, setIsJoined] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
 
   const [newMessage, setNewMessage] = useState('');
   const [isChatVisible, setIsChatVisible] = useState(true);
@@ -202,6 +203,14 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
     textareaRef.current?.focus();
   }
 
+  const toggleMute = () => {
+    const videoElement = document.querySelector(`[data-broadcast-id='${broadcast.id}'] video`);
+    if (videoElement instanceof HTMLVideoElement) {
+        videoElement.muted = !videoElement.muted;
+        setIsMuted(videoElement.muted);
+    }
+  }
+
 
   return (
     <div className="relative h-[calc(100vh-4rem)] w-full snap-start" data-broadcast-id={broadcast.id}>
@@ -210,7 +219,7 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
       {call && isPlaying && isJoined ? (
         <StreamVideo client={client}>
           <StreamCall call={call}>
-            <VideoPlayer broadcast={fullBroadcast} isHost={false} />
+            <VideoPlayer broadcast={fullBroadcast} isHost={false} isMuted={isMuted} />
           </StreamCall>
         </StreamVideo>
       ) : (
@@ -287,24 +296,29 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
                     ))}
                   </div>
                 </ScrollArea>
-                <form onSubmit={handleSendMessage} className="relative w-full mt-2">
-                  <Textarea
-                    ref={textareaRef}
-                    placeholder="Add a comment..."
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    className="bg-black/50 border-white/20 placeholder:text-gray-400 pr-10 w-full min-h-[40px] h-10 resize-none"
-                    onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                            e.preventDefault();
-                            handleSendMessage(e);
-                        }
-                    }}
-                  />
-                  <Button variant="ghost" size="icon" type="submit" className="absolute top-1/2 -translate-y-1/2 right-1 text-white">
-                    <ArrowUp className="h-5 w-5" />
-                  </Button>
-                </form>
+                <div className="flex items-center gap-2">
+                    <form onSubmit={handleSendMessage} className="relative w-full mt-2 flex-1">
+                      <Textarea
+                        ref={textareaRef}
+                        placeholder="Add a comment..."
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        className="bg-black/50 border-white/20 placeholder:text-gray-400 pr-10 w-full min-h-[40px] h-10 resize-none"
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault();
+                                handleSendMessage(e);
+                            }
+                        }}
+                      />
+                      <Button variant="ghost" size="icon" type="submit" className="absolute top-1/2 -translate-y-1/2 right-1 text-white">
+                        <ArrowUp className="h-5 w-5" />
+                      </Button>
+                    </form>
+                     <Button variant="ghost" size="icon" onClick={toggleMute} className="text-white bg-black/50 rounded-full h-10 w-10 mt-2">
+                        {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+                    </Button>
+                </div>
               </div>
             )}
           </div>
