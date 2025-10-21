@@ -9,7 +9,7 @@ import {
 } from '@stream-io/video-react-sdk';
 import { useEffect, useState, useMemo, useRef } from 'react';
 import type { Broadcast, User as AppUser, ChatMessage } from '@/lib/data';
-import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
+import { useUser, useFirestore, useMemoFirebase, useUserDocument } from '@/firebase';
 import { collection, query, orderBy, limit, serverTimestamp, doc, deleteDoc } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { addDocumentNonBlocking, setDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
@@ -37,6 +37,7 @@ interface FeedItemProps {
 
 export default function FeedItem({ client, broadcast }: FeedItemProps) {
   const { user } = useUser();
+  const { userDocument } = useUserDocument();
   const firestore = useFirestore();
   const { toast } = useToast();
   const [call, setCall] = useState<Call | null>(null);
@@ -138,14 +139,14 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (newMessage.trim() === '' || !user) return;
+    if (newMessage.trim() === '' || !user || !userDocument) return;
 
     const messagesCollectionRef = collection(firestore, 'broadcasts', broadcast.id, 'messages');
     
     const newComment: Omit<ChatMessage, 'id'|'timestamp'> & {timestamp: any, replyingTo?: string} = {
         userId: user.uid,
-        username: user.displayName || "Anonymous",
-        userAvatar: user.photoURL || '',
+        username: userDocument.username || "Anonymous",
+        userAvatar: userDocument.profilePicture || '',
         message: newMessage,
         timestamp: serverTimestamp(),
     };
@@ -280,13 +281,17 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
                   <div className="flex flex-col gap-2">
                     {reversedComments.map((comment) => (
                       <div key={comment.id} className="group flex items-start gap-2 text-sm bg-black/25 p-2 rounded-lg">
-                        <Avatar className="h-6 w-6 border-secondary">
-                          <AvatarImage src={comment.userAvatar} alt={comment.username} />
-                          <AvatarFallback>{comment.username.charAt(0)}</AvatarFallback>
-                        </Avatar>
+                        <Link href={`/profile/${comment.userId}`} className="pointer-events-auto">
+                          <Avatar className="h-6 w-6 border-secondary">
+                            <AvatarImage src={comment.userAvatar} alt={comment.username} />
+                            <AvatarFallback>{comment.username.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                        </Link>
                         <div className="flex-1">
-                          <span className="font-bold text-primary mr-1.5">{comment.username}:</span>
-                          {comment.replyingTo && <Link href={`/profile/${comment.replyingTo}`} className="text-accent font-semibold mr-1.5 hover:underline">@{comment.replyingTo}</Link>}
+                          <Link href={`/profile/${comment.userId}`} className="pointer-events-auto">
+                            <span className="font-bold text-primary mr-1.5 hover:underline">{comment.username}:</span>
+                          </Link>
+                          {comment.replyingTo && <Link href={`/profile/${comment.replyingTo}`} className="text-accent font-semibold mr-1.5 hover:underline pointer-events-auto">@{comment.replyingTo}</Link>}
                           <span className="break-words">{comment.message.replace(/^@\w+\s/, '')}</span>
                         </div>
                         <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => handleReply(comment.username)}>
@@ -365,3 +370,5 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
     </div>
   );
 }
+
+    

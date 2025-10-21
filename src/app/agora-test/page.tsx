@@ -9,7 +9,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useEffect, useRef, useState, useMemo, Suspense } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
-import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { useUser, useDoc, useFirestore, useMemoFirebase, useUserDocument } from '@/firebase';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { doc, updateDoc, collection, query, orderBy, limit } from 'firebase/firestore';
 import { useCollection } from '@/firebase';
@@ -29,8 +29,9 @@ import '@stream-io/video-react-sdk/dist/css/styles.css';
 
 interface Comment {
   id: string;
+  userId: string;
   username: string;
-  avatar: string;
+  userAvatar: string;
   message: string;
   timestamp: any;
 }
@@ -67,6 +68,7 @@ function AgoraTestPageUI() {
   const [newMessage, setNewMessage] = useState('');
   const [isChatVisible, setIsChatVisible] = useState(true);
   const { user } = useUser();
+  const { userDocument } = useUserDocument();
   const [reactions, setReactions] = useState<Reaction[]>([]);
 
   // Stream SDK Hooks
@@ -154,12 +156,12 @@ function AgoraTestPageUI() {
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (newMessage.trim() === '' || !user || !broadcastId || !broadcastData) return;
+    if (newMessage.trim() === '' || !user || !broadcastId || !userDocument) return;
 
     const newComment: Omit<Comment, 'id'> & { timestamp: any } = {
         userId: user.uid,
-        username: broadcastData.hostName,
-        avatar: broadcastData.hostAvatar,
+        username: userDocument.username || 'Anonymous',
+        userAvatar: userDocument.profilePicture || '',
         message: newMessage,
         timestamp: serverTimestamp(),
     };
@@ -291,7 +293,7 @@ function AgoraTestPageUI() {
                   {comments && comments.map((comment) => (
                     <div key={comment.id} className="flex items-start gap-3 text-sm text-white bg-black/20 p-2 rounded-lg max-w-xs sm:max-w-sm">
                       <Avatar className="h-6 w-6 border-2 border-secondary">
-                        <AvatarImage src={comment.avatar} alt={comment.username} />
+                        <AvatarImage src={comment.userAvatar} alt={comment.username} />
                         <AvatarFallback>{comment.username.charAt(0)}</AvatarFallback>
                       </Avatar>
                       <div className="flex-1">
@@ -468,6 +470,8 @@ export default function AgoraTestPage() {
         </Suspense>
     )
 }
+    
+
     
 
     

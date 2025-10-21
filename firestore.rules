@@ -54,7 +54,7 @@ service cloud.firestore {
       allow list: if false; // Disabling listing of all users for privacy
 
       allow create: if isOwner(userId) && request.resource.data.id == request.auth.uid;
-      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      allow update: if isExistingOwner(userId);
       allow delete: if isExistingOwner(userId);
 
         /**
@@ -290,4 +290,4 @@ service cloud.firestore {
       allow delete: if false;
     }
   }
-  
+}
