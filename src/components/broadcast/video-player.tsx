@@ -46,6 +46,8 @@ export default function VideoPlayer({
     const participants = useParticipants(); 
 
     // For the host, the participant to display is the first one in the list (themselves).
+    // This is more reliable than localParticipant because the 'participants' array is
+    // populated only after media tracks are published.
     // For viewers, it's the participant whose ID matches the host's ID from the broadcast data.
     const participantToDisplay = isHost
       ? participants[0]
@@ -62,6 +64,8 @@ export default function VideoPlayer({
         return <div className="absolute inset-0 flex items-center justify-center bg-black/50"><p className="text-white text-lg">Connecting to Stream...</p></div>;
     }
     
+    // Render a waiting message if the participant we want to display isn't available yet.
+    // This handles the case where the host is connecting or the viewer joined before the host.
     if (!participantToDisplay) {
          return <div className="absolute inset-0 flex items-center justify-center bg-black/50"><p className="text-white text-lg">{isHost ? "Ready to stream" : "Waiting for host..."}</p></div>;
     }
