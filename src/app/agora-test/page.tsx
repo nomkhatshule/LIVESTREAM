@@ -27,6 +27,7 @@ import {
   CallingState,
 } from '@stream-io/video-react-sdk';
 import '@stream-io/video-react-sdk/dist/css/styles.css';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 
 interface Comment {
   id: string;
@@ -214,7 +215,7 @@ function AgoraTestPageUI() {
         <div className="absolute inset-0 bg-gray-900 flex items-center justify-center">
           
           <StreamTheme as="main" className="w-full h-full str-video__connection-quality--hidden">
-            {localParticipant && <ParticipantView participant={localParticipant} />}
+            {localParticipant && <ParticipantView participant={localParticipant} mirrored={true} />}
           </StreamTheme>
 
           {!isVideoEnabled && !isScreenSharing && (
@@ -287,6 +288,36 @@ function AgoraTestPageUI() {
             <Button variant="secondary" size="icon" className="rounded-full h-12 w-12" onClick={handleInviteGuest}>
                 <UserPlus className="h-6 w-6"/>
             </Button>
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="secondary" size="icon" className="rounded-full h-12 w-12">
+                  <Users className="h-6 w-6" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent>
+                <SheetHeader>
+                  <SheetTitle>Participants ({viewerCount})</SheetTitle>
+                </SheetHeader>
+                <ScrollArea className="h-[calc(100vh-8rem)] mt-4">
+                  <div className="space-y-4">
+                    {participants.map(p => (
+                      <div key={p.sessionId} className="flex items-center gap-3">
+                        <Avatar>
+                          <AvatarImage src={p.image} alt={p.name} />
+                          <AvatarFallback>{p.name?.charAt(0) || 'A'}</AvatarFallback>
+                        </Avatar>
+                        <span>{p.name || 'Anonymous Viewer'}</span>
+                      </div>
+                    ))}
+                    {participants.length === 0 && (
+                      <p className="text-muted-foreground text-center py-8">
+                        Just you for now.
+                      </p>
+                    )}
+                  </div>
+                </ScrollArea>
+              </SheetContent>
+            </Sheet>
         </div>
 
         <div className="absolute bottom-0 left-0 right-0 z-10 p-4 flex flex-col justify-end bg-gradient-to-t from-black/70 to-transparent h-2/5">
@@ -308,29 +339,29 @@ function AgoraTestPageUI() {
                   ))}
                 </div>
               </ScrollArea>
-              <div className="mt-4 flex items-center gap-2">
-                <form onSubmit={handleSendMessage} className="relative flex-1">
-                  <Input
-                    placeholder="Add a comment..."
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    className="bg-black/50 border-white/20 text-white placeholder:text-gray-400 pr-10"
-                  />
-                  <Button variant="ghost" size="icon" type="submit" className="absolute inset-y-0 right-0 text-white">
-                    <ArrowUp className="h-5 w-5" />
-                  </Button>
-                </form>
+              <form onSubmit={handleSendMessage} className="relative mt-4 flex items-center gap-2 pointer-events-auto">
+                <div className="relative flex-1">
+                    <Input
+                        placeholder="Add a comment..."
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        className="bg-black/50 border-white/20 text-white placeholder:text-gray-400 pr-10"
+                    />
+                    <Button variant="ghost" size="icon" type="submit" className="absolute inset-y-0 right-0 text-white">
+                        <ArrowUp className="h-5 w-5" />
+                    </Button>
+                </div>
                 <Button variant="ghost" size="icon" onClick={handleReaction} className="text-white bg-black/50 rounded-full h-10 w-10">
                   <Smile className="h-5 w-5" />
                 </Button>
                 <Button variant="ghost" size="icon" onClick={() => setIsChatVisible(prev => !prev)} className="text-white bg-black/50 rounded-full h-10 w-10">
                   {isChatVisible ? <MessageCircleOff className="h-5 w-5" /> : <MessageCircle className="h-5 w-5" />}
                 </Button>
-              </div>
+              </form>
             </>
           )}
            {!isChatVisible && (
-            <div className="flex justify-end">
+            <div className="flex justify-end pointer-events-auto">
                  <Button variant="ghost" size="icon" onClick={() => setIsChatVisible(prev => !prev)} className="text-white bg-black/50 rounded-full h-10 w-10">
                     <MessageCircle className="h-5 w-5" />
                 </Button>
