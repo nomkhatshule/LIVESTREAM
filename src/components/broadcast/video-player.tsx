@@ -2,7 +2,6 @@
 
 import type { Broadcast } from '@/lib/data';
 import {
-  StreamTheme,
   useCallStateHooks,
   ParticipantView,
 } from '@stream-io/video-react-sdk';
@@ -51,13 +50,11 @@ export default function VideoPlayer({
       <div className={cn(
         "absolute inset-0 w-full h-full bg-black"
       )}>
-        <StreamTheme as="main" className="w-full h-full">
-            <ParticipantView 
-              participant={participantToDisplay} 
-              ParticipantViewUI={null}
-              className="w-full h-full"
-            />
-        </StreamTheme>
+        <ParticipantView 
+          participant={participantToDisplay} 
+          ParticipantViewUI={null}
+          className="w-full h-full"
+        />
     </div>
   );
 }
