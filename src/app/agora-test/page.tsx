@@ -24,6 +24,7 @@ import {
   useCallStateHooks,
   ParticipantView,
   StreamTheme,
+  CallingState,
 } from '@stream-io/video-react-sdk';
 import '@stream-io/video-react-sdk/dist/css/styles.css';
 
@@ -72,13 +73,15 @@ function AgoraTestPageUI() {
   const [reactions, setReactions] = useState<Reaction[]>([]);
 
   // Stream SDK Hooks
-  const { useCameraState, useMicrophoneState, useScreenShareState, useLocalParticipant, useParticipants } = useCallStateHooks();
+  const { useCameraState, useMicrophoneState, useScreenShareState, useLocalParticipant, useParticipants, useCallCallingState } = useCallStateHooks();
   const { isMute: isVideoMute, camera } = useCameraState();
   const { isMute: isMicMute, microphone } = useMicrophoneState();
   const { isScreenSharing, screenShare } = useScreenShareState();
   const localParticipant = useLocalParticipant();
   const participants = useParticipants();
+  const callingState = useCallCallingState();
   
+  const isCallJoined = callingState === CallingState.JOINED;
   const isVideoEnabled = !isVideoMute;
   const isMicEnabled = !isMicMute;
 
@@ -271,13 +274,13 @@ function AgoraTestPageUI() {
         </div>
 
         <div className="absolute right-4 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-4 p-2 bg-black/40 rounded-full backdrop-blur-sm">
-            <Button variant="secondary" size="icon" className="rounded-full h-12 w-12" onClick={handleToggleVideo}>
+            <Button variant="secondary" size="icon" className="rounded-full h-12 w-12" onClick={handleToggleVideo} disabled={!isCallJoined}>
                 {isVideoEnabled ? <Video className="h-6 w-6"/> : <VideoOff className="h-6 w-6"/>}
             </Button>
-            <Button variant="secondary" size="icon" className="rounded-full h-12 w-12" onClick={handleToggleMic}>
+            <Button variant="secondary" size="icon" className="rounded-full h-12 w-12" onClick={handleToggleMic} disabled={!isCallJoined}>
                 {isMicEnabled ? <Mic className="h-6 w-6"/> : <MicOff className="h-6 w-6"/>}
             </Button>
-            <Button variant={isScreenSharing ? "primary" : "secondary"} size="icon" className="rounded-full h-12 w-12" onClick={handleToggleScreenShare}>
+            <Button variant={isScreenSharing ? "primary" : "secondary"} size="icon" className="rounded-full h-12 w-12" onClick={handleToggleScreenShare} disabled={!isCallJoined}>
                 {isScreenSharing ? <MonitorUp className="h-6 w-6"/> : <ScreenShare className="h-6 w-6"/>}
             </Button>
             <Button variant="secondary" size="icon" className="rounded-full h-12 w-12" onClick={handleInviteGuest}>
@@ -470,6 +473,8 @@ export default function AgoraTestPage() {
         </Suspense>
     )
 }
+    
+
     
 
     
