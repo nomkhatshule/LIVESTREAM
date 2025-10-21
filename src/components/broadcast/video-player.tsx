@@ -5,37 +5,16 @@ import {
   StreamTheme,
   useCallStateHooks,
   ParticipantView,
-  useParticipantViewContext,
 } from '@stream-io/video-react-sdk';
 import '@stream-io/video-react-sdk/dist/css/styles.css';
 import { cn } from '@/lib/utils';
-import { useEffect, useRef, cloneElement } from 'react';
+import { useEffect } from 'react';
 
 interface VideoPlayerProps {
   broadcast: Broadcast;
   isHost: boolean;
   isMuted?: boolean;
 }
-
-// A new component that takes direct control of rendering the video element.
-const CustomParticipantViewUI = () => {
-  const { videoElement } = useParticipantViewContext();
-  
-  // The videoElement from the hook is a complete, mountable React element.
-  // We can add styling to it directly by cloning it.
-  const styledVideoElement = videoElement
-    ? cloneElement(videoElement, {
-        className: 'w-full h-full object-cover',
-      })
-    : null;
-
-  // Render the video element inside our container. React will handle adding/removing it.
-  return (
-    <div className="w-full h-full">
-      {styledVideoElement}
-    </div>
-  );
-};
 
 
 export default function VideoPlayer({ 
@@ -75,7 +54,7 @@ export default function VideoPlayer({
         <StreamTheme as="main" className="w-full h-full">
             <ParticipantView 
               participant={participantToDisplay} 
-              ParticipantViewUI={CustomParticipantViewUI}
+              className="w-full h-full"
             />
         </StreamTheme>
     </div>
