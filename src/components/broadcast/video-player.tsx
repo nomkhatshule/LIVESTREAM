@@ -20,22 +20,19 @@ interface VideoPlayerProps {
 // A new component that takes direct control of rendering the video element.
 const CustomParticipantViewUI = () => {
   const { videoElement } = useParticipantViewContext();
-  const containerRef = useRef<HTMLDivElement>(null);
+  
+  // The videoElement from the hook is a complete, mountable React element.
+  // We can add styling to it directly.
+  if (videoElement) {
+    videoElement.props.className = 'w-full h-full object-cover';
+  }
 
-  useEffect(() => {
-    const container = containerRef.current;
-    if (container && videoElement) {
-      // Clear any previous video elements
-      while (container.firstChild) {
-        container.removeChild(container.firstChild);
-      }
-      // Style the video element directly
-      videoElement.className = 'w-full h-full object-cover';
-      container.appendChild(videoElement);
-    }
-  }, [videoElement]);
-
-  return <div ref={containerRef} className="w-full h-full" />;
+  // Render the video element inside our container. React will handle adding/removing it.
+  return (
+    <div className="w-full h-full">
+      {videoElement}
+    </div>
+  );
 };
 
 
