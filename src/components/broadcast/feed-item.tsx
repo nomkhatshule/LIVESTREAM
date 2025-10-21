@@ -6,6 +6,7 @@ import {
   StreamCall,
   Call,
   StreamVideoClient,
+  useCallStateHooks,
 } from '@stream-io/video-react-sdk';
 import { useEffect, useState, useMemo, useRef } from 'react';
 import type { Broadcast, User as AppUser, ChatMessage } from '@/lib/data';
@@ -95,6 +96,10 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
     if (!user || !likes) return false;
     return likes.some(like => like.id === user.uid);
   }, [user, likes]);
+  
+  const { useParticipants } = useCallStateHooks();
+  const participants = useParticipants(); // This hook returns remote participants when used inside a call
+  const viewerCount = call ? participants.length : (broadcast.viewerCount || 0);
 
 
   useEffect(() => {
@@ -250,8 +255,8 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
       <div className="absolute inset-0 flex flex-col justify-between p-4 text-white z-30 pointer-events-none">
         {/* Top Info */}
         <div className="bg-gradient-to-b from-black/50 to-transparent -m-4 p-4">
-          <div className="flex items-start gap-4 pointer-events-auto">
-            <Link href={`/profile/${broadcast.hostId}`}>
+          <div className="flex items-start gap-4">
+            <Link href={`/profile/${broadcast.hostId}`} className="pointer-events-auto">
               <Avatar className="h-14 w-14 border-2 border-primary">
                 <AvatarImage src={broadcast.hostAvatar} alt={broadcast.hostName} />
                 <AvatarFallback>{broadcast.hostName?.charAt(0)}</AvatarFallback>
@@ -259,8 +264,8 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
             </Link>
             <div>
               <div className="flex items-center gap-3">
-                 <Link href={`/profile/${broadcast.hostId}`}>
-                    <p className="font-bold text-lg">{broadcast.hostName}</p>
+                 <Link href={`/profile/${broadcast.hostId}`} className="pointer-events-auto">
+                    <p className="font-bold text-lg hover:underline">{broadcast.hostName}</p>
                 </Link>
                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-600 animate-pulse">
                   LIVE
@@ -269,7 +274,7 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
               <p className="text-base font-semibold mt-1">{broadcast.title}</p>
               <div className="flex items-center gap-3 mt-1 text-xs">
                 <Users className="h-3 w-3" />
-                <span>{broadcast.viewerCount?.toLocaleString() || 0}</span>
+                <span>{viewerCount.toLocaleString()}</span>
               </div>
             </div>
           </div>
@@ -324,10 +329,10 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
               </div>
             )}
           </div>
-          <div className="flex flex-col-reverse items-center gap-y-4 pointer-events-auto">
+          <div className="flex flex-col-reverse items-center gap-y-4">
              <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white hover:bg-white/20">
+                <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white hover:bg-white/20 pointer-events-auto">
                   <MoreVertical className="h-8 w-8" />
                 </Button>
               </DropdownMenuTrigger>
@@ -350,15 +355,15 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-             <Button variant="ghost" size="icon" onClick={() => setIsChatVisible(!isChatVisible)} className="h-12 w-12 rounded-full text-white flex-col hover:bg-white/20">
+             <Button variant="ghost" size="icon" onClick={() => setIsChatVisible(!isChatVisible)} className="h-12 w-12 rounded-full text-white flex-col hover:bg-white/20 pointer-events-auto">
                <MessageSquare className="h-8 w-8" />
                <span className="text-xs mt-1">{comments?.length || 0}</span>
             </Button>
-            <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white flex-col hover:bg-white/20" onClick={handleLike} disabled={!broadcast.isLive}>
+            <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white flex-col hover:bg-white/20 pointer-events-auto" onClick={handleLike} disabled={!broadcast.isLive}>
               <Heart className={cn("h-8 w-8", hasLiked && "fill-red-500 text-red-500")} />
               <span className="text-xs mt-1 tabular-nums">{likes?.length || 0}</span>
             </Button>
-             <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white flex-col hover:bg-white/20">
+             <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white flex-col hover:bg-white/20 pointer-events-auto">
                 <PlusCircle className="h-8 w-8"/>
             </Button>
           </div>

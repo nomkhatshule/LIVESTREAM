@@ -24,6 +24,7 @@ import Link from 'next/link';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { useCallStateHooks } from '@stream-io/video-react-sdk';
 
 
 export default function BroadcastPage() {
@@ -59,6 +60,10 @@ export default function BroadcastPage() {
     if (!user || !likes) return false;
     return likes.some(like => like.id === user.uid);
   }, [user, likes]);
+
+  const { useParticipants } = useCallStateHooks();
+  const participants = useParticipants(); // Remote participants
+  const viewerCount = participants.length;
   
   const broadcast: Broadcast | undefined = useMemo(() => {
     if (!broadcastData) return undefined;
@@ -69,7 +74,7 @@ export default function BroadcastPage() {
       user: hostUser,
       thumbnailUrl: '', // Not needed on live view
       thumbnailHint: '',
-      viewers: broadcastData.viewerCount || 0,
+      viewers: broadcastData.viewerCount || 0, // This is a fallback, real count is from participants
       category: broadcastData.category,
       isLive: broadcastData.isLive,
       tags: broadcastData.tags || [],
@@ -142,7 +147,7 @@ export default function BroadcastPage() {
               <div className="flex items-center gap-3 mt-1">
                  <span className="inline-flex items-center text-xs font-medium gap-1">
                       <Users className="h-3 w-3" />
-                      {(broadcast.viewers || 0).toLocaleString()}
+                      {viewerCount.toLocaleString()}
                   </span>
               </div>
                <p className="text-base font-semibold mt-1">{broadcast.title}</p>

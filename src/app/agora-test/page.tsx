@@ -78,9 +78,10 @@ function AgoraTestPageUI() {
   const { isMute: isMicMute, microphone } = useMicrophoneState();
   const { isScreenSharing, screenShare } = useScreenShareState();
   const localParticipant = useLocalParticipant();
-  const participants = useParticipants();
+  const participants = useParticipants(); // This hook returns remote participants
   const callingState = useCallCallingState();
   
+  const viewerCount = participants.length;
   const isCallJoined = callingState === CallingState.JOINED;
   const isVideoEnabled = !isVideoMute;
   const isMicEnabled = !isMicMute;
@@ -263,7 +264,7 @@ function AgoraTestPageUI() {
                     </span>
                     <span className="inline-flex items-center text-xs font-medium gap-1">
                         <Users className="h-3 w-3" />
-                        {participants.length.toLocaleString()}
+                        {viewerCount.toLocaleString()}
                     </span>
                 </div>
             </div>
