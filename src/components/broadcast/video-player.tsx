@@ -4,18 +4,39 @@
 import type { Broadcast } from '@/lib/data';
 import {
   StreamTheme,
-  ParticipantView,
   useCallStateHooks,
+  Video,
+  Audio,
+  useParticipantContext,
 } from '@stream-io/video-react-sdk';
 import '@stream-io/video-react-sdk/dist/css/styles.css';
 import { cn } from '@/lib/utils';
 import { useEffect, useRef } from 'react';
+import { Participant } from '@stream-io/video-client';
 
 interface VideoPlayerProps {
   broadcast: Broadcast;
   isHost: boolean;
   isMuted?: boolean;
 }
+
+/**
+ * A custom view using component composition to have full control
+ * over the rendered video, without default SDK overlays.
+ */
+function CustomParticipantView({ participant, isHost }: { participant: Participant, isHost: boolean }) {
+    return (
+        <>
+            <Audio participant={participant} />
+            <Video 
+                participant={participant}
+                mirrored={isHost}
+                className="w-full h-full object-cover"
+            />
+        </>
+    )
+}
+
 
 // This is now a simplified, "presentational" component.
 // Its only job is to display the video for the correct participant.
@@ -27,7 +48,6 @@ export default function VideoPlayer({
     const { useCallCallingState, useParticipants } = useCallStateHooks();
     const callingState = useCallCallingState();
     const participants = useParticipants();
-    const videoRef = useRef<HTMLVideoElement>(null);
 
     // Find the participant to display. For the host, it's the local participant.
     // For viewers, it's the participant whose ID matches the host's ID.
@@ -58,15 +78,11 @@ export default function VideoPlayer({
       <div className={cn(
         "absolute inset-0 w-full h-full bg-black"
       )}>
-        {/* StreamTheme can be removed from here if it's applied at a higher level, but it's fine to keep. */}
+        {/* We use StreamTheme for context, but CustomParticipantView for rendering */}
         <StreamTheme as="main" className="w-full h-full">
-            <ParticipantView 
-              participant={participantToDisplay} 
-              // The host's self-view should be mirrored for a natural experience.
-              // Viewers should see a non-mirrored, true image.
-              mirrored={isHost} 
-            />
+            <CustomParticipantView participant={participantToDisplay} isHost={isHost} />
         </StreamTheme>
     </div>
   );
 }
+
