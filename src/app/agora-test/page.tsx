@@ -29,6 +29,7 @@ import {
 } from '@stream-io/video-react-sdk';
 import '@stream-io/video-react-sdk/dist/css/styles.css';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import VideoPlayer from '@/components/broadcast/video-player';
 
 interface Comment {
   id: string;
@@ -53,6 +54,11 @@ interface BroadcastData {
     isLive: boolean;
     streamDetails?: {
       isScreenSharing: boolean;
+    },
+    user: {
+        id: string;
+        name: string;
+        avatarUrl: string;
     }
 }
 
@@ -75,15 +81,13 @@ function AgoraTestPageUI() {
   const [reactions, setReactions] = useState<Reaction[]>([]);
 
   // Stream SDK Hooks
-  const { useCameraState, useMicrophoneState, useScreenShareState, useLocalParticipant, useParticipants, useCallCallingState } = useCallStateHooks();
+  const { useCameraState, useMicrophoneState, useScreenShareState, useParticipants, useCallCallingState } = useCallStateHooks();
   const { isMute: isVideoMute, camera } = useCameraState();
   const { isMute: isMicMute, microphone } = useMicrophoneState();
   const { isScreenSharing, screenShare } = useScreenShareState();
-  const localParticipant = useLocalParticipant();
-  const participants = useParticipants(); // This hook returns remote participants
+  const participants = useParticipants();
   const callingState = useCallCallingState();
   
-  // Viewer count should only be remote participants
   const viewerCount = participants.length;
   const isCallJoined = callingState === CallingState.JOINED;
   const isVideoEnabled = !isVideoMute;
@@ -153,7 +157,6 @@ function AgoraTestPageUI() {
             title: 'Screen Share Failed',
             description: 'Could not change screen sharing state.',
         });
-        // Revert firestore state if SDK call fails
         if (broadcastDocRef) {
             updateDoc(broadcastDocRef, { 'streamDetails.isScreenSharing': isScreenSharing });
         }
@@ -179,8 +182,9 @@ function AgoraTestPageUI() {
   }
   
   const handleEndStream = async () => {
-    camera.disable();
-    microphone.disable();
+    if (call) {
+        await call.leave();
+    }
     if (broadcastDocRef) {
         await updateDoc(broadcastDocRef, { isLive: false });
     }
@@ -210,40 +214,20 @@ function AgoraTestPageUI() {
         setReactions(prev => prev.filter(r => r.id !== newReaction.id));
     }, 5000);
   }
+  
+  if (isBroadcastLoading || !broadcastData) {
+      return (
+          <div className="flex h-screen w-full items-center justify-center bg-gray-900">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+      )
+  }
 
   return (
     <div className="relative h-screen w-full overflow-hidden">
       <div className="h-screen w-full bg-black text-white flex flex-col relative">
         <div className="absolute inset-0 bg-gray-900 flex items-center justify-center">
-          
-          <StreamTheme as="main" className="w-full h-full">
-            {localParticipant && (
-              <>
-                <Audio participant={localParticipant} />
-                <StreamVideoComponent participant={localParticipant} mirrored={true} className="w-full h-full object-cover"/>
-              </>
-            )}
-          </StreamTheme>
-
-          {!isVideoEnabled && !isScreenSharing && (
-             <Image
-                src="https://picsum.photos/seed/agora-bg/1920/1080"
-                alt="Video feed off background"
-                fill={true}
-                objectFit="cover"
-                data-ai-hint="abstract background"
-              />
-          )}
-          
-          {!hasCameraPermission && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 text-white z-10">
-                <CameraOff className="h-16 w-16 mb-4" />
-                <h2 className="text-2xl font-bold">Camera Access Denied</h2>
-                <p className="text-muted-foreground max-w-sm text-center mt-2">
-                    Please allow camera access in your browser to view your local video feed.
-                </p>
-            </div>
-          )}
+            <VideoPlayer broadcast={broadcastData} isHost={true} />
         </div>
 
         <div className="absolute bottom-16 left-4 h-96 w-64 z-30 pointer-events-none">
@@ -327,10 +311,10 @@ function AgoraTestPageUI() {
             </Sheet>
         </div>
 
-        <div className="absolute bottom-0 left-0 right-0 z-10 p-4 flex flex-col justify-end bg-gradient-to-t from-black/70 to-transparent h-2/5">
+        <div className="absolute bottom-0 left-0 right-0 z-10 p-4 flex flex-col justify-end bg-gradient-to-t from-black/70 to-transparent h-2/5 pointer-events-none">
           {isChatVisible && (
             <>
-              <ScrollArea className="h-full max-h-[250px] pr-4">
+              <ScrollArea className="h-full max-h-[250px] pr-4 pointer-events-auto">
                 <div className="flex flex-col gap-3">
                   {comments && comments.map((comment) => (
                     <div key={comment.id} className="flex items-start gap-3 text-sm text-white bg-black/20 p-2 rounded-lg max-w-xs sm:max-w-sm">
@@ -512,6 +496,8 @@ export default function AgoraTestPage() {
         </Suspense>
     )
 }
+    
+
     
 
     

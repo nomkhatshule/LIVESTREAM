@@ -8,7 +8,7 @@ import {
   StreamVideoClient,
   useCallStateHooks,
 } from '@stream-io/video-react-sdk';
-import { useEffect, useState, useMemo, useRef } from 'react';
+import { useEffect, useState, useMemo, useRef, forwardRef } from 'react';
 import type { Broadcast, User as AppUser, ChatMessage } from '@/lib/data';
 import { useUser, useFirestore, useMemoFirebase, useUserDocument } from '@/firebase';
 import { collection, query, orderBy, limit, serverTimestamp, doc, deleteDoc } from 'firebase/firestore';
@@ -36,24 +36,233 @@ interface FeedItemProps {
   broadcast: any; // Using any to match Firestore data structure
 }
 
+interface FeedItemUIManagerProps {
+    broadcast: Broadcast;
+    isJoined: boolean;
+    isMuted: boolean;
+    toggleMute: () => void;
+}
+
+
+const FeedItemUIManager = forwardRef<HTMLTextAreaElement, FeedItemUIManagerProps>(({ broadcast, isJoined, isMuted, toggleMute }, textareaRef) => {
+    const { user } = useUser();
+    const { userDocument } = useUserDocument();
+    const firestore = useFirestore();
+    const { toast } = useToast();
+    
+    const [newMessage, setNewMessage] = useState('');
+    const [isChatVisible, setIsChatVisible] = useState(true);
+
+    // Real-time chat messages
+    const messagesQuery = useMemoFirebase(() => {
+        if (!broadcast.id || !firestore) return null;
+        return query(
+            collection(firestore, `broadcasts/${broadcast.id}/messages`),
+            orderBy('timestamp', 'desc'),
+            limit(50)
+        );
+    }, [broadcast.id, firestore]);
+    const { data: comments } = useCollection<ChatMessage>(messagesQuery);
+    const reversedComments = useMemo(() => comments ? [...comments].reverse() : [], [comments]);
+    
+    // Real-time likes
+    const likesCollectionRef = useMemoFirebase(() => {
+        if (!broadcast.id || !firestore) return null;
+        return collection(firestore, `broadcasts/${broadcast.id}/likes`);
+    }, [broadcast.id, firestore]);
+    const { data: likes } = useCollection(likesCollectionRef);
+    const hasLiked = useMemo(() => {
+        if (!user || !likes) return false;
+        return likes.some(like => like.id === user.uid);
+    }, [user, likes]);
+    
+    const { useParticipants } = useCallStateHooks();
+    const participants = useParticipants();
+    const viewerCount = isJoined ? Math.max(0, participants.length - 1) : (broadcast.viewers || 0);
+
+    const handleSendMessage = () => {
+        if (newMessage.trim() === '' || !user || !userDocument) return;
+        const messagesCollectionRef = collection(firestore, 'broadcasts', broadcast.id, 'messages');
+        const newComment: Omit<ChatMessage, 'id'|'timestamp'> & {timestamp: any, replyingTo?: string} = {
+            userId: user.uid,
+            username: userDocument.username || "Anonymous",
+            userAvatar: userDocument.profilePicture || '',
+            message: newMessage,
+            timestamp: serverTimestamp(),
+        };
+        const mentionMatch = newMessage.match(/^@(\w+)\s/);
+        if (mentionMatch) {
+            newComment.replyingTo = mentionMatch[1];
+        }
+        addDocumentNonBlocking(messagesCollectionRef, newComment);
+        setNewMessage('');
+    };
+
+    const handleFormSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        handleSendMessage();
+    };
+
+    const handleLike = () => {
+        if (!broadcast.isLive) {
+            toast({ title: 'Stream is offline', description: 'You can only like live streams.', variant: 'destructive' });
+            return;
+        }
+        if (!user) {
+            toast({ title: 'Login Required', description: 'You must be logged in to like a stream.', variant: 'destructive' });
+            return;
+        }
+        if (!firestore || !broadcast.id) return;
+        
+        const likeDocRef = doc(firestore, 'broadcasts', broadcast.id, 'likes', user.uid);
+        
+        if (hasLiked) {
+            deleteDocumentNonBlocking(likeDocRef);
+        } else {
+            setDocumentNonBlocking(likeDocRef, { userId: user.uid, timestamp: serverTimestamp() }, {});
+        }
+    };
+    
+    const handleReply = (username: string) => {
+        setNewMessage(`@${username} `);
+        if (textareaRef && 'current' in textareaRef && textareaRef.current) {
+            textareaRef.current.focus();
+        }
+    }
+
+    return (
+        <div className="absolute inset-0 flex flex-col justify-between p-4 text-white z-30">
+            {/* Top Info */}
+            <div className="bg-gradient-to-b from-black/50 to-transparent -m-4 p-4 pointer-events-none">
+                <div className="flex items-start gap-4">
+                    <Link href={`/profile/${broadcast.user.id}`} className="pointer-events-auto">
+                        <Avatar className="h-14 w-14 border-2 border-primary">
+                            <AvatarImage src={broadcast.user.avatarUrl} alt={broadcast.user.name} />
+                            <AvatarFallback>{broadcast.user.name?.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                    </Link>
+                    <div>
+                        <div className="flex items-center gap-3">
+                            <Link href={`/profile/${broadcast.user.id}`} className="pointer-events-auto">
+                                <p className="font-bold text-lg hover:underline">{broadcast.user.name}</p>
+                            </Link>
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-600 animate-pulse">
+                                LIVE
+                            </span>
+                        </div>
+                        <p className="text-base font-semibold mt-1">{broadcast.title}</p>
+                        <div className="flex items-center gap-3 mt-1 text-xs">
+                            <Users className="h-3 w-3" />
+                            <span>{viewerCount.toLocaleString()}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Bottom Actions and Chat */}
+            <div className="bg-gradient-to-t from-black/70 to-transparent -m-4 p-4 flex items-end gap-4">
+                <div className="flex-1 w-full">
+                    {isChatVisible && (
+                        <div className="w-full max-w-sm">
+                            <ScrollArea className="h-48 w-full pr-4 pointer-events-auto">
+                                <div className="flex flex-col gap-2">
+                                    {reversedComments.map((comment) => (
+                                        <div key={comment.id} className="group flex items-start gap-2 text-sm bg-black/25 p-2 rounded-lg">
+                                            <Link href={`/profile/${comment.userId}`} className="pointer-events-auto">
+                                                <Avatar className="h-6 w-6 border-secondary">
+                                                    <AvatarImage src={comment.userAvatar} alt={comment.username} />
+                                                    <AvatarFallback>{comment.username.charAt(0)}</AvatarFallback>
+                                                </Avatar>
+                                            </Link>
+                                            <div className="flex-1">
+                                                <Link href={`/profile/${comment.userId}`} className="pointer-events-auto">
+                                                    <span className="font-bold text-primary mr-1.5 hover:underline">{comment.username}:</span>
+                                                </Link>
+                                                {comment.replyingTo && <Link href={`/profile/${comment.replyingTo}`} className="text-accent font-semibold mr-1.5 hover:underline pointer-events-auto">@{comment.replyingTo}</Link>}
+                                                <span className="break-words">{comment.message.replace(/^@\w+\s/, '')}</span>
+                                            </div>
+                                            <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 pointer-events-auto" onClick={() => handleReply(comment.username)}>
+                                                <CornerUpLeft className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </ScrollArea>
+                             <div className="flex items-center gap-2">
+                                <form onSubmit={handleFormSubmit} className="relative w-full mt-2 flex-1 pointer-events-auto">
+                                    <Textarea
+                                        ref={textareaRef}
+                                        placeholder="Add a comment..."
+                                        value={newMessage}
+                                        onChange={(e) => setNewMessage(e.target.value)}
+                                        className="bg-black/50 border-white/20 placeholder:text-gray-400 pr-10 w-full min-h-[40px] h-10 resize-none"
+                                    />
+                                    <Button variant="ghost" size="icon" type="submit" className="absolute top-1/2 -translate-y-1/2 right-1 text-white">
+                                        <ArrowUp className="h-5 w-5" />
+                                    </Button>
+                                </form>
+                                <Button variant="ghost" size="icon" onClick={toggleMute} className="text-white bg-black/50 rounded-full h-10 w-10 mt-2 pointer-events-auto">
+                                    {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+                <div className="flex flex-col-reverse items-center gap-y-4">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white hover:bg-white/20 pointer-events-auto">
+                                <MoreVertical className="h-8 w-8" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-56" align="end">
+                            <DropdownMenuItem>
+                                <Share2 className="mr-2 h-4 w-4" />
+                                <span>Share</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                                <Link href="/broadcast/create">
+                                    <Clapperboard className="mr-2 h-4 w-4" />
+                                    <span>Go Stream</span>
+                                </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                                <Link href="/profile">
+                                    <UserIcon className="mr-2 h-4 w-4" />
+                                    <span>My Profile</span>
+                                </Link>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                    <Button variant="ghost" size="icon" onClick={() => setIsChatVisible(!isChatVisible)} className="h-12 w-12 rounded-full text-white flex-col hover:bg-white/20 pointer-events-auto">
+                        <MessageSquare className="h-8 w-8" />
+                        <span className="text-xs mt-1">{comments?.length || 0}</span>
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white flex-col hover:bg-white/20 pointer-events-auto" onClick={handleLike} disabled={!broadcast.isLive}>
+                        <Heart className={cn("h-8 w-8", hasLiked && "fill-red-500 text-red-500")} />
+                        <span className="text-xs mt-1 tabular-nums">{likes?.length || 0}</span>
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white flex-col hover:bg-white/20 pointer-events-auto">
+                        <PlusCircle className="h-8 w-8" />
+                    </Button>
+                </div>
+            </div>
+        </div>
+    );
+});
+FeedItemUIManager.displayName = "FeedItemUIManager";
+
+
 export default function FeedItem({ client, broadcast }: FeedItemProps) {
-  const { user } = useUser();
-  const { userDocument } = useUserDocument();
-  const firestore = useFirestore();
   const { toast } = useToast();
   const [call, setCall] = useState<Call | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   
-  // State to manage if user wants to play and the joining status
   const [isPlaying, setIsPlaying] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
   const [isJoined, setIsJoined] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted, setIsMuted] = useState(true); // Start muted by default
 
-  const [newMessage, setNewMessage] = useState('');
-  const [isChatVisible, setIsChatVisible] = useState(true);
-
-  // Derive host information from the broadcast data
   const hostUser: AppUser = {
       id: broadcast.hostId,
       name: broadcast.hostName,
@@ -67,45 +276,11 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
   const fullBroadcast: Broadcast = {
       ...broadcast,
       user: hostUser,
-      thumbnailUrl: '', // Not needed
+      thumbnailUrl: '', 
       thumbnailHint: '',
   }
 
-  // Real-time chat messages
-  const messagesQuery = useMemoFirebase(() => {
-    if (!broadcast.id || !firestore) return null;
-    return query(
-        collection(firestore, `broadcasts/${broadcast.id}/messages`),
-        orderBy('timestamp', 'desc'),
-        limit(50)
-    );
-  }, [broadcast.id, firestore]);
-
-  const { data: comments } = useCollection<ChatMessage>(messagesQuery);
-  const reversedComments = useMemo(() => comments ? [...comments].reverse() : [], [comments]);
-  
-  // Real-time likes
-  const likesCollectionRef = useMemoFirebase(() => {
-    if (!broadcast.id || !firestore) return null;
-    return collection(firestore, `broadcasts/${broadcast.id}/likes`);
-  }, [broadcast.id, firestore]);
-
-  const { data: likes } = useCollection(likesCollectionRef);
-
-  const hasLiked = useMemo(() => {
-    if (!user || !likes) return false;
-    return likes.some(like => like.id === user.uid);
-  }, [user, likes]);
-  
-  const { useParticipants } = useCallStateHooks();
-  // useParticipants returns remote participants. When viewing a stream, this includes the host.
-  // To get the viewer count, we take the number of participants and subtract 1 (for the host).
-  const participants = useParticipants();
-  const viewerCount = call ? Math.max(0, participants.length - 1) : (broadcast.viewerCount || 0);
-
-
   useEffect(() => {
-    // This effect now only runs when the user explicitly clicks play
     if (!isPlaying || !client || call) return;
 
     let callInstance: Call;
@@ -125,7 +300,7 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
                 variant: 'destructive',
              });
              setIsJoined(false);
-             setIsPlaying(false); // Reset play state on failure
+             setIsPlaying(false);
         } finally {
             setIsJoining(false);
         }
@@ -134,7 +309,6 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
     joinCall();
 
     return () => {
-      // Cleanup when the component unmounts
       if (callInstance) {
         callInstance.leave().catch(err => console.error(`Failed to leave call ${broadcast.id} on cleanup`, err));
         setCall(null);
@@ -144,74 +318,8 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPlaying, client, broadcast.id]);
 
-  const handleSendMessage = () => {
-    if (newMessage.trim() === '' || !user || !userDocument) return;
-
-    const messagesCollectionRef = collection(firestore, 'broadcasts', broadcast.id, 'messages');
-    
-    const newComment: Omit<ChatMessage, 'id'|'timestamp'> & {timestamp: any, replyingTo?: string} = {
-        userId: user.uid,
-        username: userDocument.username || "Anonymous",
-        userAvatar: userDocument.profilePicture || '',
-        message: newMessage,
-        timestamp: serverTimestamp(),
-    };
-    
-    const mentionMatch = newMessage.match(/^@(\w+)\s/);
-    if (mentionMatch) {
-      newComment.replyingTo = mentionMatch[1];
-    }
-
-    addDocumentNonBlocking(messagesCollectionRef, newComment);
-    setNewMessage('');
-  };
-  
-  const handleFormSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    handleSendMessage();
-  };
-
-  const handleLike = () => {
-    if (!broadcast.isLive) {
-        toast({
-            title: 'Stream is offline',
-            description: 'You can only like live streams.',
-            variant: 'destructive'
-        });
-        return;
-    }
-    if (!user) {
-      toast({
-        title: 'Login Required',
-        description: 'You must be logged in to like a stream.',
-        variant: 'destructive',
-      });
-      return;
-    }
-    if (!firestore || !broadcast.id) return;
-    
-    // Use user's UID as document ID to prevent multiple likes
-    const likeDocRef = doc(firestore, 'broadcasts', broadcast.id, 'likes', user.uid);
-    
-    if (hasLiked) {
-      // User has already liked, so "unlike"
-      deleteDocumentNonBlocking(likeDocRef);
-    } else {
-      // User has not liked yet, so "like"
-      setDocumentNonBlocking(likeDocRef, { 
-        userId: user.uid,
-        timestamp: serverTimestamp() 
-      }, {});
-    }
-  };
-
   const handlePlay = () => {
     setIsPlaying(true);
-  }
-  
-  const handleReply = (username: string) => {
-    setNewMessage(`@${username} `);
-    textareaRef.current?.focus();
   }
 
   const toggleMute = () => {
@@ -222,156 +330,41 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
     }
   }
 
-
   return (
     <div className="relative h-[calc(100vh-4rem)] w-full snap-start" data-broadcast-id={broadcast.id}>
       
-      {/* Show the video player if joined, otherwise show the placeholder/button */}
-      {call && isPlaying && isJoined ? (
+      {isPlaying && call ? (
         <StreamVideo client={client}>
           <StreamCall call={call}>
             <VideoPlayer broadcast={fullBroadcast} isHost={false} isMuted={isMuted} />
+            <FeedItemUIManager ref={textareaRef} broadcast={fullBroadcast} isJoined={isJoined} isMuted={isMuted} toggleMute={toggleMute} />
           </StreamCall>
         </StreamVideo>
       ) : (
-        <div className="w-full h-full bg-black flex items-center justify-center text-white relative">
-            <div className="absolute inset-0 bg-black/50 z-10" />
-            <img src={broadcast.thumbnailUrl || `https://picsum.photos/seed/${broadcast.id}/1280/720`} alt="Broadcast thumbnail" className="w-full h-full object-cover blur-sm"/>
-            
-            <div className="absolute z-20 flex flex-col items-center">
-                {isJoining ? (
-                    <>
-                        <Loader2 className="h-16 w-16 animate-spin text-white mb-4" />
-                        <p className="text-lg font-semibold">Joining Stream...</p>
-                    </>
-                ) : (
-                     <Button variant="ghost" size="icon" className="h-32 w-32 text-white/80 hover:text-white hover:bg-transparent" onClick={handlePlay}>
-                        <PlayCircle className="h-32 w-32" />
-                    </Button>
-                )}
-            </div>
-        </div>
-      )}
-
-      {/* UI Overlay */}
-      <div className="absolute inset-0 flex flex-col justify-between p-4 text-white z-30 pointer-events-none">
-        {/* Top Info */}
-        <div className="bg-gradient-to-b from-black/50 to-transparent -m-4 p-4">
-          <div className="flex items-start gap-4">
-            <Link href={`/profile/${broadcast.hostId}`} className="pointer-events-auto">
-              <Avatar className="h-14 w-14 border-2 border-primary">
-                <AvatarImage src={broadcast.hostAvatar} alt={broadcast.hostName} />
-                <AvatarFallback>{broadcast.hostName?.charAt(0)}</AvatarFallback>
-              </Avatar>
-            </Link>
-            <div>
-              <div className="flex items-center gap-3">
-                 <Link href={`/profile/${broadcast.hostId}`} className="pointer-events-auto">
-                    <p className="font-bold text-lg hover:underline">{broadcast.hostName}</p>
-                </Link>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-600 animate-pulse">
-                  LIVE
-                </span>
-              </div>
-              <p className="text-base font-semibold mt-1">{broadcast.title}</p>
-              <div className="flex items-center gap-3 mt-1 text-xs">
-                <Users className="h-3 w-3" />
-                <span>{viewerCount.toLocaleString()}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Bottom Actions and Chat */}
-        <div className="bg-gradient-to-t from-black/70 to-transparent -m-4 p-4 flex items-end gap-4">
-          <div className="flex-1 w-full">
-            {isChatVisible && (
-              <div className="w-full max-w-sm">
-                <ScrollArea className="h-48 w-full pr-4">
-                  <div className="flex flex-col gap-2">
-                    {reversedComments.map((comment) => (
-                      <div key={comment.id} className="group flex items-start gap-2 text-sm bg-black/25 p-2 rounded-lg">
-                        <Link href={`/profile/${comment.userId}`} className="pointer-events-auto">
-                          <Avatar className="h-6 w-6 border-secondary">
-                            <AvatarImage src={comment.userAvatar} alt={comment.username} />
-                            <AvatarFallback>{comment.username.charAt(0)}</AvatarFallback>
-                          </Avatar>
-                        </Link>
-                        <div className="flex-1">
-                          <Link href={`/profile/${comment.userId}`} className="pointer-events-auto">
-                            <span className="font-bold text-primary mr-1.5 hover:underline">{comment.username}:</span>
-                          </Link>
-                          {comment.replyingTo && <Link href={`/profile/${comment.replyingTo}`} className="text-accent font-semibold mr-1.5 hover:underline pointer-events-auto">@{comment.replyingTo}</Link>}
-                          <span className="break-words">{comment.message.replace(/^@\w+\s/, '')}</span>
-                        </div>
-                        <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 pointer-events-auto" onClick={() => handleReply(comment.username)}>
-                            <CornerUpLeft className="h-4 w-4" />
+        <>
+            <div className="w-full h-full bg-black flex items-center justify-center text-white relative">
+                <div className="absolute inset-0 bg-black/50 z-10" />
+                <img src={broadcast.thumbnailUrl || `https://picsum.photos/seed/${broadcast.id}/1280/720`} alt="Broadcast thumbnail" className="w-full h-full object-cover blur-sm"/>
+                
+                <div className="absolute z-20 flex flex-col items-center">
+                    {isJoining ? (
+                        <>
+                            <Loader2 className="h-16 w-16 animate-spin text-white mb-4" />
+                            <p className="text-lg font-semibold">Joining Stream...</p>
+                        </>
+                    ) : (
+                        <Button variant="ghost" size="icon" className="h-32 w-32 text-white/80 hover:text-white hover:bg-transparent" onClick={handlePlay}>
+                            <PlayCircle className="h-32 w-32" />
                         </Button>
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-                <div className="flex items-center gap-2">
-                    <form onSubmit={handleFormSubmit} className="relative w-full mt-2 flex-1 pointer-events-auto">
-                      <Textarea
-                        ref={textareaRef}
-                        placeholder="Add a comment..."
-                        value={newMessage}
-                        onChange={(e) => setNewMessage(e.target.value)}
-                        className="bg-black/50 border-white/20 placeholder:text-gray-400 pr-10 w-full min-h-[40px] h-10 resize-none"
-                      />
-                      <Button variant="ghost" size="icon" type="submit" className="absolute top-1/2 -translate-y-1/2 right-1 text-white">
-                        <ArrowUp className="h-5 w-5" />
-                      </Button>
-                    </form>
-                     <Button variant="ghost" size="icon" onClick={toggleMute} className="text-white bg-black/50 rounded-full h-10 w-10 mt-2 pointer-events-auto">
-                        {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
-                    </Button>
+                    )}
                 </div>
-              </div>
-            )}
-          </div>
-          <div className="flex flex-col-reverse items-center gap-y-4">
-             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white hover:bg-white/20 pointer-events-auto">
-                  <MoreVertical className="h-8 w-8" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end">
-                <DropdownMenuItem>
-                  <Share2 className="mr-2 h-4 w-4" />
-                  <span>Share</span>
-                </DropdownMenuItem>
-                 <DropdownMenuItem asChild>
-                  <Link href="/broadcast/create">
-                    <Clapperboard className="mr-2 h-4 w-4" />
-                    <span>Go Stream</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/profile">
-                    <UserIcon className="mr-2 h-4 w-4" />
-                    <span>My Profile</span>
-                  </Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-             <Button variant="ghost" size="icon" onClick={() => setIsChatVisible(!isChatVisible)} className="h-12 w-12 rounded-full text-white flex-col hover:bg-white/20 pointer-events-auto">
-               <MessageSquare className="h-8 w-8" />
-               <span className="text-xs mt-1">{comments?.length || 0}</span>
-            </Button>
-            <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white flex-col hover:bg-white/20 pointer-events-auto" onClick={handleLike} disabled={!broadcast.isLive}>
-              <Heart className={cn("h-8 w-8", hasLiked && "fill-red-500 text-red-500")} />
-              <span className="text-xs mt-1 tabular-nums">{likes?.length || 0}</span>
-            </Button>
-             <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white flex-col hover:bg-white/20 pointer-events-auto">
-                <PlusCircle className="h-8 w-8"/>
-            </Button>
-          </div>
-        </div>
-      </div>
+            </div>
+            {/* Show a simplified UI overlay even when not playing */}
+            <FeedItemUIManager ref={textareaRef} broadcast={fullBroadcast} isJoined={false} isMuted={isMuted} toggleMute={toggleMute} />
+        </>
+      )}
     </div>
   );
 }
 
+    
