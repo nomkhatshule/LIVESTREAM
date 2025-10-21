@@ -29,6 +29,7 @@ import {
 import '@stream-io/video-react-sdk/dist/css/styles.css';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import VideoPlayer from '@/components/broadcast/video-player';
+import { User } from 'lucide-react';
 
 interface Comment {
   id: string;
@@ -86,13 +87,11 @@ function AgoraTestPageUI() {
   const { isScreenSharing, screenShare } = useScreenShareState();
   const participants = useParticipants();
   const callingState = useCallCallingState();
-  const { isMute: isVideoMute } = useCameraState();
-  const { isMute: isMicMute } = useMicrophoneState();
   
   const viewerCount = Math.max(0, participants.length - 1);
   const isCallJoined = callingState === CallingState.JOINED;
-  const isVideoEnabled = !isVideoMute;
-  const isMicEnabled = !isMicMute;
+  const isVideoEnabled = !camera.isMute;
+  const isMicEnabled = !microphone.isMute;
 
 
   // Real-time broadcast document
@@ -133,10 +132,17 @@ function AgoraTestPageUI() {
     getCameraPermission();
   }, [toast]);
   
-  // This effect automatically enables the camera once the call is joined.
+  // This effect automatically enables the camera once the call is joined with high-quality settings.
   useEffect(() => {
     if (callingState === CallingState.JOINED && call && call.camera) {
-      call.camera.enable();
+      // Define constraints for 1080p video at 30fps for high quality.
+      const highQualityConstraints = {
+        width: { ideal: 1920 },
+        height: { ideal: 1080 },
+        frameRate: { ideal: 30 },
+      };
+      // Enable the camera with the high-quality constraints.
+      call.camera.enable(highQualityConstraints);
     }
   }, [callingState, call]);
 
@@ -145,19 +151,25 @@ function AgoraTestPageUI() {
     if (isScreenSharing) {
         await screenShare.toggle();
     }
-    await camera.toggle();
+    if (call && call.camera) {
+      await call.camera.toggle();
+    }
   }
 
   const handleToggleMic = async () => {
-    await microphone.toggle();
+    if (call && call.microphone) {
+      await call.microphone.toggle();
+    }
   }
 
   const handleToggleScreenShare = async () => {
     const nextIsScreenSharing = !isScreenSharing;
     try {
-        await screenShare.toggle();
-        if (broadcastDocRef) {
-            updateDoc(broadcastDocRef, { 'streamDetails.isScreenSharing': nextIsScreenSharing });
+        if(call && call.screenShare) {
+            await call.screenShare.toggle();
+            if (broadcastDocRef) {
+                updateDoc(broadcastDocRef, { 'streamDetails.isScreenSharing': nextIsScreenSharing });
+            }
         }
     } catch (error) {
         console.error('Error toggling screen share:', error);
@@ -505,8 +517,6 @@ export default function AgoraTestPage() {
         </Suspense>
     )
 }
-    
-
     
 
     
