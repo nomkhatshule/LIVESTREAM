@@ -134,9 +134,9 @@ const FeedItemUIManager = forwardRef<HTMLTextAreaElement, FeedItemUIManagerProps
         <div className="absolute inset-0 flex flex-col justify-between p-4 text-white z-30">
             {/* Top Info */}
             <div className="bg-gradient-to-b from-black/50 to-transparent -m-4 p-4 pointer-events-none">
-                <div className="flex items-start gap-4">
+                <div className="flex items-start gap-3">
                     <Link href={`/profile/${broadcast.user.id}`} className="pointer-events-auto">
-                        <Avatar className="h-14 w-14 border-2 border-primary">
+                        <Avatar className="h-10 w-10 md:h-14 md:w-14 border-2 border-primary">
                             <AvatarImage src={broadcast.user.avatarUrl} alt={broadcast.user.name} />
                             <AvatarFallback>{broadcast.user.name?.charAt(0)}</AvatarFallback>
                         </Avatar>
@@ -144,13 +144,13 @@ const FeedItemUIManager = forwardRef<HTMLTextAreaElement, FeedItemUIManagerProps
                     <div>
                         <div className="flex items-center gap-3">
                             <Link href={`/profile/${broadcast.user.id}`} className="pointer-events-auto">
-                                <p className="font-bold text-lg hover:underline">{broadcast.user.name}</p>
+                                <p className="font-bold text-base md:text-lg hover:underline">{broadcast.user.name}</p>
                             </Link>
                             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-600 animate-pulse">
                                 LIVE
                             </span>
                         </div>
-                        <p className="text-base font-semibold mt-1">{broadcast.title}</p>
+                        <p className="text-sm md:text-base font-semibold mt-1">{broadcast.title}</p>
                         <div className="flex items-center gap-3 mt-1 text-xs">
                             <Users className="h-3 w-3" />
                             <span>{viewerCount.toLocaleString()}</span>
@@ -366,5 +366,3 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
     </div>
   );
 }
-
-    

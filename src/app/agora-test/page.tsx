@@ -64,19 +64,19 @@ interface BroadcastData {
 
 const StreamHeader = ({ broadcastData, viewerCount, onEndStream }: { broadcastData: BroadcastData, viewerCount: number, onEndStream: () => void }) => {
     return (
-        <div className="absolute top-0 left-0 right-0 z-10 p-4 flex items-center justify-between bg-gradient-to-b from-black/50 to-transparent">
-            <div className="flex items-center gap-3 bg-black/30 p-2 rounded-full">
-                <Avatar className="h-9 w-9 border-2 border-primary">
+        <div className="absolute top-0 left-0 right-0 z-10 p-2 md:p-4 flex items-center justify-between bg-gradient-to-b from-black/50 to-transparent">
+            <div className="flex items-center gap-2 md:gap-3 bg-black/30 p-1.5 md:p-2 rounded-full">
+                <Avatar className="h-8 w-8 md:h-9 md:w-9 border-2 border-primary">
                     <AvatarImage src={broadcastData?.hostAvatar || broadcastData?.user?.avatarUrl || ''} alt={broadcastData?.hostName || broadcastData?.user?.name || ''} />
                     <AvatarFallback>{(broadcastData?.hostName || broadcastData?.user?.name || 'U').charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col">
-                    <span className="font-bold text-sm leading-tight text-white">{broadcastData?.hostName || broadcastData?.user?.name || 'Host'}</span>
-                    <div className="flex items-center gap-3">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-600 text-white animate-pulse">
+                    <span className="font-bold text-xs md:text-sm leading-tight text-white">{broadcastData?.hostName || broadcastData?.user?.name || 'Host'}</span>
+                    <div className="flex items-center gap-2 md:gap-3">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] md:text-xs font-medium bg-red-600 text-white animate-pulse">
                             LIVE
                         </span>
-                        <span className="inline-flex items-center text-xs font-medium gap-1 text-white">
+                        <span className="inline-flex items-center text-[10px] md:text-xs font-medium gap-1 text-white">
                             <Users className="h-3 w-3" />
                             {viewerCount.toLocaleString()}
                         </span>
@@ -561,7 +561,3 @@ export default function AgoraTestPage() {
         </Suspense>
     )
 }
-
-    
-
-    
