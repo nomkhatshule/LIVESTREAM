@@ -29,7 +29,8 @@ export default function VideoPlayer({
     const participants = useParticipants();
     const videoRef = useRef<HTMLVideoElement>(null);
 
-    // Logic to find the correct participant is still needed here, but it's simpler.
+    // Find the participant to display. For the host, it's the local participant.
+    // For viewers, it's the participant whose ID matches the host's ID.
     const participantToDisplay = isHost
       ? participants.find((p) => p.isLocal)
       : participants.find((p) => p.userId === broadcast.user.id);
@@ -61,7 +62,9 @@ export default function VideoPlayer({
         <StreamTheme as="main" className="w-full h-full">
             <ParticipantView 
               participant={participantToDisplay} 
-              mirrored={isHost} // Host sees a mirror, viewers see the real orientation
+              // The host's self-view should be mirrored for a natural experience.
+              // Viewers should see a non-mirrored, true image.
+              mirrored={isHost} 
             />
         </StreamTheme>
     </div>
