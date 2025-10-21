@@ -24,8 +24,6 @@ import {
   useCallStateHooks,
   StreamTheme,
   CallingState,
-  Video as StreamVideoComponent,
-  Audio,
 } from '@stream-io/video-react-sdk';
 import '@stream-io/video-react-sdk/dist/css/styles.css';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -88,7 +86,7 @@ function AgoraTestPageUI() {
   const participants = useParticipants();
   const callingState = useCallCallingState();
   
-  const viewerCount = participants.length;
+  const viewerCount = Math.max(0, participants.length - 1);
   const isCallJoined = callingState === CallingState.JOINED;
   const isVideoEnabled = !isVideoMute;
   const isMicEnabled = !isMicMute;
@@ -300,7 +298,7 @@ function AgoraTestPageUI() {
                         <span>{p.name || 'Anonymous Viewer'}</span>
                       </div>
                     ))}
-                    {participants.length === 0 && (
+                    {participants.length <= 1 && (
                       <p className="text-muted-foreground text-center py-8">
                         Just you for now.
                       </p>
@@ -496,6 +494,8 @@ export default function AgoraTestPage() {
         </Suspense>
     )
 }
+    
+
     
 
     
