@@ -83,7 +83,7 @@ const StreamHeader = ({ broadcastData, viewerCount, onEndStream }: { broadcastDa
                     </div>
                 </div>
             </div>
-            <Button variant="destructive" size="sm" onClick={onEndStream}>
+            <Button variant="destructive" size="sm" className="h-8 px-3 md:h-9 md:px-4" onClick={onEndStream}>
                 <X className="h-4 w-4 mr-1.5" /> End
             </Button>
         </div>
@@ -561,3 +561,5 @@ export default function AgoraTestPage() {
         </Suspense>
     )
 }
+
+    
