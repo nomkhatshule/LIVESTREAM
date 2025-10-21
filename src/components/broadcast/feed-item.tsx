@@ -276,7 +276,7 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
         </div>
 
         {/* Bottom Actions and Chat */}
-        <div className="bg-gradient-to-t from-black/70 to-transparent -m-4 p-4 flex items-end gap-4 pointer-events-auto">
+        <div className="bg-gradient-to-t from-black/70 to-transparent -m-4 p-4 flex items-end gap-4">
           <div className="flex-1">
             {isChatVisible && (
               <div className="w-full max-w-sm">
@@ -297,7 +297,7 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
                           {comment.replyingTo && <Link href={`/profile/${comment.replyingTo}`} className="text-accent font-semibold mr-1.5 hover:underline pointer-events-auto">@{comment.replyingTo}</Link>}
                           <span className="break-words">{comment.message.replace(/^@\w+\s/, '')}</span>
                         </div>
-                        <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => handleReply(comment.username)}>
+                        <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 pointer-events-auto" onClick={() => handleReply(comment.username)}>
                             <CornerUpLeft className="h-4 w-4" />
                         </Button>
                       </div>
@@ -305,32 +305,26 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
                   </div>
                 </ScrollArea>
                 <div className="flex items-center gap-2">
-                    <form onSubmit={handleFormSubmit} className="relative w-full mt-2 flex-1">
+                    <form onSubmit={handleFormSubmit} className="relative w-full mt-2 flex-1 pointer-events-auto">
                       <Textarea
                         ref={textareaRef}
                         placeholder="Add a comment..."
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
                         className="bg-black/50 border-white/20 placeholder:text-gray-400 pr-10 w-full min-h-[40px] h-10 resize-none"
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' && !e.shiftKey) {
-                                e.preventDefault();
-                                handleFormSubmit(e);
-                            }
-                        }}
                       />
                       <Button variant="ghost" size="icon" type="submit" className="absolute top-1/2 -translate-y-1/2 right-1 text-white">
                         <ArrowUp className="h-5 w-5" />
                       </Button>
                     </form>
-                     <Button variant="ghost" size="icon" onClick={toggleMute} className="text-white bg-black/50 rounded-full h-10 w-10 mt-2">
+                     <Button variant="ghost" size="icon" onClick={toggleMute} className="text-white bg-black/50 rounded-full h-10 w-10 mt-2 pointer-events-auto">
                         {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
                     </Button>
                 </div>
               </div>
             )}
           </div>
-          <div className="flex flex-col-reverse items-center gap-y-4">
+          <div className="flex flex-col-reverse items-center gap-y-4 pointer-events-auto">
              <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white hover:bg-white/20">
@@ -373,5 +367,3 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
     </div>
   );
 }
-
-    
