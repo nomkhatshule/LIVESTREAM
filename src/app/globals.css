@@ -107,3 +107,8 @@ html {
   scroll-snap-align: start;
   position: relative;
 }
+
+/* Hide the participant name overlay in the main video view */
+.str-video__participant-details {
+    display: none;
+}
