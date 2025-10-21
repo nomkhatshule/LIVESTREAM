@@ -98,8 +98,10 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
   }, [user, likes]);
   
   const { useParticipants } = useCallStateHooks();
-  const participants = useParticipants(); // This hook returns remote participants when used inside a call
-  const viewerCount = call ? participants.length : (broadcast.viewerCount || 0);
+  // useParticipants returns remote participants. When viewing a stream, this includes the host.
+  // To get the viewer count, we take the number of participants and subtract 1 (for the host).
+  const participants = useParticipants();
+  const viewerCount = call ? Math.max(0, participants.length - 1) : (broadcast.viewerCount || 0);
 
 
   useEffect(() => {
@@ -282,7 +284,7 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
 
         {/* Bottom Actions and Chat */}
         <div className="bg-gradient-to-t from-black/70 to-transparent -m-4 p-4 flex items-end gap-4">
-          <div className="flex-1">
+          <div className="flex-1 w-full">
             {isChatVisible && (
               <div className="w-full max-w-sm">
                 <ScrollArea className="h-48 w-full pr-4">
@@ -372,3 +374,4 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
     </div>
   );
 }
+
