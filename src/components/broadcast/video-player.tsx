@@ -46,7 +46,7 @@ export default function VideoPlayer({
     const participants = useParticipants(); 
 
     // For the host, the participant to display is the first one in the list (themselves).
-    // This is more reliable than localParticipant because the 'participants' array is
+    // This is more reliable because the 'participants' array is
     // populated only after media tracks are published.
     // For viewers, it's the participant whose ID matches the host's ID from the broadcast data.
     const participantToDisplay = isHost
