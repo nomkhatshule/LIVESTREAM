@@ -137,8 +137,7 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPlaying, client, broadcast.id]);
 
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSendMessage = () => {
     if (newMessage.trim() === '' || !user || !userDocument) return;
 
     const messagesCollectionRef = collection(firestore, 'broadcasts', broadcast.id, 'messages');
@@ -156,9 +155,13 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
       newComment.replyingTo = mentionMatch[1];
     }
 
-
     addDocumentNonBlocking(messagesCollectionRef, newComment);
     setNewMessage('');
+  };
+  
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleSendMessage();
   };
 
   const handleLike = () => {
@@ -302,7 +305,7 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
                   </div>
                 </ScrollArea>
                 <div className="flex items-center gap-2">
-                    <form onSubmit={handleSendMessage} className="relative w-full mt-2 flex-1">
+                    <form onSubmit={handleFormSubmit} className="relative w-full mt-2 flex-1">
                       <Textarea
                         ref={textareaRef}
                         placeholder="Add a comment..."
@@ -312,7 +315,7 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
                         onKeyDown={(e) => {
                             if (e.key === 'Enter' && !e.shiftKey) {
                                 e.preventDefault();
-                                handleSendMessage(e);
+                                handleSendMessage();
                             }
                         }}
                       />
@@ -370,5 +373,3 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
     </div>
   );
 }
-
-    
