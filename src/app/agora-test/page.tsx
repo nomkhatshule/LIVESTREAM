@@ -129,6 +129,14 @@ function AgoraTestPageUI() {
     };
     getCameraPermission();
   }, [toast]);
+  
+  // This effect automatically enables the camera once the call is joined.
+  useEffect(() => {
+    if (callingState === CallingState.JOINED && call && call.camera) {
+      call.camera.enable();
+    }
+  }, [callingState, call]);
+
 
   const handleToggleVideo = async () => {
     if (isScreenSharing) {
@@ -494,6 +502,8 @@ export default function AgoraTestPage() {
         </Suspense>
     )
 }
+    
+
     
 
     
