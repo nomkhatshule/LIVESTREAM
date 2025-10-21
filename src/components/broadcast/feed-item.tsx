@@ -315,7 +315,7 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
                         onKeyDown={(e) => {
                             if (e.key === 'Enter' && !e.shiftKey) {
                                 e.preventDefault();
-                                handleSendMessage();
+                                handleFormSubmit(e);
                             }
                         }}
                       />
@@ -373,3 +373,5 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
     </div>
   );
 }
+
+    
