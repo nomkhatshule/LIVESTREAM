@@ -20,7 +20,6 @@ import {
   StreamVideoClient,
   useCall,
   useCallStateHooks,
-  StreamTheme,
   CallingState,
   ParticipantView,
 } from '@stream-io/video-react-sdk';
@@ -91,23 +90,24 @@ const StreamHeader = ({ broadcastData, viewerCount, onEndStream }: { broadcastDa
     );
 };
 
-const StreamControls = ({ onToggleVideo, onToggleMic, onToggleScreenShare, onInviteGuest, isVideoEnabled, isMicEnabled, isScreenSharing, isCallJoined, viewerCount }: any) => {
+const StreamControls = ({ onToggleVideo, onToggleMic, onToggleScreenShare, onInviteGuest, isVideoEnabled, isMicEnabled, isScreenSharing, isCallJoined }: any) => {
     const { useParticipants } = useCallStateHooks();
     const participants = useParticipants();
+    const viewerCount = Math.max(0, participants.length -1);
 
     return (
-        <div className="absolute right-4 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-4 p-2 bg-black/40 rounded-full backdrop-blur-sm">
-            <Button variant="secondary" size="icon" className="rounded-full h-12 w-12" onClick={onToggleVideo} disabled={!isCallJoined}>
-                {isVideoEnabled ? <Video className="h-6 w-6"/> : <VideoOff className="h-6 w-6"/>}
+        <div className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-2 md:gap-4 p-2 bg-black/40 rounded-full backdrop-blur-sm">
+            <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onToggleVideo} disabled={!isCallJoined}>
+                {isVideoEnabled ? <Video className="h-5 w-5 md:h-6 md:w-6"/> : <VideoOff className="h-5 w-5 md:h-6 md:w-6"/>}
             </Button>
-            <Button variant="secondary" size="icon" className="rounded-full h-12 w-12" onClick={onToggleMic} disabled={!isCallJoined}>
-                {isMicEnabled ? <Mic className="h-6 w-6"/> : <MicOff className="h-6 w-6"/>}
+            <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onToggleMic} disabled={!isCallJoined}>
+                {isMicEnabled ? <Mic className="h-5 w-5 md:h-6 md:w-6"/> : <MicOff className="h-5 w-5 md:h-6 md:w-6"/>}
             </Button>
-            <Button variant={isScreenSharing ? "primary" : "secondary"} size="icon" className="rounded-full h-12 w-12" onClick={onToggleScreenShare} disabled={!isCallJoined}>
-                {isScreenSharing ? <MonitorUp className="h-6 w-6"/> : <ScreenShare className="h-6 w-6"/>}
+            <Button variant={isScreenSharing ? "primary" : "secondary"} size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onToggleScreenShare} disabled={!isCallJoined}>
+                {isScreenSharing ? <MonitorUp className="h-5 w-5 md:h-6 md:w-6"/> : <ScreenShare className="h-5 w-5 md:h-6 md:w-6"/>}
             </Button>
-            <Button variant="secondary" size="icon" className="rounded-full h-12 w-12" onClick={onInviteGuest}>
-                <UserPlus className="h-6 w-6"/>
+            <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onInviteGuest}>
+                <UserPlus className="h-5 w-5 md:h-6 md:w-6"/>
             </Button>
             <ParticipantsPanel viewerCount={viewerCount} participants={participants} />
         </div>
@@ -118,8 +118,8 @@ const ParticipantsPanel = ({ viewerCount, participants }: any) => {
     return (
         <Sheet>
             <SheetTrigger asChild>
-                <Button variant="secondary" size="icon" className="rounded-full h-12 w-12">
-                    <Users className="h-6 w-6" />
+                <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12">
+                    <Users className="h-5 w-5 md:h-6 md:w-6" />
                 </Button>
             </SheetTrigger>
             <SheetContent>
@@ -371,6 +371,7 @@ function AgoraTestPageUI() {
 
   return (
     <div className="relative h-screen w-full bg-black text-white overflow-hidden">
+        
         <VideoPlayer 
             broadcast={broadcastData} 
             isHost={true} 
@@ -393,7 +394,6 @@ function AgoraTestPageUI() {
             isMicEnabled={isMicEnabled}
             isScreenSharing={isScreenSharing}
             isCallJoined={isCallJoined}
-            viewerCount={viewerCount}
         />
 
         <ChatPanel 
@@ -561,5 +561,7 @@ export default function AgoraTestPage() {
         </Suspense>
     )
 }
+
+    
 
     

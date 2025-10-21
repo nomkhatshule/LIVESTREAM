@@ -211,8 +211,8 @@ const FeedItemUIManager = forwardRef<HTMLTextAreaElement, FeedItemUIManagerProps
                 <div className="flex flex-col-reverse items-center gap-y-4">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white hover:bg-white/20 pointer-events-auto">
-                                <MoreVertical className="h-8 w-8" />
+                            <Button variant="ghost" size="icon" className="h-10 w-10 md:h-12 md:w-12 rounded-full text-white hover:bg-white/20 pointer-events-auto">
+                                <MoreVertical className="h-6 w-6 md:h-8 md:w-8" />
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent className="w-56" align="end">
@@ -234,16 +234,16 @@ const FeedItemUIManager = forwardRef<HTMLTextAreaElement, FeedItemUIManagerProps
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
-                    <Button variant="ghost" size="icon" onClick={() => setIsChatVisible(!isChatVisible)} className="h-12 w-12 rounded-full text-white flex-col hover:bg-white/20 pointer-events-auto">
-                        <MessageSquare className="h-8 w-8" />
+                    <Button variant="ghost" size="icon" onClick={() => setIsChatVisible(!isChatVisible)} className="h-10 w-10 md:h-12 md:w-12 rounded-full text-white flex-col hover:bg-white/20 pointer-events-auto">
+                        <MessageSquare className="h-6 w-6 md:h-8 md:w-8" />
                         <span className="text-xs mt-1">{comments?.length || 0}</span>
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white flex-col hover:bg-white/20 pointer-events-auto" onClick={handleLike} disabled={!broadcast.isLive}>
-                        <Heart className={cn("h-8 w-8", hasLiked && "fill-red-500 text-red-500")} />
+                    <Button variant="ghost" size="icon" className="h-10 w-10 md:h-12 md:w-12 rounded-full text-white flex-col hover:bg-white/20 pointer-events-auto" onClick={handleLike} disabled={!broadcast.isLive}>
+                        <Heart className={cn("h-6 w-6 md:h-8 md:w-8", hasLiked && "fill-red-500 text-red-500")} />
                         <span className="text-xs mt-1 tabular-nums">{likes?.length || 0}</span>
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white flex-col hover:bg-white/20 pointer-events-auto">
-                        <PlusCircle className="h-8 w-8" />
+                    <Button variant="ghost" size="icon" className="h-10 w-10 md:h-12 md:w-12 rounded-full text-white flex-col hover:bg-white/20 pointer-events-auto">
+                        <PlusCircle className="h-6 w-6 md:h-8 md:w-8" />
                     </Button>
                 </div>
             </div>
@@ -366,3 +366,5 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
     </div>
   );
 }
+
+    
