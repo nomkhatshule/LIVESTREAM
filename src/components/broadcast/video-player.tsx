@@ -54,6 +54,7 @@ export default function VideoPlayer({
         <StreamTheme as="main" className="w-full h-full">
             <ParticipantView 
               participant={participantToDisplay} 
+              ParticipantViewUI={null}
               className="w-full h-full"
             />
         </StreamTheme>
