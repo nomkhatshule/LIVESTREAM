@@ -24,6 +24,7 @@ import {
   useCallStateHooks,
   StreamTheme,
   CallingState,
+  ParticipantView,
 } from '@stream-io/video-react-sdk';
 import '@stream-io/video-react-sdk/dist/css/styles.css';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -80,11 +81,13 @@ function AgoraTestPageUI() {
 
   // Stream SDK Hooks
   const { useCameraState, useMicrophoneState, useScreenShareState, useParticipants, useCallCallingState } = useCallStateHooks();
-  const { isMute: isVideoMute, camera } = useCameraState();
-  const { isMute: isMicMute, microphone } = useMicrophoneState();
+  const { camera } = useCameraState();
+  const { microphone } = useMicrophoneState();
   const { isScreenSharing, screenShare } = useScreenShareState();
   const participants = useParticipants();
   const callingState = useCallCallingState();
+  const { isMute: isVideoMute } = useCameraState();
+  const { isMute: isMicMute } = useMicrophoneState();
   
   const viewerCount = Math.max(0, participants.length - 1);
   const isCallJoined = callingState === CallingState.JOINED;
@@ -502,6 +505,8 @@ export default function AgoraTestPage() {
         </Suspense>
     )
 }
+    
+
     
 
     
