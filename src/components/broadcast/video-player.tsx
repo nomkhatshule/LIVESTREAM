@@ -5,16 +5,39 @@ import {
   StreamTheme,
   useCallStateHooks,
   ParticipantView,
+  useParticipantViewContext,
 } from '@stream-io/video-react-sdk';
 import '@stream-io/video-react-sdk/dist/css/styles.css';
 import { cn } from '@/lib/utils';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 interface VideoPlayerProps {
   broadcast: Broadcast;
   isHost: boolean;
   isMuted?: boolean;
 }
+
+// A new component that takes direct control of rendering the video element.
+const CustomParticipantViewUI = () => {
+  const { videoElement } = useParticipantViewContext();
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (container && videoElement) {
+      // Clear any previous video elements
+      while (container.firstChild) {
+        container.removeChild(container.firstChild);
+      }
+      // Style the video element directly
+      videoElement.className = 'w-full h-full object-cover';
+      container.appendChild(videoElement);
+    }
+  }, [videoElement]);
+
+  return <div ref={containerRef} className="w-full h-full" />;
+};
+
 
 export default function VideoPlayer({ 
     broadcast, 
@@ -50,10 +73,10 @@ export default function VideoPlayer({
       <div className={cn(
         "absolute inset-0 w-full h-full bg-black"
       )}>
-        <StreamTheme as="main" className="w-full h-full [&_video]:object-cover">
+        <StreamTheme as="main" className="w-full h-full">
             <ParticipantView 
               participant={participantToDisplay} 
-              ParticipantViewUI={null}
+              ParticipantViewUI={CustomParticipantViewUI}
             />
         </StreamTheme>
     </div>
