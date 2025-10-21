@@ -9,7 +9,7 @@ import {
 } from '@stream-io/video-react-sdk';
 import '@stream-io/video-react-sdk/dist/css/styles.css';
 import { cn } from '@/lib/utils';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, cloneElement } from 'react';
 
 interface VideoPlayerProps {
   broadcast: Broadcast;
@@ -22,15 +22,17 @@ const CustomParticipantViewUI = () => {
   const { videoElement } = useParticipantViewContext();
   
   // The videoElement from the hook is a complete, mountable React element.
-  // We can add styling to it directly.
-  if (videoElement) {
-    videoElement.props.className = 'w-full h-full object-cover';
-  }
+  // We can add styling to it directly by cloning it.
+  const styledVideoElement = videoElement
+    ? cloneElement(videoElement, {
+        className: 'w-full h-full object-cover',
+      })
+    : null;
 
   // Render the video element inside our container. React will handle adding/removing it.
   return (
     <div className="w-full h-full">
-      {videoElement}
+      {styledVideoElement}
     </div>
   );
 };
