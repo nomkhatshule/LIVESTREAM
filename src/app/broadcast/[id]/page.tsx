@@ -170,7 +170,7 @@ export default function BroadcastPage() {
                             <AvatarFallback>{comment.username.charAt(0)}</AvatarFallback>
                             </Avatar>
                             <div className="flex-1">
-                            <span className="font-bold text-red-500 mr-1.5">{comment.username}:</span>
+                            <span className="font-bold text-red-700 mr-1.5">{comment.username}:</span>
                             <p className="break-words inline">{comment.message}</p>
                             </div>
                         </div>
@@ -269,6 +269,8 @@ function BroadcastSkeleton() {
     </div>
   );
 }
+
+    
 
     
 
