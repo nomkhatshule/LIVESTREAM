@@ -22,9 +22,10 @@ import {
   StreamVideoClient,
   useCall,
   useCallStateHooks,
-  ParticipantView,
   StreamTheme,
   CallingState,
+  Video as StreamVideoComponent,
+  Audio,
 } from '@stream-io/video-react-sdk';
 import '@stream-io/video-react-sdk/dist/css/styles.css';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -82,6 +83,7 @@ function AgoraTestPageUI() {
   const participants = useParticipants(); // This hook returns remote participants
   const callingState = useCallCallingState();
   
+  // Viewer count should only be remote participants
   const viewerCount = participants.length;
   const isCallJoined = callingState === CallingState.JOINED;
   const isVideoEnabled = !isVideoMute;
@@ -214,8 +216,13 @@ function AgoraTestPageUI() {
       <div className="h-screen w-full bg-black text-white flex flex-col relative">
         <div className="absolute inset-0 bg-gray-900 flex items-center justify-center">
           
-          <StreamTheme as="main" className="w-full h-full str-video__connection-quality--hidden">
-            {localParticipant && <ParticipantView participant={localParticipant} mirrored={true} />}
+          <StreamTheme as="main" className="w-full h-full">
+            {localParticipant && (
+              <>
+                <Audio participant={localParticipant} />
+                <StreamVideoComponent participant={localParticipant} mirrored={true} className="w-full h-full object-cover"/>
+              </>
+            )}
           </StreamTheme>
 
           {!isVideoEnabled && !isScreenSharing && (
