@@ -1,39 +1,19 @@
-
 'use client';
 
 import type { Broadcast } from '@/lib/data';
 import {
   StreamTheme,
   useCallStateHooks,
-  Video,
-  Audio,
+  ParticipantView,
 } from '@stream-io/video-react-sdk';
 import '@stream-io/video-react-sdk/dist/css/styles.css';
 import { cn } from '@/lib/utils';
 import { useEffect } from 'react';
-import { Participant } from '@stream-io/video-client';
 
 interface VideoPlayerProps {
   broadcast: Broadcast;
   isHost: boolean;
   isMuted?: boolean;
-}
-
-/**
- * A custom view using component composition to have full control
- * over the rendered video, without default SDK overlays.
- */
-function CustomParticipantView({ participant, isHost }: { participant: Participant, isHost: boolean }) {
-    return (
-        <>
-            <Audio participant={participant} />
-            <Video 
-                participant={participant}
-                mirrored={isHost}
-                className="w-full h-full object-cover"
-            />
-        </>
-    )
 }
 
 export default function VideoPlayer({ 
@@ -62,10 +42,7 @@ export default function VideoPlayer({
         return <div className="absolute inset-0 flex items-center justify-center bg-black/50"><p className="text-white text-lg">Connecting to Stream...</p></div>;
     }
     
-    // **SOLUTION IMPLEMENTED HERE**
-    // Render a waiting message if the participant we want to display isn't available
-    // OR if their camera track hasn't been published yet.
-    if (!participantToDisplay || !participantToDisplay.isCameraEnabled) {
+    if (!participantToDisplay) {
          return <div className="absolute inset-0 flex items-center justify-center bg-black/50"><p className="text-white text-lg">{isHost ? "Ready to stream" : "Waiting for host..."}</p></div>;
     }
 
@@ -73,8 +50,11 @@ export default function VideoPlayer({
       <div className={cn(
         "absolute inset-0 w-full h-full bg-black"
       )}>
-        <StreamTheme as="main" className="w-full h-full">
-            <CustomParticipantView participant={participantToDisplay} isHost={isHost} />
+        <StreamTheme as="main" className="w-full h-full [&_video]:object-cover">
+            <ParticipantView 
+              participant={participantToDisplay} 
+              ParticipantViewUI={null}
+            />
         </StreamTheme>
     </div>
   );
