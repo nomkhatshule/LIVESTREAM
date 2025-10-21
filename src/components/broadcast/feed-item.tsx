@@ -78,7 +78,7 @@ const FeedItemUIManager = forwardRef<HTMLTextAreaElement, FeedItemUIManagerProps
     
     const { useParticipants } = useCallStateHooks();
     const participants = useParticipants();
-    const viewerCount = isJoined ? Math.max(0, participants.length - 1) : (broadcast.viewers || 0);
+    const viewerCount = isJoined ? Math.max(0, participants.length) : (broadcast.viewers || 0);
 
     const handleSendMessage = () => {
         if (newMessage.trim() === '' || !user || !userDocument) return;
@@ -331,7 +331,7 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
   }
 
   return (
-    <div className="relative h-[calc(100vh-4rem)] w-full snap-start" data-broadcast-id={broadcast.id}>
+    <div className="relative h-[calc(100vh-4rem)] w-full bg-black snap-start" data-broadcast-id={broadcast.id}>
       
       {isPlaying && call ? (
         <StreamVideo client={client}>
@@ -343,10 +343,10 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
       ) : (
         <>
             <div className="w-full h-full bg-black flex items-center justify-center text-white relative">
+                <img src={broadcast.thumbnailUrl || `https://picsum.photos/seed/${broadcast.id}/1280/720`} alt="Broadcast thumbnail" className="absolute inset-0 w-full h-full object-cover blur-sm"/>
                 <div className="absolute inset-0 bg-black/50 z-10" />
-                <img src={broadcast.thumbnailUrl || `https://picsum.photos/seed/${broadcast.id}/1280/720`} alt="Broadcast thumbnail" className="w-full h-full object-cover blur-sm"/>
                 
-                <div className="absolute z-20 flex flex-col items-center">
+                <div className="relative z-20 flex flex-col items-center">
                     {isJoining ? (
                         <>
                             <Loader2 className="h-16 w-16 animate-spin text-white mb-4" />
@@ -366,7 +366,3 @@ export default function FeedItem({ client, broadcast }: FeedItemProps) {
     </div>
   );
 }
-
-    
-
-    

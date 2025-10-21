@@ -72,12 +72,12 @@ const StreamHeader = ({ broadcastData, viewerCount, onEndStream }: { broadcastDa
                     <AvatarFallback>{(broadcastData?.hostName || broadcastData?.user?.name || 'U').charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col">
-                    <span className="font-bold text-sm leading-tight">{broadcastData?.hostName || broadcastData?.user?.name || 'Host'}</span>
+                    <span className="font-bold text-sm leading-tight text-white">{broadcastData?.hostName || broadcastData?.user?.name || 'Host'}</span>
                     <div className="flex items-center gap-3">
                         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-600 text-white animate-pulse">
                             LIVE
                         </span>
-                        <span className="inline-flex items-center text-xs font-medium gap-1">
+                        <span className="inline-flex items-center text-xs font-medium gap-1 text-white">
                             <Users className="h-3 w-3" />
                             {viewerCount.toLocaleString()}
                         </span>
@@ -152,7 +152,7 @@ const ParticipantsPanel = ({ viewerCount, participants }: any) => {
 const ChatPanel = ({ isVisible, comments, newMessage, onNewMessageChange, onSendMessage, onReaction, onToggleVisibility }: any) => {
     if (!isVisible) {
         return (
-            <div className="absolute bottom-0 right-0 z-10 p-4 flex justify-end pointer-events-auto">
+            <div className="absolute bottom-4 right-4 z-10 pointer-events-auto">
                 <Button variant="ghost" size="icon" onClick={onToggleVisibility} className="text-white bg-black/50 rounded-full h-10 w-10">
                     <MessageCircle className="h-5 w-5" />
                 </Button>
@@ -161,8 +161,8 @@ const ChatPanel = ({ isVisible, comments, newMessage, onNewMessageChange, onSend
     }
 
     return (
-        <div className="absolute bottom-0 left-0 right-0 z-10 p-4 flex flex-col justify-end bg-gradient-to-t from-black/70 to-transparent h-2/5 pointer-events-none">
-            <ScrollArea className="h-full max-h-[250px] pr-4 pointer-events-auto">
+        <div className="absolute bottom-0 left-0 right-0 z-10 p-4 flex flex-col justify-end bg-gradient-to-t from-black/70 via-black/40 to-transparent h-[40%] pointer-events-none">
+            <ScrollArea className="h-full pr-4 pointer-events-auto">
                 <div className="flex flex-col gap-3">
                     {comments && comments.map((comment: Comment) => (
                         <div key={comment.id} className="flex items-start gap-3 text-sm text-white bg-black/20 p-2 rounded-lg max-w-xs sm:max-w-sm">
@@ -239,7 +239,7 @@ function AgoraTestPageUI() {
   const participants = useParticipants();
   const callingState = useCallCallingState();
   
-  const viewerCount = Math.max(0, participants.length - 1);
+  const viewerCount = Math.max(0, participants.length -1); // Exclude the host
   const isCallJoined = callingState === CallingState.JOINED;
   const isVideoEnabled = camera && !camera.isMute;
   const isMicEnabled = microphone && !microphone.isMute;
@@ -370,14 +370,11 @@ function AgoraTestPageUI() {
   }
 
   return (
-    <div className="relative h-screen w-full overflow-hidden">
-      <div className="h-screen w-full bg-black text-white flex flex-col relative">
-        <div className="absolute inset-0 bg-gray-900 flex items-center justify-center">
-            <VideoPlayer 
-                broadcast={broadcastData} 
-                isHost={true} 
-            />
-        </div>
+    <div className="relative h-screen w-full bg-black text-white overflow-hidden">
+        <VideoPlayer 
+            broadcast={broadcastData} 
+            isHost={true} 
+        />
 
         <FloatingReactions reactions={reactions} />
 
@@ -408,7 +405,6 @@ function AgoraTestPageUI() {
             onReaction={handleReaction}
             onToggleVisibility={() => setIsChatVisible(prev => !prev)}
         />
-      </div>
     </div>
   );
 }
