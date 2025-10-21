@@ -41,15 +41,14 @@ export default function VideoPlayer({
     isHost,
     isMuted
 }: VideoPlayerProps) {
-    const { useCallCallingState, useParticipants, useLocalParticipant } = useCallStateHooks();
+    const { useCallCallingState, useParticipants } = useCallStateHooks();
     const callingState = useCallCallingState();
-    const participants = useParticipants(); // Remote participants
-    const localParticipant = useLocalParticipant();
+    const participants = useParticipants(); 
 
-    // Find the participant to display. For the host, it's the local participant.
-    // For viewers, it's the participant whose ID matches the host's ID.
+    // For the host, the participant to display is the first one in the list (themselves).
+    // For viewers, it's the participant whose ID matches the host's ID from the broadcast data.
     const participantToDisplay = isHost
-      ? localParticipant
+      ? participants[0]
       : participants.find((p) => p.userId === broadcast.user.id);
       
     useEffect(() => {
@@ -77,5 +76,3 @@ export default function VideoPlayer({
     </div>
   );
 }
-
-    
