@@ -7,7 +7,7 @@ import { collection, query, orderBy, limit, serverTimestamp, doc, deleteDoc } fr
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { addDocumentNonBlocking, setDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Heart, MessageSquareMore, PlusCircle, Sparkles, Users, ArrowUp, CornerUpLeft } from 'lucide-react';
+import { Heart, MessageSquareMore, PlusCircle, Search, Users, ArrowUp, CornerUpLeft } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import Link from 'next/link';
@@ -117,16 +117,16 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
                     <SheetTrigger asChild>
                         <div className="flex flex-col items-center group">
                             <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform">
-                               <Sparkles className="h-6 w-6 drop-shadow-md" strokeWidth={1.5} />
+                               <Search className="h-6 w-6 drop-shadow-md" strokeWidth={1.5} />
                             </button>
-                             <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">AI</span>
+                             <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">Search</span>
                         </div>
                     </SheetTrigger>
                     <SheetContent side="bottom" className="rounded-t-2xl max-h-[75vh] bg-card pointer-events-auto">
                         <SheetHeader className="text-center">
                             <SheetTitle className="flex items-center justify-center gap-2">
-                                <Sparkles className="h-5 w-5 text-primary" />
-                                Ask AI Anything
+                                <Search className="h-5 w-5 text-primary" />
+                                Ask Anything
                             </SheetTitle>
                             <SheetDescription>
                                 Find information about what's happening in the stream without leaving.
