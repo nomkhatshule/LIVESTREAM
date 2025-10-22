@@ -79,6 +79,10 @@ body {
         animation: float-up 5s ease-out forwards;
     }
 
+    .animate-breathing {
+      animation: breathing 2s ease-out infinite;
+    }
+
     @keyframes float-up {
         from {
             transform: translateY(0);
@@ -87,6 +91,15 @@ body {
         to {
             transform: translateY(-500px);
             opacity: 0;
+        }
+    }
+
+    @keyframes breathing {
+        0%, 100% {
+            box-shadow: 0 0 5px 2px hsl(var(--primary) / 0.7);
+        }
+        50% {
+            box-shadow: 0 0 15px 5px hsl(var(--primary) / 0.3);
         }
     }
 }
@@ -119,3 +132,5 @@ html {
     height: 100%;
     object-fit: cover;
 }
+
+    

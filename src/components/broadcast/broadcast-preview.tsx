@@ -64,7 +64,7 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
             <div className="bg-gradient-to-b from-black/50 to-transparent -m-4 p-4">
                 <div className="flex items-start gap-3">
                     <Link href={`/profile/${broadcast.user.id}`} className="pointer-events-auto">
-                        <Avatar className="h-12 w-12 border-2 border-primary">
+                        <Avatar className={cn("h-12 w-12 border-2 border-primary", broadcast.isLive && "animate-breathing")}>
                             <AvatarImage src={broadcast.user.avatarUrl} alt={broadcast.user.name} />
                             <AvatarFallback>{broadcast.user.name?.charAt(0)}</AvatarFallback>
                         </Avatar>
@@ -312,3 +312,5 @@ export function BroadcastPreview({ broadcast: rawBroadcast, onVisible }: Broadca
         </div>
     );
 };
+
+    

@@ -27,6 +27,7 @@ import '@stream-io/video-react-sdk/dist/css/styles.css';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import VideoPlayer from '@/components/broadcast/video-player';
 import { User } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 // Type Definitions
 interface Comment {
@@ -66,7 +67,7 @@ const StreamHeader = ({ broadcastData, viewerCount, onEndStream }: { broadcastDa
     return (
         <div className="absolute top-0 left-0 right-0 z-10 p-2 md:p-4 flex items-center justify-between bg-gradient-to-b from-black/50 to-transparent">
             <div className="flex items-center gap-2 md:gap-3 bg-black/30 p-1.5 md:p-2 rounded-full">
-                <Avatar className="h-8 w-8 md:h-9 md:w-9 border-2 border-primary">
+                <Avatar className={cn("h-8 w-8 md:h-9 md:w-9 border-2 border-primary", broadcastData?.isLive && "animate-breathing")}>
                     <AvatarImage src={broadcastData?.hostAvatar || broadcastData?.user?.avatarUrl || ''} alt={broadcastData?.hostName || broadcastData?.user?.name || ''} />
                     <AvatarFallback>{(broadcastData?.hostName || broadcastData?.user?.name || 'U').charAt(0)}</AvatarFallback>
                 </Avatar>
@@ -563,3 +564,5 @@ export default function AgoraTestPage() {
         </Suspense>
     )
 }
+
+    
