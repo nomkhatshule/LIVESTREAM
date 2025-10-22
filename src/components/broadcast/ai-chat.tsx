@@ -130,7 +130,7 @@ export default function AIChat({ children }: AIChatProps) {
               ))}
             </div>
           </ScrollArea>
-          <footer className="pt-2">
+          <footer>
             <form
               onSubmit={handleSendMessage}
               className="relative flex items-center"
