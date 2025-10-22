@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, useEffect, type ReactNode } from 'react';
@@ -88,7 +89,7 @@ export default function AIChat({ children }: AIChatProps) {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col h-96">
+        <div className="flex flex-col h-80">
           <ScrollArea className="flex-1 my-4 pr-4" ref={scrollAreaRef}>
             <div className="space-y-4">
               {messages.map((msg, index) => (
