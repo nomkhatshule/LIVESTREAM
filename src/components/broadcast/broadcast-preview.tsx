@@ -7,20 +7,24 @@ import { collection, query, orderBy, limit, serverTimestamp, doc, deleteDoc } fr
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { addDocumentNonBlocking, setDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Heart, MoreVertical, PlusCircle, Users, ArrowUp, MessageSquareMore, Share2, Clapperboard, User as UserIcon, CornerUpLeft, UserSearch, EllipsisVertical } from 'lucide-react';
+import { Heart, MessageSquareMore, PlusCircle, Sparkles, Users, ArrowUp, CornerUpLeft } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { useInView } from 'react-intersection-observer';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
+
 
 interface BroadcastPreviewUIManagerProps {
     broadcast: Broadcast;
@@ -83,8 +87,8 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
             </div>
             
             {/* Right Side Vertical Action Bar */}
-            <div className="absolute top-1/2 right-4 -translate-y-1/2 z-40 flex flex-col items-center gap-y-6 pointer-events-auto text-white">
-                
+             <div className="absolute top-1/2 right-4 -translate-y-1/2 z-40 flex flex-col items-center gap-y-6 pointer-events-auto text-white">
+
                 {/* Follow Action Item */}
                 <div className="flex flex-col items-center group">
                     <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform">
@@ -97,7 +101,7 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
                     <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform" onClick={onLike}>
                       <Heart className={cn("h-6 w-6 drop-shadow-md", hasLiked && "fill-red-500 text-red-500")} strokeWidth={1.5} />
                     </button>
-                    <span className="text-sm font-bold text-white drop-shadow-md mt-1.5">{likes?.length || 0}</span>
+                    <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">{likes?.length || 0}</span>
                 </div>
 
                 {/* Comment Action Item */}
@@ -105,8 +109,35 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
                     <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform" onClick={() => setIsChatVisible(!isChatVisible)}>
                        <MessageSquareMore className="h-6 w-6 drop-shadow-md" strokeWidth={1.5} />
                     </button>
-                    <span className="text-sm font-bold text-white drop-shadow-md mt-1.5">{comments?.length || 0}</span>
+                    <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">{comments?.length || 0}</span>
                 </div>
+                
+                 {/* AI Search Action Item */}
+                <Sheet>
+                    <SheetTrigger asChild>
+                        <div className="flex flex-col items-center group">
+                            <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform">
+                               <Sparkles className="h-6 w-6 drop-shadow-md" strokeWidth={1.5} />
+                            </button>
+                             <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">AI</span>
+                        </div>
+                    </SheetTrigger>
+                    <SheetContent side="bottom" className="rounded-t-2xl max-h-[75vh] bg-background/90 backdrop-blur-lg pointer-events-auto">
+                        <SheetHeader className="text-center">
+                            <SheetTitle className="flex items-center justify-center gap-2">
+                                <Sparkles className="h-5 w-5 text-primary" />
+                                Ask AI Anything
+                            </SheetTitle>
+                            <SheetDescription>
+                                Find information about what's happening in the stream without leaving.
+                            </SheetDescription>
+                        </SheetHeader>
+                        <div className="p-4">
+                            <Input placeholder="e.g., Who is the main actor in this movie?" />
+                            {/* AI response area will go here */}
+                        </div>
+                    </SheetContent>
+                </Sheet>
             </div>
 
 
