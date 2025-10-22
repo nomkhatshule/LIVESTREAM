@@ -82,6 +82,10 @@ body {
     .animate-breathing {
       animation: breathing 2s ease-out infinite;
     }
+    
+    .animate-breathing-prominent {
+      animation: breathing-prominent 2s ease-out infinite;
+    }
 
     @keyframes float-up {
         from {
@@ -100,6 +104,15 @@ body {
         }
         50% {
             box-shadow: 0 0 20px 8px hsl(var(--destructive) / 0.4);
+        }
+    }
+
+    @keyframes breathing-prominent {
+        0%, 100% {
+            box-shadow: 0 0 8px 3px hsl(var(--destructive) / 0.8);
+        }
+        50% {
+            box-shadow: 0 0 25px 12px hsl(var(--destructive) / 0.5);
         }
     }
 }
