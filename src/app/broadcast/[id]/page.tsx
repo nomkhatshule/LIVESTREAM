@@ -144,13 +144,13 @@ export default function BroadcastPage() {
                     LIVE
                 </span>
               </div>
+              <p className="text-base font-normal mt-1">{broadcast.title}</p>
               <div className="flex items-center gap-3 mt-1">
                  <span className="inline-flex items-center text-xs font-medium gap-1">
                       <Users className="h-3 w-3" />
                       {viewerCount.toLocaleString()}
                   </span>
               </div>
-               <p className="text-base font-normal mt-1">{broadcast.title}</p>
             </div>
           </div>
       </div>
@@ -269,11 +269,3 @@ function BroadcastSkeleton() {
     </div>
   );
 }
-
-    
-
-    
-
-    
-
-    
