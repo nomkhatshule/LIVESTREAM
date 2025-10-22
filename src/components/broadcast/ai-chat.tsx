@@ -5,7 +5,7 @@ import { useState, useRef, useEffect, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Sparkle, Send } from 'lucide-react';
+import { Sparkle, Send, ArrowUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import {
@@ -145,9 +145,9 @@ export default function AIChat({ children }: AIChatProps) {
                 type="submit"
                 size="icon"
                 variant="ghost"
-                className="absolute inset-y-0 right-1 text-gray-500 hover:bg-gray-200 rounded-full h-8 w-8"
+                className="absolute inset-y-0 right-1 text-gray-500 hover:bg-gray-200 rounded-full p-2 h-auto aspect-square"
               >
-                <Send className="h-4 w-4" fill="currentColor" />
+                <ArrowUp className="h-full w-full" />
               </Button>
             </form>
           </footer>
