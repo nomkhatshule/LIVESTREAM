@@ -1,4 +1,3 @@
-
 'use client';
 import { useUserDocumentById } from '@/firebase/firestore/use-user-document';
 import { Card, CardContent } from '@/components/ui/card';
@@ -122,16 +121,16 @@ export default function UserProfilePage() {
     <div className="container mx-auto max-w-4xl py-8 px-4">
       {/* Profile Header Card */}
       <Card className="overflow-hidden mb-8">
-        <div className="relative h-32 w-full">
+        <div className="relative h-48 w-full bg-muted">
            <Image 
-                src="https://picsum.photos/seed/cover-1/1000/200"
+                src={userDocument.coverPhoto || "https://picsum.photos/seed/cover-1/1000/200"}
                 alt="Cover photo"
                 fill
                 className="object-cover"
                 data-ai-hint="abstract landscape"
            />
         </div>
-        <div className="flex flex-col items-center p-6 -mt-16">
+        <div className="flex flex-col items-center p-6 -mt-24">
           <Avatar className="w-28 h-28 border-4 border-background ring-4 ring-primary">
             <AvatarImage src={userDocument.profilePicture || "https://picsum.photos/seed/profile-placeholder/200"} alt={userDocument.username || ''} />
             <AvatarFallback className="text-4xl">{userDocument.username?.charAt(0)}</AvatarFallback>
@@ -208,8 +207,8 @@ function ProfileSkeleton() {
   return (
     <div className="container mx-auto max-w-4xl py-8 px-4">
       <Card className="overflow-hidden mb-8">
-        <Skeleton className="h-32 w-full" />
-        <div className="flex flex-col items-center p-6 -mt-16">
+        <Skeleton className="h-48 w-full" />
+        <div className="flex flex-col items-center p-6 -mt-24">
           <Skeleton className="w-28 h-28 rounded-full border-4 border-background ring-4 ring-primary" />
           <Skeleton className="h-9 w-48 mt-4" />
           <Skeleton className="h-5 w-80 mt-3" />

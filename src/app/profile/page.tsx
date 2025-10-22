@@ -15,13 +15,14 @@ import { useToast } from '@/hooks/use-toast';
 import { useEffect, useRef, useState } from 'react';
 import { doc } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadBytes, StorageReference, UploadResult } from 'firebase/storage';
-import { Camera, Loader2 } from 'lucide-react';
-
+import { Camera, Loader2, Pencil } from 'lucide-react';
+import Image from 'next/image';
 
 const profileSchema = z.object({
   username: z.string().min(3, 'Username must be at least 3 characters').max(20, 'Username must be less than 20 characters'),
   bio: z.string().max(160, 'Bio must be less than 160 characters').optional(),
   profilePicture: z.string().url().optional(),
+  coverPhoto: z.string().url().optional(),
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
@@ -32,8 +33,9 @@ export default function ProfilePage() {
   const firestore = useFirestore();
   const storage = useStorage();
   const { toast } = useToast();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [isUploading, setIsUploading] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const coverInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState<'avatar' | 'cover' | false>(false);
 
 
   const form = useForm<ProfileFormValues>({
@@ -42,6 +44,7 @@ export default function ProfilePage() {
       username: '',
       bio: '',
       profilePicture: '',
+      coverPhoto: '',
     },
   });
 
@@ -51,100 +54,58 @@ export default function ProfilePage() {
         username: userDocument.username || '',
         bio: userDocument.bio || '',
         profilePicture: userDocument.profilePicture || user?.photoURL || '',
+        coverPhoto: userDocument.coverPhoto || '',
       });
     }
   }, [userDocument, user, form]);
 
-  const handleAvatarClick = () => {
-    fileInputRef.current?.click();
-  };
+  const handleUpload = async (file: File, type: 'avatar' | 'cover') => {
+    if (!user || !storage) return;
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file || !user || !storage) {
-      return;
-    }
-
-    setIsUploading(true);
-
-    let storageRef: StorageReference;
-    try {
-      // Step 1: Create storage reference.
-      storageRef = ref(storage, `avatars/${user.uid}/profile.png`);
-    } catch (error: any) {
-      console.error("Error creating storage reference:", error);
-      toast({
-        variant: 'destructive',
-        title: 'Upload Failed (Step 1)',
-        description: `Could not create storage reference. ${error.message}`,
-      });
-      setIsUploading(false);
-      return;
-    }
-
-    let uploadTask: UploadResult;
-    try {
-      // Step 2: Upload the file.
-      uploadTask = await uploadBytes(storageRef, file, { contentType: file.type });
-    } catch (error: any) {
-      console.error("Error uploading bytes:", error);
-      toast({
-        variant: 'destructive',
-        title: 'Upload Failed (Step 2)',
-        description: `Could not upload file bytes. ${error.code || error.message}`,
-      });
-      setIsUploading(false);
-      return;
-    }
-    
-    let downloadURL: string;
-    try {
-      // Step 3: Get download URL.
-      downloadURL = await getDownloadURL(uploadTask.ref);
-    } catch (error: any) {
-      console.error("Error getting download URL:", error);
-      toast({
-        variant: 'destructive',
-        title: 'Upload Failed (Step 3)',
-        description: `Could not get download URL. ${error.code || error.message}`,
-      });
-      setIsUploading(false);
-      return;
-    }
+    setIsUploading(type);
 
     try {
-      // Step 4: Update UI and database.
-      form.setValue('profilePicture', downloadURL);
+      const filePath = type === 'avatar' ? `avatars/${user.uid}/profile.png` : `covers/${user.uid}/cover.png`;
+      const storageRef = ref(storage, filePath);
+      const uploadTask = await uploadBytes(storageRef, file, { contentType: file.type });
+      const downloadURL = await getDownloadURL(uploadTask.ref);
+
+      const fieldToUpdate = type === 'avatar' ? 'profilePicture' : 'coverPhoto';
+      form.setValue(fieldToUpdate, downloadURL);
+      
       const userDocRef = doc(firestore, 'users', user.uid);
-      setDocumentNonBlocking(userDocRef, { profilePicture: downloadURL }, { merge: true });
+      setDocumentNonBlocking(userDocRef, { [fieldToUpdate]: downloadURL }, { merge: true });
 
-      // Step 5: Revalidate paths to update UI across the app.
       await revalidateProfilePaths();
-
       toast({
-        title: 'Avatar Updated!',
-        description: 'Your new avatar has been saved and will be updated across the app.',
+        title: `${type === 'avatar' ? 'Avatar' : 'Cover photo'} updated!`,
       });
     } catch (error: any) {
-      console.error("Error updating profile:", error);
+      console.error(`Error uploading ${type}:`, error);
       toast({
         variant: 'destructive',
-        title: 'Upload Failed (Step 4)',
-        description: `Could not update your profile with the new avatar. ${error.message}`,
+        title: 'Upload Failed',
+        description: `Could not upload your ${type}. ${error.message}`,
       });
     } finally {
-      // Step 6: ALWAYS ensure the loading state is reset.
       setIsUploading(false);
     }
   };
 
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>, type: 'avatar' | 'cover') => {
+    const file = event.target.files?.[0];
+    if (file) {
+      handleUpload(file, type);
+    }
+  };
 
   const onSubmit = async (data: ProfileFormValues) => {
     if (!user) return;
     
     const userDocRef = doc(firestore, 'users', user.uid);
+    const { profilePicture, coverPhoto, ...restOfData } = data; // Don't save image URLs on this submit
     
-    setDocumentNonBlocking(userDocRef, data, { merge: true });
+    setDocumentNonBlocking(userDocRef, restOfData, { merge: true });
 
     await revalidateProfilePaths();
     
@@ -167,30 +128,56 @@ export default function ProfilePage() {
   }
   
   const avatarSrc = form.watch('profilePicture');
-
+  const coverSrc = form.watch('coverPhoto');
 
   return (
     <div className="container mx-auto max-w-2xl py-12 px-4">
       <Card>
-        <CardHeader className="text-center">
-           <div className="relative w-24 h-24 mx-auto">
-              <Avatar className="w-24 h-24 border-4 border-primary">
-                <AvatarImage src={avatarSrc} />
-                <AvatarFallback className="text-3xl">{form.getValues('username')?.charAt(0) || user.email?.charAt(0)}</AvatarFallback>
-              </Avatar>
-              <Button size="icon" variant="secondary" className="absolute bottom-0 right-0 rounded-full h-8 w-8" onClick={handleAvatarClick} disabled={isUploading}>
-                 {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
-              </Button>
-              <input 
-                type="file" 
-                ref={fileInputRef} 
-                onChange={handleFileChange}
-                className="hidden" 
-                accept="image/png, image/jpeg, image/gif"
-              />
+         <CardHeader className="p-0">
+            <div className="relative h-48 w-full">
+                <Image
+                    src={coverSrc || "https://picsum.photos/seed/cover-placeholder/1000/200"}
+                    alt="Cover photo"
+                    fill
+                    className="object-cover"
+                />
+                <Button 
+                    size="sm" 
+                    className="absolute top-3 right-3"
+                    onClick={() => coverInputRef.current?.click()}
+                    disabled={isUploading === 'cover'}
+                >
+                    {isUploading === 'cover' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Pencil className="mr-2 h-4 w-4" />}
+                    Edit Cover
+                </Button>
+                <input
+                    type="file"
+                    ref={coverInputRef}
+                    onChange={(e) => handleFileChange(e, 'cover')}
+                    className="hidden"
+                    accept="image/png, image/jpeg, image/gif"
+                />
             </div>
-          <CardTitle className="mt-4 text-3xl font-headline">{form.watch('username') || user.displayName || 'Anonymous'}</CardTitle>
-          <CardDescription>{user.email}</CardDescription>
+            <div className="flex flex-col items-center p-6 -mt-24">
+                <div className="relative w-28 h-28">
+                    <Avatar className="w-28 h-28 border-4 border-background ring-4 ring-primary">
+                        <AvatarImage src={avatarSrc} />
+                        <AvatarFallback className="text-3xl">{form.getValues('username')?.charAt(0) || user.email?.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <Button size="icon" variant="secondary" className="absolute bottom-1 right-1 rounded-full h-8 w-8" onClick={() => avatarInputRef.current?.click()} disabled={isUploading === 'avatar'}>
+                        {isUploading === 'avatar' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+                    </Button>
+                    <input
+                        type="file"
+                        ref={avatarInputRef}
+                        onChange={(e) => handleFileChange(e, 'avatar')}
+                        className="hidden"
+                        accept="image/png, image/jpeg, image/gif"
+                    />
+                </div>
+                <CardTitle className="mt-4 text-3xl font-headline">{form.watch('username') || user.displayName || 'Anonymous'}</CardTitle>
+                <CardDescription>{user.email}</CardDescription>
+            </div>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -221,7 +208,7 @@ export default function ProfilePage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" disabled={form.formState.isSubmitting || isUploading}>
+              <Button type="submit" disabled={form.formState.isSubmitting || !!isUploading}>
                 {form.formState.isSubmitting ? 'Saving...' : 'Save Changes'}
               </Button>
             </form>
@@ -236,12 +223,15 @@ function ProfileSkeleton() {
   return (
     <div className="container mx-auto max-w-2xl py-12 px-4">
       <Card>
-        <CardHeader className="text-center">
-          <Skeleton className="w-24 h-24 rounded-full mx-auto" />
-          <Skeleton className="h-8 w-48 mt-4 mx-auto" />
-          <Skeleton className="h-4 w-64 mt-2 mx-auto" />
+        <CardHeader className="p-0">
+          <Skeleton className="h-48 w-full" />
+           <div className="flex flex-col items-center p-6 -mt-24">
+              <Skeleton className="w-28 h-28 rounded-full" />
+              <Skeleton className="h-8 w-48 mt-4" />
+              <Skeleton className="h-4 w-64 mt-2" />
+           </div>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-6 mt-6">
           <div className="space-y-2">
             <Skeleton className="h-4 w-24" />
             <Skeleton className="h-10 w-full" />
