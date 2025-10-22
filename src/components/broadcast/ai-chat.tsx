@@ -93,7 +93,7 @@ export default function AIChat({ children }: AIChatProps) {
           </SheetDescription>
         </SheetHeader>
 
-        <Separator className="my-4" />
+        <Separator className="my-4 bg-gray-200" />
 
         <div className="flex flex-col h-96">
           <ScrollArea className="flex-1 -my-4 pr-4" ref={scrollAreaRef}>
