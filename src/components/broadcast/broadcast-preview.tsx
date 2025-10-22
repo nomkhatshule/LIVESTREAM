@@ -84,32 +84,32 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
             
             {/* Right Side Vertical Action Bar */}
             <div className="absolute top-1/2 right-4 -translate-y-1/2 z-40 flex flex-col items-center gap-y-6 pointer-events-auto">
-                {/* Follow Button */}
+                {/* Follow Action Item */}
                 <div className="flex flex-col items-center group">
-                    <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white bg-black/30 hover:bg-white/20 transition-transform group-hover:scale-110">
+                    <Button variant="ghost" size="icon" className="relative h-14 w-14 rounded-full text-white bg-black/30 hover:bg-white/20 transition-transform group-hover:scale-110">
                         <PlusCircle className="h-8 w-8"/>
                     </Button>
                 </div>
 
-                {/* Like Button */}
+                {/* Like Action Item */}
                 <div className="flex flex-col items-center group">
-                    <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white bg-black/30 hover:bg-white/20 transition-transform group-hover:scale-110" onClick={onLike}>
+                    <Button variant="ghost" size="icon" className="relative h-14 w-14 rounded-full text-white bg-black/30 hover:bg-white/20 transition-transform group-hover:scale-110" onClick={onLike}>
                       <Heart className={cn("h-8 w-8", hasLiked && "fill-red-500 text-red-500")} />
                     </Button>
-                    <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">{likes?.length || 0}</span>
+                    <span className="text-sm font-bold text-white drop-shadow-md mt-1.5">{likes?.length || 0}</span>
                 </div>
 
-                {/* Comment Button */}
+                {/* Comment Action Item */}
                 <div className="flex flex-col items-center group">
-                    <Button variant="ghost" size="icon" onClick={() => setIsChatVisible(!isChatVisible)} className="h-12 w-12 rounded-full text-white bg-black/30 hover:bg-white/20 transition-transform group-hover:scale-110">
+                    <Button variant="ghost" size="icon" onClick={() => setIsChatVisible(!isChatVisible)} className="relative h-14 w-14 rounded-full text-white bg-black/30 hover:bg-white/20 transition-transform group-hover:scale-110">
                        <MessageSquareMore className="h-8 w-8" />
                     </Button>
-                    <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">{comments?.length || 0}</span>
+                    <span className="text-sm font-bold text-white drop-shadow-md mt-1.5">{comments?.length || 0}</span>
                 </div>
 
-                {/* Share Button */}
+                {/* Share Action Item */}
                 <div className="flex flex-col items-center group">
-                    <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white bg-black/30 hover:bg-white/20 transition-transform group-hover:scale-110">
+                    <Button variant="ghost" size="icon" className="relative h-14 w-14 rounded-full text-white bg-black/30 hover:bg-white/20 transition-transform group-hover:scale-110">
                          <Share2 className="h-8 w-8"/>
                     </Button>
                 </div>
@@ -118,7 +118,7 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white bg-black/30 hover:bg-white/20 transition-transform hover:scale-110">
-                          <MoreVertical className="h-8 w-8" />
+                          <MoreVertical className="h-6 w-6" />
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="w-56" align="end">
@@ -188,6 +188,12 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
             </div>
         </div>
     );
+}
+
+
+interface BroadcastPreviewProps {
+  broadcast: Broadcast;
+  onVisible: () => void;
 }
 
 
