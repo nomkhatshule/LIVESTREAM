@@ -7,7 +7,7 @@ import { collection, query, orderBy, limit, serverTimestamp, doc, deleteDoc } fr
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { addDocumentNonBlocking, setDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Heart, MoreVertical, PlusCircle, Users, ArrowUp, MessageSquareMore, Share2, Clapperboard, User as UserIcon, CornerUpLeft, UserSearch } from 'lucide-react';
+import { Heart, MoreVertical, PlusCircle, Users, ArrowUp, MessageSquareMore, Share2, Clapperboard, User as UserIcon, CornerUpLeft, UserSearch, EllipsisVertical } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -105,37 +105,6 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
                     </button>
                     <span className="text-sm font-bold text-white drop-shadow-md mt-1.5">{comments?.length || 0}</span>
                 </div>
-                
-                 {/* More Options */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform">
-                      <MoreVertical className="h-10 w-10 drop-shadow-md" />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56" align="end">
-                     <DropdownMenuItem>
-                       <Share2 className="mr-2 h-4 w-4" />
-                       <span>Share</span>
-                     </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <UserSearch className="mr-2 h-4 w-4" />
-                      <span>Report</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/broadcast/create">
-                        <Clapperboard className="mr-2 h-4 w-4" />
-                        <span>Go Stream</span>
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/profile">
-                        <UserIcon className="mr-2 h-4 w-4" />
-                        <span>My Profile</span>
-                      </Link>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
             </div>
 
 
