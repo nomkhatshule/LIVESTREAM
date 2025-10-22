@@ -85,6 +85,13 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
             {/* Right Side Vertical Action Bar */}
             <div className="absolute top-1/2 right-4 -translate-y-1/2 z-40 flex flex-col items-center gap-y-6 pointer-events-auto text-white">
                 
+                {/* Follow Action Item */}
+                <div className="flex flex-col items-center group">
+                    <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform">
+                        <PlusCircle className="h-6 w-6 drop-shadow-md" strokeWidth={1.5} />
+                    </button>
+                </div>
+
                 {/* Like Action Item */}
                  <div className="flex flex-col items-center group">
                     <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform" onClick={onLike}>
