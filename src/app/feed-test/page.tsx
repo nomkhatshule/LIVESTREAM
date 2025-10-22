@@ -5,11 +5,14 @@ import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { collection, query, where } from 'firebase/firestore';
 import type { Broadcast } from '@/lib/data';
-import { Loader2 } from 'lucide-react';
+import { Clapperboard, Loader2, MoreVertical, Share2, User as UserIcon, UserSearch } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import BroadcastPlayer from '@/components/broadcast/broadcast-player';
 import { useStreamStore } from '@/lib/stream-store';
 import { BroadcastPreview } from '@/components/broadcast/broadcast-preview';
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import Link from 'next/link';
 
 function FeedPageContent() {
     const router = useRouter();
@@ -50,6 +53,32 @@ function FeedPageContent() {
         <div className="h-[calc(100vh-4rem)] relative bg-black">
             {/* The single, centralized player */}
             <BroadcastPlayer user={user} />
+
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="absolute top-4 right-4 z-40 h-12 w-12 rounded-full text-white bg-black/30 hover:bg-white/20 transition-transform hover:scale-110 pointer-events-auto">
+                        <MoreVertical className="h-6 w-6" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end">
+                    <DropdownMenuItem>
+                        <Share2 className="mr-2 h-4 w-4" />
+                        <span>Share</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                        <Link href="/broadcast/create">
+                            <Clapperboard className="mr-2 h-4 w-4" />
+                            <span>Go Stream</span>
+                        </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                        <Link href="/profile">
+                            <UserIcon className="mr-2 h-4 w-4" />
+                            <span>My Profile</span>
+                        </Link>
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
             
             {/* The scrollable list of previews */}
             <div className="h-full overflow-y-scroll snap-y snap-mandatory">

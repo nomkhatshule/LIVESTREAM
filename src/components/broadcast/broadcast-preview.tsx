@@ -40,7 +40,6 @@ interface BroadcastPreviewUIManagerProps {
 function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLike, onSendMessage, onReply }: BroadcastPreviewUIManagerProps) {
     const [newMessage, setNewMessage] = useState('');
     const [isChatVisible, setIsChatVisible] = useState(true);
-    const [isMuted, setIsMuted] = useState(true);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     const reversedComments = useMemo(() => comments ? [...comments].reverse() : [], [comments]);
@@ -59,35 +58,31 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
         textareaRef.current?.focus();
     }
 
-    const toggleMute = () => {
-        setIsMuted(prev => !prev);
-    }
-    
     return (
         <div className="absolute inset-0 flex flex-col justify-between p-4 text-white z-30 pointer-events-none">
             {/* Top Info */}
             <div className="bg-gradient-to-b from-black/50 to-transparent -m-4 p-4">
                 <div className="flex items-start gap-3">
                     <Link href={`/profile/${broadcast.user.id}`} className="pointer-events-auto">
-                        <Avatar className="h-10 w-10 md:h-14 md:w-14 border-2 border-primary">
+                        <Avatar className="h-12 w-12 border-2 border-primary">
                             <AvatarImage src={broadcast.user.avatarUrl} alt={broadcast.user.name} />
                             <AvatarFallback>{broadcast.user.name?.charAt(0)}</AvatarFallback>
                         </Avatar>
                     </Link>
                     <div>
-                        <div className="flex items-center gap-3">
-                            <Link href={`/profile/${broadcast.user.id}`} className="pointer-events-auto">
-                                <p className="font-bold text-base md:text-lg hover:underline">{broadcast.user.name}</p>
-                            </Link>
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-600 animate-pulse">
+                        <Link href={`/profile/${broadcast.user.id}`} className="pointer-events-auto">
+                            <p className="font-bold text-base md:text-lg hover:underline">{broadcast.user.name}</p>
+                        </Link>
+                        <div className="flex items-center gap-2 text-xs">
+                             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-600 animate-pulse">
                                 LIVE
                             </span>
+                            <div className="flex items-center gap-1">
+                                <Users className="h-3 w-3" />
+                                <span>{broadcast.viewerCount?.toLocaleString() || 0}</span>
+                            </div>
                         </div>
                         <p className="text-sm md:text-base font-semibold mt-1">{broadcast.title}</p>
-                        <div className="flex items-center gap-3 mt-1 text-xs">
-                            <Users className="h-3 w-3" />
-                            <span>{broadcast.viewerCount?.toLocaleString() || 0}</span>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -98,7 +93,7 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
                     {isChatVisible && (
                         <div className="w-full max-w-sm">
                             <ScrollArea className="h-48 w-full pr-4 pointer-events-auto">
-                                <div className="flex flex-col gap-3">
+                                <div className="flex flex-col gap-y-3">
                                     {reversedComments.map((comment) => (
                                         <div key={comment.id} className="group flex items-start gap-2 text-sm bg-black/25 p-2 rounded-lg">
                                             <Link href={`/profile/${comment.userId}`} className="pointer-events-auto">
@@ -138,32 +133,7 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
                         </div>
                     )}
                 </div>
-                <div className="flex flex-col-reverse items-center gap-y-5">
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white hover:bg-white/20 transition-transform hover:scale-110 pointer-events-auto">
-                                <MoreVertical className="h-6 w-6" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="w-56" align="end">
-                            <DropdownMenuItem>
-                                <Share2 className="mr-2 h-4 w-4" />
-                                <span>Share</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                                <Link href="/broadcast/create">
-                                    <Clapperboard className="mr-2 h-4 w-4" />
-                                    <span>Go Stream</span>
-                                </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                                <Link href="/profile">
-                                    <UserIcon className="mr-2 h-4 w-4" />
-                                    <span>My Profile</span>
-                                </Link>
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                <div className="flex flex-col-reverse items-center gap-y-6">
                     <Button variant="ghost" size="icon" onClick={() => setIsChatVisible(!isChatVisible)} className="h-12 w-12 rounded-full text-white flex-col hover:bg-white/20 transition-transform hover:scale-110 pointer-events-auto">
                         <MessageSquare className="h-6 w-6" />
                         <span className="text-xs mt-1">{comments?.length || 0}</span>
