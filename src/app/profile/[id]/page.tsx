@@ -122,16 +122,25 @@ export default function UserProfilePage() {
       {/* Profile Header Card */}
       <Card className="overflow-hidden mb-8">
         <div className="relative h-48 w-full bg-muted">
-           {userDocument.coverPhoto ? (
-             <Image 
-                src={userDocument.coverPhoto}
-                alt="Cover photo"
-                fill
-                className="object-cover"
-             />
-           ) : (
-             <div className="h-full w-full bg-muted" />
-           )}
+           {userDocument.coverUrl && userDocument.coverType === 'video' ? (
+                <video
+                    src={userDocument.coverUrl}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="object-cover w-full h-full"
+                />
+            ) : userDocument.coverUrl && userDocument.coverType === 'image' ? (
+                <Image 
+                    src={userDocument.coverUrl}
+                    alt="Cover photo"
+                    fill
+                    className="object-cover"
+                />
+            ) : (
+                <div className="h-full w-full bg-muted" />
+            )}
            {isOwnProfile && (
              <Button asChild size="sm" className="absolute top-3 right-3">
                 <Link href="/profile">
@@ -263,5 +272,3 @@ function ProfileSkeleton() {
     </div>
   );
 }
-
-    

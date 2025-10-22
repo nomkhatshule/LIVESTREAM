@@ -14,7 +14,7 @@ import { revalidateProfilePaths } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useRef, useState } from 'react';
 import { doc } from 'firebase/firestore';
-import { getDownloadURL, ref, uploadBytes, StorageReference, UploadResult } from 'firebase/storage';
+import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { Camera, Loader2, Pencil } from 'lucide-react';
 import Image from 'next/image';
 
@@ -22,7 +22,8 @@ const profileSchema = z.object({
   username: z.string().min(3, 'Username must be at least 3 characters').max(20, 'Username must be less than 20 characters'),
   bio: z.string().max(160, 'Bio must be less than 160 characters').optional(),
   profilePicture: z.string().url().optional(),
-  coverPhoto: z.string().url().optional(),
+  coverUrl: z.string().url().optional(),
+  coverType: z.enum(['image', 'video']).optional(),
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
@@ -37,14 +38,14 @@ export default function ProfilePage() {
   const coverInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState<'avatar' | 'cover' | false>(false);
 
-
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
       username: '',
       bio: '',
       profilePicture: '',
-      coverPhoto: '',
+      coverUrl: '',
+      coverType: 'image',
     },
   });
 
@@ -54,7 +55,8 @@ export default function ProfilePage() {
         username: userDocument.username || '',
         bio: userDocument.bio || '',
         profilePicture: userDocument.profilePicture || user?.photoURL || '',
-        coverPhoto: userDocument.coverPhoto || '',
+        coverUrl: userDocument.coverUrl || '',
+        coverType: userDocument.coverType || 'image',
       });
     }
   }, [userDocument, user, form]);
@@ -62,35 +64,67 @@ export default function ProfilePage() {
   const handleUpload = async (file: File, type: 'avatar' | 'cover') => {
     if (!user || !storage) return;
 
-    setIsUploading(type);
-
-    try {
-      const filePath = type === 'avatar' ? `avatars/${user.uid}/profile.png` : `covers/${user.uid}/cover.png`;
-      const storageRef = ref(storage, filePath);
-      const uploadTask = await uploadBytes(storageRef, file, { contentType: file.type });
-      const downloadURL = await getDownloadURL(uploadTask.ref);
-
-      const fieldToUpdate = type === 'avatar' ? 'profilePicture' : 'coverPhoto';
-      form.setValue(fieldToUpdate, downloadURL);
-      
-      const userDocRef = doc(firestore, 'users', user.uid);
-      setDocumentNonBlocking(userDocRef, { [fieldToUpdate]: downloadURL }, { merge: true });
-
-      await revalidateProfilePaths();
-      toast({
-        title: `${type === 'avatar' ? 'Avatar' : 'Cover photo'} updated!`,
-      });
-    } catch (error: any) {
-      console.error(`Error uploading ${type}:`, error);
-      toast({
-        variant: 'destructive',
-        title: 'Upload Failed',
-        description: `Could not upload your ${type}. ${error.message}`,
-      });
-    } finally {
-      setIsUploading(false);
+    if (type === 'cover' && file.type.startsWith('video/')) {
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+        video.onloadedmetadata = async () => {
+            window.URL.revokeObjectURL(video.src);
+            if (video.duration > 8) {
+                toast({
+                    variant: 'destructive',
+                    title: 'Upload Failed',
+                    description: 'Video duration cannot exceed 8 seconds.',
+                });
+            } else {
+                await uploadFile(file, type);
+            }
+        }
+        video.src = URL.createObjectURL(file);
+    } else {
+        await uploadFile(file, type);
     }
   };
+  
+  const uploadFile = async (file: File, type: 'avatar' | 'cover') => {
+    if (!user || !storage) return;
+    setIsUploading(type);
+    
+    try {
+        const filePath = type === 'avatar' 
+            ? `avatars/${user.uid}/profile.${file.name.split('.').pop()}` 
+            : `covers/${user.uid}/cover.${file.name.split('.').pop()}`;
+        const storageRef = ref(storage, filePath);
+        const uploadTask = await uploadBytes(storageRef, file, { contentType: file.type });
+        const downloadURL = await getDownloadURL(uploadTask.ref);
+
+        const userDocRef = doc(firestore, 'users', user.uid);
+
+        if (type === 'cover') {
+            const coverType = file.type.startsWith('video/') ? 'video' : 'image';
+            form.setValue('coverUrl', downloadURL);
+            form.setValue('coverType', coverType);
+            setDocumentNonBlocking(userDocRef, { coverUrl: downloadURL, coverType: coverType }, { merge: true });
+        } else {
+            form.setValue('profilePicture', downloadURL);
+            setDocumentNonBlocking(userDocRef, { profilePicture: downloadURL }, { merge: true });
+        }
+
+        await revalidateProfilePaths();
+        toast({
+            title: `${type.charAt(0).toUpperCase() + type.slice(1)} updated!`,
+        });
+    } catch (error: any) {
+        console.error(`Error uploading ${type}:`, error);
+        toast({
+            variant: 'destructive',
+            title: 'Upload Failed',
+            description: `Could not upload your ${type}. ${error.message}`,
+        });
+    } finally {
+        setIsUploading(false);
+    }
+  }
+
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>, type: 'avatar' | 'cover') => {
     const file = event.target.files?.[0];
@@ -103,7 +137,7 @@ export default function ProfilePage() {
     if (!user) return;
     
     const userDocRef = doc(firestore, 'users', user.uid);
-    const { profilePicture, coverPhoto, ...restOfData } = data; // Don't save image URLs on this submit
+    const { profilePicture, coverUrl, coverType, ...restOfData } = data; // Don't save image URLs on this submit
     
     setDocumentNonBlocking(userDocRef, restOfData, { merge: true });
 
@@ -128,14 +162,24 @@ export default function ProfilePage() {
   }
   
   const avatarSrc = form.watch('profilePicture');
-  const coverSrc = form.watch('coverPhoto');
+  const coverSrc = form.watch('coverUrl');
+  const coverType = form.watch('coverType');
 
   return (
     <div className="container mx-auto max-w-2xl py-12 px-4">
       <Card>
          <CardHeader className="p-0">
             <div className="relative h-48 w-full bg-muted">
-                {coverSrc ? (
+                {coverSrc && coverType === 'video' ? (
+                    <video
+                        src={coverSrc}
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        className="object-cover w-full h-full"
+                    />
+                ) : coverSrc && coverType === 'image' ? (
                     <Image
                         src={coverSrc}
                         alt="Cover photo"
@@ -159,7 +203,7 @@ export default function ProfilePage() {
                     ref={coverInputRef}
                     onChange={(e) => handleFileChange(e, 'cover')}
                     className="hidden"
-                    accept="image/png, image/jpeg, image/gif"
+                    accept="image/png, image/jpeg, image/gif, video/mp4, video/quicktime"
                 />
             </div>
             <div className="flex flex-col items-center p-6 -mt-24">
@@ -250,5 +294,3 @@ function ProfileSkeleton() {
     </div>
   );
 }
-
-    

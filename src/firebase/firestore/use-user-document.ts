@@ -11,7 +11,8 @@ export interface UserProfile {
   username?: string;
   bio?: string;
   profilePicture?: string;
-  coverPhoto?: string;
+  coverUrl?: string;
+  coverType?: 'image' | 'video';
   // any other fields that might be on the user document
 }
 

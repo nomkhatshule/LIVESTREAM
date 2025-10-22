@@ -32,6 +32,16 @@
           "type": "string",
           "description": "Timestamp indicating when the user account was created.",
           "format": "date-time"
+        },
+        "coverUrl": {
+            "type": "string",
+            "description": "URL of the user's cover media (image or video).",
+            "format": "uri"
+        },
+        "coverType": {
+            "type": "string",
+            "enum": ["image", "video"],
+            "description": "The type of media used for the cover."
         }
       },
       "required": [
