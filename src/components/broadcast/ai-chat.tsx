@@ -5,7 +5,7 @@ import { useState, useRef, useEffect, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Sparkle, Bot, ArrowUp } from 'lucide-react';
+import { Sparkle, ArrowUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import {
@@ -89,7 +89,7 @@ export default function AIChat({ children }: AIChatProps) {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col h-80">
+        <div className="flex flex-col h-64">
           <ScrollArea className="flex-1 my-4 pr-4" ref={scrollAreaRef}>
             <div className="space-y-4">
               {messages.map((msg, index) => (
@@ -139,7 +139,7 @@ export default function AIChat({ children }: AIChatProps) {
                 type="submit"
                 size="icon"
                 variant="ghost"
-                className="absolute right-1 top-1/2 -translate-y-1/2 rounded-full h-8 w-8 text-gray-600 hover:bg-gray-200"
+                className="absolute inset-y-0 right-1 text-gray-600 hover:bg-gray-200 rounded-full h-8 w-8"
               >
                 <ArrowUp className="h-4 w-4" />
               </Button>
