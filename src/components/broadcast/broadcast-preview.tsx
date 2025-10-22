@@ -7,7 +7,6 @@ import { collection, query, orderBy, limit, serverTimestamp, doc, deleteDoc } fr
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { addDocumentNonBlocking, setDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
 import { Heart, MoreVertical, PlusCircle, Users, ArrowUp, MessageSquareMore, Share2, Clapperboard, User as UserIcon, CornerUpLeft, UserSearch } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
@@ -21,6 +20,7 @@ import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { useInView } from 'react-intersection-observer';
+import { Button } from '@/components/ui/button';
 
 interface BroadcastPreviewUIManagerProps {
     broadcast: Broadcast;
@@ -83,13 +83,12 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
             </div>
             
             {/* Right Side Vertical Action Bar */}
-            <div className="absolute top-1/2 right-4 -translate-y-1/2 z-40 flex flex-col items-center gap-y-6 pointer-events-auto">
+            <div className="absolute top-1/2 right-4 -translate-y-1/2 z-40 flex flex-col items-center gap-y-6 pointer-events-auto text-white">
+                
                 {/* Follow Action Item */}
-                <div className="flex flex-col items-center group">
-                    <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform">
-                        <PlusCircle className="h-10 w-10 drop-shadow-md"/>
-                    </button>
-                </div>
+                <button className="flex flex-col items-center group p-0 bg-transparent border-none text-white hover:scale-110 transition-transform">
+                    <PlusCircle className="h-10 w-10 drop-shadow-md"/>
+                </button>
 
                 {/* Like Action Item */}
                 <div className="flex flex-col items-center group">
@@ -107,13 +106,6 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
                     <span className="text-sm font-bold text-white drop-shadow-md mt-1.5">{comments?.length || 0}</span>
                 </div>
                 
-                {/* Share Action Item */}
-                 <div className="flex flex-col items-center group">
-                    <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform">
-                        <Share2 className="h-10 w-10 drop-shadow-md" />
-                    </button>
-                </div>
-                
                  {/* More Options */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -122,6 +114,10 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="w-56" align="end">
+                     <DropdownMenuItem>
+                       <Share2 className="mr-2 h-4 w-4" />
+                       <span>Share</span>
+                     </DropdownMenuItem>
                     <DropdownMenuItem>
                       <UserSearch className="mr-2 h-4 w-4" />
                       <span>Report</span>
@@ -141,6 +137,7 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
                   </DropdownMenuContent>
                 </DropdownMenu>
             </div>
+
 
             {/* Bottom Chat Area */}
             <div className="bg-gradient-to-t from-black/70 to-transparent -m-4 p-4 flex flex-col justify-end gap-4">
