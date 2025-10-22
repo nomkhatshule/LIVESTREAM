@@ -122,7 +122,7 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
                              <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">AI</span>
                         </div>
                     </SheetTrigger>
-                    <SheetContent side="bottom" className="rounded-t-2xl max-h-[75vh] bg-background/90 backdrop-blur-lg pointer-events-auto">
+                    <SheetContent side="bottom" className="rounded-t-2xl max-h-[75vh] bg-card pointer-events-auto">
                         <SheetHeader className="text-center">
                             <SheetTitle className="flex items-center justify-center gap-2">
                                 <Sparkles className="h-5 w-5 text-primary" />
