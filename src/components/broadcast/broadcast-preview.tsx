@@ -83,29 +83,63 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
             </div>
             
             {/* Right Side Vertical Action Bar */}
-            <div className="absolute top-1/2 right-4 -translate-y-1/2 z-40 flex flex-col items-center gap-y-4 pointer-events-auto">
+            <div className="absolute top-1/2 right-4 -translate-y-1/2 z-40 flex flex-col items-center gap-y-6 pointer-events-auto">
                 {/* Follow Action Item */}
                 <div className="flex flex-col items-center group">
-                    <Button variant="ghost" size="icon" className="relative h-14 w-14 rounded-full text-white bg-black/30 hover:bg-white/20 transition-transform group-hover:scale-110">
-                        <PlusCircle className="h-8 w-8"/>
-                    </Button>
+                    <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform">
+                        <PlusCircle className="h-10 w-10 drop-shadow-md"/>
+                    </button>
                 </div>
 
                 {/* Like Action Item */}
                 <div className="flex flex-col items-center group">
-                    <Button variant="ghost" size="icon" className="relative h-14 w-14 rounded-full text-white bg-black/30 hover:bg-white/20 transition-transform group-hover:scale-110" onClick={onLike}>
-                      <Heart className={cn("h-8 w-8", hasLiked && "fill-red-500 text-red-500")} />
-                    </Button>
+                    <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform" onClick={onLike}>
+                      <Heart className={cn("h-10 w-10 drop-shadow-md", hasLiked && "fill-red-500 text-red-500")} />
+                    </button>
                     <span className="text-sm font-bold text-white drop-shadow-md mt-1.5">{likes?.length || 0}</span>
                 </div>
 
                 {/* Comment Action Item */}
                 <div className="flex flex-col items-center group">
-                    <Button variant="ghost" size="icon" onClick={() => setIsChatVisible(!isChatVisible)} className="relative h-14 w-14 rounded-full text-white bg-black/30 hover:bg-white/20 transition-transform group-hover:scale-110">
-                       <MessageSquareMore className="h-8 w-8" />
-                    </Button>
+                    <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform" onClick={() => setIsChatVisible(!isChatVisible)}>
+                       <MessageSquareMore className="h-10 w-10 drop-shadow-md" />
+                    </button>
                     <span className="text-sm font-bold text-white drop-shadow-md mt-1.5">{comments?.length || 0}</span>
                 </div>
+                
+                {/* Share Action Item */}
+                 <div className="flex flex-col items-center group">
+                    <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform">
+                        <Share2 className="h-10 w-10 drop-shadow-md" />
+                    </button>
+                </div>
+                
+                 {/* More Options */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform">
+                      <MoreVertical className="h-10 w-10 drop-shadow-md" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56" align="end">
+                    <DropdownMenuItem>
+                      <UserSearch className="mr-2 h-4 w-4" />
+                      <span>Report</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/broadcast/create">
+                        <Clapperboard className="mr-2 h-4 w-4" />
+                        <span>Go Stream</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/profile">
+                        <UserIcon className="mr-2 h-4 w-4" />
+                        <span>My Profile</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
             </div>
 
             {/* Bottom Chat Area */}
