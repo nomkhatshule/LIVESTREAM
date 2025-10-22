@@ -5,7 +5,7 @@ import { useState, useRef, useEffect, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Sparkle, ArrowUp } from 'lucide-react';
+import { Sparkle, Send } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import {
@@ -16,6 +16,7 @@ import {
   SheetDescription,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import { Separator } from '@/components/ui/separator';
 
 interface AIChatMessage {
   sender: 'user' | 'ai';
@@ -92,9 +93,11 @@ export default function AIChat({ children }: AIChatProps) {
           </SheetDescription>
         </SheetHeader>
 
+        <Separator className="my-4" />
+
         <div className="flex flex-col h-96">
-          <ScrollArea className="flex-1 my-4 pr-4" ref={scrollAreaRef}>
-            <div className="space-y-4">
+          <ScrollArea className="flex-1 -my-4 pr-4" ref={scrollAreaRef}>
+            <div className="space-y-4 py-4">
               {messages.map((msg, index) => (
                 <div
                   key={index}
@@ -107,7 +110,7 @@ export default function AIChat({ children }: AIChatProps) {
                     className={cn(
                       'max-w-[80%] rounded-lg px-3 py-2',
                       msg.sender === 'user'
-                        ? 'bg-primary text-primary-foreground'
+                        ? 'bg-black text-white'
                         : 'bg-gray-100 text-gray-900'
                     )}
                   >
@@ -144,7 +147,7 @@ export default function AIChat({ children }: AIChatProps) {
                 variant="ghost"
                 className="absolute inset-y-0 right-1 text-gray-500 hover:bg-gray-200 rounded-full h-8 w-8"
               >
-                <ArrowUp className="h-4 w-4" />
+                <Send className="h-4 w-4" fill="currentColor" />
               </Button>
             </form>
           </footer>
