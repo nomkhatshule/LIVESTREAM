@@ -79,14 +79,14 @@ export default function AIChat({ children }: AIChatProps) {
       <SheetTrigger asChild>{children}</SheetTrigger>
       <SheetContent
         side="bottom"
-        className="rounded-t-2xl max-h-[75vh] bg-card pointer-events-auto"
+        className="rounded-t-2xl max-h-[75vh] bg-white text-black pointer-events-auto"
       >
         <SheetHeader>
-          <SheetTitle className="flex items-center gap-2 text-foreground">
+          <SheetTitle className="flex items-center gap-2 text-black">
             <Sparkle className="h-5 w-5 text-primary" />
             Ask Anything
           </SheetTitle>
-          <SheetDescription>
+          <SheetDescription className="text-gray-500">
             Find information about what's happening in the stream without
             leaving.
           </SheetDescription>
@@ -108,7 +108,7 @@ export default function AIChat({ children }: AIChatProps) {
                       'max-w-[80%] rounded-lg px-3 py-2',
                       msg.sender === 'user'
                         ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted text-muted-foreground'
+                        : 'bg-gray-100 text-gray-900'
                     )}
                   >
                     <p className="text-sm">{msg.text}</p>
@@ -117,7 +117,7 @@ export default function AIChat({ children }: AIChatProps) {
                         'text-xs mt-1',
                         msg.sender === 'user'
                           ? 'text-right opacity-70'
-                          : 'text-left'
+                          : 'text-left text-gray-500'
                       )}
                     >
                       {msg.timestamp}
@@ -136,13 +136,13 @@ export default function AIChat({ children }: AIChatProps) {
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 placeholder="Ask a question..."
-                className="flex-1 bg-background text-foreground placeholder:text-muted-foreground rounded-full pr-10 focus-visible:ring-0 focus-visible:ring-offset-0"
+                className="flex-1 bg-gray-100 text-black border-gray-300 placeholder:text-gray-500 rounded-full pr-10 focus-visible:ring-0 focus-visible:ring-offset-0"
               />
               <Button
                 type="submit"
                 size="icon"
                 variant="ghost"
-                className="absolute inset-y-0 right-1 text-muted-foreground hover:bg-accent rounded-full h-8 w-8"
+                className="absolute inset-y-0 right-1 text-gray-500 hover:bg-gray-200 rounded-full h-8 w-8"
               >
                 <ArrowUp className="h-4 w-4" />
               </Button>
