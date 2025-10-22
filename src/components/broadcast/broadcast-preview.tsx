@@ -87,13 +87,13 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
                 
                 {/* Follow Action Item */}
                 <button className="flex flex-col items-center group p-0 bg-transparent border-none text-white hover:scale-110 transition-transform">
-                    <PlusCircle className="h-8 w-8 drop-shadow-md"/>
+                    <PlusCircle className="h-6 w-6 drop-shadow-md"/>
                 </button>
 
                 {/* Like Action Item */}
-                <div className="flex flex-col items-center group">
+                 <div className="flex flex-col items-center group">
                     <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform" onClick={onLike}>
-                      <Heart className={cn("h-8 w-8 drop-shadow-md", hasLiked && "fill-red-500 text-red-500")} />
+                      <Heart className={cn("h-6 w-6 drop-shadow-md", hasLiked && "fill-red-500 text-red-500")} />
                     </button>
                     <span className="text-sm font-bold text-white drop-shadow-md mt-1.5">{likes?.length || 0}</span>
                 </div>
@@ -101,7 +101,7 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
                 {/* Comment Action Item */}
                 <div className="flex flex-col items-center group">
                     <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform" onClick={() => setIsChatVisible(!isChatVisible)}>
-                       <MessageSquareMore className="h-8 w-8 drop-shadow-md" />
+                       <MessageSquareMore className="h-6 w-6 drop-shadow-md" />
                     </button>
                     <span className="text-sm font-bold text-white drop-shadow-md mt-1.5">{comments?.length || 0}</span>
                 </div>
