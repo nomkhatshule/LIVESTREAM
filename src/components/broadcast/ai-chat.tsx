@@ -5,11 +5,17 @@ import { useState, useRef, useEffect, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, Sparkle, Bot, X } from 'lucide-react';
+import { Send, Sparkle, Bot } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription, SheetClose } from '@/components/ui/sheet';
-
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogTrigger, 
+  DialogDescription,
+} from '@/components/ui/dialog';
 
 interface AIChatMessage {
   sender: 'user' | 'ai';
@@ -67,47 +73,43 @@ export default function AIChat({ children }: AIChatProps) {
   }, [messages]);
 
   return (
-    <Sheet>
-      <SheetTrigger asChild>{children}</SheetTrigger>
-      <SheetContent 
-        side="bottom" 
-        className="rounded-t-2xl max-h-[50vh] bg-card pointer-events-auto"
-      >
-        <div className="flex flex-col h-full">
-            <SheetHeader className="text-left">
-                <SheetTitle className="flex items-center gap-2">
-                    <Sparkle className="h-5 w-5 text-primary" />
-                    Ask Anything
-                </SheetTitle>
-                <SheetDescription>
-                    Find information about what's happening in the stream without leaving.
-                </SheetDescription>
-            </SheetHeader>
-            
-             <ScrollArea className="flex-1 my-4 -mx-6 px-6" ref={scrollAreaRef}>
+    <Dialog>
+      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Sparkle className="h-5 w-5 text-primary" />
+            Ask Anything
+          </DialogTitle>
+          <DialogDescription>
+            Find information about what's happening in the stream without leaving.
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="flex flex-col h-96">
+            <ScrollArea className="flex-1 my-4 pr-4" ref={scrollAreaRef}>
                 <div className="space-y-4">
-                {messages.map((msg, index) => (
-                    <div key={index} className={cn('flex items-end gap-2', msg.sender === 'user' ? 'justify-end' : 'justify-start')}>
-                    {msg.sender === 'ai' && (
-                        <div className="flex-shrink-0 h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
-                            <Bot className="h-5 w-5"/>
+                    {messages.map((msg, index) => (
+                        <div key={index} className={cn('flex items-end gap-2', msg.sender === 'user' ? 'justify-end' : 'justify-start')}>
+                        {msg.sender === 'ai' && (
+                            <div className="flex-shrink-0 h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
+                                <Bot className="h-5 w-5"/>
+                            </div>
+                        )}
+                        <div className={cn('max-w-[80%] rounded-lg px-3 py-2', 
+                            msg.sender === 'user' 
+                            ? 'bg-primary text-primary-foreground' 
+                            : 'bg-muted text-muted-foreground'
+                        )}>
+                            <p className="text-sm">{msg.text}</p>
+                            <p className={cn('text-xs opacity-70 mt-1', msg.sender === 'user' ? 'text-right' : 'text-left')}>
+                                {msg.timestamp}
+                            </p>
                         </div>
-                    )}
-                    <div className={cn('max-w-[80%] rounded-lg px-3 py-2', 
-                        msg.sender === 'user' 
-                        ? 'bg-primary text-primary-foreground' 
-                        : 'bg-muted text-muted-foreground'
-                    )}>
-                        <p className="text-sm">{msg.text}</p>
-                        <p className={cn('text-xs opacity-70 mt-1', msg.sender === 'user' ? 'text-right' : 'text-left')}>
-                            {msg.timestamp}
-                        </p>
-                    </div>
-                    </div>
-                ))}
+                        </div>
+                    ))}
                 </div>
             </ScrollArea>
-
             <footer className="pt-2">
                 <form onSubmit={handleSendMessage} className="flex items-center gap-2">
                 <Input
@@ -122,7 +124,7 @@ export default function AIChat({ children }: AIChatProps) {
                 </form>
             </footer>
         </div>
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 }
