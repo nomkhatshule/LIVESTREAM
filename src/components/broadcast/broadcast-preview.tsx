@@ -8,7 +8,7 @@ import { useCollection } from '@/firebase/firestore/use-collection';
 import { addDocumentNonBlocking, setDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Heart, MoreVertical, PlusCircle, Users, ArrowUp, MessageSquareMore, Share2, Clapperboard, User as UserIcon, CornerUpLeft } from 'lucide-react';
+import { Heart, MoreVertical, PlusCircle, Users, ArrowUp, MessageSquareMore, Share2, Clapperboard, User as UserIcon, CornerUpLeft, UserSearch } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -21,11 +21,6 @@ import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { useInView } from 'react-intersection-observer';
-
-interface BroadcastPreviewProps {
-  broadcast: any; // Using any to match Firestore data structure
-  onVisible: () => void;
-}
 
 interface BroadcastPreviewUIManagerProps {
     broadcast: Broadcast;
@@ -59,7 +54,7 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
     }
 
     return (
-        <div className="absolute inset-0 flex flex-col justify-between p-4 text-white z-30 pointer-events-none">
+        <div className="absolute inset-0 flex flex-col justify-between p-3 md:p-4 text-white z-30 pointer-events-none">
             {/* Top Info */}
             <div className="bg-gradient-to-b from-black/50 to-transparent -m-4 p-4">
                 <div className="flex items-start gap-3">
@@ -90,31 +85,31 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
             {/* Right Side Vertical Action Bar */}
             <div className="absolute top-1/2 right-4 -translate-y-1/2 z-40 flex flex-col items-center gap-y-6 pointer-events-auto">
                 {/* Follow Button */}
-                <div className="flex flex-col items-center">
-                    <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white bg-black/30 hover:bg-white/20 transition-transform hover:scale-110">
+                <div className="flex flex-col items-center group">
+                    <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white bg-black/30 hover:bg-white/20 transition-transform group-hover:scale-110">
                         <PlusCircle className="h-8 w-8"/>
                     </Button>
                 </div>
 
                 {/* Like Button */}
-                <div className="flex flex-col items-center">
-                    <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white bg-black/30 hover:bg-white/20 transition-transform hover:scale-110" onClick={onLike}>
+                <div className="flex flex-col items-center group">
+                    <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white bg-black/30 hover:bg-white/20 transition-transform group-hover:scale-110" onClick={onLike}>
                       <Heart className={cn("h-8 w-8", hasLiked && "fill-red-500 text-red-500")} />
                     </Button>
                     <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">{likes?.length || 0}</span>
                 </div>
 
                 {/* Comment Button */}
-                <div className="flex flex-col items-center">
-                    <Button variant="ghost" size="icon" onClick={() => setIsChatVisible(!isChatVisible)} className="h-12 w-12 rounded-full text-white bg-black/30 hover:bg-white/20 transition-transform hover:scale-110">
+                <div className="flex flex-col items-center group">
+                    <Button variant="ghost" size="icon" onClick={() => setIsChatVisible(!isChatVisible)} className="h-12 w-12 rounded-full text-white bg-black/30 hover:bg-white/20 transition-transform group-hover:scale-110">
                        <MessageSquareMore className="h-8 w-8" />
                     </Button>
                     <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">{comments?.length || 0}</span>
                 </div>
 
                 {/* Share Button */}
-                <div className="flex flex-col items-center">
-                    <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white bg-black/30 hover:bg-white/20 transition-transform hover:scale-110">
+                <div className="flex flex-col items-center group">
+                    <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white bg-black/30 hover:bg-white/20 transition-transform group-hover:scale-110">
                          <Share2 className="h-8 w-8"/>
                     </Button>
                 </div>
