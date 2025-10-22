@@ -5,7 +5,7 @@ import { useState, useRef, useEffect, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, Sparkle, Bot } from 'lucide-react';
+import { Send, Sparkle, Bot, ArrowUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { 
@@ -13,8 +13,8 @@ import {
   DialogContent, 
   DialogHeader, 
   DialogTitle, 
-  DialogTrigger, 
   DialogDescription,
+  DialogTrigger
 } from '@/components/ui/dialog';
 
 interface AIChatMessage {
@@ -113,16 +113,16 @@ export default function AIChat({ children }: AIChatProps) {
                 </div>
             </ScrollArea>
             <footer className="pt-2">
-                <form onSubmit={handleSendMessage} className="flex items-center gap-2">
-                <Input
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    placeholder="Ask a question..."
-                    className="flex-1 bg-gray-100 text-black border-gray-300 placeholder:text-gray-500 rounded-full"
-                />
-                <Button type="submit" size="icon" className="rounded-full">
-                    <Send className="h-4 w-4" />
-                </Button>
+                <form onSubmit={handleSendMessage} className="relative flex items-center">
+                  <Input
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      placeholder="Ask a question..."
+                      className="flex-1 bg-gray-100 text-black border-gray-300 placeholder:text-gray-500 rounded-full pr-10"
+                  />
+                  <Button type="submit" size="icon" variant="ghost" className="absolute right-1 top-1/2 -translate-y-1/2 rounded-full h-8 w-8 text-gray-600 hover:bg-gray-200">
+                      <ArrowUp className="h-4 w-4" />
+                  </Button>
                 </form>
             </footer>
         </div>
