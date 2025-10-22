@@ -77,7 +77,7 @@ export default function AIChat({ children }: AIChatProps) {
   return (
     <Dialog>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] bg-white text-black rounded-t-2xl">
+      <DialogContent className="sm:max-w-[425px] bg-white text-black rounded-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-black">
             <Sparkle className="h-5 w-5 text-primary" />
