@@ -1,23 +1,14 @@
-
 'use client';
 
-import {
-  StreamVideo,
-  StreamCall,
-  Call,
-  StreamVideoClient,
-  useCallStateHooks,
-} from '@stream-io/video-react-sdk';
-import { useEffect, useState, useMemo, useRef, forwardRef } from 'react';
+import { useMemo, useState, useRef, forwardRef } from 'react';
 import type { Broadcast, User as AppUser, ChatMessage } from '@/lib/data';
 import { useUser, useFirestore, useMemoFirebase, useUserDocument } from '@/firebase';
 import { collection, query, orderBy, limit, serverTimestamp, doc, deleteDoc } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { addDocumentNonBlocking, setDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import VideoPlayer from '@/components/broadcast/video-player';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Heart, MoreVertical, PlusCircle, Users, ArrowUp, MessageSquare, Share2, Clapperboard, User as UserIcon, PlayCircle, Loader2, CornerUpLeft, Volume2, VolumeX } from 'lucide-react';
+import { Heart, MoreVertical, PlusCircle, Users, ArrowUp, MessageSquare, Share2, Clapperboard, User as UserIcon, CornerUpLeft, Volume2, VolumeX } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -29,60 +20,69 @@ import {
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { useStreamStore } from '@/lib/stream-store';
 
-
-interface FeedItemProps {
-  client: StreamVideoClient;
+interface BroadcastPreviewProps {
   broadcast: any; // Using any to match Firestore data structure
 }
 
-interface FeedItemUIManagerProps {
-    broadcast: Broadcast;
-    isJoined: boolean;
-    isMuted: boolean;
-    toggleMute: () => void;
-}
-
-
-const FeedItemUIManager = forwardRef<HTMLTextAreaElement, FeedItemUIManagerProps>(({ broadcast, isJoined, isMuted, toggleMute }, textareaRef) => {
+export const BroadcastPreview = forwardRef<HTMLTextAreaElement, BroadcastPreviewProps>(({ broadcast }, textareaRef) => {
     const { user } = useUser();
     const { userDocument } = useUserDocument();
     const firestore = useFirestore();
     const { toast } = useToast();
+    const status = useStreamStore(state => state.status);
     
     const [newMessage, setNewMessage] = useState('');
     const [isChatVisible, setIsChatVisible] = useState(true);
+    const [isMuted, setIsMuted] = useState(true);
+
+    const fullBroadcast: Broadcast = useMemo(() => {
+        const hostUser: AppUser = {
+            id: broadcast.hostId,
+            name: broadcast.hostName,
+            avatarUrl: broadcast.hostAvatar,
+            avatarHint: 'person portrait',
+            bio: '',
+            interests: [],
+            watchHistory: [],
+        };
+
+        return {
+            ...broadcast,
+            user: hostUser,
+            thumbnailUrl: '', 
+            thumbnailHint: '',
+        }
+    }, [broadcast]);
+
 
     // Real-time chat messages
     const messagesQuery = useMemoFirebase(() => {
-        if (!broadcast.id || !firestore) return null;
+        if (!fullBroadcast.id || !firestore) return null;
         return query(
-            collection(firestore, `broadcasts/${broadcast.id}/messages`),
+            collection(firestore, `broadcasts/${fullBroadcast.id}/messages`),
             orderBy('timestamp', 'desc'),
             limit(50)
         );
-    }, [broadcast.id, firestore]);
+    }, [fullBroadcast.id, firestore]);
     const { data: comments } = useCollection<ChatMessage>(messagesQuery);
     const reversedComments = useMemo(() => comments ? [...comments].reverse() : [], [comments]);
     
     // Real-time likes
     const likesCollectionRef = useMemoFirebase(() => {
-        if (!broadcast.id || !firestore) return null;
-        return collection(firestore, `broadcasts/${broadcast.id}/likes`);
-    }, [broadcast.id, firestore]);
+        if (!fullBroadcast.id || !firestore) return null;
+        return collection(firestore, `broadcasts/${fullBroadcast.id}/likes`);
+    }, [fullBroadcast.id, firestore]);
     const { data: likes } = useCollection(likesCollectionRef);
     const hasLiked = useMemo(() => {
         if (!user || !likes) return false;
         return likes.some(like => like.id === user.uid);
     }, [user, likes]);
     
-    const { useParticipants } = useCallStateHooks();
-    const participants = useParticipants();
-    const viewerCount = isJoined ? Math.max(0, participants.length) : (broadcast.viewers || 0);
-
     const handleSendMessage = () => {
         if (newMessage.trim() === '' || !user || !userDocument) return;
-        const messagesCollectionRef = collection(firestore, 'broadcasts', broadcast.id, 'messages');
+        const messagesCollectionRef = collection(firestore, 'broadcasts', fullBroadcast.id, 'messages');
         const newComment: Omit<ChatMessage, 'id'|'timestamp'> & {timestamp: any, replyingTo?: string} = {
             userId: user.uid,
             username: userDocument.username || "Anonymous",
@@ -104,7 +104,7 @@ const FeedItemUIManager = forwardRef<HTMLTextAreaElement, FeedItemUIManagerProps
     };
 
     const handleLike = () => {
-        if (!broadcast.isLive) {
+        if (!fullBroadcast.isLive) {
             toast({ title: 'Stream is offline', description: 'You can only like live streams.', variant: 'destructive' });
             return;
         }
@@ -112,9 +112,9 @@ const FeedItemUIManager = forwardRef<HTMLTextAreaElement, FeedItemUIManagerProps
             toast({ title: 'Login Required', description: 'You must be logged in to like a stream.', variant: 'destructive' });
             return;
         }
-        if (!firestore || !broadcast.id) return;
+        if (!firestore || !fullBroadcast.id) return;
         
-        const likeDocRef = doc(firestore, 'broadcasts', broadcast.id, 'likes', user.uid);
+        const likeDocRef = doc(firestore, 'broadcasts', fullBroadcast.id, 'likes', user.uid);
         
         if (hasLiked) {
             deleteDocumentNonBlocking(likeDocRef);
@@ -130,30 +130,37 @@ const FeedItemUIManager = forwardRef<HTMLTextAreaElement, FeedItemUIManagerProps
         }
     }
 
+    const toggleMute = () => {
+        // This is a dummy toggle now, as the actual video element is managed elsewhere.
+        // We can use this to update UI if needed, but it won't control the audio.
+        // The real audio control should be on the BroadcastPlayer itself if we add that feature.
+        setIsMuted(prev => !prev);
+    }
+
     return (
-        <div className="absolute inset-0 flex flex-col justify-between p-4 text-white z-30">
+        <div className="absolute inset-0 flex flex-col justify-between p-4 text-white z-30 pointer-events-none">
             {/* Top Info */}
-            <div className="bg-gradient-to-b from-black/50 to-transparent -m-4 p-4 pointer-events-none">
+            <div className="bg-gradient-to-b from-black/50 to-transparent -m-4 p-4">
                 <div className="flex items-start gap-3">
-                    <Link href={`/profile/${broadcast.user.id}`} className="pointer-events-auto">
+                    <Link href={`/profile/${fullBroadcast.user.id}`} className="pointer-events-auto">
                         <Avatar className="h-10 w-10 md:h-14 md:w-14 border-2 border-primary">
-                            <AvatarImage src={broadcast.user.avatarUrl} alt={broadcast.user.name} />
-                            <AvatarFallback>{broadcast.user.name?.charAt(0)}</AvatarFallback>
+                            <AvatarImage src={fullBroadcast.user.avatarUrl} alt={fullBroadcast.user.name} />
+                            <AvatarFallback>{fullBroadcast.user.name?.charAt(0)}</AvatarFallback>
                         </Avatar>
                     </Link>
                     <div>
                         <div className="flex items-center gap-3">
-                            <Link href={`/profile/${broadcast.user.id}`} className="pointer-events-auto">
-                                <p className="font-bold text-base md:text-lg hover:underline">{broadcast.user.name}</p>
+                            <Link href={`/profile/${fullBroadcast.user.id}`} className="pointer-events-auto">
+                                <p className="font-bold text-base md:text-lg hover:underline">{fullBroadcast.user.name}</p>
                             </Link>
                             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-600 animate-pulse">
                                 LIVE
                             </span>
                         </div>
-                        <p className="text-sm md:text-base font-semibold mt-1">{broadcast.title}</p>
+                        <p className="text-sm md:text-base font-semibold mt-1">{fullBroadcast.title}</p>
                         <div className="flex items-center gap-3 mt-1 text-xs">
                             <Users className="h-3 w-3" />
-                            <span>{viewerCount.toLocaleString()}</span>
+                            <span>{broadcast.viewerCount?.toLocaleString() || 0}</span>
                         </div>
                     </div>
                 </div>
@@ -208,10 +215,10 @@ const FeedItemUIManager = forwardRef<HTMLTextAreaElement, FeedItemUIManagerProps
                         </div>
                     )}
                 </div>
-                <div className="flex flex-col-reverse items-center gap-y-4">
+                <div className="flex flex-col-reverse items-center gap-y-4 pointer-events-auto">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-10 w-10 md:h-12 md:w-12 rounded-full text-white hover:bg-white/20 pointer-events-auto">
+                            <Button variant="ghost" size="icon" className="h-10 w-10 md:h-12 md:w-12 rounded-full text-white hover:bg-white/20">
                                 <MoreVertical className="h-6 w-6 md:h-8 md:w-8" />
                             </Button>
                         </DropdownMenuTrigger>
@@ -234,15 +241,15 @@ const FeedItemUIManager = forwardRef<HTMLTextAreaElement, FeedItemUIManagerProps
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
-                    <Button variant="ghost" size="icon" onClick={() => setIsChatVisible(!isChatVisible)} className="h-10 w-10 md:h-12 md:w-12 rounded-full text-white flex-col hover:bg-white/20 pointer-events-auto">
+                    <Button variant="ghost" size="icon" onClick={() => setIsChatVisible(!isChatVisible)} className="h-10 w-10 md:h-12 md:w-12 rounded-full text-white flex-col hover:bg-white/20">
                         <MessageSquare className="h-6 w-6 md:h-8 md:w-8" />
                         <span className="text-xs mt-1">{comments?.length || 0}</span>
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-10 w-10 md:h-12 md:w-12 rounded-full text-white flex-col hover:bg-white/20 pointer-events-auto" onClick={handleLike} disabled={!broadcast.isLive}>
+                    <Button variant="ghost" size="icon" className="h-10 w-10 md:h-12 md:w-12 rounded-full text-white flex-col hover:bg-white/20" onClick={handleLike} disabled={!fullBroadcast.isLive}>
                         <Heart className={cn("h-6 w-6 md:h-8 md:w-8", hasLiked && "fill-red-500 text-red-500")} />
                         <span className="text-xs mt-1 tabular-nums">{likes?.length || 0}</span>
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-10 w-10 md:h-12 md:w-12 rounded-full text-white flex-col hover:bg-white/20 pointer-events-auto">
+                    <Button variant="ghost" size="icon" className="h-10 w-10 md:h-12 md:w-12 rounded-full text-white flex-col hover:bg-white/20">
                         <PlusCircle className="h-6 w-6 md:h-8 md:w-8" />
                     </Button>
                 </div>
@@ -250,119 +257,4 @@ const FeedItemUIManager = forwardRef<HTMLTextAreaElement, FeedItemUIManagerProps
         </div>
     );
 });
-FeedItemUIManager.displayName = "FeedItemUIManager";
-
-
-export default function FeedItem({ client, broadcast }: FeedItemProps) {
-  const { toast } = useToast();
-  const [call, setCall] = useState<Call | null>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isJoining, setIsJoining] = useState(false);
-  const [isJoined, setIsJoined] = useState(false);
-  const [isMuted, setIsMuted] = useState(true); // Start muted by default
-
-  const hostUser: AppUser = {
-      id: broadcast.hostId,
-      name: broadcast.hostName,
-      avatarUrl: broadcast.hostAvatar,
-      avatarHint: 'person portrait',
-      bio: '',
-      interests: [],
-      watchHistory: [],
-  };
-
-  const fullBroadcast: Broadcast = {
-      ...broadcast,
-      user: hostUser,
-      thumbnailUrl: '', 
-      thumbnailHint: '',
-  }
-
-  useEffect(() => {
-    if (!isPlaying || !client || call) return;
-
-    let callInstance: Call;
-    const joinCall = async () => {
-        setIsJoining(true);
-        callInstance = client.call('livestream', broadcast.id);
-        
-        try {
-            await callInstance.join();
-            setCall(callInstance);
-            setIsJoined(true);
-        } catch (err) {
-             console.error(`Failed to join call ${broadcast.id}`, err);
-             toast({
-                title: 'Error Joining Stream',
-                description: 'Could not connect to the broadcast.',
-                variant: 'destructive',
-             });
-             setIsJoined(false);
-             setIsPlaying(false);
-        } finally {
-            setIsJoining(false);
-        }
-    };
-    
-    joinCall();
-
-    return () => {
-      if (callInstance) {
-        callInstance.leave().catch(err => console.error(`Failed to leave call ${broadcast.id} on cleanup`, err));
-        setCall(null);
-        setIsJoined(false);
-      }
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isPlaying, client, broadcast.id]);
-
-  const handlePlay = () => {
-    setIsPlaying(true);
-  }
-
-  const toggleMute = () => {
-    const videoElement = document.querySelector(`[data-broadcast-id='${broadcast.id}'] video`);
-    if (videoElement instanceof HTMLVideoElement) {
-        videoElement.muted = !videoElement.muted;
-        setIsMuted(videoElement.muted);
-    }
-  }
-
-  return (
-    <div className="relative h-[calc(100vh-4rem)] w-full bg-black snap-start" data-broadcast-id={broadcast.id}>
-      
-      {isPlaying && call ? (
-        <StreamVideo client={client}>
-          <StreamCall call={call}>
-            <VideoPlayer broadcast={fullBroadcast} isHost={false} isMuted={isMuted} />
-            <FeedItemUIManager ref={textareaRef} broadcast={fullBroadcast} isJoined={isJoined} isMuted={isMuted} toggleMute={toggleMute} />
-          </StreamCall>
-        </StreamVideo>
-      ) : (
-        <>
-            <div className="w-full h-full bg-black flex items-center justify-center text-white relative">
-                <img src={broadcast.thumbnailUrl || `https://picsum.photos/seed/${broadcast.id}/1280/720`} alt="Broadcast thumbnail" className="absolute inset-0 w-full h-full object-cover blur-sm"/>
-                <div className="absolute inset-0 bg-black/50 z-10" />
-                
-                <div className="relative z-20 flex flex-col items-center">
-                    {isJoining ? (
-                        <>
-                            <Loader2 className="h-16 w-16 animate-spin text-white mb-4" />
-                            <p className="text-lg font-semibold">Joining Stream...</p>
-                        </>
-                    ) : (
-                        <Button variant="ghost" size="icon" className="h-32 w-32 text-white/80 hover:text-white hover:bg-transparent" onClick={handlePlay}>
-                            <PlayCircle className="h-32 w-32" />
-                        </Button>
-                    )}
-                </div>
-            </div>
-            {/* Show a simplified UI overlay even when not playing */}
-            <FeedItemUIManager ref={textareaRef} broadcast={fullBroadcast} isJoined={false} isMuted={isMuted} toggleMute={toggleMute} />
-        </>
-      )}
-    </div>
-  );
-}
+BroadcastPreview.displayName = "BroadcastPreview";
