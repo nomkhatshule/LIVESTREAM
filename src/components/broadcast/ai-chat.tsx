@@ -5,7 +5,7 @@ import { useState, useRef, useEffect, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Sparkle, Send, ArrowUp } from 'lucide-react';
+import { Send, ArrowUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import {
@@ -83,13 +83,11 @@ export default function AIChat({ children }: AIChatProps) {
         className="rounded-t-2xl max-h-[75vh] bg-white text-black pointer-events-auto"
       >
         <SheetHeader>
-          <SheetTitle className="flex items-center gap-2 text-black">
-            <Sparkle className="h-5 w-5 text-primary" />
-            Ask Anything
+          <SheetTitle className="text-black">
+            Your AI Stream Assistant
           </SheetTitle>
           <SheetDescription className="text-gray-500">
-            Find information about what's happening in the stream without
-            leaving.
+            Curious about something in the stream? Ask me anything!
           </SheetDescription>
         </SheetHeader>
 
