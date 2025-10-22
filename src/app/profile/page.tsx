@@ -135,13 +135,15 @@ export default function ProfilePage() {
       <Card>
          <CardHeader className="p-0">
             <div className="relative h-48 w-full bg-muted">
-                {coverSrc && (
+                {coverSrc ? (
                     <Image
                         src={coverSrc}
                         alt="Cover photo"
                         fill
                         className="object-cover"
                     />
+                ) : (
+                   <div className="h-full w-full bg-muted" />
                 )}
                 <Button 
                     size="sm" 
@@ -248,3 +250,5 @@ function ProfileSkeleton() {
     </div>
   );
 }
+
+    

@@ -122,13 +122,15 @@ export default function UserProfilePage() {
       {/* Profile Header Card */}
       <Card className="overflow-hidden mb-8">
         <div className="relative h-48 w-full bg-muted">
-           {userDocument.coverPhoto && (
+           {userDocument.coverPhoto ? (
              <Image 
                 src={userDocument.coverPhoto}
                 alt="Cover photo"
                 fill
                 className="object-cover"
              />
+           ) : (
+             <div className="h-full w-full bg-muted" />
            )}
         </div>
         <div className="flex flex-col items-center p-6 -mt-24">
@@ -253,3 +255,5 @@ function ProfileSkeleton() {
     </div>
   );
 }
+
+    
