@@ -46,3 +46,17 @@ export const categories = [
     { name: 'Talk Show' },
     { name: 'Fitness' },
 ];
+
+export const mockHighlights = [
+    { id: 1, imageUrl: 'https://picsum.photos/seed/highlight1/300/533', views: 125000 },
+    { id: 2, imageUrl: 'https://picsum.photos/seed/highlight2/300/533', views: 89000 },
+    { id: 3, imageUrl: 'https://picsum.photos/seed/highlight3/300/533', views: 1200 },
+    { id: 4, imageUrl: 'https://picsum.photos/seed/highlight4/300/533', views: 543000 },
+    { id: 5, imageUrl: 'https://picsum.photos/seed/highlight5/300/533', views: 2100 },
+    { id: 6, imageUrl: 'https://picsum.photos/seed/highlight6/300/533', views: 7600 },
+    { id: 7, imageUrl: 'https://picsum.photos/seed/highlight7/300/533', views: 32000 },
+    { id: 8, imageUrl: 'https://picsum.photos/seed/highlight8/300/533', views: 1900000 },
+    { id: 9, imageUrl: 'https://picsum.photos/seed/highlight9/300/533', views: 4200 },
+];
+
+    

@@ -10,10 +10,11 @@ import { doc, writeBatch, serverTimestamp, where, query } from 'firebase/firesto
 import { useToast } from '@/hooks/use-toast';
 import { useMemo } from 'react';
 import { collection } from 'firebase/firestore';
-import { UserPlus, UserCheck, MessageSquare, Heart, Pencil } from 'lucide-react';
+import { UserPlus, UserCheck, MessageSquare, Heart, Pencil, Eye } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Link from 'next/link';
 import Image from 'next/image';
+import { mockHighlights } from '@/lib/data';
 
 // Mock data for recent activity - in a real app this would be a Firestore query
 const mockActivity = [
@@ -188,7 +189,7 @@ export default function UserProfilePage() {
       <Tabs defaultValue="activity" className="w-full">
         <TabsList className="grid w-full grid-cols-2 max-w-sm mx-auto">
           <TabsTrigger value="activity">Activity</TabsTrigger>
-          <TabsTrigger value="about" disabled>About</TabsTrigger>
+          <TabsTrigger value="highlights">Highlights</TabsTrigger>
         </TabsList>
         <TabsContent value="activity">
           <Card>
@@ -215,8 +216,29 @@ export default function UserProfilePage() {
             </CardContent>
           </Card>
         </TabsContent>
-        <TabsContent value="about">
-          {/* Future "About" content will go here */}
+        <TabsContent value="highlights">
+          <div className="grid grid-cols-3 gap-1">
+              {mockHighlights.map((highlight) => (
+                  <div key={highlight.id} className="relative group aspect-[9/16] overflow-hidden rounded-md">
+                      <Image
+                          src={highlight.imageUrl}
+                          alt={`Highlight ${highlight.id}`}
+                          fill
+                          className="object-cover transition-transform group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                      <div className="absolute bottom-2 left-2 text-white flex items-center gap-1.5 text-xs font-semibold">
+                          <Eye className="h-4 w-4" />
+                          <span>{Intl.NumberFormat('en-US', { notation: 'compact' }).format(highlight.views)}</span>
+                      </div>
+                  </div>
+              ))}
+          </div>
+           {mockHighlights.length === 0 && (
+                <div className="text-center py-12 text-muted-foreground">
+                  <p>No highlights yet.</p>
+                </div>
+              )}
         </TabsContent>
       </Tabs>
     </div>
@@ -272,3 +294,5 @@ function ProfileSkeleton() {
     </div>
   );
 }
+
+    
