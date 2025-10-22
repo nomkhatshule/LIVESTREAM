@@ -88,64 +88,64 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
             </div>
 
             {/* Bottom Actions and Chat */}
-            <div className="bg-gradient-to-t from-black/70 to-transparent -m-4 p-4 flex items-end gap-4">
-                <div className="flex-1 w-full">
+            <div className="bg-gradient-to-t from-black/70 to-transparent -m-4 p-4 flex flex-col justify-end gap-4">
+                <div className="w-full max-w-sm">
                     {isChatVisible && (
-                        <div className="w-full max-w-sm">
-                            <ScrollArea className="h-48 w-full pr-4 pointer-events-auto">
-                                <div className="flex flex-col gap-y-3">
-                                    {reversedComments.map((comment) => (
-                                        <div key={comment.id} className="group flex items-start gap-2 text-sm bg-black/25 p-2 rounded-lg">
+                        <ScrollArea className="h-48 w-full pr-4 pointer-events-auto">
+                            <div className="flex flex-col gap-y-3">
+                                {reversedComments.map((comment) => (
+                                    <div key={comment.id} className="group flex items-start gap-2 text-sm bg-black/25 p-2 rounded-lg">
+                                        <Link href={`/profile/${comment.userId}`} className="pointer-events-auto">
+                                            <Avatar className="h-6 w-6 border-secondary">
+                                                <AvatarImage src={comment.userAvatar} alt={comment.username} />
+                                                <AvatarFallback>{comment.username.charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                        </Link>
+                                        <div className="flex-1">
                                             <Link href={`/profile/${comment.userId}`} className="pointer-events-auto">
-                                                <Avatar className="h-6 w-6 border-secondary">
-                                                    <AvatarImage src={comment.userAvatar} alt={comment.username} />
-                                                    <AvatarFallback>{comment.username.charAt(0)}</AvatarFallback>
-                                                </Avatar>
+                                                <span className="font-bold text-red-700 mr-1.5 hover:underline">{comment.username}:</span>
                                             </Link>
-                                            <div className="flex-1">
-                                                <Link href={`/profile/${comment.userId}`} className="pointer-events-auto">
-                                                    <span className="font-bold text-red-700 mr-1.5 hover:underline">{comment.username}:</span>
-                                                </Link>
-                                                {comment.replyingTo && <Link href={`/profile/${comment.replyingTo}`} className="text-accent font-semibold mr-1.5 hover:underline pointer-events-auto">@{comment.replyingTo}</Link>}
-                                                <span className="break-words">{comment.message.replace(/^@\w+\s/, '')}</span>
-                                            </div>
-                                            <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 pointer-events-auto" onClick={() => handleReplyClick(comment.username)}>
-                                                <CornerUpLeft className="h-4 w-4" />
-                                            </Button>
+                                            {comment.replyingTo && <Link href={`/profile/${comment.replyingTo}`} className="text-accent font-semibold mr-1.5 hover:underline pointer-events-auto">@{comment.replyingTo}</Link>}
+                                            <span className="break-words">{comment.message.replace(/^@\w+\s/, '')}</span>
                                         </div>
-                                    ))}
-                                </div>
-                            </ScrollArea>
-                            <div className="flex items-center gap-2">
-                                <form onSubmit={handleFormSubmit} className="relative w-full mt-2 flex-1 pointer-events-auto">
-                                    <Textarea
-                                        ref={textareaRef}
-                                        placeholder="Add a comment..."
-                                        value={newMessage}
-                                        onChange={(e) => setNewMessage(e.target.value)}
-                                        className="bg-black/50 border-white/20 placeholder:text-gray-400 pr-10 w-full min-h-[40px] h-10 resize-none rounded-lg"
-                                    />
-                                    <Button variant="ghost" size="icon" type="submit" className="absolute top-1/2 -translate-y-1/2 right-1 text-white">
-                                        <ArrowUp className="h-5 w-5" />
-                                    </Button>
-                                </form>
+                                        <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 pointer-events-auto" onClick={() => handleReplyClick(comment.username)}>
+                                            <CornerUpLeft className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                ))}
                             </div>
-                        </div>
+                        </ScrollArea>
                     )}
                 </div>
-                <div className="flex flex-col-reverse items-center gap-y-6">
-                    <Button variant="ghost" size="icon" onClick={() => setIsChatVisible(!isChatVisible)} className="h-12 w-12 rounded-full text-white flex-col hover:bg-white/20 transition-transform hover:scale-110 pointer-events-auto">
-                        <MessageSquare className="h-6 w-6" />
-                        <span className="text-xs mt-1">{comments?.length || 0}</span>
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white flex-col hover:bg-white/20 transition-transform hover:scale-110 pointer-events-auto" onClick={onLike} disabled={!broadcast.isLive}>
-                        <Heart className={cn("h-6 w-6", hasLiked && "fill-red-500 text-red-500")} />
-                        <span className="text-xs mt-1 tabular-nums">{likes?.length || 0}</span>
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white flex-col hover:bg-white/20 transition-transform hover:scale-110 pointer-events-auto">
-                        <PlusCircle className="h-6 w-6" />
-                    </Button>
+                
+                <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-x-4">
+                        <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white flex-col hover:bg-white/20 transition-transform hover:scale-110 pointer-events-auto" onClick={onLike} disabled={!broadcast.isLive}>
+                            <Heart className={cn("h-6 w-6", hasLiked && "fill-red-500 text-red-500")} />
+                            <span className="text-xs mt-1 tabular-nums">{likes?.length || 0}</span>
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => setIsChatVisible(!isChatVisible)} className="h-12 w-12 rounded-full text-white flex-col hover:bg-white/20 transition-transform hover:scale-110 pointer-events-auto">
+                            <MessageSquare className="h-6 w-6" />
+                            <span className="text-xs mt-1">{comments?.length || 0}</span>
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white flex-col hover:bg-white/20 transition-transform hover:scale-110 pointer-events-auto">
+                            <PlusCircle className="h-6 w-6" />
+                        </Button>
+                    </div>
                 </div>
+
+                <form onSubmit={handleFormSubmit} className="relative w-full pointer-events-auto">
+                    <Textarea
+                        ref={textareaRef}
+                        placeholder="Add a comment..."
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        className="bg-black/50 border-white/20 placeholder:text-gray-400 pr-10 w-full min-h-[40px] h-10 resize-none rounded-lg"
+                    />
+                    <Button variant="ghost" size="icon" type="submit" className="absolute top-1/2 -translate-y-1/2 right-1 text-white">
+                        <ArrowUp className="h-5 w-5" />
+                    </Button>
+                </form>
             </div>
         </div>
     );
