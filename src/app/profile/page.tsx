@@ -134,13 +134,15 @@ export default function ProfilePage() {
     <div className="container mx-auto max-w-2xl py-12 px-4">
       <Card>
          <CardHeader className="p-0">
-            <div className="relative h-48 w-full">
-                <Image
-                    src={coverSrc || "https://picsum.photos/seed/cover-placeholder/1000/200"}
-                    alt="Cover photo"
-                    fill
-                    className="object-cover"
-                />
+            <div className="relative h-48 w-full bg-muted">
+                {coverSrc && (
+                    <Image
+                        src={coverSrc}
+                        alt="Cover photo"
+                        fill
+                        className="object-cover"
+                    />
+                )}
                 <Button 
                     size="sm" 
                     className="absolute top-3 right-3"

@@ -122,13 +122,14 @@ export default function UserProfilePage() {
       {/* Profile Header Card */}
       <Card className="overflow-hidden mb-8">
         <div className="relative h-48 w-full bg-muted">
-           <Image 
-                src={userDocument.coverPhoto || "https://picsum.photos/seed/cover-1/1000/200"}
+           {userDocument.coverPhoto && (
+             <Image 
+                src={userDocument.coverPhoto}
                 alt="Cover photo"
                 fill
                 className="object-cover"
-                data-ai-hint="abstract landscape"
-           />
+             />
+           )}
         </div>
         <div className="flex flex-col items-center p-6 -mt-24">
           <Avatar className="w-28 h-28 border-4 border-background ring-4 ring-primary">
