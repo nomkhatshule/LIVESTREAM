@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useMemo, useState, useRef, useEffect } from 'react';
@@ -16,16 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { useInView } from 'react-intersection-observer';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
-import { Badge } from '@/components/ui/badge';
+import AIChat from './ai-chat';
 
 
 interface BroadcastPreviewUIManagerProps {
@@ -114,31 +106,14 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
                 </div>
                 
                  {/* AI Search Action Item */}
-                <Sheet>
-                    <SheetTrigger asChild>
-                        <div className="flex flex-col items-center group">
-                            <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform">
-                               <Search className="h-6 w-6 drop-shadow-md" strokeWidth={1.5} />
-                            </button>
-                             <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">AI</span>
-                        </div>
-                    </SheetTrigger>
-                    <SheetContent side="bottom" className="rounded-t-2xl max-h-[75vh] bg-card pointer-events-auto">
-                        <SheetHeader className="text-center">
-                            <SheetTitle className="flex items-center justify-center gap-2">
-                                <Search className="h-5 w-5 text-primary" />
-                                Ask Anything
-                            </SheetTitle>
-                            <SheetDescription>
-                                Find information about what's happening in the stream without leaving.
-                            </SheetDescription>
-                        </SheetHeader>
-                        <div className="p-4">
-                            <Input placeholder="e.g., Who is the main actor in this movie?" />
-                            {/* AI response area will go here */}
-                        </div>
-                    </SheetContent>
-                </Sheet>
+                <AIChat>
+                    <div className="flex flex-col items-center group">
+                        <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform">
+                           <Search className="h-6 w-6 drop-shadow-md" strokeWidth={1.5} />
+                        </button>
+                         <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">AI</span>
+                    </div>
+                </AIChat>
 
                 {/* Games/Dares Action Item */}
                 <div className="flex flex-col items-center group">
