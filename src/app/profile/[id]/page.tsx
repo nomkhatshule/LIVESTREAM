@@ -110,7 +110,7 @@ export default function UserProfilePage() {
         <div className="bg-muted/30 h-32 w-full" />
         <div className="flex flex-col items-center p-6 -mt-16">
           <Avatar className="w-28 h-28 border-4 border-background ring-4 ring-primary">
-            <AvatarImage src={userDocument.profilePicture} alt={userDocument.username} />
+            <AvatarImage src={userDocument.profilePicture || "https://picsum.photos/seed/profile-placeholder/200"} alt={userDocument.username} />
             <AvatarFallback className="text-4xl">{userDocument.username?.charAt(0)}</AvatarFallback>
           </Avatar>
           <h1 className="text-3xl font-bold font-headline mt-4">{userDocument.username || 'Anonymous'}</h1>
