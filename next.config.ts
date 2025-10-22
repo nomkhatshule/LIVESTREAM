@@ -24,11 +24,14 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
       {
-        protocol: 'https'
+        protocol: 'https',
+        hostname: 'picsum.photos',
+        pathname: '/**',
       },
       {
         protocol: 'https',
         hostname: 'storage.googleapis.com',
+        pathname: '/**',
       }
     ]
   },
