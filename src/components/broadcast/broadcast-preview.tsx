@@ -164,7 +164,7 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
                         onChange={(e) => setNewMessage(e.target.value)}
                         className="bg-black/50 border-white/20 placeholder:text-gray-400 pr-10 w-full min-h-[40px] h-10 resize-none rounded-full"
                     />
-                    <Button variant="ghost" size="icon" type="submit" className="absolute top-1/2 -translate-y-1/2 right-1 text-white">
+                    <Button variant="ghost" size="icon" type="submit" className="absolute top-1/2 -translate-y-1/2 right-1 text-white hover:bg-transparent hover:text-white">
                         <ArrowUp className="h-5 w-5" />
                     </Button>
                 </form>
