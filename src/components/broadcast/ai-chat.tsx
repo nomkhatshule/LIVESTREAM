@@ -92,7 +92,7 @@ export default function AIChat({ children }: AIChatProps) {
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex flex-col h-64">
+        <div className="flex flex-col h-96">
           <ScrollArea className="flex-1 my-4 pr-4" ref={scrollAreaRef}>
             <div className="space-y-4">
               {messages.map((msg, index) => (
