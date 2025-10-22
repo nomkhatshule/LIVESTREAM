@@ -112,14 +112,6 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
                     <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">{comments?.length || 0}</span>
                 </div>
                 
-                {/* Games/Dares Action Item */}
-                <div className="flex flex-col items-center group">
-                    <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform">
-                       <Dice6 className="h-6 w-6 drop-shadow-md" strokeWidth={1.5} />
-                    </button>
-                    <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">Games</span>
-                </div>
-                
                  {/* AI Search Action Item */}
                 <Sheet>
                     <SheetTrigger asChild>
@@ -146,6 +138,14 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
                         </div>
                     </SheetContent>
                 </Sheet>
+
+                {/* Games/Dares Action Item */}
+                <div className="flex flex-col items-center group">
+                    <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform">
+                       <Dice6 className="h-6 w-6 drop-shadow-md" strokeWidth={1.5} />
+                    </button>
+                    <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">Games</span>
+                </div>
             </div>
 
 
