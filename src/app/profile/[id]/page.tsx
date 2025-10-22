@@ -11,11 +11,12 @@ import { doc, writeBatch, serverTimestamp, where, query } from 'firebase/firesto
 import { useToast } from '@/hooks/use-toast';
 import { useMemo } from 'react';
 import { collection } from 'firebase/firestore';
-import { UserPlus, UserCheck, MessageSquare, Heart, Pencil, Eye } from 'lucide-react';
+import { UserPlus, UserCheck, MessageSquare, Heart, Pencil, Eye, Gem, Gift } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Link from 'next/link';
 import Image from 'next/image';
-import { mockHighlights } from '@/lib/data';
+import { mockHighlights, mockGifts } from '@/lib/data';
+import { Badge } from '@/components/ui/badge';
 
 // Mock data for recent activity - in a real app this would be a Firestore query
 const mockActivity = [
@@ -188,8 +189,9 @@ export default function UserProfilePage() {
 
       {/* Activity Tabs */}
       <Tabs defaultValue="highlights" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 max-w-sm mx-auto">
+        <TabsList className="grid w-full grid-cols-3 max-w-md mx-auto">
           <TabsTrigger value="highlights">Highlights</TabsTrigger>
+          <TabsTrigger value="gifts">Gifts</TabsTrigger>
           <TabsTrigger value="activity">Activity</TabsTrigger>
         </TabsList>
         <TabsContent value="highlights">
@@ -215,6 +217,49 @@ export default function UserProfilePage() {
                   <p>No highlights yet.</p>
                 </div>
               )}
+        </TabsContent>
+         <TabsContent value="gifts">
+          <Card>
+            <CardContent className="p-6">
+                {mockGifts.length > 0 ? (
+                    <div className="space-y-8">
+                        <div>
+                            <h3 className="text-lg font-semibold font-headline flex items-center mb-4"><Gem className="mr-2 h-5 w-5 text-primary"/> Legendary Gifts</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {mockGifts.filter(g => g.rarity === 'Legendary').map(gift => (
+                                     <div key={gift.id} className="bg-muted/50 rounded-lg p-4 flex items-center gap-4">
+                                         <Image src={gift.imageUrl} alt={gift.name} width={80} height={80} className="drop-shadow-lg" />
+                                         <div className="flex-1">
+                                             <h4 className="font-bold text-lg">{gift.name}</h4>
+                                             <p className="text-sm text-muted-foreground">{gift.description}</p>
+                                             <p className="text-xs text-muted-foreground mt-2">Top Gifter: <span className="font-semibold text-primary">{gift.topGifter}</span></p>
+                                         </div>
+                                         <Badge variant="destructive" className="self-start">x{gift.count}</Badge>
+                                     </div>
+                                ))}
+                            </div>
+                        </div>
+                         <div>
+                            <h3 className="text-lg font-semibold font-headline flex items-center mb-4"><Gift className="mr-2 h-5 w-5 text-secondary-foreground"/> Epic & Rare Gifts</h3>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                                {mockGifts.filter(g => g.rarity !== 'Legendary').map(gift => (
+                                     <div key={gift.id} className="bg-muted/50 rounded-lg p-3 flex flex-col items-center text-center">
+                                         <Image src={gift.imageUrl} alt={gift.name} width={64} height={64} className="drop-shadow-md" />
+                                         <h4 className="font-bold text-sm mt-2">{gift.name}</h4>
+                                         <p className="text-xs text-muted-foreground">x{gift.count}</p>
+                                     </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="text-center py-12 text-muted-foreground">
+                        <p>No gifts received yet.</p>
+                        <p className="text-sm">Support this creator during their next live stream!</p>
+                    </div>
+                )}
+            </CardContent>
+          </Card>
         </TabsContent>
         <TabsContent value="activity">
           <Card>
