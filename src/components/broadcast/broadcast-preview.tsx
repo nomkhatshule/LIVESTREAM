@@ -106,13 +106,6 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
                     </Button>
                     <span className="text-sm font-bold text-white drop-shadow-md mt-1.5">{comments?.length || 0}</span>
                 </div>
-
-                {/* Share Action Item */}
-                <div className="flex flex-col items-center group">
-                    <Button variant="ghost" size="icon" className="relative h-14 w-14 rounded-full text-white bg-black/30 hover:bg-white/20 transition-transform group-hover:scale-110">
-                         <Share2 className="h-8 w-8"/>
-                    </Button>
-                </div>
             </div>
 
             {/* Bottom Chat Area */}
