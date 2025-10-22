@@ -10,7 +10,7 @@ import { doc, writeBatch, serverTimestamp, where, query } from 'firebase/firesto
 import { useToast } from '@/hooks/use-toast';
 import { useMemo } from 'react';
 import { collection } from 'firebase/firestore';
-import { UserPlus, UserCheck, MessageSquare, Heart } from 'lucide-react';
+import { UserPlus, UserCheck, MessageSquare, Heart, Pencil } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -131,6 +131,14 @@ export default function UserProfilePage() {
              />
            ) : (
              <div className="h-full w-full bg-muted" />
+           )}
+           {isOwnProfile && (
+             <Button asChild size="sm" className="absolute top-3 right-3">
+                <Link href="/profile">
+                    <Pencil className="mr-2 h-4 w-4" />
+                    Edit Profile
+                </Link>
+             </Button>
            )}
         </div>
         <div className="flex flex-col items-center p-6 -mt-24">
