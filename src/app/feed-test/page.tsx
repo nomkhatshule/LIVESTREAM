@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Suspense, useEffect, useRef } from 'react';
@@ -56,7 +57,7 @@ function FeedPageContent() {
 
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="absolute top-4 right-4 z-40 text-white transition-transform hover:scale-110 pointer-events-auto">
+                    <Button variant="ghost" size="icon" className="absolute top-4 right-4 z-40 text-white transition-transform hover:scale-110 pointer-events-auto focus-visible:ring-0">
                         <MoreVertical className="h-8 w-8" />
                     </Button>
                 </DropdownMenuTrigger>
