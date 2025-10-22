@@ -14,6 +14,7 @@ import { collection } from 'firebase/firestore';
 import { UserPlus, UserCheck, MessageSquare, Heart } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Link from 'next/link';
+import Image from 'next/image';
 
 // Mock data for recent activity - in a real app this would be a Firestore query
 const mockActivity = [
@@ -121,10 +122,18 @@ export default function UserProfilePage() {
     <div className="container mx-auto max-w-4xl py-8 px-4">
       {/* Profile Header Card */}
       <Card className="overflow-hidden mb-8">
-        <div className="bg-muted/30 h-32 w-full" />
+        <div className="relative h-32 w-full">
+           <Image 
+                src="https://picsum.photos/seed/cover-1/1000/200"
+                alt="Cover photo"
+                fill
+                className="object-cover"
+                data-ai-hint="abstract landscape"
+           />
+        </div>
         <div className="flex flex-col items-center p-6 -mt-16">
           <Avatar className="w-28 h-28 border-4 border-background ring-4 ring-primary">
-            <AvatarImage src={userDocument.profilePicture || "https://picsum.photos/seed/profile-placeholder/200"} alt={userDocument.username} />
+            <AvatarImage src={userDocument.profilePicture || "https://picsum.photos/seed/profile-placeholder/200"} alt={userDocument.username || ''} />
             <AvatarFallback className="text-4xl">{userDocument.username?.charAt(0)}</AvatarFallback>
           </Avatar>
           <h1 className="text-3xl font-bold font-headline mt-4">{userDocument.username || 'Anonymous'}</h1>
@@ -244,5 +253,3 @@ function ProfileSkeleton() {
     </div>
   );
 }
-
-    
