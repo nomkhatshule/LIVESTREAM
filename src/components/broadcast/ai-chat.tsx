@@ -118,9 +118,9 @@ export default function AIChat({ children }: AIChatProps) {
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     placeholder="Ask a question..."
-                    className="flex-1 bg-gray-100 text-black border-gray-300 placeholder:text-gray-500"
+                    className="flex-1 bg-gray-100 text-black border-gray-300 placeholder:text-gray-500 rounded-full"
                 />
-                <Button type="submit" size="icon">
+                <Button type="submit" size="icon" className="rounded-full">
                     <Send className="h-4 w-4" />
                 </Button>
                 </form>
