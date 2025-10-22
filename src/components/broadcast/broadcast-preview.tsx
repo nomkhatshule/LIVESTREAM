@@ -134,9 +134,6 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
                                         <ArrowUp className="h-5 w-5" />
                                     </Button>
                                 </form>
-                                <Button variant="ghost" size="icon" onClick={toggleMute} className="text-white bg-black/50 rounded-full h-10 w-10 mt-2 pointer-events-auto">
-                                    {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
-                                </Button>
                             </div>
                         </div>
                     )}
