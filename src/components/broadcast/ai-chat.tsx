@@ -91,11 +91,7 @@ export default function AIChat({ children }: AIChatProps) {
                 <div className="space-y-4">
                     {messages.map((msg, index) => (
                         <div key={index} className={cn('flex items-end gap-2', msg.sender === 'user' ? 'justify-end' : 'justify-start')}>
-                        {msg.sender === 'ai' && (
-                            <div className="flex-shrink-0 h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
-                                <Bot className="h-5 w-5"/>
-                            </div>
-                        )}
+                        
                         <div className={cn('max-w-[80%] rounded-lg px-3 py-2', 
                             msg.sender === 'user' 
                             ? 'bg-primary text-primary-foreground' 
