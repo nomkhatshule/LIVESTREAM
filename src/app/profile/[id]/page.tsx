@@ -189,7 +189,7 @@ export default function UserProfilePage() {
 
       {/* Activity Tabs */}
       <Tabs defaultValue="highlights" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 max-w-md mx-auto">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="highlights">Highlights</TabsTrigger>
           <TabsTrigger value="gifts">Gifts</TabsTrigger>
           <TabsTrigger value="activity">Activity</TabsTrigger>
