@@ -56,8 +56,8 @@ function FeedPageContent() {
 
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="absolute top-4 right-4 z-40 h-12 w-12 rounded-full text-white bg-black/30 hover:bg-white/20 transition-transform hover:scale-110 pointer-events-auto">
-                        <MoreVertical className="h-6 w-6" />
+                    <Button variant="ghost" size="icon" className="absolute top-4 right-4 z-40 text-white transition-transform hover:scale-110 pointer-events-auto">
+                        <MoreVertical className="h-8 w-8" />
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56" align="end">
