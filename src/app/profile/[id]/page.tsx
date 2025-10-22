@@ -1,3 +1,4 @@
+
 'use client';
 import { useUserDocumentById } from '@/firebase/firestore/use-user-document';
 import { Card, CardContent } from '@/components/ui/card';
@@ -186,11 +187,35 @@ export default function UserProfilePage() {
       </Card>
 
       {/* Activity Tabs */}
-      <Tabs defaultValue="activity" className="w-full">
+      <Tabs defaultValue="highlights" className="w-full">
         <TabsList className="grid w-full grid-cols-2 max-w-sm mx-auto">
-          <TabsTrigger value="activity">Activity</TabsTrigger>
           <TabsTrigger value="highlights">Highlights</TabsTrigger>
+          <TabsTrigger value="activity">Activity</TabsTrigger>
         </TabsList>
+        <TabsContent value="highlights">
+          <div className="grid grid-cols-3 gap-1">
+              {mockHighlights.map((highlight) => (
+                  <div key={highlight.id} className="relative group aspect-[9/16] overflow-hidden rounded-md">
+                      <Image
+                          src={highlight.imageUrl}
+                          alt={`Highlight ${highlight.id}`}
+                          fill
+                          className="object-cover transition-transform group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                      <div className="absolute bottom-2 left-2 text-white flex items-center gap-1.5 text-xs font-semibold">
+                          <Eye className="h-4 w-4" />
+                          <span>{Intl.NumberFormat('en-US', { notation: 'compact' }).format(highlight.views)}</span>
+                      </div>
+                  </div>
+              ))}
+          </div>
+           {mockHighlights.length === 0 && (
+                <div className="text-center py-12 text-muted-foreground">
+                  <p>No highlights yet.</p>
+                </div>
+              )}
+        </TabsContent>
         <TabsContent value="activity">
           <Card>
             <CardContent className="p-6 space-y-6">
@@ -215,30 +240,6 @@ export default function UserProfilePage() {
               )}
             </CardContent>
           </Card>
-        </TabsContent>
-        <TabsContent value="highlights">
-          <div className="grid grid-cols-3 gap-1">
-              {mockHighlights.map((highlight) => (
-                  <div key={highlight.id} className="relative group aspect-[9/16] overflow-hidden rounded-md">
-                      <Image
-                          src={highlight.imageUrl}
-                          alt={`Highlight ${highlight.id}`}
-                          fill
-                          className="object-cover transition-transform group-hover:scale-105"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                      <div className="absolute bottom-2 left-2 text-white flex items-center gap-1.5 text-xs font-semibold">
-                          <Eye className="h-4 w-4" />
-                          <span>{Intl.NumberFormat('en-US', { notation: 'compact' }).format(highlight.views)}</span>
-                      </div>
-                  </div>
-              ))}
-          </div>
-           {mockHighlights.length === 0 && (
-                <div className="text-center py-12 text-muted-foreground">
-                  <p>No highlights yet.</p>
-                </div>
-              )}
         </TabsContent>
       </Tabs>
     </div>
@@ -294,5 +295,3 @@ function ProfileSkeleton() {
     </div>
   );
 }
-
-    
