@@ -10,7 +10,6 @@ import { useRouter } from 'next/navigation';
 import BroadcastPlayer from '@/components/broadcast/broadcast-player';
 import { useStreamStore } from '@/lib/stream-store';
 import { BroadcastPreview } from '@/components/broadcast/broadcast-preview';
-import { useInView } from 'react-intersection-observer';
 
 function FeedPageContent() {
     const router = useRouter();
@@ -55,7 +54,7 @@ function FeedPageContent() {
             {/* The scrollable list of previews */}
             <div className="h-full overflow-y-scroll snap-y snap-mandatory">
                 {liveBroadcasts && liveBroadcasts.map(broadcast => (
-                    <BroadcastItem
+                    <BroadcastPreview
                         key={broadcast.id}
                         broadcast={broadcast}
                         onVisible={() => setActiveBroadcastId(broadcast.id)}
@@ -70,26 +69,6 @@ function FeedPageContent() {
         </div>
     );
 }
-
-// Helper component to manage intersection observation
-function BroadcastItem({ broadcast, onVisible }: { broadcast: any, onVisible: () => void }) {
-    const { ref, inView } = useInView({
-        threshold: 0.7, // Trigger when 70% of the item is visible
-    });
-
-    useEffect(() => {
-        if (inView) {
-            onVisible();
-        }
-    }, [inView, onVisible]);
-
-    return (
-        <div ref={ref} className="h-full w-full snap-start">
-            <BroadcastPreview broadcast={broadcast} />
-        </div>
-    );
-}
-
 
 export default function FeedTestPage() {
     return (
