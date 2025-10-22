@@ -71,7 +71,7 @@ export default function AIChat({ children }: AIChatProps) {
       <SheetTrigger asChild>{children}</SheetTrigger>
       <SheetContent 
         side="bottom" 
-        className="rounded-t-2xl max-h-[75vh] bg-card pointer-events-auto"
+        className="rounded-t-2xl max-h-[50vh] bg-card pointer-events-auto"
       >
         <div className="flex flex-col h-full">
             <SheetHeader className="text-left">
