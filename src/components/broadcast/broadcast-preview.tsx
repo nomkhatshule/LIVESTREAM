@@ -92,7 +92,7 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
                 {/* Follow Action Item */}
                 <div className="flex flex-col items-center group">
                     <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform">
-                        <PlusCircle className="h-6 w-6 drop-shadow-md" strokeWidth={1.5} />
+                        <PlusCircle className="h-6 w-6 drop-shadow-md" strokeWidth={1.5}/>
                     </button>
                 </div>
 
@@ -119,7 +119,7 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
                             <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform">
                                <Search className="h-6 w-6 drop-shadow-md" strokeWidth={1.5} />
                             </button>
-                             <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">Search</span>
+                             <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">AI</span>
                         </div>
                     </SheetTrigger>
                     <SheetContent side="bottom" className="rounded-t-2xl max-h-[75vh] bg-card pointer-events-auto">
