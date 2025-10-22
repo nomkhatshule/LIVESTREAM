@@ -7,7 +7,7 @@ import { collection, query, orderBy, limit, serverTimestamp, doc, deleteDoc } fr
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { addDocumentNonBlocking, setDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Heart, MessageSquareMore, PlusCircle, Search, Users, ArrowUp, CornerUpLeft } from 'lucide-react';
+import { Heart, MessageSquareMore, PlusCircle, Search, Users, ArrowUp, CornerUpLeft, Dice6 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import Link from 'next/link';
@@ -110,6 +110,14 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
                        <MessageSquareMore className="h-6 w-6 drop-shadow-md" strokeWidth={1.5} />
                     </button>
                     <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">{comments?.length || 0}</span>
+                </div>
+                
+                {/* Games/Dares Action Item */}
+                <div className="flex flex-col items-center group">
+                    <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform">
+                       <Dice6 className="h-6 w-6 drop-shadow-md" strokeWidth={1.5} />
+                    </button>
+                    <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">Games</span>
                 </div>
                 
                  {/* AI Search Action Item */}
