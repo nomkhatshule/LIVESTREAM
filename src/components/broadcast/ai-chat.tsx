@@ -2,13 +2,14 @@
 'use client';
 
 import { useState, useRef, useEffect, type ReactNode } from 'react';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, Sparkle, Bot } from 'lucide-react';
+import { Send, Sparkle, Bot, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription, SheetClose } from '@/components/ui/sheet';
+
 
 interface AIChatMessage {
   sender: 'user' | 'ai';
@@ -66,56 +67,62 @@ export default function AIChat({ children }: AIChatProps) {
   }, [messages]);
 
   return (
-    <Popover>
-      <PopoverTrigger asChild>{children}</PopoverTrigger>
-      <PopoverContent side="top" align="end" className="w-80 md:w-96 bg-white dark:bg-card text-card-foreground p-0 pointer-events-auto">
-        <div className="flex flex-col h-[50vh]">
-          <header className="p-4 border-b dark:border-border">
-            <h3 className="font-bold flex items-center gap-2 text-foreground">
-              <Sparkle className="h-5 w-5 text-primary" />
-              Stream Assistant
-            </h3>
-          </header>
-
-          <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
-            <div className="space-y-4">
-              {messages.map((msg, index) => (
-                <div key={index} className={cn('flex items-end gap-2', msg.sender === 'user' ? 'justify-end' : 'justify-start')}>
-                  {msg.sender === 'ai' && (
-                     <div className="flex-shrink-0 h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
-                        <Bot className="h-5 w-5"/>
-                     </div>
-                  )}
-                  <div className={cn('max-w-[80%] rounded-lg px-3 py-2', 
-                    msg.sender === 'user' 
-                    ? 'bg-primary text-primary-foreground' 
-                    : 'bg-muted text-muted-foreground'
-                  )}>
-                    <p className="text-sm">{msg.text}</p>
-                    <p className={cn('text-xs opacity-70 mt-1', msg.sender === 'user' ? 'text-right' : 'text-left')}>
-                        {msg.timestamp}
-                    </p>
-                  </div>
+    <Sheet>
+      <SheetTrigger asChild>{children}</SheetTrigger>
+      <SheetContent 
+        side="bottom" 
+        className="rounded-t-2xl max-h-[75vh] bg-card pointer-events-auto"
+      >
+        <div className="flex flex-col h-full">
+            <SheetHeader className="text-left">
+                <SheetTitle className="flex items-center gap-2">
+                    <Sparkle className="h-5 w-5 text-primary" />
+                    Ask Anything
+                </SheetTitle>
+                <SheetDescription>
+                    Find information about what's happening in the stream without leaving.
+                </SheetDescription>
+            </SheetHeader>
+            
+             <ScrollArea className="flex-1 my-4 -mx-6 px-6" ref={scrollAreaRef}>
+                <div className="space-y-4">
+                {messages.map((msg, index) => (
+                    <div key={index} className={cn('flex items-end gap-2', msg.sender === 'user' ? 'justify-end' : 'justify-start')}>
+                    {msg.sender === 'ai' && (
+                        <div className="flex-shrink-0 h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
+                            <Bot className="h-5 w-5"/>
+                        </div>
+                    )}
+                    <div className={cn('max-w-[80%] rounded-lg px-3 py-2', 
+                        msg.sender === 'user' 
+                        ? 'bg-primary text-primary-foreground' 
+                        : 'bg-muted text-muted-foreground'
+                    )}>
+                        <p className="text-sm">{msg.text}</p>
+                        <p className={cn('text-xs opacity-70 mt-1', msg.sender === 'user' ? 'text-right' : 'text-left')}>
+                            {msg.timestamp}
+                        </p>
+                    </div>
+                    </div>
+                ))}
                 </div>
-              ))}
-            </div>
-          </ScrollArea>
+            </ScrollArea>
 
-          <footer className="p-4 border-t dark:border-border">
-            <form onSubmit={handleSendMessage} className="flex items-center gap-2">
-              <Input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask a question..."
-                className="flex-1 bg-background"
-              />
-              <Button type="submit" size="icon">
-                <Send className="h-4 w-4" />
-              </Button>
-            </form>
-          </footer>
+            <footer className="pt-2">
+                <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+                <Input
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    placeholder="Ask a question..."
+                    className="flex-1 bg-background"
+                />
+                <Button type="submit" size="icon">
+                    <Send className="h-4 w-4" />
+                </Button>
+                </form>
+            </footer>
         </div>
-      </PopoverContent>
-    </Popover>
+      </SheetContent>
+    </Sheet>
   );
 }
