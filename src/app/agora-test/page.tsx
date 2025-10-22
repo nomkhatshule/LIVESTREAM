@@ -72,13 +72,8 @@ const StreamHeader = ({ broadcastData, viewerCount, onEndStream }: { broadcastDa
                     <AvatarFallback>{(broadcastData?.hostName || broadcastData?.user?.name || 'U').charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col">
-                    <div className="flex items-center gap-2">
-                        <span className="font-bold font-headline text-xs md:text-sm leading-tight text-white">{broadcastData?.hostName || broadcastData?.user?.name || 'Host'}</span>
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] md:text-xs font-medium bg-red-600 text-white animate-pulse">
-                            LIVE
-                        </span>
-                    </div>
-                    <div className="flex items-center gap-2 md:gap-3">
+                    <span className="font-bold font-headline text-xs md:text-sm leading-tight text-white">{broadcastData?.hostName || broadcastData?.user?.name || 'Host'}</span>
+                    <div className="flex items-center gap-2 md:gap-3 mt-0.5">
                         <span className="inline-flex items-center text-[10px] md:text-xs font-medium gap-1 text-white">
                             <Users className="h-3 w-3" />
                             {viewerCount.toLocaleString()}
@@ -564,5 +559,3 @@ export default function AgoraTestPage() {
         </Suspense>
     )
 }
-
-    

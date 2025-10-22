@@ -138,12 +138,7 @@ export default function BroadcastPage() {
                 <AvatarFallback>{broadcast.user.name.charAt(0)}</AvatarFallback>
             </Avatar>
             <div>
-              <div className="flex items-center gap-3">
-                <p className="font-bold font-headline text-lg">{broadcast.user.name}</p>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-600 text-white animate-pulse">
-                    LIVE
-                </span>
-              </div>
+              <p className="font-bold font-headline text-lg">{broadcast.user.name}</p>
               <p className="text-base font-normal mt-1">{broadcast.title}</p>
               <div className="flex items-center gap-3 mt-1">
                  <span className="inline-flex items-center text-xs font-medium gap-1">
@@ -269,5 +264,3 @@ function BroadcastSkeleton() {
     </div>
   );
 }
-
-    
