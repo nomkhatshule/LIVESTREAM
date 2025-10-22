@@ -98,7 +98,7 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
                     {isChatVisible && (
                         <div className="w-full max-w-sm">
                             <ScrollArea className="h-48 w-full pr-4 pointer-events-auto">
-                                <div className="flex flex-col gap-2">
+                                <div className="flex flex-col gap-3">
                                     {reversedComments.map((comment) => (
                                         <div key={comment.id} className="group flex items-start gap-2 text-sm bg-black/25 p-2 rounded-lg">
                                             <Link href={`/profile/${comment.userId}`} className="pointer-events-auto">
@@ -128,7 +128,7 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
                                         placeholder="Add a comment..."
                                         value={newMessage}
                                         onChange={(e) => setNewMessage(e.target.value)}
-                                        className="bg-black/50 border-white/20 placeholder:text-gray-400 pr-10 w-full min-h-[40px] h-10 resize-none"
+                                        className="bg-black/50 border-white/20 placeholder:text-gray-400 pr-10 w-full min-h-[40px] h-10 resize-none rounded-lg"
                                     />
                                     <Button variant="ghost" size="icon" type="submit" className="absolute top-1/2 -translate-y-1/2 right-1 text-white">
                                         <ArrowUp className="h-5 w-5" />
@@ -141,10 +141,10 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
                         </div>
                     )}
                 </div>
-                <div className="flex flex-col-reverse items-center gap-y-6 pointer-events-auto">
+                <div className="flex flex-col-reverse items-center gap-y-5">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white hover:bg-white/20 transition-transform hover:scale-110">
+                            <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white hover:bg-white/20 transition-transform hover:scale-110 pointer-events-auto">
                                 <MoreVertical className="h-6 w-6" />
                             </Button>
                         </DropdownMenuTrigger>
@@ -167,15 +167,15 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
-                    <Button variant="ghost" size="icon" onClick={() => setIsChatVisible(!isChatVisible)} className="h-12 w-12 rounded-full text-white flex-col hover:bg-white/20 transition-transform hover:scale-110">
+                    <Button variant="ghost" size="icon" onClick={() => setIsChatVisible(!isChatVisible)} className="h-12 w-12 rounded-full text-white flex-col hover:bg-white/20 transition-transform hover:scale-110 pointer-events-auto">
                         <MessageSquare className="h-6 w-6" />
                         <span className="text-xs mt-1">{comments?.length || 0}</span>
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white flex-col hover:bg-white/20 transition-transform hover:scale-110" onClick={onLike} disabled={!broadcast.isLive}>
+                    <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white flex-col hover:bg-white/20 transition-transform hover:scale-110 pointer-events-auto" onClick={onLike} disabled={!broadcast.isLive}>
                         <Heart className={cn("h-6 w-6", hasLiked && "fill-red-500 text-red-500")} />
                         <span className="text-xs mt-1 tabular-nums">{likes?.length || 0}</span>
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white flex-col hover:bg-white/20 transition-transform hover:scale-110">
+                    <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white flex-col hover:bg-white/20 transition-transform hover:scale-110 pointer-events-auto">
                         <PlusCircle className="h-6 w-6" />
                     </Button>
                 </div>
