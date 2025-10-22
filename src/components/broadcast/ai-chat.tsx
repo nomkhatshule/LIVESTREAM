@@ -75,13 +75,13 @@ export default function AIChat({ children }: AIChatProps) {
   return (
     <Dialog>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] bg-white text-black">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2 text-black">
             <Sparkle className="h-5 w-5 text-primary" />
             Ask Anything
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-gray-600">
             Find information about what's happening in the stream without leaving.
           </DialogDescription>
         </DialogHeader>
@@ -99,10 +99,12 @@ export default function AIChat({ children }: AIChatProps) {
                         <div className={cn('max-w-[80%] rounded-lg px-3 py-2', 
                             msg.sender === 'user' 
                             ? 'bg-primary text-primary-foreground' 
-                            : 'bg-muted text-muted-foreground'
+                            : 'bg-gray-100 text-gray-800'
                         )}>
                             <p className="text-sm">{msg.text}</p>
-                            <p className={cn('text-xs opacity-70 mt-1', msg.sender === 'user' ? 'text-right' : 'text-left')}>
+                            <p className={cn('text-xs mt-1', 
+                                msg.sender === 'user' ? 'text-right opacity-70' : 'text-left text-gray-500'
+                            )}>
                                 {msg.timestamp}
                             </p>
                         </div>
@@ -116,7 +118,7 @@ export default function AIChat({ children }: AIChatProps) {
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     placeholder="Ask a question..."
-                    className="flex-1 bg-background"
+                    className="flex-1 bg-gray-100 text-black border-gray-300 placeholder:text-gray-500"
                 />
                 <Button type="submit" size="icon">
                     <Send className="h-4 w-4" />
