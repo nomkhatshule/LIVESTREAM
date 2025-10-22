@@ -8,7 +8,7 @@ import { useCollection } from '@/firebase/firestore/use-collection';
 import { addDocumentNonBlocking, setDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Heart, MoreVertical, PlusCircle, Users, ArrowUp, MessageSquare, Share2, Clapperboard, User as UserIcon, CornerUpLeft } from 'lucide-react';
+import { Heart, MoreVertical, PlusCircle, Users, ArrowUp, MessageSquareMore, Share2, Clapperboard, User as UserIcon, CornerUpLeft } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -88,21 +88,63 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
             </div>
             
             {/* Right Side Vertical Action Bar */}
-            <div className="absolute top-1/2 right-0 -translate-y-1/2 z-40 flex flex-col items-center space-y-5 p-4 pointer-events-auto">
-                <Button variant="ghost" size="icon" className="h-14 w-14 rounded-full text-white flex-col justify-center items-center drop-shadow-lg hover:bg-transparent hover:text-white">
-                    <PlusCircle className="h-10 w-10"/>
-                </Button>
-                <Button variant="ghost" size="icon" className="h-14 w-14 rounded-full text-white flex-col drop-shadow-lg hover:bg-transparent hover:text-white" onClick={onLike}>
-                  <Heart className={cn("h-10 w-10", hasLiked && "fill-red-500 text-red-500")} />
-                  <span className="text-xs mt-1">{likes?.length || 0}</span>
-                </Button>
-                <Button variant="ghost" size="icon" onClick={() => setIsChatVisible(!isChatVisible)} className="h-14 w-14 rounded-full text-white flex-col justify-center items-center drop-shadow-lg hover:bg-transparent hover:text-white">
-                   <MessageSquare className="h-10 w-10" />
-                   <span className="text-xs mt-1">{comments?.length || 0}</span>
-                </Button>
-                <Button variant="ghost" size="icon" className="h-14 w-14 rounded-full text-white flex-col justify-center items-center drop-shadow-lg hover:bg-transparent hover:text-white">
-                     <svg xmlns="http://www.w3.org/2000/svg" height="48px" viewBox="0 -960 960 960" width="48px" fill="currentColor"><path d="m608-368 46-166-142-98-46 166 142 98ZM160-207l-33-16q-31-13-42-44.5t3-62.5l72-156v279Zm160 87q-33 0-56.5-24T240-201v-239l107 294q3 7 5 13.5t7 12.5h-39Zm206-5q-31 11-62-3t-42-45L245-662q-11-31 3-61.5t45-41.5l301-110q31-11 61.5 3t41.5 45l178 489q11 31-3 61.5T827-235L526-125Zm-28-75 302-110-179-490-301 110 178 490Zm62-300Z"/></svg>
-                </Button>
+            <div className="absolute top-1/2 right-4 -translate-y-1/2 z-40 flex flex-col items-center gap-y-6 pointer-events-auto">
+                {/* Follow Button */}
+                <div className="flex flex-col items-center">
+                    <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white bg-black/30 hover:bg-white/20 transition-transform hover:scale-110">
+                        <PlusCircle className="h-8 w-8"/>
+                    </Button>
+                </div>
+
+                {/* Like Button */}
+                <div className="flex flex-col items-center">
+                    <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white bg-black/30 hover:bg-white/20 transition-transform hover:scale-110" onClick={onLike}>
+                      <Heart className={cn("h-8 w-8", hasLiked && "fill-red-500 text-red-500")} />
+                    </Button>
+                    <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">{likes?.length || 0}</span>
+                </div>
+
+                {/* Comment Button */}
+                <div className="flex flex-col items-center">
+                    <Button variant="ghost" size="icon" onClick={() => setIsChatVisible(!isChatVisible)} className="h-12 w-12 rounded-full text-white bg-black/30 hover:bg-white/20 transition-transform hover:scale-110">
+                       <MessageSquareMore className="h-8 w-8" />
+                    </Button>
+                    <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">{comments?.length || 0}</span>
+                </div>
+
+                {/* Share Button */}
+                <div className="flex flex-col items-center">
+                    <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white bg-black/30 hover:bg-white/20 transition-transform hover:scale-110">
+                         <Share2 className="h-8 w-8"/>
+                    </Button>
+                </div>
+                
+                 {/* More Options Dropdown */}
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full text-white bg-black/30 hover:bg-white/20 transition-transform hover:scale-110">
+                          <MoreVertical className="h-8 w-8" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56" align="end">
+                        <DropdownMenuItem>
+                          <UserSearch className="mr-2 h-4 w-4" />
+                          <span>Report</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href="/broadcast/create">
+                            <Clapperboard className="mr-2 h-4 w-4" />
+                            <span>Go Stream</span>
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href="/profile">
+                            <UserIcon className="mr-2 h-4 w-4" />
+                            <span>My Profile</span>
+                          </Link>
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </div>
 
             {/* Bottom Chat Area */}
