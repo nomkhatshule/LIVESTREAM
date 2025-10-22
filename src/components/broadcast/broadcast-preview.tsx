@@ -25,6 +25,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import { Badge } from '@/components/ui/badge';
 
 
 interface BroadcastPreviewUIManagerProps {
@@ -70,9 +71,11 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
                         </Avatar>
                     </Link>
                     <div>
-                        <Link href={`/profile/${broadcast.user.id}`} className="pointer-events-auto">
-                            <p className="font-bold font-headline text-base md:text-lg hover:underline">{broadcast.user.name}</p>
-                        </Link>
+                        <div className="flex items-center gap-2">
+                             <Link href={`/profile/${broadcast.user.id}`} className="pointer-events-auto">
+                                <p className="font-bold font-headline text-base md:text-lg hover:underline">{broadcast.user.name}</p>
+                            </Link>
+                        </div>
                          <p className="text-sm md:text-base font-normal mt-1">{broadcast.title}</p>
                          <div className="flex items-center gap-2 text-xs mt-1">
                             <div className="flex items-center gap-1">
@@ -163,7 +166,7 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
                                         </Link>
                                         <div className="flex-1">
                                             <Link href={`/profile/${comment.userId}`} className="pointer-events-auto">
-                                                <span className="font-bold font-headline text-red-700 mr-1.5 hover:underline">{comment.username}:</span>
+                                                <span className="font-bold font-headline text-primary mr-1.5 hover:underline">{comment.username}:</span>
                                             </Link>
                                             {comment.replyingTo && <Link href={`/profile/${comment.replyingTo}`} className="text-accent font-semibold mr-1.5 hover:underline pointer-events-auto">@{comment.replyingTo}</Link>}
                                             <span className="break-words">{comment.message.replace(/^@\w+\s/, '')}</span>
@@ -307,5 +310,7 @@ export function BroadcastPreview({ broadcast: rawBroadcast, onVisible }: Broadca
         </div>
     );
 };
+
+    
 
     

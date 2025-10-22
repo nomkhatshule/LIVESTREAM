@@ -28,6 +28,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import VideoPlayer from '@/components/broadcast/video-player';
 import { User } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
 // Type Definitions
 interface Comment {
@@ -72,7 +73,9 @@ const StreamHeader = ({ broadcastData, viewerCount, onEndStream }: { broadcastDa
                     <AvatarFallback>{(broadcastData?.hostName || broadcastData?.user?.name || 'U').charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col">
-                    <span className="font-bold font-headline text-xs md:text-sm leading-tight text-white">{broadcastData?.hostName || broadcastData?.user?.name || 'Host'}</span>
+                    <div className="flex items-center gap-2">
+                        <span className="font-bold font-headline text-xs md:text-sm leading-tight text-white">{broadcastData?.hostName || broadcastData?.user?.name || 'Host'}</span>
+                    </div>
                     <div className="flex items-center gap-2 md:gap-3 mt-0.5">
                         <span className="inline-flex items-center text-[10px] md:text-xs font-medium gap-1 text-white">
                             <Users className="h-3 w-3" />
@@ -169,7 +172,7 @@ const ChatPanel = ({ isVisible, comments, newMessage, onNewMessageChange, onSend
                                 <AvatarFallback>{comment.username.charAt(0)}</AvatarFallback>
                             </Avatar>
                             <div className="flex-1">
-                                <span className="font-bold font-headline text-red-700 mr-1.5">{comment.username}:</span>
+                                <span className="font-bold font-headline text-primary mr-1.5">{comment.username}:</span>
                                 <p className="break-words inline">{comment.message}</p>
                             </div>
                         </div>
@@ -559,5 +562,7 @@ export default function AgoraTestPage() {
         </Suspense>
     )
 }
+
+    
 
     

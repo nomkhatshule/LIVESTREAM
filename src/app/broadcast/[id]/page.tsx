@@ -25,6 +25,7 @@ import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { useCallStateHooks } from '@stream-io/video-react-sdk';
+import { Badge } from '@/components/ui/badge';
 
 
 export default function BroadcastPage() {
@@ -138,7 +139,9 @@ export default function BroadcastPage() {
                 <AvatarFallback>{broadcast.user.name.charAt(0)}</AvatarFallback>
             </Avatar>
             <div>
-              <p className="font-bold font-headline text-lg">{broadcast.user.name}</p>
+              <div className="flex items-center gap-2">
+                <p className="font-bold font-headline text-lg">{broadcast.user.name}</p>
+              </div>
               <p className="text-base font-normal mt-1">{broadcast.title}</p>
               <div className="flex items-center gap-3 mt-1">
                  <span className="inline-flex items-center text-xs font-medium gap-1">
@@ -165,7 +168,7 @@ export default function BroadcastPage() {
                             <AvatarFallback>{comment.username.charAt(0)}</AvatarFallback>
                             </Avatar>
                             <div className="flex-1">
-                            <span className="font-bold font-headline text-red-700 mr-1.5">{comment.username}:</span>
+                            <span className="font-bold font-headline text-primary mr-1.5">{comment.username}:</span>
                             <p className="break-words inline">{comment.message}</p>
                             </div>
                         </div>
@@ -264,5 +267,7 @@ function BroadcastSkeleton() {
     </div>
   );
 }
+
+    
 
     
