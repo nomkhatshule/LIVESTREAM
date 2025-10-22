@@ -122,78 +122,78 @@ export default function UserProfilePage() {
   
   return (
     <div className="container mx-auto max-w-4xl py-8 px-4">
-      {/* Profile Header Card */}
-      <Card className="overflow-hidden mb-8">
-        <div className="relative h-48 w-full bg-muted">
-           {userDocument.coverUrl && userDocument.coverType === 'video' ? (
-                <video
-                    src={userDocument.coverUrl}
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    className="object-cover w-full h-full"
-                />
-            ) : userDocument.coverUrl && userDocument.coverType === 'image' ? (
-                <Image 
-                    src={userDocument.coverUrl}
-                    alt="Cover photo"
-                    fill
-                    className="object-cover"
-                />
-            ) : (
-                <div className="h-full w-full bg-muted" />
-            )}
-           {isOwnProfile && (
-             <Button asChild size="sm" className="absolute top-3 right-3">
-                <Link href="/profile">
-                    <Pencil className="mr-2 h-4 w-4" />
-                    Edit Profile
-                </Link>
-             </Button>
-           )}
-        </div>
-        <div className="flex flex-col items-center p-6 -mt-24">
-          <Avatar className="w-28 h-28 border-4 border-background ring-4 ring-primary">
-            <AvatarImage src={userDocument.profilePicture || "https://picsum.photos/seed/profile-placeholder/200"} alt={userDocument.username || ''} />
-            <AvatarFallback className="text-4xl">{userDocument.username?.charAt(0)}</AvatarFallback>
-          </Avatar>
-          <h1 className="text-3xl font-bold font-headline mt-4">{userDocument.username || 'Anonymous'}</h1>
-          <p className="text-center text-muted-foreground max-w-lg mt-2">{userDocument.bio}</p>
-          
-          <div className="flex items-center gap-6 mt-6">
-            <div className="text-center">
-              <p className="text-2xl font-bold">{followersList?.length || 0}</p>
-              <p className="text-sm text-muted-foreground">Followers</p>
-            </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold">{followingList?.length || 0}</p>
-              <p className="text-sm text-muted-foreground">Following</p>
-            </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold">{totalLikes.toLocaleString()}</p>
-              <p className="text-sm text-muted-foreground">Likes</p>
-            </div>
-          </div>
-          
-          {!isOwnProfile && currentUser && (
-            <div className="mt-6">
-              <Button onClick={handleFollowToggle} variant={isFollowing ? 'secondary' : 'default'} size="lg">
-                {isFollowing ? <UserCheck className="mr-2" /> : <UserPlus className="mr-2" />}
-                {isFollowing ? 'Following' : 'Follow'}
-              </Button>
-            </div>
-          )}
-        </div>
-      </Card>
-
-      {/* Activity Tabs */}
       <Tabs defaultValue="highlights" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="highlights">Highlights</TabsTrigger>
-          <TabsTrigger value="gifts">Gifts</TabsTrigger>
-          <TabsTrigger value="activity">Activity</TabsTrigger>
-        </TabsList>
+        {/* Profile Header Card */}
+        <Card className="overflow-hidden mb-2">
+            <div className="relative h-48 w-full bg-muted">
+              {userDocument.coverUrl && userDocument.coverType === 'video' ? (
+                    <video
+                        src={userDocument.coverUrl}
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        className="object-cover w-full h-full"
+                    />
+                ) : userDocument.coverUrl && userDocument.coverType === 'image' ? (
+                    <Image 
+                        src={userDocument.coverUrl}
+                        alt="Cover photo"
+                        fill
+                        className="object-cover"
+                    />
+                ) : (
+                    <div className="h-full w-full bg-muted" />
+                )}
+              {isOwnProfile && (
+                <Button asChild size="sm" className="absolute top-3 right-3">
+                    <Link href="/profile">
+                        <Pencil className="mr-2 h-4 w-4" />
+                        Edit Profile
+                    </Link>
+                </Button>
+              )}
+            </div>
+            <div className="flex flex-col items-center p-6 pt-0 -mt-24">
+              <Avatar className="w-28 h-28 border-4 border-background ring-4 ring-primary">
+                <AvatarImage src={userDocument.profilePicture || "https://picsum.photos/seed/profile-placeholder/200"} alt={userDocument.username || ''} />
+                <AvatarFallback className="text-4xl">{userDocument.username?.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <h1 className="text-3xl font-bold font-headline mt-4">{userDocument.username || 'Anonymous'}</h1>
+              <p className="text-center text-muted-foreground max-w-lg mt-2">{userDocument.bio}</p>
+              
+              <div className="flex items-center gap-6 mt-6">
+                <div className="text-center">
+                  <p className="text-2xl font-bold">{followersList?.length || 0}</p>
+                  <p className="text-sm text-muted-foreground">Followers</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold">{followingList?.length || 0}</p>
+                  <p className="text-sm text-muted-foreground">Following</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold">{totalLikes.toLocaleString()}</p>
+                  <p className="text-sm text-muted-foreground">Likes</p>
+                </div>
+              </div>
+              
+              {!isOwnProfile && currentUser && (
+                <div className="mt-6">
+                  <Button onClick={handleFollowToggle} variant={isFollowing ? 'secondary' : 'default'} size="lg">
+                    {isFollowing ? <UserCheck className="mr-2" /> : <UserPlus className="mr-2" />}
+                    {isFollowing ? 'Following' : 'Follow'}
+                  </Button>
+                </div>
+              )}
+            </div>
+          <TabsList className="grid w-full grid-cols-3 rounded-none border-t">
+            <TabsTrigger value="highlights">Highlights</TabsTrigger>
+            <TabsTrigger value="gifts">Gifts</TabsTrigger>
+            <TabsTrigger value="activity">Activity</TabsTrigger>
+          </TabsList>
+        </Card>
+
+        {/* Activity Tabs Content */}
         <TabsContent value="highlights">
           <div className="grid grid-cols-3 gap-1">
               {mockHighlights.map((highlight) => (
@@ -319,7 +319,7 @@ function ProfileSkeleton() {
         </div>
       </Card>
        <Tabs defaultValue="activity" className="w-full">
-        <Skeleton className="h-10 w-full max-w-sm mx-auto" />
+        <Skeleton className="h-10 w-full" />
         <TabsContent value="activity">
             <Card>
                 <CardContent className="p-6 space-y-6">
@@ -340,3 +340,4 @@ function ProfileSkeleton() {
     </div>
   );
 }
+
