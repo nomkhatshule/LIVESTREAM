@@ -71,7 +71,7 @@ const StreamHeader = ({ broadcastData, viewerCount, onEndStream }: { broadcastDa
                     <AvatarFallback>{(broadcastData?.hostName || broadcastData?.user?.name || 'U').charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col">
-                    <span className="font-bold text-xs md:text-sm leading-tight text-white">{broadcastData?.hostName || broadcastData?.user?.name || 'Host'}</span>
+                    <span className="font-bold font-headline text-xs md:text-sm leading-tight text-white">{broadcastData?.hostName || broadcastData?.user?.name || 'Host'}</span>
                     <div className="flex items-center gap-2 md:gap-3">
                         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] md:text-xs font-medium bg-red-600 text-white animate-pulse">
                             LIVE
@@ -134,7 +134,7 @@ const ParticipantsPanel = ({ viewerCount, participants }: any) => {
                                     <AvatarImage src={p.image} alt={p.name} />
                                     <AvatarFallback>{p.name?.charAt(0) || 'A'}</AvatarFallback>
                                 </Avatar>
-                                <span>{p.name || 'Anonymous Viewer'}</span>
+                                <span className="font-headline">{p.name || 'Anonymous Viewer'}</span>
                             </div>
                         ))}
                         {participants.length <= 1 && (
@@ -171,7 +171,7 @@ const ChatPanel = ({ isVisible, comments, newMessage, onNewMessageChange, onSend
                                 <AvatarFallback>{comment.username.charAt(0)}</AvatarFallback>
                             </Avatar>
                             <div className="flex-1">
-                                <span className="font-bold text-red-700 mr-1.5">{comment.username}:</span>
+                                <span className="font-bold font-headline text-red-700 mr-1.5">{comment.username}:</span>
                                 <p className="break-words inline">{comment.message}</p>
                             </div>
                         </div>

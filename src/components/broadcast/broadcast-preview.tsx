@@ -70,7 +70,7 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
                     </Link>
                     <div>
                         <Link href={`/profile/${broadcast.user.id}`} className="pointer-events-auto">
-                            <p className="font-bold text-base md:text-lg hover:underline">{broadcast.user.name}</p>
+                            <p className="font-bold font-headline text-base md:text-lg hover:underline">{broadcast.user.name}</p>
                         </Link>
                          <div className="flex items-center gap-2 text-xs mt-1">
                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-600 animate-pulse">
@@ -165,7 +165,7 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
                                         </Link>
                                         <div className="flex-1">
                                             <Link href={`/profile/${comment.userId}`} className="pointer-events-auto">
-                                                <span className="font-bold text-red-700 mr-1.5 hover:underline">{comment.username}:</span>
+                                                <span className="font-bold font-headline text-red-700 mr-1.5 hover:underline">{comment.username}:</span>
                                             </Link>
                                             {comment.replyingTo && <Link href={`/profile/${comment.replyingTo}`} className="text-accent font-semibold mr-1.5 hover:underline pointer-events-auto">@{comment.replyingTo}</Link>}
                                             <span className="break-words">{comment.message.replace(/^@\w+\s/, '')}</span>

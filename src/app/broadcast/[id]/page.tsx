@@ -139,7 +139,7 @@ export default function BroadcastPage() {
             </Avatar>
             <div>
               <div className="flex items-center gap-3">
-                <p className="font-bold text-lg">{broadcast.user.name}</p>
+                <p className="font-bold font-headline text-lg">{broadcast.user.name}</p>
                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-600 text-white animate-pulse">
                     LIVE
                 </span>
@@ -170,7 +170,7 @@ export default function BroadcastPage() {
                             <AvatarFallback>{comment.username.charAt(0)}</AvatarFallback>
                             </Avatar>
                             <div className="flex-1">
-                            <span className="font-bold text-red-700 mr-1.5">{comment.username}:</span>
+                            <span className="font-bold font-headline text-red-700 mr-1.5">{comment.username}:</span>
                             <p className="break-words inline">{comment.message}</p>
                             </div>
                         </div>

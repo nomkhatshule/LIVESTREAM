@@ -17,7 +17,7 @@ export default function ChatMessageItem({ message }: ChatMessageItemProps) {
         <AvatarFallback>{message.user.name.charAt(0)}</AvatarFallback>
       </Avatar>
       <div className="flex-1">
-        <span className="font-bold text-primary mr-2">{message.user.name}</span>
+        <span className="font-bold font-headline text-primary mr-2">{message.user.name}</span>
         {isMod && <Badge variant="secondary" className="px-1.5 py-0.5"><Shield className="h-3 w-3 mr-1" />Mod</Badge>}
         <p className="text-foreground/90 break-words">{message.message}</p>
       </div>

@@ -58,7 +58,7 @@ export default function BroadcastCard({ broadcast }: BroadcastCardProps) {
                 <h3 className="font-bold font-headline leading-tight truncate group-hover:text-primary transition-colors">
                   {broadcast.title}
                 </h3>
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="text-sm text-muted-foreground mt-1 font-headline">
                   {username}
                 </p>
                 <div className="mt-2 flex flex-wrap gap-2">
