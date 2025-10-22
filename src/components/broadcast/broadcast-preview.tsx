@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo, useState, useRef, useEffect } from 'react';
@@ -81,7 +82,7 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
                                 <span>{broadcast.viewerCount?.toLocaleString() || 0}</span>
                             </div>
                         </div>
-                        <p className="text-sm md:text-base font-semibold mt-1">{broadcast.title}</p>
+                        <p className="text-sm md:text-base font-normal mt-1">{broadcast.title}</p>
                     </div>
                 </div>
             </div>
@@ -309,3 +310,5 @@ export function BroadcastPreview({ broadcast: rawBroadcast, onVisible }: Broadca
         </div>
     );
 };
+
+    

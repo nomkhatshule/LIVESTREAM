@@ -150,7 +150,7 @@ export default function BroadcastPage() {
                       {viewerCount.toLocaleString()}
                   </span>
               </div>
-               <p className="text-base font-semibold mt-1">{broadcast.title}</p>
+               <p className="text-base font-normal mt-1">{broadcast.title}</p>
             </div>
           </div>
       </div>
@@ -269,6 +269,8 @@ function BroadcastSkeleton() {
     </div>
   );
 }
+
+    
 
     
 
