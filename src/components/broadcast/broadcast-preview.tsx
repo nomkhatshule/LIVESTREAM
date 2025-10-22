@@ -70,14 +70,16 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
                         </Avatar>
                     </Link>
                     <div>
-                        <Link href={`/profile/${broadcast.user.id}`} className="pointer-events-auto">
-                            <p className="font-bold font-headline text-base md:text-lg hover:underline">{broadcast.user.name}</p>
-                        </Link>
-                         <p className="text-sm md:text-base font-normal mt-1">{broadcast.title}</p>
-                         <div className="flex items-center gap-2 text-xs mt-1">
+                        <div className="flex items-center gap-2">
+                            <Link href={`/profile/${broadcast.user.id}`} className="pointer-events-auto">
+                                <p className="font-bold font-headline text-base md:text-lg hover:underline">{broadcast.user.name}</p>
+                            </Link>
                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-600 animate-pulse">
                                 LIVE
                             </span>
+                        </div>
+                         <p className="text-sm md:text-base font-normal mt-1">{broadcast.title}</p>
+                         <div className="flex items-center gap-2 text-xs mt-1">
                             <div className="flex items-center gap-1">
                                 <Users className="h-3 w-3" />
                                 <span>{broadcast.viewerCount?.toLocaleString() || 0}</span>
