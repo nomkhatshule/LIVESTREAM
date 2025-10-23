@@ -22,8 +22,8 @@ export default function Header() {
     return '/broadcast/create';
   }
 
-  if (pathname.startsWith('/feed') || pathname.startsWith('/broadcast/') || pathname.startsWith('/live') || pathname.startsWith('/agora-test')) {
-    return null; // Hide header on the feed, broadcast, live and test pages
+  if (pathname.startsWith('/feed') || pathname.startsWith('/broadcast/') || pathname.startsWith('/live') || pathname.startsWith('/agora-test') || pathname === '/cards') {
+    return null; // Hide header on the feed, broadcast, live, test and cards pages
   }
 
   return (
