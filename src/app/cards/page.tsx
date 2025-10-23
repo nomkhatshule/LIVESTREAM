@@ -30,7 +30,7 @@ export default function CardsPage() {
           </div>
           
           <TabsContent value="challenges">
-            <div className="bg-white rounded-3xl p-4 shadow-2xl">
+            <div className="bg-white rounded-3xl p-4 shadow-2xl h-[450px] flex flex-col">
               <div className="aspect-square relative w-full overflow-hidden rounded-xl">
                 <Image
                   src="https://picsum.photos/seed/khamari/600/600"
