@@ -1,3 +1,4 @@
+
 import type { Timestamp } from 'firebase/firestore';
 
 export type User = {
@@ -98,4 +99,25 @@ export const mockGifts = [
         count: 103,
     },
 ];
-    
+
+export const truthQuestions = [
+    "What's the most embarrassing thing you've ever done on a date?",
+    "What's a secret you've never told anyone?",
+    "What's your biggest fear?",
+    "Who is your secret crush?",
+    "What's the most childish thing you still do?",
+    "What's the worst lie you've ever told?",
+    "What's a weird food combination you love?",
+    "What's the silliest thing you've cried about?",
+];
+
+export const dareChallenges = [
+    "Sing everything you say for the next 5 minutes.",
+    "Do your best impersonation of a celebrity.",
+    "Talk in a funny accent for the next round.",
+    "Let someone else in the group post a silly status on your social media.",
+    "Do 10 push-ups.",
+    "Wear a sock on your hand for the rest of the game.",
+    "Speak only in questions for the next 3 minutes.",
+    "Try to lick your elbow.",
+];
