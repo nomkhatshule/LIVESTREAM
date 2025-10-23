@@ -1,4 +1,3 @@
-
 'use client';
 
 import Image from 'next/image';
@@ -21,7 +20,7 @@ export default function CardsPage() {
 
       <div className="relative z-10 w-full max-w-sm pt-20">
         <Tabs defaultValue="challenges" className="w-full -mt-8">
-          <div className="absolute -top-0 left-0 right-0 z-20 flex justify-center">
+          <div className="absolute -top-4 left-0 right-0 z-20 flex justify-center">
             <TabsList className="grid w-full max-w-md grid-cols-3 bg-white/10 backdrop-blur-lg text-white rounded-xl p-1">
               <TabsTrigger value="challenges" className="data-[state=active]:bg-white data-[state=active]:text-black rounded-lg">Challenges</TabsTrigger>
               <TabsTrigger value="truth" className="data-[state=active]:bg-white data-[state=active]:text-black rounded-lg">Truth</TabsTrigger>
