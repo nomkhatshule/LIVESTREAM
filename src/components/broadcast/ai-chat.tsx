@@ -106,11 +106,6 @@ export default function AIChat({ children, userAvatar }: AIChatProps) {
                     msg.sender === 'user' ? 'justify-end' : 'justify-start'
                   )}
                 >
-                  {msg.sender === 'ai' && (
-                    <Avatar className="h-8 w-8 bg-primary text-primary-foreground">
-                        <AvatarFallback><Bot className="h-5 w-5" /></AvatarFallback>
-                    </Avatar>
-                  )}
                   <div
                     className={cn(
                       'max-w-[70%]',
