@@ -56,23 +56,23 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
             {/* Top Info */}
             <div className="bg-gradient-to-b from-black/50 to-transparent -m-4 p-4">
                 <div className="flex items-start gap-3">
-                    <Link href={`/profile/${broadcast.user.id}`} className="pointer-events-auto">
+                    <Link href={`/profile/${broadcast.hostId}`} className="pointer-events-auto">
                         <Avatar className={cn("h-12 w-12 border-4 border-destructive", broadcast.isLive && "animate-breathing-prominent")}>
-                            <AvatarImage src={broadcast.user.avatarUrl} alt={broadcast.user.name} />
-                            <AvatarFallback>{broadcast.user.name?.charAt(0)}</AvatarFallback>
+                            <AvatarImage src={broadcast.hostAvatar} alt={broadcast.hostName} />
+                            <AvatarFallback>{broadcast.hostName?.charAt(0) || 'A'}</AvatarFallback>
                         </Avatar>
                     </Link>
                     <div>
                         <div className="flex items-center gap-2">
-                             <Link href={`/profile/${broadcast.user.id}`} className="pointer-events-auto">
-                                <p className="font-bold font-headline text-base md:text-lg hover:underline">{broadcast.user.name}</p>
+                             <Link href={`/profile/${broadcast.hostId}`} className="pointer-events-auto">
+                                <p className="font-bold font-headline text-base md:text-lg hover:underline">{broadcast.hostName}</p>
                             </Link>
                         </div>
                          <p className="text-sm md:text-base font-normal mt-1">{broadcast.title}</p>
                          <div className="flex items-center gap-2 text-xs mt-1">
                             <div className="flex items-center gap-1">
                                 <Users className="h-3 w-3" />
-                                <span>{broadcast.viewerCount?.toLocaleString() || 0}</span>
+                                <span>{broadcast.viewers?.toLocaleString() || 0}</span>
                             </div>
                         </div>
                     </div>
@@ -180,7 +180,7 @@ interface BroadcastPreviewProps {
 }
 
 
-export function BroadcastPreview({ broadcast: rawBroadcast, onVisible }: BroadcastPreviewProps) {
+export function BroadcastPreview({ broadcast, onVisible }: BroadcastPreviewProps) {
     const { ref, inView } = useInView({ threshold: 0.7 });
     const { user } = useUser();
     const { userDocument } = useUserDocument();
@@ -192,20 +192,6 @@ export function BroadcastPreview({ broadcast: rawBroadcast, onVisible }: Broadca
             onVisible();
         }
     }, [inView, onVisible]);
-
-    const broadcast: Broadcast = useMemo(() => {
-        const hostUser: AppUser = {
-            id: rawBroadcast.hostId,
-            name: rawBroadcast.hostName,
-            avatarUrl: rawBroadcast.hostAvatar,
-            avatarHint: 'person portrait',
-            bio: '',
-            interests: [],
-            watchHistory: [],
-        };
-        return { ...rawBroadcast, user: hostUser }
-    }, [rawBroadcast]);
-
 
     // Real-time chat messages
     const messagesQuery = useMemoFirebase(() => {
@@ -285,7 +271,3 @@ export function BroadcastPreview({ broadcast: rawBroadcast, onVisible }: Broadca
         </div>
     );
 };
-
-    
-
-    
