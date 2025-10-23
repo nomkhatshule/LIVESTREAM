@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -42,18 +43,18 @@ export default function CardsPage() {
                   data-ai-hint="man sitting chair"
                 />
               </div>
-              <div className="text-center mt-3">
+              <div className="text-left mt-3">
                 <h2 className="text-xl font-bold text-black font-headline">The Whisper Challenge</h2>
               </div>
                <div className="flex-grow flex flex-col mt-3 text-gray-800 px-2 space-y-3">
                 <div className="flex justify-between items-center">
-                    <h3 className="font-bold font-headline text-gray-500">Difficulty</h3>
+                    <h3 className="font-bold font-headline text-gray-800">Difficulty</h3>
                     <Badge variant="outline" className="text-black border-gray-300">Medium</Badge>
                 </div>
                 <Separator className="bg-gray-200" />
                 <div>
-                  <h3 className="font-bold font-headline text-gray-500 mb-2">Instructions</h3>
-                  <ul className="list-decimal list-inside text-sm space-y-1 text-left text-gray-600">
+                  <h3 className="font-bold font-headline text-gray-800 mb-2">Instructions</h3>
+                  <ul className="list-decimal list-inside text-sm space-y-1 text-left text-gray-900">
                     <li>One person wears headphones with loud music.</li>
                     <li>Another person whispers a phrase to them.</li>
                     <li>The headphone-wearer must guess the phrase.</li>
