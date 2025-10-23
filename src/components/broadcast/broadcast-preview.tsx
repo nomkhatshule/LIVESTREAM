@@ -28,9 +28,10 @@ interface BroadcastPreviewUIManagerProps {
     onLike: () => void;
     onSendMessage: (message: string) => void;
     onReply: (username: string) => void;
+    currentUserAvatar?: string;
 }
 
-function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLike, onSendMessage, onReply }: BroadcastPreviewUIManagerProps) {
+function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLike, onSendMessage, onReply, currentUserAvatar }: BroadcastPreviewUIManagerProps) {
     const [newMessage, setNewMessage] = useState('');
     const [isChatVisible, setIsChatVisible] = useState(true);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -106,7 +107,7 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
                 </div>
                 
                  {/* AI Search Action Item */}
-                <AIChat>
+                <AIChat userAvatar={currentUserAvatar}>
                     <div className="flex flex-col items-center group">
                         <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform">
                            <Search className="h-6 w-6 drop-shadow-md" strokeWidth={1.5} />
@@ -267,6 +268,7 @@ export function BroadcastPreview({ broadcast, onVisible }: BroadcastPreviewProps
                 onLike={handleLike}
                 onSendMessage={handleSendMessage}
                 onReply={handleReply}
+                currentUserAvatar={userDocument?.profilePicture}
             />
         </div>
     );

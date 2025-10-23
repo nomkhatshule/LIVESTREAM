@@ -5,7 +5,7 @@ import { useState, useRef, useEffect, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, ArrowUp } from 'lucide-react';
+import { Send, ArrowUp, Bot } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import {
@@ -17,6 +17,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 
 interface AIChatMessage {
   sender: 'user' | 'ai';
@@ -26,9 +27,10 @@ interface AIChatMessage {
 
 interface AIChatProps {
   children: ReactNode;
+  userAvatar?: string;
 }
 
-export default function AIChat({ children }: AIChatProps) {
+export default function AIChat({ children, userAvatar }: AIChatProps) {
   const [messages, setMessages] = useState<AIChatMessage[]>([
     {
       sender: 'ai',
@@ -104,12 +106,17 @@ export default function AIChat({ children }: AIChatProps) {
                     msg.sender === 'user' ? 'justify-end' : 'justify-start'
                   )}
                 >
+                  {msg.sender === 'ai' && (
+                    <Avatar className="h-8 w-8 bg-primary text-primary-foreground">
+                        <AvatarFallback><Bot className="h-5 w-5" /></AvatarFallback>
+                    </Avatar>
+                  )}
                   <div
                     className={cn(
-                      'max-w-[80%] rounded-lg px-3 py-2',
+                      'max-w-[70%]',
                       msg.sender === 'user'
-                        ? 'bg-black text-white'
-                        : 'bg-gray-100 text-gray-900'
+                        ? 'bg-black text-white rounded-lg px-3 py-2'
+                        : 'bg-gray-100 text-gray-900 rounded-lg px-3 py-2'
                     )}
                   >
                     <p className="text-sm">{msg.text}</p>
@@ -124,6 +131,12 @@ export default function AIChat({ children }: AIChatProps) {
                       {msg.timestamp}
                     </p>
                   </div>
+                  {msg.sender === 'user' && (
+                    <Avatar className="h-8 w-8">
+                        <AvatarImage src={userAvatar} />
+                        <AvatarFallback>U</AvatarFallback>
+                    </Avatar>
+                  )}
                 </div>
               ))}
             </div>
