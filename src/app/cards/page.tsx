@@ -8,12 +8,14 @@ import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { truthQuestions, dareChallenges } from '@/lib/data';
+import { cn } from '@/lib/utils';
 
 export default function CardsPage() {
   // --- State for Truth or Dare game ---
   const [gameState, setGameState] = useState<'choice' | 'reveal'>('choice');
   const [promptType, setPromptType] = useState<'truth' | 'dare' | null>(null);
   const [prompt, setPrompt] = useState('');
+  const [isFlipped, setIsFlipped] = useState(false);
 
   const handleChoice = (type: 'truth' | 'dare') => {
     if (type === 'truth') {
@@ -25,12 +27,17 @@ export default function CardsPage() {
     }
     setPromptType(type);
     setGameState('reveal');
+    setIsFlipped(true);
   };
 
   const handleNextRound = () => {
     setGameState('choice');
-    setPrompt('');
-    setPromptType(null);
+    setIsFlipped(false);
+    // We delay clearing the prompt to prevent it from disappearing during the flip back animation
+    setTimeout(() => {
+        setPrompt('');
+        setPromptType(null);
+    }, 300); // This duration should match the transition duration
   };
 
 
@@ -99,39 +106,45 @@ export default function CardsPage() {
             </div>
           </TabsContent>
           <TabsContent value="truth-or-dare">
-             <div className="relative h-[550px]">
-              {/* Static Background Cards for consistent look */}
-              <div className="absolute top-0 left-0 w-full h-full bg-white/80 rounded-3xl p-4 shadow-2xl transform -rotate-6 scale-95" />
-              <div className="absolute top-0 left-0 w-full h-full bg-white/90 rounded-3xl p-4 shadow-2xl transform rotate-3 scale-95" />
-              
-              {/* Main Interactive Card */}
-              <div className="absolute top-0 left-0 w-full h-full bg-white rounded-3xl p-6 shadow-2xl flex flex-col items-center justify-center text-center">
-                {gameState === 'choice' && (
-                  <>
-                    <h2 className="text-3xl font-bold text-black font-headline mb-8">Truth or Dare?</h2>
-                    <div className="w-full space-y-4">
-                        <Button size="lg" className="w-full" onClick={() => handleChoice('truth')}>
-                            Truth
-                        </Button>
-                        <Button size="lg" variant="secondary" className="w-full" onClick={() => handleChoice('dare')}>
-                            Dare
-                        </Button>
-                    </div>
-                  </>
+             <div className="relative h-[550px] perspective-1000">
+              {/* Card Inner container for 3D rotation */}
+              <div
+                className={cn(
+                  'relative w-full h-full transform-style-3d transition-transform duration-500',
+                  isFlipped && 'rotate-y-180'
                 )}
-                {gameState === 'reveal' && (
+              >
+                {/* Front of the Card */}
+                <div className="absolute w-full h-full backface-hidden bg-white rounded-3xl p-6 shadow-2xl flex flex-col items-center justify-center text-center">
+                  <h2 className="text-3xl font-bold text-black font-headline mb-8">Truth or Dare?</h2>
+                  <div className="w-full space-y-4">
+                    <Button size="lg" className="w-full" onClick={() => handleChoice('truth')}>
+                      Truth
+                    </Button>
+                    <Button size="lg" variant="secondary" className="w-full" onClick={() => handleChoice('dare')}>
+                      Dare
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Back of the Card */}
+                <div className="absolute w-full h-full backface-hidden rotate-y-180 bg-white rounded-3xl p-6 shadow-2xl flex flex-col items-center justify-center text-center">
+                  {gameState === 'reveal' && (
                     <>
-                        <Badge className="mb-4 text-lg" variant={promptType === 'truth' ? 'default' : 'destructive'}>{promptType?.toUpperCase()}</Badge>
-                        <div className="flex-grow flex items-center justify-center">
-                            <p className="text-2xl font-semibold text-black font-headline">{prompt}</p>
-                        </div>
-                        <div className="mt-auto pt-4 w-full">
-                            <Button size="lg" className="w-full" onClick={handleNextRound}>
-                                Next Round
-                            </Button>
-                        </div>
+                      <Badge className="mb-4 text-lg" variant={promptType === 'truth' ? 'default' : 'destructive'}>
+                        {promptType?.toUpperCase()}
+                      </Badge>
+                      <div className="flex-grow flex items-center justify-center">
+                        <p className="text-2xl font-semibold text-black font-headline">{prompt}</p>
+                      </div>
+                      <div className="mt-auto pt-4 w-full">
+                        <Button size="lg" className="w-full" onClick={handleNextRound}>
+                          Next Round
+                        </Button>
+                      </div>
                     </>
-                )}
+                  )}
+                </div>
               </div>
             </div>
           </TabsContent>
