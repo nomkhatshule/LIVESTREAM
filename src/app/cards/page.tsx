@@ -2,6 +2,8 @@
 
 import Image from 'next/image';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 
 export default function CardsPage() {
   return (
@@ -30,18 +32,33 @@ export default function CardsPage() {
           
           <TabsContent value="challenges">
             <div className="bg-white rounded-3xl p-4 shadow-2xl h-[500px] flex flex-col">
-              <div className="aspect-square relative w-full overflow-hidden rounded-xl">
+              <div className="relative w-full overflow-hidden rounded-xl flex-shrink-0">
                 <Image
-                  src="https://picsum.photos/seed/khamari/600/600"
+                  src="https://picsum.photos/seed/khamari/600/400"
                   alt="Head in a Jar"
-                  fill
-                  className="object-cover"
+                  width={600}
+                  height={400}
+                  className="object-cover w-full h-full"
                   data-ai-hint="man sitting chair"
                 />
               </div>
-              <div className="text-center mt-4">
-                <h2 className="text-xl font-bold text-black font-headline">Head in a Jar</h2>
-                <p className="text-md text-gray-500 mt-1">Khamari</p>
+              <div className="text-center mt-3">
+                <h2 className="text-xl font-bold text-black font-headline">The Whisper Challenge</h2>
+              </div>
+               <div className="flex-grow flex flex-col mt-3 text-gray-800 px-2 space-y-3">
+                <div className="flex justify-between items-center">
+                    <h3 className="font-bold font-headline text-gray-500">Difficulty</h3>
+                    <Badge variant="outline" className="text-black border-gray-300">Medium</Badge>
+                </div>
+                <Separator className="bg-gray-200" />
+                <div>
+                  <h3 className="font-bold font-headline text-gray-500 mb-2">Instructions</h3>
+                  <ul className="list-decimal list-inside text-sm space-y-1 text-left text-gray-600">
+                    <li>One person wears headphones with loud music.</li>
+                    <li>Another person whispers a phrase to them.</li>
+                    <li>The headphone-wearer must guess the phrase.</li>
+                  </ul>
+                </div>
               </div>
             </div>
           </TabsContent>
