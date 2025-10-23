@@ -116,7 +116,7 @@ export default function AIChat({ children, userAvatar }: AIChatProps) {
                       'max-w-[70%]',
                       msg.sender === 'user'
                         ? 'bg-black text-white rounded-lg px-3 py-2'
-                        : 'bg-gray-100 text-gray-900 rounded-lg px-3 py-2'
+                        : '' // Removed bubble style for AI
                     )}
                   >
                     <p className="text-sm">{msg.text}</p>
