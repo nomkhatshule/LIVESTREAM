@@ -30,7 +30,7 @@ export default function CardsPage() {
           </div>
           
           <TabsContent value="challenges">
-            <div className="bg-white rounded-3xl p-4 shadow-2xl h-[450px] flex flex-col">
+            <div className="bg-white rounded-3xl p-4 shadow-2xl h-[500px] flex flex-col">
               <div className="aspect-square relative w-full overflow-hidden rounded-xl">
                 <Image
                   src="https://picsum.photos/seed/khamari/600/600"
@@ -47,12 +47,12 @@ export default function CardsPage() {
             </div>
           </TabsContent>
           <TabsContent value="truth">
-            <div className="bg-white rounded-3xl p-4 shadow-2xl h-[450px] flex items-center justify-center">
+            <div className="bg-white rounded-3xl p-4 shadow-2xl h-[500px] flex items-center justify-center">
               <p className="text-black font-headline">Truth content goes here</p>
             </div>
           </TabsContent>
           <TabsContent value="dare">
-            <div className="bg-white rounded-3xl p-4 shadow-2xl h-[450px] flex items-center justify-center">
+            <div className="bg-white rounded-3xl p-4 shadow-2xl h-[500px] flex items-center justify-center">
               <p className="text-black font-headline">Dare content goes here</p>
             </div>
           </TabsContent>
