@@ -5,7 +5,7 @@ import { useState, useRef, useEffect, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, ArrowUp, Bot } from 'lucide-react';
+import { Send, ArrowUp, Bot, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import {
@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { askAssistant } from '@/ai/flows/in-stream-assistant';
 
 interface AIChatMessage {
   sender: 'user' | 'ai';
@@ -28,9 +29,14 @@ interface AIChatMessage {
 interface AIChatProps {
   children: ReactNode;
   userAvatar?: string;
+  broadcastContext: string;
 }
 
-export default function AIChat({ children, userAvatar }: AIChatProps) {
+export default function AIChat({
+  children,
+  userAvatar,
+  broadcastContext,
+}: AIChatProps) {
   const [messages, setMessages] = useState<AIChatMessage[]>([
     {
       sender: 'ai',
@@ -39,11 +45,12 @@ export default function AIChat({ children, userAvatar }: AIChatProps) {
     },
   ]);
   const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (input.trim() === '') return;
+    if (input.trim() === '' || isLoading) return;
 
     const userMessage: AIChatMessage = {
       sender: 'user',
@@ -53,16 +60,31 @@ export default function AIChat({ children, userAvatar }: AIChatProps) {
 
     setMessages(prev => [...prev, userMessage]);
     setInput('');
+    setIsLoading(true);
 
-    // Mock AI response
-    setTimeout(() => {
+    try {
+      const result = await askAssistant({
+        query: input,
+        broadcastContext: broadcastContext,
+      });
+
       const aiResponse: AIChatMessage = {
         sender: 'ai',
-        text: `I'm still learning, but I've noted your query about: "${input}".`,
+        text: result.response,
         timestamp: format(new Date(), 'HH:mm'),
       };
       setMessages(prev => [...prev, aiResponse]);
-    }, 1000);
+    } catch (error) {
+      console.error('Error asking assistant:', error);
+      const errorResponse: AIChatMessage = {
+        sender: 'ai',
+        text: 'Sorry, I had trouble connecting. Please try again in a moment.',
+        timestamp: format(new Date(), 'HH:mm'),
+      };
+      setMessages(prev => [...prev, errorResponse]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -134,6 +156,12 @@ export default function AIChat({ children, userAvatar }: AIChatProps) {
                   )}
                 </div>
               ))}
+              {isLoading && (
+                <div className="flex items-center gap-2 justify-start">
+                    <Loader2 className="h-5 w-5 text-gray-500 animate-spin" />
+                    <p className="text-sm text-gray-500">Assistant is thinking...</p>
+                </div>
+              )}
             </div>
           </ScrollArea>
           <footer>
@@ -146,12 +174,14 @@ export default function AIChat({ children, userAvatar }: AIChatProps) {
                 onChange={e => setInput(e.target.value)}
                 placeholder="Ask a question..."
                 className="flex-1 bg-gray-100 text-black border-gray-300 placeholder:text-gray-500 rounded-full pr-10 focus-visible:ring-0 focus-visible:ring-offset-0"
+                disabled={isLoading}
               />
               <Button
                 type="submit"
                 size="icon"
                 variant="ghost"
                 className="absolute inset-y-0 right-1 text-gray-500 hover:bg-gray-200 rounded-full p-2 h-auto aspect-square"
+                disabled={isLoading}
               >
                 <ArrowUp className="h-full w-full" />
               </Button>

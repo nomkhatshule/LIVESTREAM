@@ -52,6 +52,8 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
         textareaRef.current?.focus();
     }
 
+    const broadcastContext = `The streamer is ${broadcast.hostName}. The stream is titled "${broadcast.title}" under the category "${broadcast.category}".`;
+
     return (
         <div className="absolute inset-0 flex flex-col justify-between p-3 md:p-4 text-white z-30 pointer-events-none">
             {/* Top Info */}
@@ -107,7 +109,7 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
                 </div>
                 
                  {/* AI Search Action Item */}
-                <AIChat userAvatar={currentUserAvatar}>
+                <AIChat userAvatar={currentUserAvatar} broadcastContext={broadcastContext}>
                     <div className="flex flex-col items-center group">
                         <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform">
                            <Search className="h-6 w-6 drop-shadow-md" strokeWidth={1.5} />
