@@ -22,7 +22,7 @@ import { askAssistant } from '@/ai/flows/in-stream-assistant';
 
 interface AIChatMessage {
   sender: 'user' | 'ai';
-  text: string;
+  text: string | { openingStatement: string; body: string };
   timestamp: string;
 }
 
@@ -32,6 +32,19 @@ interface AIChatProps {
   broadcastContext: string;
 }
 
+// Simple markdown parser
+function SimpleMarkdown({ text }: { text: string }) {
+  const html = text
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold
+    .replace(/\*(.*?)\*/g, '<em>$1</em>') // Italics
+    .replace(/(\d+\.) (.*?)(?=\n\d+\.|\n\n|$)/g, '<p>$1 $2</p>') // Numbered list items
+    .replace(/(\n-|\n\*) (.*?)(?=\n-|\n\*|\n\n|$)/g, '<p>• $2</p>') // Bullet points
+    .replace(/\n/g, '<br />'); // Newlines
+
+  return <div dangerouslySetInnerHTML={{ __html: html }} />;
+}
+
+
 export default function AIChat({
   children,
   userAvatar,
@@ -40,7 +53,10 @@ export default function AIChat({
   const [messages, setMessages] = useState<AIChatMessage[]>([
     {
       sender: 'ai',
-      text: "Hi there! I'm your in-stream assistant, powered by Gemini. Ask me anything about what's happening.",
+      text: {
+        openingStatement: "Hi there!",
+        body: "I'm your in-stream assistant, powered by Gemini. Ask me anything about what's happening in the stream."
+      },
       timestamp: format(new Date(), 'HH:mm'),
     },
   ]);
@@ -71,7 +87,7 @@ export default function AIChat({
 
       const aiResponse: AIChatMessage = {
           sender: 'ai',
-          text: result.response,
+          text: result,
           timestamp: format(new Date(), 'HH:mm'),
       };
       setMessages(prev => [...prev, aiResponse]);
@@ -80,7 +96,10 @@ export default function AIChat({
         console.error("Error calling AI assistant:", error);
         const errorResponse: AIChatMessage = {
             sender: 'ai',
-            text: "I'm sorry, my connection to the AI service is currently unavailable. Please try again later.",
+            text: {
+              openingStatement: "Connection Error",
+              body: "I'm sorry, my connection to the AI service is currently unavailable. Please try again later."
+            },
             timestamp: format(new Date(), 'HH:mm'),
         };
         setMessages(prev => [...prev, errorResponse]);
@@ -130,18 +149,33 @@ export default function AIChat({
                     msg.sender === 'user' ? 'justify-end' : 'justify-start'
                   )}
                 >
+                   {msg.sender === 'ai' && (
+                     <div className="flex-shrink-0">
+                        <Avatar className="h-8 w-8 bg-primary text-primary-foreground">
+                            <AvatarFallback><Bot className="h-5 w-5"/></AvatarFallback>
+                        </Avatar>
+                     </div>
+                  )}
+
                   <div
                     className={cn(
-                      'max-w-[70%]',
+                      'max-w-[80%] rounded-2xl px-4 py-3',
                       msg.sender === 'user'
-                        ? 'bg-black text-white rounded-lg px-3 py-2'
-                        : '' // Removed bubble style for AI
+                        ? 'bg-black text-white rounded-br-none'
+                        : 'bg-gray-100 text-black rounded-bl-none' 
                     )}
                   >
-                    <p className="text-sm">{msg.text}</p>
+                     {typeof msg.text === 'string' ? (
+                        <p className="text-sm">{msg.text}</p>
+                     ) : (
+                        <div className="space-y-2 text-sm">
+                          <p className="font-semibold">{msg.text.openingStatement}</p>
+                          <SimpleMarkdown text={msg.text.body} />
+                        </div>
+                     )}
                     <p
                       className={cn(
-                        'text-xs mt-1',
+                        'text-xs mt-2',
                         msg.sender === 'user'
                           ? 'text-right opacity-70'
                           : 'text-left text-gray-500'
@@ -150,6 +184,7 @@ export default function AIChat({
                       {msg.timestamp}
                     </p>
                   </div>
+
                   {msg.sender === 'user' && (
                     <Avatar className="h-8 w-8">
                         <AvatarImage src={userAvatar} />

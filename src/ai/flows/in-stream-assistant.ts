@@ -21,7 +21,8 @@ const AskAssistantInputSchema = z.object({
 export type AskAssistantInput = z.infer<typeof AskAssistantInputSchema>;
 
 const AskAssistantOutputSchema = z.object({
-  response: z.string().describe('The AI assistant response.'),
+  openingStatement: z.string().describe("A brief, conversational opening that acknowledges the user's question before providing the main answer."),
+  body: z.string().describe("The main body of the response. Use simple markdown for formatting (e.g., **bold**, *italics*, numbered lists)."),
 });
 export type AskAssistantOutput = z.infer<typeof AskAssistantOutputSchema>;
 
@@ -30,6 +31,26 @@ export async function askAssistant(input: AskAssistantInput): Promise<AskAssista
     return askAssistantFlow(input);
 }
 
+const prompt = ai.definePrompt({
+  name: 'askAssistantPrompt',
+  input: {schema: AskAssistantInputSchema},
+  output: {schema: AskAssistantOutputSchema},
+  prompt: `You are a helpful and friendly AI assistant integrated into a live streaming platform called AgoraLive. Your goal is to answer viewer questions about the current stream.
+
+Here is the context for the current stream: {{{broadcastContext}}}.
+
+The user's question is: {{{query}}}
+
+Please structure your response in the following JSON format:
+1.  **openingStatement**: Write a short, friendly acknowledgment of the user's question. For example, if they ask "What is this stream about?", you could say "Great question! This stream is all about...".
+2.  **body**: Provide the detailed answer. Use simple markdown for formatting:
+    - Use ** for bold text.
+    - Use numbered lists (1., 2., 3.) for steps or multiple points.
+    - Use bullet points (* or -) for lists.
+`,
+});
+
+
 const askAssistantFlow = ai.defineFlow(
   {
     name: 'askAssistantFlow',
@@ -37,16 +58,13 @@ const askAssistantFlow = ai.defineFlow(
     outputSchema: AskAssistantOutputSchema,
   },
   async (input) => {
-    const { text } = await ai.generate({
-      prompt: `You are a helpful AI assistant integrated into a live streaming platform called AgoraLive. 
-      Your goal is to answer viewer questions about the current stream. 
-      Here is the context for the current stream: ${input.broadcastContext}.
-      
-      The user's question is: ${input.query}`,
-    });
-
-    return {
-      response: text || "I'm sorry, I couldn't generate a response.",
-    };
+    const {output} = await prompt(input);
+    if (!output) {
+      return {
+        openingStatement: "Apologies!",
+        body: "I'm having a little trouble connecting right now. Please try again in a moment.",
+      };
+    }
+    return output;
   }
 );
