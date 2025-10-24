@@ -56,13 +56,6 @@ export default function CardsPage() {
       </div>
 
       <div className="relative z-10 w-full max-w-sm flex flex-col gap-4">
-        {/* New Top Card */}
-        <div className="bg-white rounded-3xl p-6 shadow-2xl flex items-center justify-center">
-            <Button style={{ backgroundColor: 'hsl(var(--primary))' }} className="text-primary-foreground">
-                Click Me!
-            </Button>
-        </div>
-
          <Tabs defaultValue="challenges" className="w-full">
           <TabsList className="grid w-full grid-cols-2 bg-white/10 backdrop-blur-lg text-white rounded-xl p-1">
             <TabsTrigger value="challenges" className="data-[state=active]:bg-white data-[state=active]:text-black rounded-lg">Challenges</TabsTrigger>
