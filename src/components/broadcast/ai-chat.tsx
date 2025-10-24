@@ -71,7 +71,7 @@ export default function AIChat({
     const userMessage: AIChatMessage = {
       sender: 'user',
       text: input,
-      timestamp: format(new Date(), 'HH:mm'),
+      timestamp: format(new Date(), 'HH-mm'),
     };
 
     setMessages(prev => [...prev, userMessage]);
@@ -88,7 +88,7 @@ export default function AIChat({
       const aiResponse: AIChatMessage = {
           sender: 'ai',
           text: result,
-          timestamp: format(new Date(), 'HH:mm'),
+          timestamp: format(new Date(), 'HH-mm'),
       };
       setMessages(prev => [...prev, aiResponse]);
 
@@ -100,7 +100,7 @@ export default function AIChat({
               openingStatement: "Connection Error",
               body: "I'm sorry, my connection to the AI service is currently unavailable. Please try again later."
             },
-            timestamp: format(new Date(), 'HH:mm'),
+            timestamp: format(new Date(), 'HH-mm'),
         };
         setMessages(prev => [...prev, errorResponse]);
     } finally {
@@ -149,13 +149,6 @@ export default function AIChat({
                     msg.sender === 'user' ? 'justify-end' : 'justify-start'
                   )}
                 >
-                   {msg.sender === 'ai' && (
-                     <div className="flex-shrink-0">
-                        <Avatar className="h-8 w-8 bg-primary text-primary-foreground">
-                            <AvatarFallback><Bot className="h-5 w-5"/></AvatarFallback>
-                        </Avatar>
-                     </div>
-                  )}
 
                   <div
                     className={cn(
