@@ -9,7 +9,8 @@ import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { truthQuestions, dareChallenges } from '@/lib/data';
 import { cn } from '@/lib/utils';
-import { Play } from 'lucide-react';
+import { Loader2, Play } from 'lucide-react';
+import { generateGamePrompts } from '@/ai/flows/generate-game-prompts';
 
 export default function CardsPage() {
   // --- State for Truth or Dare game ---
@@ -20,6 +21,9 @@ export default function CardsPage() {
 
   // --- State for Challenges game ---
   const [isGameStarted, setIsGameStarted] = useState(false);
+  const [challenge, setChallenge] = useState('');
+  const [isLoadingChallenge, setIsLoadingChallenge] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleChoice = (type: 'truth' | 'dare') => {
     if (type === 'truth') {
@@ -42,6 +46,29 @@ export default function CardsPage() {
         setPrompt('');
         setPromptType(null);
     }, 300); // This duration should match the transition duration
+  };
+
+  const handleGenerateChallenge = async () => {
+    setIsLoadingChallenge(true);
+    setError(null);
+    setIsGameStarted(true); // Ensure the card view is active
+    try {
+      const result = await generateGamePrompts({
+        gameType: 'challenge',
+        category: 'Live Stream Fun',
+        count: 1,
+      });
+      if (result.prompts && result.prompts.length > 0) {
+        setChallenge(result.prompts[0]);
+      } else {
+        setError('No challenges were generated. Please try again.');
+      }
+    } catch (err) {
+      console.error(err);
+      setError('Failed to generate a challenge. Please check the connection and try again.');
+    } finally {
+      setIsLoadingChallenge(false);
+    }
   };
 
 
@@ -71,7 +98,7 @@ export default function CardsPage() {
               {!isGameStarted ? (
                  <div className="absolute inset-0 w-full h-full bg-white rounded-3xl p-6 shadow-2xl flex flex-col items-center justify-center text-center">
                     <h2 className="text-3xl font-bold text-black font-headline mb-8">Ready for a Challenge?</h2>
-                    <Button size="lg" className="w-full" onClick={() => setIsGameStarted(true)}>
+                    <Button size="lg" className="w-full" onClick={handleGenerateChallenge}>
                       Start
                     </Button>
                 </div>
@@ -82,38 +109,34 @@ export default function CardsPage() {
                   {/* Background Card 1 */}
                   <div className="absolute top-0 left-0 w-full h-full bg-white/90 rounded-3xl p-4 shadow-2xl transform rotate-3 scale-95" />
                   {/* Main Card */}
-                  <div className="absolute top-0 left-0 w-full h-full bg-white rounded-3xl p-4 shadow-2xl flex flex-col">
-                    <div className="relative w-full overflow-hidden rounded-xl flex-shrink-0">
-                      <Image
-                        src="https://picsum.photos/seed/khamari/600/400"
-                        alt="Head in a Jar"
-                        width={600}
-                        height={400}
-                        className="object-cover w-full h-full"
-                        data-ai-hint="man sitting chair"
-                      />
+                  <div className="absolute top-0 left-0 w-full h-full bg-white rounded-3xl p-6 shadow-2xl flex flex-col items-center justify-center">
+                    <div className="flex-grow w-full flex items-center justify-center text-center">
+                        {isLoadingChallenge ? (
+                            <Loader2 className="h-12 w-12 animate-spin text-primary"/>
+                        ) : error ? (
+                            <p className="text-destructive font-semibold">{error}</p>
+                        ) : (
+                            <h2 className="text-3xl font-bold text-black font-headline">{challenge}</h2>
+                        )}
                     </div>
-                    <div className="text-left mt-3">
-                      <h2 className="text-xl font-bold text-black font-headline">The Whisper Challenge</h2>
-                    </div>
-                    <div className="flex-grow flex flex-col mt-3 text-gray-800 px-2 space-y-3">
-                      <div className="flex justify-between items-center">
-                          <h3 className="font-bold font-headline text-gray-800">Difficulty</h3>
-                          <Badge variant="outline" className="text-black border-gray-300">Medium</Badge>
-                      </div>
-                      <Separator className="bg-gray-200" />
-                      <div>
-                        <h3 className="font-bold font-headline text-gray-800 mb-2">Instructions</h3>
-                        <ul className="list-decimal list-inside text-sm space-y-1 text-left text-gray-900">
-                          <li>One person wears headphones with loud music.</li>
-                          <li>Another person whispers a phrase to them.</li>
-                          <li>The headphone-wearer must guess the phrase.</li>
-                        </ul>
-                      </div>
-                    </div>
-                    <div className="mt-auto pt-4 flex gap-x-3">
-                        <Button variant="secondary" className="w-full">Skip</Button>
-                        <Button className="w-full">Accept</Button>
+                     <div className="mt-auto pt-4 w-full flex gap-x-3">
+                        <Button 
+                          variant="secondary" 
+                          className="w-full"
+                          onClick={() => {
+                            setIsGameStarted(false);
+                            setChallenge('');
+                          }}
+                        >
+                          End Game
+                        </Button>
+                        <Button 
+                            className="w-full" 
+                            onClick={handleGenerateChallenge}
+                            disabled={isLoadingChallenge}
+                        >
+                            Next Challenge
+                        </Button>
                     </div>
                   </div>
                 </>
