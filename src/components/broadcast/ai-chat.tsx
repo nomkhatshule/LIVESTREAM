@@ -40,7 +40,7 @@ export default function AIChat({
   const [messages, setMessages] = useState<AIChatMessage[]>([
     {
       sender: 'ai',
-      text: "Hi there! I'm your in-stream assistant. Ask me anything about what's happening.",
+      text: "Hi there! I'm your in-stream assistant, powered by OpenAI. Ask me anything about what's happening.",
       timestamp: format(new Date(), 'HH:mm'),
     },
   ]);
