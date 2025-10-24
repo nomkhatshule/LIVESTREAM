@@ -19,6 +19,8 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { askAssistant } from '@/ai/flows/in-stream-assistant';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface AIChatMessage {
   sender: 'user' | 'ai';
@@ -31,19 +33,6 @@ interface AIChatProps {
   userAvatar?: string;
   broadcastContext: string;
 }
-
-// Simple markdown parser
-function SimpleMarkdown({ text }: { text: string }) {
-  const html = text
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold
-    .replace(/\*(.*?)\*/g, '<em>$1</em>') // Italics
-    .replace(/(\d+\.) (.*?)(?=\n\d+\.|\n\n|$)/g, '<p>$1 $2</p>') // Numbered list items
-    .replace(/(\n-|\n\*) (.*?)(?=\n-|\n\*|\n\n|$)/g, '<p>• $2</p>') // Bullet points
-    .replace(/\n/g, '<br />'); // Newlines
-
-  return <div dangerouslySetInnerHTML={{ __html: html }} />;
-}
-
 
 export default function AIChat({
   children,
@@ -161,9 +150,9 @@ export default function AIChat({
                      {typeof msg.text === 'string' ? (
                         <p className="text-sm">{msg.text}</p>
                      ) : (
-                        <div className="space-y-2 text-sm">
+                        <div className="space-y-2 text-sm prose prose-sm max-w-full">
                           <p className="font-semibold">{msg.text.openingStatement}</p>
-                          <SimpleMarkdown text={msg.text.body} />
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text.body}</ReactMarkdown>
                         </div>
                      )}
                     <p
