@@ -152,10 +152,10 @@ export default function AIChat({
 
                   <div
                     className={cn(
-                      'max-w-[80%] rounded-2xl px-4 py-3',
+                      'max-w-[80%]',
                       msg.sender === 'user'
-                        ? 'bg-black text-white rounded-br-none'
-                        : 'bg-gray-100 text-black rounded-bl-none' 
+                        ? 'bg-black text-white rounded-2xl px-4 py-3 rounded-br-none'
+                        : 'text-black' 
                     )}
                   >
                      {typeof msg.text === 'string' ? (
