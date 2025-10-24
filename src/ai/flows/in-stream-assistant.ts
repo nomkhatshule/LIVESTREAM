@@ -16,7 +16,7 @@ const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
 });
 
-export const AskAssistantInputSchema = z.object({
+const AskAssistantInputSchema = z.object({
   query: z.string().describe("The user's question for the assistant."),
   broadcastContext: z
     .string()
@@ -26,7 +26,7 @@ export const AskAssistantInputSchema = z.object({
 });
 export type AskAssistantInput = z.infer<typeof AskAssistantInputSchema>;
 
-export const AskAssistantOutputSchema = z.object({
+const AskAssistantOutputSchema = z.object({
   response: z.string().describe('The AI assistant response.'),
 });
 export type AskAssistantOutput = z.infer<typeof AskAssistantOutputSchema>;
