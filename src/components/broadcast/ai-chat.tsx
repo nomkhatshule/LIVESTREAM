@@ -18,7 +18,6 @@ import {
 } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import { askAssistant } from '@/ai/flows/in-stream-assistant';
 
 interface AIChatMessage {
   sender: 'user' | 'ai';
@@ -62,29 +61,16 @@ export default function AIChat({
     setInput('');
     setIsLoading(true);
 
-    try {
-      const result = await askAssistant({
-        query: input,
-        broadcastContext: broadcastContext,
-      });
-
+    // Placeholder for AI response
+    setTimeout(() => {
       const aiResponse: AIChatMessage = {
         sender: 'ai',
-        text: result.response,
+        text: "I'm sorry, my connection to the AI service is currently unavailable. Please try again later.",
         timestamp: format(new Date(), 'HH:mm'),
       };
       setMessages(prev => [...prev, aiResponse]);
-    } catch (error) {
-      console.error('Error asking assistant:', error);
-      const errorResponse: AIChatMessage = {
-        sender: 'ai',
-        text: 'Sorry, I had trouble connecting. Please try again in a moment.',
-        timestamp: format(new Date(), 'HH:mm'),
-      };
-      setMessages(prev => [...prev, errorResponse]);
-    } finally {
       setIsLoading(false);
-    }
+    }, 1000);
   };
 
   useEffect(() => {
