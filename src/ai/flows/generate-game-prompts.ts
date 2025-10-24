@@ -8,27 +8,12 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
-
-export const GenerateGamePromptsInputSchema = z.object({
-  gameType: z
-    .enum(['truth', 'dare', 'challenge'])
-    .describe('The type of game prompt to generate.'),
-  category: z
-    .string()
-    .describe('The category or theme for the prompts (e.g., "Icebreaker", "Spicy", "Comedy").'),
-  count: z.number().describe('The number of prompts to generate.'),
-});
-export type GenerateGamePromptsInput = z.infer<
-  typeof GenerateGamePromptsInputSchema
->;
-
-export const GenerateGamePromptsOutputSchema = z.object({
-  prompts: z.array(z.string()).describe('The list of generated prompts.'),
-});
-export type GenerateGamePromptsOutput = z.infer<
-  typeof GenerateGamePromptsOutputSchema
->;
+import {
+  GenerateGamePromptsInputSchema,
+  GenerateGamePromptsOutputSchema,
+  type GenerateGamePromptsInput,
+  type GenerateGamePromptsOutput,
+} from '@/lib/data';
 
 export async function generateGamePrompts(
   input: GenerateGamePromptsInput
