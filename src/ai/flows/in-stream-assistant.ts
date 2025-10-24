@@ -22,7 +22,7 @@ export type AskAssistantInput = z.infer<typeof AskAssistantInputSchema>;
 
 const AskAssistantOutputSchema = z.object({
   openingStatement: z.string().describe("A brief, conversational opening that acknowledges the user's question before providing the main answer."),
-  body: z.string().describe("The main body of the response. Use simple markdown for formatting (e.g., **bold**, *italics*, numbered lists)."),
+  body: z.string().describe("The main body of the response. Use simple markdown for formatting (e.g., **bold**, *italics*, bullet points)."),
 });
 export type AskAssistantOutput = z.infer<typeof AskAssistantOutputSchema>;
 
@@ -43,10 +43,9 @@ The user's question is: {{{query}}}
 
 Please structure your response in the following JSON format:
 1.  **openingStatement**: Write a short, friendly acknowledgment of the user's question. For example, if they ask "What is this stream about?", you could say "Great question! This stream is all about...".
-2.  **body**: Provide the detailed answer. Use simple markdown for formatting:
-    - Use ** for bold text.
-    - Use numbered lists (1., 2., 3.) for steps or multiple points.
+2.  **body**: Provide the detailed answer as a list of bullet points. Use simple markdown for formatting:
     - Use bullet points (* or -) for lists.
+    - Use ** for bold text for emphasis.
 `,
 });
 
