@@ -72,7 +72,6 @@ export default function CardsPage() {
                  <div className="absolute inset-0 w-full h-full bg-white rounded-3xl p-6 shadow-2xl flex flex-col items-center justify-center text-center">
                     <h2 className="text-3xl font-bold text-black font-headline mb-8">Ready for a Challenge?</h2>
                     <Button size="lg" className="w-full" onClick={() => setIsGameStarted(true)}>
-                      <Play className="mr-2 h-5 w-5" />
                       Start
                     </Button>
                 </div>
