@@ -2,9 +2,9 @@
 'use client';
 
 import { Suspense, useEffect, useRef, useState } from 'react';
-import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
+import { useUser, useFirestore, useMemoFirebase, useStorage } from '@/firebase';
 import { useCollection } from '@/firebase/firestore/use-collection';
-import { collection, query, where } from 'firebase/firestore';
+import { collection, query, where, addDoc, serverTimestamp } from 'firebase/firestore';
 import type { Broadcast } from '@/lib/data';
 import { Clapperboard, Loader2, MoreVertical, Share2, User as UserIcon, Upload, UploadCloud, FileVideo, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -29,26 +29,27 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 
 
 function UploadHighlightForm({ setOpen }: { setOpen: (open: boolean) => void }) {
     const { user } = useUser();
+    const firestore = useFirestore();
+    const storage = useStorage();
     const { toast } = useToast();
+
     const [title, setTitle] = useState('');
     const [videoFile, setVideoFile] = useState<File | null>(null);
-    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [isUploading, setIsUploading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    useEffect(() => {
-        if (videoFile) {
-            const url = URL.createObjectURL(videoFile);
-            setPreviewUrl(url);
-            return () => URL.revokeObjectURL(url);
-        }
-        setPreviewUrl(null);
-    }, [videoFile]);
+    const resetForm = () => {
+        setTitle('');
+        setVideoFile(null);
+        setIsUploading(false);
+        setUploadProgress(0);
+    }
 
     const handleFileSelect = (files: FileList | null) => {
         if (!files || files.length === 0) return;
@@ -76,73 +77,110 @@ function UploadHighlightForm({ setOpen }: { setOpen: (open: boolean) => void }) 
     };
 
     const handleUpload = async () => {
-        if (!videoFile || !title.trim() || !user) {
+        if (!videoFile || !title.trim() || !user || !storage || !firestore) {
             toast({
                 variant: 'destructive',
                 title: 'Missing Information',
-                description: 'Please select a video and provide a title.',
+                description: 'Please provide a video, title, and be logged in.',
             });
             return;
         }
 
         setIsUploading(true);
-        // Mock upload progress
-        const interval = setInterval(() => {
-            setUploadProgress(prev => {
-                if (prev >= 95) {
-                    clearInterval(interval);
-                    return prev;
-                }
-                return prev + 5;
-            })
-        }, 200);
+        setUploadProgress(0);
+        
+        const storageRef = ref(storage, `highlights/${user.uid}/${Date.now()}-${videoFile.name}`);
+        const uploadTask = uploadBytesResumable(storageRef, videoFile);
 
-        // TODO: Replace with actual Firebase Storage upload logic
-        setTimeout(() => {
-             clearInterval(interval);
-             setUploadProgress(100);
-             setTimeout(() => {
+        uploadTask.on('state_changed',
+            (snapshot) => {
+                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                setUploadProgress(progress);
+            },
+            (error) => {
+                console.error("Upload failed:", error);
+                toast({
+                    variant: 'destructive',
+                    title: 'Upload Failed',
+                    description: 'There was a problem uploading your video. Please try again.',
+                });
                 setIsUploading(false);
-                toast({ title: 'Upload Successful!', description: 'Your highlight is now on your profile.'});
-                setOpen(false); // Close dialog on success
-             }, 500)
-        }, 5000);
+            },
+            async () => {
+                // Upload completed successfully, now get the download URL
+                try {
+                    const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+
+                    // Now, save the highlight info to Firestore
+                    const highlightsCollectionRef = collection(firestore, `users/${user.uid}/highlights`);
+                    await addDoc(highlightsCollectionRef, {
+                        title: title,
+                        videoUrl: downloadURL,
+                        createdAt: serverTimestamp(),
+                        userId: user.uid,
+                    });
+
+                    toast({
+                        title: 'Upload Successful!',
+                        description: 'Your highlight is now available on your profile.',
+                    });
+
+                    setOpen(false); // Close dialog on success
+                    resetForm();
+
+                } catch (error) {
+                     console.error("Error saving highlight to Firestore:", error);
+                     toast({
+                        variant: 'destructive',
+                        title: 'Save Failed',
+                        description: 'Your video was uploaded but we could not save it to your profile.',
+                    });
+                     setIsUploading(false);
+                }
+            }
+        );
     };
 
     return (
         <div className="grid gap-6 py-4">
             <div 
-                className="flex flex-col items-center justify-center w-full p-8 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50"
-                onClick={() => fileInputRef.current?.click()}
+                className={cn(
+                    "flex flex-col items-center justify-center w-full p-8 border-2 border-dashed rounded-lg transition-colors",
+                    !videoFile && "cursor-pointer hover:bg-muted/50"
+                )}
+                onClick={() => !videoFile && fileInputRef.current?.click()}
                 onDragOver={handleDragOver}
                 onDrop={handleDrop}
             >
-                <UploadCloud className="w-12 h-12 text-muted-foreground" />
-                <p className="mt-2 text-sm font-semibold">Click to upload or drag and drop</p>
-                <p className="text-xs text-muted-foreground">MP4, WebM, or Ogg (Max 50MB)</p>
-                <input 
+                {videoFile ? (
+                     <div className="space-y-4 text-center">
+                        <FileVideo className="w-12 h-12 text-primary mx-auto" />
+                        <h4 className="font-semibold">{videoFile.name}</h4>
+                        <p className="text-sm text-muted-foreground">{(videoFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                        <Button variant="outline" size="sm" onClick={() => setVideoFile(null)} disabled={isUploading}>
+                            <X className="mr-2 h-4 w-4" />
+                            Choose a different file
+                        </Button>
+                    </div>
+                ) : (
+                    <>
+                        <UploadCloud className="w-12 h-12 text-muted-foreground" />
+                        <p className="mt-2 text-sm font-semibold">Click to upload or drag and drop</p>
+                        <p className="text-xs text-muted-foreground">MP4, WebM, or Ogg</p>
+                    </>
+                )}
+                 <input 
                     ref={fileInputRef}
                     type="file"
                     className="hidden"
                     accept="video/*"
                     onChange={(e) => handleFileSelect(e.target.files)}
+                    disabled={!!videoFile}
                 />
             </div>
             
-            {previewUrl && videoFile && (
+            {videoFile && (
                 <div className="space-y-4">
-                    <div className="relative p-2 border rounded-lg">
-                        <div className='flex items-start gap-3'>
-                            <FileVideo className="w-10 h-10 text-primary flex-shrink-0" />
-                            <div className="flex-1">
-                                <h4 className="font-semibold">{videoFile.name}</h4>
-                                <p className="text-sm text-muted-foreground">{(videoFile.size / 1024 / 1024).toFixed(2)} MB</p>
-                            </div>
-                        </div>
-                        <Button variant="ghost" size="icon" className="absolute top-1 right-1 h-7 w-7" onClick={() => setVideoFile(null)}>
-                            <X className="w-4 h-4" />
-                        </Button>
-                    </div>
                      <div className="grid w-full items-center gap-1.5">
                         <Label htmlFor="title">Highlight Title</Label>
                         <Input
@@ -151,6 +189,7 @@ function UploadHighlightForm({ setOpen }: { setOpen: (open: boolean) => void }) 
                             placeholder="e.g., My most epic moment!"
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
+                            disabled={isUploading}
                         />
                     </div>
                     {isUploading && <Progress value={uploadProgress} className="w-full" />}
@@ -159,11 +198,11 @@ function UploadHighlightForm({ setOpen }: { setOpen: (open: boolean) => void }) 
 
             <DialogFooter>
                 <DialogClose asChild>
-                    <Button variant="outline">Cancel</Button>
+                    <Button variant="outline" disabled={isUploading}>Cancel</Button>
                 </DialogClose>
                 <Button onClick={handleUpload} disabled={!videoFile || !title || isUploading}>
                     {isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
-                    {isUploading ? `Uploading... ${uploadProgress}%` : 'Upload'}
+                    {isUploading ? `Uploading... ${Math.round(uploadProgress)}%` : 'Upload'}
                 </Button>
             </DialogFooter>
         </div>
@@ -284,5 +323,3 @@ export default function FeedTestPage() {
         </Suspense>
     )
 }
-
-    
