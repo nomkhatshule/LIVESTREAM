@@ -6,7 +6,7 @@ import { useUser, useFirestore, useMemoFirebase, useStorage } from '@/firebase';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { collection, query, where, addDoc, serverTimestamp } from 'firebase/firestore';
 import type { Broadcast } from '@/lib/data';
-import { Clapperboard, Loader2, MoreVertical, Share2, User as UserIcon, Upload, UploadCloud, FileVideo, X } from 'lucide-react';
+import { Clapperboard, Loader2, MoreVertical, Share2, User as UserIcon, Upload, UploadCloud, FileVideo, X, Film } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import BroadcastPlayer from '@/components/broadcast/broadcast-player';
 import { useStreamStore } from '@/lib/stream-store';
@@ -264,7 +264,7 @@ function FeedPageContent() {
                         </DropdownMenuItem>
                          <DialogTrigger asChild>
                             <DropdownMenuItem>
-                                <Upload className="mr-2 h-4 w-4" />
+                                <Film className="mr-2 h-4 w-4" />
                                 <span>Upload Highlight</span>
                             </DropdownMenuItem>
                         </DialogTrigger>
@@ -323,3 +323,5 @@ export default function FeedTestPage() {
         </Suspense>
     )
 }
+
+    
