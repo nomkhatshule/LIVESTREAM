@@ -1,12 +1,12 @@
 
 'use client';
 
-import { Suspense, useEffect, useRef } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { collection, query, where } from 'firebase/firestore';
 import type { Broadcast } from '@/lib/data';
-import { Clapperboard, Loader2, MoreVertical, Share2, User as UserIcon, UserSearch } from 'lucide-react';
+import { Clapperboard, Loader2, MoreVertical, Share2, User as UserIcon, Upload } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import BroadcastPlayer from '@/components/broadcast/broadcast-player';
 import { useStreamStore } from '@/lib/stream-store';
@@ -14,6 +14,15 @@ import { BroadcastPreview } from '@/components/broadcast/broadcast-preview';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+
 
 function FeedPageContent() {
     const router = useRouter();
@@ -51,52 +60,71 @@ function FeedPageContent() {
     }
 
     return (
-        <div className="h-[calc(100vh-4rem)] relative bg-black">
-            {/* The single, centralized player */}
-            <BroadcastPlayer user={user} />
+        <Dialog>
+            <div className="h-[calc(100vh-4rem)] relative bg-black">
+                {/* The single, centralized player */}
+                <BroadcastPlayer user={user} />
 
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="absolute top-4 right-4 z-40 text-white transition-transform hover:bg-transparent hover:scale-110 pointer-events-auto focus-visible:ring-0">
-                        <MoreVertical className="h-8 w-8" />
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end">
-                    <DropdownMenuItem>
-                        <Share2 className="mr-2 h-4 w-4" />
-                        <span>Share</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                        <Link href="/broadcast/create">
-                            <Clapperboard className="mr-2 h-4 w-4" />
-                            <span>Go Stream</span>
-                        </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                        <Link href="/profile">
-                            <UserIcon className="mr-2 h-4 w-4" />
-                            <span>My Profile</span>
-                        </Link>
-                    </DropdownMenuItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
-            
-            {/* The scrollable list of previews */}
-            <div className="h-full overflow-y-scroll snap-y snap-mandatory">
-                {liveBroadcasts && liveBroadcasts.map(broadcast => (
-                    <BroadcastPreview
-                        key={broadcast.id}
-                        broadcast={broadcast}
-                        onVisible={() => setActiveBroadcastId(broadcast.id)}
-                    />
-                ))}
-                {(!liveBroadcasts || liveBroadcasts.length === 0) && (
-                     <div className="h-full w-full flex items-center justify-center text-white snap-start">
-                        <p>No live broadcasts right now. Check back later!</p>
-                    </div>
-                )}
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="absolute top-4 right-4 z-40 text-white transition-transform hover:bg-transparent hover:scale-110 pointer-events-auto focus-visible:ring-0">
+                            <MoreVertical className="h-8 w-8" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56" align="end">
+                        <DropdownMenuItem>
+                            <Share2 className="mr-2 h-4 w-4" />
+                            <span>Share</span>
+                        </DropdownMenuItem>
+                         <DialogTrigger asChild>
+                            <DropdownMenuItem>
+                                <Upload className="mr-2 h-4 w-4" />
+                                <span>Upload Highlight</span>
+                            </DropdownMenuItem>
+                        </DialogTrigger>
+                        <DropdownMenuItem asChild>
+                            <Link href="/broadcast/create">
+                                <Clapperboard className="mr-2 h-4 w-4" />
+                                <span>Go Stream</span>
+                            </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                            <Link href="/profile">
+                                <UserIcon className="mr-2 h-4 w-4" />
+                                <span>My Profile</span>
+                            </Link>
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+                
+                {/* The scrollable list of previews */}
+                <div className="h-full overflow-y-scroll snap-y snap-mandatory">
+                    {liveBroadcasts && liveBroadcasts.map(broadcast => (
+                        <BroadcastPreview
+                            key={broadcast.id}
+                            broadcast={broadcast}
+                            onVisible={() => setActiveBroadcastId(broadcast.id)}
+                        />
+                    ))}
+                    {(!liveBroadcasts || liveBroadcasts.length === 0) && (
+                        <div className="h-full w-full flex items-center justify-center text-white snap-start">
+                            <p>No live broadcasts right now. Check back later!</p>
+                        </div>
+                    )}
+                </div>
             </div>
-        </div>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Upload a New Highlight</DialogTitle>
+                    <DialogDescription>
+                        Select a video clip from your device to share with your followers.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="py-4">
+                    <p>Upload form will go here.</p>
+                </div>
+            </DialogContent>
+        </Dialog>
     );
 }
 
