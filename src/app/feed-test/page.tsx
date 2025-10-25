@@ -6,13 +6,13 @@ import { useUser, useFirestore, useMemoFirebase, useStorage } from '@/firebase';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { collection, query, where, addDoc, serverTimestamp } from 'firebase/firestore';
 import type { Broadcast } from '@/lib/data';
-import { Clapperboard, Loader2, MoreVertical, Share2, User as UserIcon, Upload, UploadCloud, FileVideo, X, Film, UserSearch } from 'lucide-react';
+import { Clapperboard, Loader2, MoreVertical, Share2, User as UserIcon, Upload, Film, FileVideo, X, UploadCloud, Search } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import BroadcastPlayer from '@/components/broadcast/broadcast-player';
 import { useStreamStore } from '@/lib/stream-store';
 import { BroadcastPreview } from '@/components/broadcast/broadcast-preview';
 import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
 import {
   Dialog,
@@ -30,7 +30,7 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { UserSearchDialog } from '@/components/search/user-search';
+import { UserSearch } from '@/components/search/user-search';
 
 
 function UploadHighlightForm({ setOpen }: { setOpen: (open: boolean) => void }) {
@@ -247,20 +247,20 @@ function FeedPageContent() {
     }
 
     return (
-        <UserSearchDialog>
-            <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
-                <div className="h-[calc(100vh-4rem)] relative bg-black">
-                    {/* The single, centralized player */}
-                    <BroadcastPlayer user={user} />
+        <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
+            <div className="h-[calc(100vh-4rem)] relative bg-black">
+                {/* The single, centralized player */}
+                <BroadcastPlayer user={user} />
 
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="absolute top-4 right-4 z-40 text-white transition-transform hover:bg-transparent hover:scale-110 pointer-events-auto focus-visible:ring-0">
-                                <MoreVertical className="h-8 w-8" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="w-56" align="end">
-                            <DropdownMenuItem>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="absolute top-4 right-4 z-40 text-white transition-transform hover:bg-transparent hover:scale-110 pointer-events-auto focus-visible:ring-0">
+                            <MoreVertical className="h-8 w-8" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-64" align="end">
+                         <UserSearch>
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                                 <Share2 className="mr-2 h-4 w-4" />
                                 <span>Share</span>
                             </DropdownMenuItem>
@@ -270,10 +270,6 @@ function FeedPageContent() {
                                     <span>Upload Highlight</span>
                                 </DropdownMenuItem>
                             </DialogTrigger>
-                             <DropdownMenuItem>
-                                <UserSearch className="mr-2 h-4 w-4" />
-                                <span>User Search</span>
-                            </DropdownMenuItem>
                             <DropdownMenuItem asChild>
                                 <Link href="/broadcast/create">
                                     <Clapperboard className="mr-2 h-4 w-4" />
@@ -286,36 +282,36 @@ function FeedPageContent() {
                                     <span>My Profile</span>
                                 </Link>
                             </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                    
-                    {/* The scrollable list of previews */}
-                    <div className="h-full overflow-y-scroll snap-y snap-mandatory">
-                        {liveBroadcasts && liveBroadcasts.map(broadcast => (
-                            <BroadcastPreview
-                                key={broadcast.id}
-                                broadcast={broadcast}
-                                onVisible={() => setActiveBroadcastId(broadcast.id)}
-                            />
-                        ))}
-                        {(!liveBroadcasts || liveBroadcasts.length === 0) && (
-                            <div className="h-full w-full flex items-center justify-center text-white snap-start">
-                                <p>No live broadcasts right now. Check back later!</p>
-                            </div>
-                        )}
-                    </div>
+                        </UserSearch>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+                
+                {/* The scrollable list of previews */}
+                <div className="h-full overflow-y-scroll snap-y snap-mandatory">
+                    {liveBroadcasts && liveBroadcasts.map(broadcast => (
+                        <BroadcastPreview
+                            key={broadcast.id}
+                            broadcast={broadcast}
+                            onVisible={() => setActiveBroadcastId(broadcast.id)}
+                        />
+                    ))}
+                    {(!liveBroadcasts || liveBroadcasts.length === 0) && (
+                        <div className="h-full w-full flex items-center justify-center text-white snap-start">
+                            <p>No live broadcasts right now. Check back later!</p>
+                        </div>
+                    )}
                 </div>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Upload a New Highlight</DialogTitle>
-                        <DialogDescription>
-                            Select a video clip from your device to share with your followers.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <UploadHighlightForm setOpen={setIsUploadDialogOpen} />
-                </DialogContent>
-            </Dialog>
-        </UserSearchDialog>
+            </div>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Upload a New Highlight</DialogTitle>
+                    <DialogDescription>
+                        Select a video clip from your device to share with your followers.
+                    </DialogDescription>
+                </DialogHeader>
+                <UploadHighlightForm setOpen={setIsUploadDialogOpen} />
+            </DialogContent>
+        </Dialog>
     );
 }
 
