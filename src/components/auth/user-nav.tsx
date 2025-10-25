@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -12,11 +13,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { CreditCard, LogOut, PlusCircle, Settings, User as UserIcon, UserSearch } from 'lucide-react';
+import { CreditCard, LogOut, PlusCircle, Settings, User as UserIcon } from 'lucide-react';
 import { useAuth, useUser, useUserDocument } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
-import { UserSearchDialog } from '../search/user-search';
 
 export default function UserNav() {
   const auth = useAuth();
@@ -52,7 +52,6 @@ export default function UserNav() {
   const avatarUrl = userDocument?.profilePicture || user.photoURL;
 
   return (
-    <UserSearchDialog>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="relative h-8 w-8 rounded-full">
@@ -79,10 +78,6 @@ export default function UserNav() {
                 <span>Profile</span>
               </Link>
             </DropdownMenuItem>
-             <DropdownMenuItem>
-                <UserSearch className="mr-2 h-4 w-4" />
-                <span>User Search</span>
-              </DropdownMenuItem>
             <DropdownMenuItem>
               <CreditCard className="mr-2 h-4 w-4" />
               <span>Billing</span>
@@ -105,6 +100,5 @@ export default function UserNav() {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-    </UserSearchDialog>
   );
 }
