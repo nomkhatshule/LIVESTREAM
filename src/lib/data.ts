@@ -37,6 +37,14 @@ export type ChatMessage = {
   replyingTo?: string;
 };
 
+export type Highlight = {
+    id: string;
+    title: string;
+    videoUrl: string;
+    createdAt: Timestamp;
+    userId: string;
+}
+
 // Schema for Genkit Flow: generateGamePrompts
 export const GenerateGamePromptsInputSchema = z.object({
   gameType: z
@@ -143,3 +151,5 @@ export const dareChallenges = [
     "Speak only in questions for the next 3 minutes.",
     "Try to lick your elbow.",
 ];
+
+    

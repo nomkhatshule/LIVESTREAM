@@ -7,15 +7,15 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useParams } from 'next/navigation';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { Button } from '@/components/ui/button';
-import { doc, writeBatch, serverTimestamp, where, query } from 'firebase/firestore';
+import { doc, writeBatch, serverTimestamp, where, query, orderBy, limit } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { useMemo } from 'react';
 import { collection } from 'firebase/firestore';
-import { UserPlus, UserCheck, MessageSquare, Heart, Pencil, Eye, Gem, Gift } from 'lucide-react';
+import { UserPlus, UserCheck, MessageSquare, Heart, Pencil, Eye, Gem, Gift, Video } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Link from 'next/link';
 import Image from 'next/image';
-import { mockHighlights, mockGifts } from '@/lib/data';
+import { mockGifts, type Highlight } from '@/lib/data';
 import { Badge } from '@/components/ui/badge';
 
 // Mock data for recent activity - in a real app this would be a Firestore query
@@ -44,6 +44,17 @@ export default function UserProfilePage() {
   const profileFollowingRef = useMemoFirebase(() => collection(firestore, `users/${profileUserId}/following`), [profileUserId, firestore]);
   const { data: followingList, isLoading: isFollowingLoading } = useCollection(profileFollowingRef);
 
+  // --- Highlights Logic ---
+    const highlightsQuery = useMemoFirebase(() => {
+        if (!profileUserId) return null;
+        return query(
+            collection(firestore, `users/${profileUserId}/highlights`),
+            orderBy('createdAt', 'desc'),
+            limit(12)
+        );
+    }, [profileUserId, firestore]);
+    const { data: highlights, isLoading: areHighlightsLoading } = useCollection<Highlight>(highlightsQuery);
+
   // --- Likes Logic ---
   const userBroadcastsQuery = useMemoFirebase(() => {
     if (!profileUserId) return null;
@@ -53,11 +64,7 @@ export default function UserProfilePage() {
   
   const totalLikes = useMemo(() => {
     if (!userBroadcasts) return 0;
-    // In a real, large-scale app, this aggregation would be done on the backend.
-    // For this prototype, we're assuming the number of broadcasts per user is small.
-    // The `likes` subcollection count isn't directly available, so we rely on the `viewers` field as a proxy for engagement.
-    // A more accurate client-side way would be to fetch all likes for all broadcasts, which is very inefficient.
-    // Let's use `viewers` as a rough estimate for "likes" for now. A better solution needs backend aggregation.
+    // This is a rough estimate. A better solution needs backend aggregation.
     return userBroadcasts.reduce((acc, broadcast) => acc + (broadcast.viewers || 0), 0);
   }, [userBroadcasts]);
 
@@ -80,12 +87,10 @@ export default function UserProfilePage() {
     const followerDocRef = doc(firestore, `users/${profileUserId}/followers`, currentUser.uid);
 
     if (isFollowing) {
-      // --- Unfollow Logic ---
       batch.delete(followingDocRef);
       batch.delete(followerDocRef);
       toast({ title: `Unfollowed ${userDocument?.username}` });
     } else {
-      // --- Follow Logic ---
       const followData = { userId: currentUser.uid, timestamp: serverTimestamp() };
       batch.set(followingDocRef, followData);
       batch.set(followerDocRef, followData);
@@ -105,7 +110,7 @@ export default function UserProfilePage() {
   };
   
   const isOwnProfile = currentUser?.uid === profileUserId;
-  const isLoading = isDocLoading || isCurrentUserFollowingLoading || isFollowersLoading || isFollowingLoading || areBroadcastsLoading;
+  const isLoading = isDocLoading || isCurrentUserFollowingLoading || isFollowersLoading || isFollowingLoading || areBroadcastsLoading || areHighlightsLoading;
 
   if (isLoading) {
     return <ProfileSkeleton />;
@@ -195,28 +200,41 @@ export default function UserProfilePage() {
 
         {/* Activity Tabs Content */}
         <TabsContent value="highlights">
-          <div className="grid grid-cols-3 gap-1">
-              {mockHighlights.map((highlight) => (
-                  <div key={highlight.id} className="relative group aspect-[9/16] overflow-hidden rounded-md">
-                      <Image
-                          src={highlight.imageUrl}
-                          alt={`Highlight ${highlight.id}`}
-                          fill
-                          className="object-cover transition-transform group-hover:scale-105"
+          {areHighlightsLoading ? (
+             <div className="grid grid-cols-3 gap-1">
+                {[...Array(6)].map((_, i) => <Skeleton key={i} className="aspect-[9/16]"/>)}
+            </div>
+          ) : highlights && highlights.length > 0 ? (
+            <div className="grid grid-cols-3 gap-1">
+              {highlights.map((highlight) => (
+                  <div key={highlight.id} className="relative group aspect-[9/16] overflow-hidden rounded-md bg-muted">
+                      <video
+                          src={highlight.videoUrl}
+                          loop
+                          muted
+                          playsInline
+                          className="object-cover w-full h-full transition-transform group-hover:scale-105"
+                          onMouseOver={e => e.currentTarget.play()}
+                          onMouseOut={e => e.currentTarget.pause()}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                      <div className="absolute bottom-2 left-2 text-white flex items-center gap-1.5 text-xs font-semibold">
-                          <Eye className="h-4 w-4" />
-                          <span>{Intl.NumberFormat('en-US', { notation: 'compact' }).format(highlight.views)}</span>
+                      <div className="absolute bottom-2 left-2 text-white">
+                        <p className="text-xs font-bold truncate">{highlight.title}</p>
                       </div>
                   </div>
               ))}
-          </div>
-           {mockHighlights.length === 0 && (
-                <div className="text-center py-12 text-muted-foreground">
-                  <p>No highlights yet.</p>
+            </div>
+          ) : (
+             <div className="text-center py-16 text-muted-foreground bg-card rounded-b-lg">
+                  <Video className="h-12 w-12 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold">No Highlights Yet</h3>
+                  {isOwnProfile ? (
+                    <p>Upload your first highlight from the feed!</p>
+                  ) : (
+                    <p>This user hasn't shared any highlights.</p>
+                  )}
                 </div>
-              )}
+          )}
         </TabsContent>
          <TabsContent value="gifts">
           <Card>
@@ -341,3 +359,5 @@ function ProfileSkeleton() {
   );
 }
 
+
+    
