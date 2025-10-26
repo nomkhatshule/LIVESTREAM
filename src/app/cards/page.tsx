@@ -9,8 +9,9 @@ import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { truthQuestions, dareChallenges } from '@/lib/data';
 import { cn } from '@/lib/utils';
-import { Loader2, Play } from 'lucide-react';
+import { Loader2, Play, Video } from 'lucide-react';
 import { generateGamePrompts } from '@/ai/flows/generate-game-prompts';
+import Link from 'next/link';
 
 export default function CardsPage() {
   // --- State for Truth or Dare game ---
@@ -119,23 +120,29 @@ export default function CardsPage() {
                             <h2 className="text-3xl font-bold text-black font-headline">{challenge}</h2>
                         )}
                     </div>
-                     <div className="mt-auto pt-4 w-full flex gap-x-3">
-                        <Button 
-                          variant="secondary" 
+                     <div className="mt-auto pt-4 w-full flex flex-col gap-y-3">
+                        <Button
                           className="w-full"
+                          onClick={handleGenerateChallenge}
+                          disabled={isLoadingChallenge}
+                        >
+                          Next Challenge
+                        </Button>
+                        <Button asChild size="lg" variant="secondary" className="w-full" disabled={!challenge}>
+                           <Link href={`/broadcast/create?challenge=${encodeURIComponent(challenge)}`}>
+                             <Video className="mr-2 h-5 w-5" />
+                             Go Live with this!
+                           </Link>
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          className="w-full text-muted-foreground"
                           onClick={() => {
                             setIsGameStarted(false);
                             setChallenge('');
                           }}
                         >
                           End Game
-                        </Button>
-                        <Button 
-                            className="w-full" 
-                            onClick={handleGenerateChallenge}
-                            disabled={isLoadingChallenge}
-                        >
-                            Next Challenge
                         </Button>
                     </div>
                   </div>
@@ -175,9 +182,15 @@ export default function CardsPage() {
                       <div className="flex-grow flex items-center justify-center">
                         <p className="text-2xl font-semibold text-black font-headline">{prompt}</p>
                       </div>
-                      <div className="mt-auto pt-4 w-full">
+                      <div className="mt-auto pt-4 w-full flex flex-col gap-y-3">
                         <Button size="lg" className="w-full" onClick={handleNextRound}>
                           Next Round
+                        </Button>
+                        <Button asChild size="lg" variant="secondary" className="w-full" disabled={!prompt}>
+                           <Link href={`/broadcast/create?challenge=${encodeURIComponent(prompt)}`}>
+                             <Video className="mr-2 h-5 w-5" />
+                             Go Live with this!
+                           </Link>
                         </Button>
                       </div>
                     </>
