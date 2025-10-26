@@ -21,14 +21,12 @@ service cloud.firestore {
       
       // Users can read and update their own highlights
       match /highlights/{highlightId} {
-        allow read: if true;
-        allow create, update, delete: if request.auth != null && request.auth.uid == userId;
+        allow read, write: if request.auth.uid == userId;
       }
       
       // Users can read and update their own notifications
       match /notifications/{notificationId} {
-        allow read, update: if request.auth != null && request.auth.uid == userId;
-        allow create: if request.auth != null; // Allow other users to create notifications for this user
+        allow read, write: if request.auth.uid == userId;
       }
     }
 

@@ -2,25 +2,11 @@
 
 import { useFirestore } from '@/firebase';
 import { Button } from './ui/button';
-import { doc, writeBatch, serverTimestamp } from 'firebase/firestore';
+import { doc, writeBatch, serverTimestamp, collection, getDocs } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { useState }from 'react';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
-import { CheckCircle, Loader2 } from 'lucide-react';
-
-const usersToCreate = [
-    { 
-        uid: 'pDOa2Wd87RV6kCz0fbBdN095PIh1', 
-        email: 'nkosivumilecenge@gmail.com',
-        username: 'nkosivumilecenge' // Derived from email
-    },
-    { 
-        uid: 'Zuock7KG6GbJDam7cL2hwvhL0A33', // Assuming the full UID from your screenshot
-        email: 'nomkhatshulenathi@gmail.com',
-        username: 'nomkhatshulenathi' // Derived from email
-    }
-];
-
+import { CheckCircle, Loader2, Wrench } from 'lucide-react';
 
 export function TempDataMigration() {
     const firestore = useFirestore();
@@ -28,29 +14,38 @@ export function TempDataMigration() {
     const [isLoading, setIsLoading] = useState(false);
     const [isDone, setIsDone] = useState(false);
 
-    const handleCreateUsers = async () => {
+    const handleFixTimestamps = async () => {
         if (!firestore) return;
         setIsLoading(true);
 
-        const batch = writeBatch(firestore);
-
-        usersToCreate.forEach(user => {
-            const userDocRef = doc(firestore, 'users', user.uid);
-            batch.set(userDocRef, {
-                id: user.uid,
-                email: user.email,
-                username: user.username,
-                createdAt: serverTimestamp(),
-                profilePicture: '',
-                bio: '',
-            });
-        });
-
         try {
+            const usersCollectionRef = collection(firestore, 'users');
+            const querySnapshot = await getDocs(usersCollectionRef);
+            
+            if (querySnapshot.empty) {
+                toast({ title: "No users found."});
+                setIsDone(true);
+                return;
+            }
+
+            const batch = writeBatch(firestore);
+
+            querySnapshot.forEach(document => {
+                const data = document.data();
+                const userRef = doc(firestore, 'users', document.id);
+
+                // Check if createdAt is a Timestamp object
+                if (data.createdAt && typeof data.createdAt.toDate === 'function') {
+                    // Convert timestamp to milliseconds
+                    const numericTimestamp = data.createdAt.toDate().getTime();
+                    batch.update(userRef, { createdAt: numericTimestamp });
+                }
+            });
+
             await batch.commit();
             toast({
                 title: 'Success!',
-                description: 'The missing user profiles have been created in Firestore.',
+                description: 'User timestamps have been converted. Algolia should now be able to index correctly.',
             });
             setIsDone(true);
         } catch (error: any) {
@@ -58,7 +53,7 @@ export function TempDataMigration() {
             toast({
                 variant: 'destructive',
                 title: 'Migration Failed',
-                description: error.message || 'Could not create user documents.',
+                description: error.message || 'Could not update user documents.',
             });
         } finally {
             setIsLoading(false);
@@ -71,7 +66,7 @@ export function TempDataMigration() {
               <CheckCircle className="h-4 w-4 !text-green-500" />
               <AlertTitle className="text-green-800 dark:text-green-300">Migration Complete</AlertTitle>
               <AlertDescription className="text-green-700 dark:text-green-400">
-                The user profiles have been created. You can now remove the {'<TempDataMigration />'} component from `src/app/page.tsx`.
+                The timestamps have been fixed. You can now remove the {'<TempDataMigration />'} component from `src/app/page.tsx`. Please check your Algolia dashboard to see if indexing is succeeding.
               </AlertDescription>
             </Alert>
         )
@@ -79,12 +74,13 @@ export function TempDataMigration() {
 
     return (
         <Alert>
-          <AlertTitle>Action Required: Create Missing User Profiles</AlertTitle>
+          <Wrench className="h-4 w-4" />
+          <AlertTitle>Action Recommended: Fix Data for Search</AlertTitle>
           <AlertDescription className="flex items-center justify-between">
-            <p>Click the button to create Firestore documents for the 2 users that were created before the sign-up process was updated.</p>
-            <Button onClick={handleCreateUsers} disabled={isLoading}>
+            <p>Click the button to convert user data to a search-compatible format. This should resolve the Algolia indexing error.</p>
+            <Button onClick={handleFixTimestamps} disabled={isLoading}>
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Create Profiles
+                Fix Timestamps
             </Button>
           </AlertDescription>
         </Alert>
