@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { truthQuestions, dareChallenges } from '@/lib/data';
 import { cn } from '@/lib/utils';
-import { Loader2, Play, Video } from 'lucide-react';
+import { Loader2, Play, Video, X } from 'lucide-react';
 import { generateGamePrompts } from '@/ai/flows/generate-game-prompts';
 import Link from 'next/link';
 
@@ -111,6 +111,17 @@ export default function CardsPage() {
                   <div className="absolute top-0 left-0 w-full h-full bg-white/90 rounded-3xl p-4 shadow-2xl transform rotate-3 scale-95" />
                   {/* Main Card */}
                   <div className="absolute top-0 left-0 w-full h-full bg-white rounded-3xl p-6 shadow-2xl flex flex-col items-center justify-center">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute top-4 right-4 text-muted-foreground"
+                      onClick={() => {
+                        setIsGameStarted(false);
+                        setChallenge('');
+                      }}
+                    >
+                      <X className="h-6 w-6" />
+                    </Button>
                     <div className="flex-grow w-full flex items-center justify-center text-center">
                         {isLoadingChallenge ? (
                             <Loader2 className="h-12 w-12 animate-spin text-primary"/>
@@ -133,16 +144,6 @@ export default function CardsPage() {
                              <Video className="mr-2 h-5 w-5" />
                              Go Live with this!
                            </Link>
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          className="w-full text-muted-foreground"
-                          onClick={() => {
-                            setIsGameStarted(false);
-                            setChallenge('');
-                          }}
-                        >
-                          End Game
                         </Button>
                     </div>
                   </div>
