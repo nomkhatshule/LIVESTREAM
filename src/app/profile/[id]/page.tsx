@@ -183,11 +183,17 @@ export default function UserProfilePage() {
               </div>
               
               {!isOwnProfile && currentUser && (
-                <div className="mt-6">
+                <div className="mt-6 flex items-center gap-2">
                   <Button onClick={handleFollowToggle} variant={isFollowing ? 'secondary' : 'default'} size="lg">
                     {isFollowing ? <UserCheck className="mr-2" /> : <UserPlus className="mr-2" />}
                     {isFollowing ? 'Following' : 'Follow'}
                   </Button>
+                   <Button asChild variant="outline" size="lg">
+                      <Link href={`/messages?with=${profileUserId}`}>
+                        <MessageSquare className="mr-2" />
+                        Message
+                      </Link>
+                   </Button>
                 </div>
               )}
             </div>
@@ -358,6 +364,5 @@ function ProfileSkeleton() {
     </div>
   );
 }
-
 
     
