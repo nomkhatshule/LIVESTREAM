@@ -131,18 +131,19 @@ export default function CardsPage() {
                             <h2 className="text-3xl font-bold text-black font-headline">{challenge}</h2>
                         )}
                     </div>
-                     <div className="mt-auto pt-4 w-full flex flex-col gap-y-3">
+                     <div className="mt-auto pt-4 w-full flex flex-row gap-x-2">
                         <Button
                           className="w-full"
                           onClick={handleGenerateChallenge}
                           disabled={isLoadingChallenge}
+                          variant="outline"
                         >
-                          Next Challenge
+                          Next
                         </Button>
-                        <Button asChild size="lg" variant="secondary" className="w-full" disabled={!challenge}>
+                        <Button asChild size="lg" className="w-full" disabled={!challenge}>
                            <Link href={`/broadcast/create?challenge=${encodeURIComponent(challenge)}`}>
                              <Video className="mr-2 h-5 w-5" />
-                             Go Live with this!
+                             Go Live!
                            </Link>
                         </Button>
                     </div>
@@ -183,14 +184,14 @@ export default function CardsPage() {
                       <div className="flex-grow flex items-center justify-center">
                         <p className="text-2xl font-semibold text-black font-headline">{prompt}</p>
                       </div>
-                      <div className="mt-auto pt-4 w-full flex flex-col gap-y-3">
-                        <Button size="lg" className="w-full" onClick={handleNextRound}>
-                          Next Round
+                      <div className="mt-auto pt-4 w-full flex flex-row gap-x-2">
+                        <Button size="lg" variant="outline" className="w-full" onClick={handleNextRound}>
+                          Next
                         </Button>
-                        <Button asChild size="lg" variant="secondary" className="w-full" disabled={!prompt}>
+                        <Button asChild size="lg" className="w-full" disabled={!prompt}>
                            <Link href={`/broadcast/create?challenge=${encodeURIComponent(prompt)}`}>
                              <Video className="mr-2 h-5 w-5" />
-                             Go Live with this!
+                             Go Live!
                            </Link>
                         </Button>
                       </div>
