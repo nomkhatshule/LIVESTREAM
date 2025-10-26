@@ -1,11 +1,19 @@
 'use client';
 
-import { useState, useEffect, ReactNode } from 'react';
-import { StreamChat } from 'stream-chat';
-import { Chat, OverlayProvider } from 'stream-chat-react';
+import { useState, useEffect, ReactNode, createContext, useContext } from 'react';
+import { StreamChat, Channel as StreamChannel } from 'stream-chat';
+import { Chat } from 'stream-chat-react';
 import { useUser } from '@/firebase';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+
+interface ChatContextValue {
+  client: StreamChat | null;
+  setActiveChannel: (channel: StreamChannel | null) => void;
+  channel: StreamChannel | null;
+}
+
+const ChatContext = createContext<ChatContextValue | undefined>(undefined);
 
 interface ChatProviderProps {
   children: ReactNode;
@@ -17,6 +25,8 @@ export function ChatProvider({ children }: ChatProviderProps) {
   const { user, isUserLoading } = useUser();
   const { toast } = useToast();
   const [chatClient, setChatClient] = useState<StreamChat | null>(null);
+  const [activeChannel, setActiveChannel] = useState<StreamChannel | null>(null);
+
 
   useEffect(() => {
     if (!user || !apiKey) {
@@ -92,8 +102,16 @@ export function ChatProvider({ children }: ChatProviderProps) {
   }
 
   return (
-    <OverlayProvider>
+    <ChatContext.Provider value={{ client: chatClient, channel: activeChannel, setActiveChannel }}>
         <Chat client={chatClient}>{children}</Chat>
-    </OverlayProvider>
+    </ChatContext.Provider>
   );
+}
+
+export const useChatContext = () => {
+  const context = useContext(ChatContext);
+  if (context === undefined) {
+    throw new Error('useChatContext must be used within a ChatProvider');
+  }
+  return context;
 }
