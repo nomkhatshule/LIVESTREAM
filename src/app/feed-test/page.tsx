@@ -6,7 +6,7 @@ import { useUser, useFirestore, useMemoFirebase, useStorage } from '@/firebase';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { collection, query, where, addDoc, serverTimestamp } from 'firebase/firestore';
 import type { Broadcast } from '@/lib/data';
-import { Clapperboard, Loader2, MoreVertical, Share2, User as UserIcon, Upload, Film, FileVideo, X, UploadCloud, Search } from 'lucide-react';
+import { Clapperboard, Loader2, MoreVertical, Share2, User as UserIcon, Upload, Film, FileVideo, X, UploadCloud, Search, Bell } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import BroadcastPlayer from '@/components/broadcast/broadcast-player';
 import { useStreamStore } from '@/lib/stream-store';
@@ -24,6 +24,15 @@ import {
   DialogTrigger,
   DialogClose
 } from "@/components/ui/dialog"
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
@@ -31,6 +40,7 @@ import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { UserSearch } from '@/components/search/user-search';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 
 function UploadHighlightForm({ setOpen }: { setOpen: (open: boolean) => void }) {
@@ -210,6 +220,65 @@ function UploadHighlightForm({ setOpen }: { setOpen: (open: boolean) => void }) 
     );
 }
 
+function InboxPanel() {
+    // Mock data for notifications. In a real app, this would come from Firestore or a backend.
+    const notifications = [
+        { id: 1, type: 'follow', user: { name: 'StreamFan_1', avatar: 'https://picsum.photos/seed/notif1/40' }, time: '5m ago' },
+        { id: 2, type: 'like', user: { name: 'GamerGirl_99', avatar: 'https://picsum.photos/seed/notif2/40' }, stream: 'Epic Playthrough Part 5', time: '1h ago' },
+        { id: 3, type: 'comment', user: { name: 'ChefMaster', avatar: 'https://picsum.photos/seed/notif3/40' }, comment: 'That recipe looks amazing! 🔥', time: '3h ago' },
+    ];
+    const messages = [
+        { id: 1, user: { name: 'GamerGirl_99', avatar: 'https://picsum.photos/seed/notif2/40' }, message: 'Hey, loved your last stream!', time: '1h ago', unread: true },
+    ];
+
+    return (
+         <Tabs defaultValue="all" className="w-full h-full flex flex-col">
+            <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="all">All</TabsTrigger>
+                <TabsTrigger value="messages">Messages</TabsTrigger>
+            </TabsList>
+            <TabsContent value="all" className="flex-1 overflow-y-auto mt-4 space-y-4">
+                {notifications.map(n => (
+                    <div key={n.id} className="flex items-center gap-3 p-2">
+                        <Avatar className="h-10 w-10">
+                            <AvatarImage src={n.user.avatar} />
+                            <AvatarFallback>{n.user.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="text-sm flex-1">
+                            <p>
+                                <span className="font-semibold">{n.user.name}</span>
+                                {n.type === 'follow' && ' started following you.'}
+                                {n.type === 'like' && ` liked your stream "${n.stream}".`}
+                                {n.type === 'comment' && ` commented: "${n.comment}"`}
+                            </p>
+                            <p className="text-xs text-muted-foreground">{n.time}</p>
+                        </div>
+                    </div>
+                ))}
+            </TabsContent>
+            <TabsContent value="messages" className="flex-1 overflow-y-auto mt-4 space-y-2">
+                {messages.map(m => (
+                    <Link key={m.id} href={`/messages?with=${m.user.name}`} passHref>
+                        <div className="flex items-center gap-3 p-2 hover:bg-muted rounded-lg cursor-pointer">
+                            <Avatar className="h-10 w-10">
+                                <AvatarImage src={m.user.avatar} />
+                                <AvatarFallback>{m.user.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div className="text-sm flex-1">
+                                <div className="flex justify-between">
+                                    <p className="font-semibold">{m.user.name}</p>
+                                    <p className="text-xs text-muted-foreground">{m.time}</p>
+                                </div>
+                                <p className={cn("truncate", m.unread && "font-bold text-primary")}>{m.message}</p>
+                            </div>
+                        </div>
+                    </Link>
+                ))}
+            </TabsContent>
+        </Tabs>
+    )
+}
+
 function FeedPageContent() {
     const router = useRouter();
     const { user, isUserLoading } = useUser();
@@ -217,6 +286,7 @@ function FeedPageContent() {
     const setActiveBroadcastId = useStreamStore((state) => state.setActiveBroadcastId);
     const disconnect = useStreamStore((state) => state.disconnect);
     const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
+    const [unreadCount, setUnreadCount] = useState(4); // Mock unread count
 
     const liveBroadcastsQuery = useMemoFirebase(() => {
         if (!firestore) return null;
@@ -248,60 +318,83 @@ function FeedPageContent() {
 
     return (
         <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
-            <div className="h-[calc(100vh-4rem)] relative bg-black">
-                {/* The single, centralized player */}
-                <BroadcastPlayer user={user} />
+             <Sheet>
+                <div className="h-[calc(100vh-4rem)] relative bg-black">
+                    {/* The single, centralized player */}
+                    <BroadcastPlayer user={user} />
 
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="absolute top-4 right-4 z-40 text-white transition-transform hover:bg-transparent hover:scale-110 pointer-events-auto focus-visible:ring-0">
-                            <MoreVertical className="h-8 w-8" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-64" align="end">
-                         <UserSearch>
-                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                <Share2 className="mr-2 h-4 w-4" />
-                                <span>Share</span>
-                            </DropdownMenuItem>
-                            <DialogTrigger asChild>
-                                <DropdownMenuItem>
-                                    <Film className="mr-2 h-4 w-4" />
-                                    <span>Upload Highlight</span>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="absolute top-4 right-4 z-40 text-white transition-transform hover:bg-transparent hover:scale-110 pointer-events-auto focus-visible:ring-0">
+                                <MoreVertical className="h-8 w-8" />
+                                 {unreadCount > 0 && (
+                                    <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold text-white">
+                                        {unreadCount}
+                                    </span>
+                                )}
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-80 p-0" align="end">
+                            <UserSearch>
+                                <DropdownMenuSeparator />
+                                <SheetTrigger asChild>
+                                    <DropdownMenuItem>
+                                        <Bell className="mr-2 h-4 w-4" />
+                                        <span>Inbox</span>
+                                        {unreadCount > 0 && <span className="ml-auto bg-primary text-primary-foreground text-xs font-bold px-2 py-0.5 rounded-full">{unreadCount}</span>}
+                                    </DropdownMenuItem>
+                                </SheetTrigger>
+                                <DropdownMenuItem asChild>
+                                    <Link href="/broadcast/create">
+                                        <Clapperboard className="mr-2 h-4 w-4" />
+                                        <span>Go Stream</span>
+                                    </Link>
                                 </DropdownMenuItem>
-                            </DialogTrigger>
-                            <DropdownMenuItem asChild>
-                                <Link href="/broadcast/create">
-                                    <Clapperboard className="mr-2 h-4 w-4" />
-                                    <span>Go Stream</span>
-                                </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                                <Link href={`/profile/${user.uid}`}>
-                                    <UserIcon className="mr-2 h-4 w-4" />
-                                    <span>My Profile</span>
-                                </Link>
-                            </DropdownMenuItem>
-                        </UserSearch>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-                
-                {/* The scrollable list of previews */}
-                <div className="h-full overflow-y-scroll snap-y snap-mandatory">
-                    {liveBroadcasts && liveBroadcasts.map(broadcast => (
-                        <BroadcastPreview
-                            key={broadcast.id}
-                            broadcast={broadcast}
-                            onVisible={() => setActiveBroadcastId(broadcast.id)}
-                        />
-                    ))}
-                    {(!liveBroadcasts || liveBroadcasts.length === 0) && (
-                        <div className="h-full w-full flex items-center justify-center text-white snap-start">
-                            <p>No live broadcasts right now. Check back later!</p>
-                        </div>
-                    )}
+                                <DialogTrigger asChild>
+                                    <DropdownMenuItem>
+                                        <Film className="mr-2 h-4 w-4" />
+                                        <span>Upload Highlight</span>
+                                    </DropdownMenuItem>
+                                </DialogTrigger>
+                                 <DropdownMenuSeparator />
+                                <DropdownMenuItem asChild>
+                                    <Link href={`/profile/${user.uid}`}>
+                                        <UserIcon className="mr-2 h-4 w-4" />
+                                        <span>My Profile</span>
+                                    </Link>
+                                </DropdownMenuItem>
+                            </UserSearch>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                    
+                    {/* The scrollable list of previews */}
+                    <div className="h-full overflow-y-scroll snap-y snap-mandatory">
+                        {liveBroadcasts && liveBroadcasts.map(broadcast => (
+                            <BroadcastPreview
+                                key={broadcast.id}
+                                broadcast={broadcast}
+                                onVisible={() => setActiveBroadcastId(broadcast.id)}
+                            />
+                        ))}
+                        {(!liveBroadcasts || liveBroadcasts.length === 0) && (
+                            <div className="h-full w-full flex items-center justify-center text-white snap-start">
+                                <p>No live broadcasts right now. Check back later!</p>
+                            </div>
+                        )}
+                    </div>
                 </div>
-            </div>
+                 <SheetContent className="w-[400px] sm:w-[540px]">
+                    <SheetHeader>
+                        <SheetTitle>Inbox</SheetTitle>
+                        <SheetDescription>
+                            Recent notifications and direct messages.
+                        </SheetDescription>
+                    </SheetHeader>
+                    <div className="h-[calc(100%-4rem)] py-4">
+                        <InboxPanel />
+                    </div>
+                </SheetContent>
+            </Sheet>
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>Upload a New Highlight</DialogTitle>
@@ -326,3 +419,5 @@ export default function FeedTestPage() {
         </Suspense>
     )
 }
+
+    
