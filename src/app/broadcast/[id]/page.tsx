@@ -79,6 +79,9 @@ export default function BroadcastPage() {
       category: broadcastData.category,
       isLive: broadcastData.isLive,
       tags: broadcastData.tags || [],
+      hostId: broadcastData.hostId,
+      hostName: broadcastData.hostName,
+      hostAvatar: broadcastData.hostAvatar,
     };
   }, [broadcastData, id]);
 
@@ -87,13 +90,31 @@ export default function BroadcastPage() {
     if (newMessage.trim() === '' || !user || !broadcast || !userDocument) return;
 
     const messagesCollection = collection(firestore, `broadcasts/${broadcast.id}/messages`);
-    addDocumentNonBlocking(messagesCollection, {
+    const newComment = {
         userId: user.uid,
         username: userDocument.username || 'Anonymous',
         userAvatar: userDocument.profilePicture || '',
         message: newMessage,
         timestamp: serverTimestamp(),
-    });
+    };
+    addDocumentNonBlocking(messagesCollection, newComment);
+    
+    // Don't create notification if the host is commenting on their own stream
+    if (user.uid !== broadcast.hostId) {
+        const hostNotificationsRef = collection(firestore, `users/${broadcast.hostId}/notifications`);
+        addDocumentNonBlocking(hostNotificationsRef, {
+            userId: broadcast.hostId,
+            type: 'comment',
+            actorId: user.uid,
+            actorName: userDocument.username || 'Someone',
+            actorAvatar: userDocument.profilePicture || '',
+            entityId: broadcast.id,
+            entityInfo: `commented: "${newMessage.substring(0, 50)}${newMessage.length > 50 ? '...' : ''}"`,
+            isRead: false,
+            timestamp: serverTimestamp(),
+        });
+    }
+
     setNewMessage('');
   }
 
@@ -102,7 +123,7 @@ export default function BroadcastPage() {
         toast({ title: 'Stream is offline', description: 'You can only like live streams.', variant: 'destructive'});
         return;
     }
-    if (!user) {
+    if (!user || !userDocument) {
       toast({ title: 'Login Required', description: 'You must be logged in to like a stream.', variant: 'destructive'});
       return;
     }
@@ -117,6 +138,22 @@ export default function BroadcastPage() {
         userId: user.uid,
         timestamp: serverTimestamp() 
       });
+
+      // Don't create a notification if the user likes their own stream
+      if (user.uid !== broadcast.hostId) {
+          const hostNotificationsRef = collection(firestore, `users/${broadcast.hostId}/notifications`);
+          addDocumentNonBlocking(hostNotificationsRef, {
+              userId: broadcast.hostId,
+              type: 'like',
+              actorId: user.uid,
+              actorName: userDocument.username || 'Someone',
+              actorAvatar: userDocument.profilePicture || '',
+              entityId: broadcast.id,
+              entityInfo: `liked your stream: "${broadcast.title}"`,
+              isRead: false,
+              timestamp: serverTimestamp(),
+          });
+      }
     }
   };
 

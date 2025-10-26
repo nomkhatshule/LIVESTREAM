@@ -21,6 +21,9 @@ export type Broadcast = {
   category: string;
   isLive: boolean;
   tags: string[];
+  hostId: string;
+  hostName: string;
+  hostAvatar: string;
 };
 
 export type Category = {
@@ -35,7 +38,23 @@ export type ChatMessage = {
   message: string;
   timestamp: Timestamp | string | null;
   replyingTo?: string;
+  broadcastTitle?: string;
+  broadcastId?: string;
 };
+
+export type Notification = {
+    id: string;
+    userId: string; // The user who receives the notification
+    type: 'follow' | 'like' | 'comment';
+    actorId: string;
+    actorName: string;
+    actorAvatar: string;
+    entityId?: string; // e.g., broadcastId
+    entityInfo?: string; // e.g., broadcast title or comment text
+    isRead: boolean;
+    timestamp: Timestamp;
+};
+
 
 export type Highlight = {
     id: string;

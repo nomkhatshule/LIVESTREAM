@@ -2,58 +2,57 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Users can be read by anyone, but only the authenticated user can update their own profile.
+    
+    // --- Users Collection ---
+    // Users can read any public profile.
+    // Users can only create and update their OWN profile document.
     match /users/{userId} {
-      allow read: if true;
-      allow update: if request.auth.uid == userId;
+      allow read;
+      allow create, update: if request.auth != null && request.auth.uid == userId;
 
-      // Highlights can only be read and written by the user who owns them.
-      match /highlights/{highlightId} {
-        allow read, write: if request.auth.uid == userId;
-      }
-
-      // Following/Followers can be read by anyone, but only the owner can modify their own lists.
+      // Users can only read their own 'following' and 'followers' lists.
       match /following/{targetUserId} {
-        allow read: if true;
-        allow write: if request.auth.uid == userId;
+        allow read, create, delete: if request.auth != null && request.auth.uid == userId;
       }
       match /followers/{followerUserId} {
+         allow read: if request.auth != null;
+         allow create, delete: if request.auth != null && (request.auth.uid == followerUserId || request.auth.uid == userId);
+      }
+      
+      // Users can read and update their own highlights
+      match /highlights/{highlightId} {
         allow read: if true;
-        // Followers list is managed by the actions of other users, so owner of this doc should not have write access.
-        // Writes are handled by the 'following' rule on the other user's doc.
-        allow write: if false; 
+        allow create, update, delete: if request.auth != null && request.auth.uid == userId;
+      }
+      
+      // Users can read and update their own notifications
+      match /notifications/{notificationId} {
+        allow read, update: if request.auth != null && request.auth.uid == userId;
+        allow create: if request.auth != null; // Allow other users to create notifications for this user
       }
     }
 
-    // Broadcasts can be read by anyone. Only the host can create, update or end their own stream.
+    // --- Broadcasts Collection ---
+    // Anyone can read broadcasts.
+    // Logged-in users can create broadcasts.
+    // Only the host can update or delete their own broadcast.
     match /broadcasts/{broadcastId} {
-      allow read: if true;
-      allow create: if request.auth.uid == request.resource.data.hostId;
-      allow update: if request.auth.uid == resource.data.hostId;
+      allow read;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && request.auth.uid == resource.data.hostId;
+      allow delete: if request.auth != null && request.auth.uid == resource.data.hostId;
 
-      // Messages can be read by anyone. Authenticated users can create messages.
+      // --- Sub-collections ---
+      // Logged-in users can read/write to chat, likes, and reactions.
       match /messages/{messageId} {
-        allow read: if true;
-        allow create: if request.auth != null;
+        allow read, create: if request.auth != null;
       }
-
-      // Likes can be read by anyone. Authenticated users can create/delete their own like.
       match /likes/{userId} {
-        allow read: if true;
-        allow write: if request.auth.uid == userId;
+        allow read, create: if request.auth != null;
+        allow delete: if request.auth != null && request.auth.uid == userId;
       }
-
-      // Reactions can be written by any authenticated user.
       match /reactions/{reactionId} {
-        allow read: if true;
-        allow create: if request.auth != null;
-      }
-      
-      // Guest status can be read by anyone, but only the host can update it.
-      match /guests/{guestId} {
-        allow read: if true;
-        allow write: if request.auth.uid == get(/databases/$(database)/documents/broadcasts/$(broadcastId)).data.hostId;
+         allow read, create: if request.auth != null;
       }
     }
   }

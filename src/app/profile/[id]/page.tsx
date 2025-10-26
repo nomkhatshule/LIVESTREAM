@@ -1,22 +1,23 @@
 
 'use client';
-import { useUserDocumentById } from '@/firebase/firestore/use-user-document';
+import { useUserDocumentById, UserProfile } from '@/firebase/firestore/use-user-document';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useParams } from 'next/navigation';
-import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase, useUserDocument } from '@/firebase';
 import { Button } from '@/components/ui/button';
-import { doc, writeBatch, serverTimestamp, where, query, orderBy, limit } from 'firebase/firestore';
+import { doc, writeBatch, serverTimestamp, where, query, orderBy, limit, collection, addDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { useMemo } from 'react';
-import { collection } from 'firebase/firestore';
 import { UserPlus, UserCheck, MessageSquare, Heart, Pencil, Eye, Gem, Gift, Video } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Link from 'next/link';
 import Image from 'next/image';
 import { mockGifts, type Highlight } from '@/lib/data';
 import { Badge } from '@/components/ui/badge';
+import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+
 
 // Mock data for recent activity - in a real app this would be a Firestore query
 const mockActivity = [
@@ -29,6 +30,7 @@ export default function UserProfilePage() {
   const params = useParams();
   const profileUserId = params.id as string;
   const { user: currentUser } = useUser();
+  const { userDocument: currentUserDocument } = useUserDocument();
   const firestore = useFirestore();
   const { toast } = useToast();
   
@@ -73,7 +75,7 @@ export default function UserProfilePage() {
   }, [currentUserFollowingList, profileUserId]);
 
   const handleFollowToggle = async () => {
-    if (!currentUser) {
+    if (!currentUser || !currentUserDocument) {
       toast({
         title: 'Please log in',
         description: 'You need to be logged in to follow users.',
@@ -94,6 +96,22 @@ export default function UserProfilePage() {
       const followData = { userId: currentUser.uid, timestamp: serverTimestamp() };
       batch.set(followingDocRef, followData);
       batch.set(followerDocRef, followData);
+      
+      // Create a notification for the user being followed
+      const notificationsCollectionRef = collection(firestore, `users/${profileUserId}/notifications`);
+      const notificationData = {
+          userId: profileUserId,
+          type: 'follow',
+          actorId: currentUser.uid,
+          actorName: currentUserDocument.username || 'Someone',
+          actorAvatar: currentUserDocument.profilePicture || '',
+          isRead: false,
+          timestamp: serverTimestamp(),
+      };
+      // We can't use `addDoc` in a batch, so we create a new doc ref and set it.
+      const newNotifRef = doc(notificationsCollectionRef);
+      batch.set(newNotifRef, notificationData);
+
       toast({ title: `Followed ${userDocument?.username}` });
     }
 

@@ -1,12 +1,12 @@
 
 'use client';
 
-import { Suspense, useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef, useState, useMemo } from 'react';
 import { useUser, useFirestore, useMemoFirebase, useStorage } from '@/firebase';
 import { useCollection } from '@/firebase/firestore/use-collection';
-import { collection, query, where, addDoc, serverTimestamp } from 'firebase/firestore';
-import type { Broadcast } from '@/lib/data';
-import { Clapperboard, Loader2, MoreVertical, Share2, User as UserIcon, Upload, Film, FileVideo, X, UploadCloud, Search, Bell } from 'lucide-react';
+import { collection, query, where, addDoc, serverTimestamp, writeBatch, doc, orderBy } from 'firebase/firestore';
+import type { Broadcast, Notification } from '@/lib/data';
+import { Clapperboard, Loader2, MoreVertical, Share2, User as UserIcon, Upload, Film, FileVideo, X, UploadCloud, Search, Bell, Heart, MessageSquare } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import BroadcastPlayer from '@/components/broadcast/broadcast-player';
 import { useStreamStore } from '@/lib/stream-store';
@@ -41,6 +41,7 @@ import { Progress } from '@/components/ui/progress';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { UserSearch } from '@/components/search/user-search';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { formatDistanceToNow } from 'date-fns';
 
 
 function UploadHighlightForm({ setOpen }: { setOpen: (open: boolean) => void }) {
@@ -221,15 +222,31 @@ function UploadHighlightForm({ setOpen }: { setOpen: (open: boolean) => void }) 
 }
 
 function InboxPanel() {
-    // Mock data for notifications. In a real app, this would come from Firestore or a backend.
-    const notifications = [
-        { id: 1, type: 'follow', user: { name: 'StreamFan_1', avatar: 'https://picsum.photos/seed/notif1/40' }, time: '5m ago' },
-        { id: 2, type: 'like', user: { name: 'GamerGirl_99', avatar: 'https://picsum.photos/seed/notif2/40' }, stream: 'Epic Playthrough Part 5', time: '1h ago' },
-        { id: 3, type: 'comment', user: { name: 'ChefMaster', avatar: 'https://picsum.photos/seed/notif3/40' }, comment: 'That recipe looks amazing! 🔥', time: '3h ago' },
-    ];
+    const { user } = useUser();
+    const firestore = useFirestore();
+    
+    const notificationsQuery = useMemoFirebase(() => {
+        if (!user) return null;
+        return query(collection(firestore, `users/${user.uid}/notifications`), orderBy('timestamp', 'desc'));
+    }, [user, firestore]);
+    const { data: notifications, isLoading } = useCollection<Notification>(notificationsQuery);
+
     const messages = [
         { id: 1, user: { name: 'GamerGirl_99', avatar: 'https://picsum.photos/seed/notif2/40' }, message: 'Hey, loved your last stream!', time: '1h ago', unread: true },
     ];
+    
+    const getIconForType = (type: Notification['type']) => {
+        switch(type) {
+            case 'follow': return <UserIcon className="h-5 w-5 text-blue-500"/>;
+            case 'like': return <Heart className="h-5 w-5 text-red-500" />;
+            case 'comment': return <MessageSquare className="h-5 w-5 text-green-500" />;
+            default: return <Bell className="h-5 w-5" />;
+        }
+    }
+
+    if (isLoading) {
+        return <div className="flex items-center justify-center h-full"><Loader2 className="h-6 w-6 animate-spin" /></div>
+    }
 
     return (
          <Tabs defaultValue="all" className="w-full h-full flex flex-col">
@@ -237,24 +254,32 @@ function InboxPanel() {
                 <TabsTrigger value="all">All</TabsTrigger>
                 <TabsTrigger value="messages">Messages</TabsTrigger>
             </TabsList>
-            <TabsContent value="all" className="flex-1 overflow-y-auto mt-4 space-y-4">
-                {notifications.map(n => (
-                    <div key={n.id} className="flex items-center gap-3 p-2">
-                        <Avatar className="h-10 w-10">
-                            <AvatarImage src={n.user.avatar} />
-                            <AvatarFallback>{n.user.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div className="text-sm flex-1">
-                            <p>
-                                <span className="font-semibold">{n.user.name}</span>
-                                {n.type === 'follow' && ' started following you.'}
-                                {n.type === 'like' && ` liked your stream "${n.stream}".`}
-                                {n.type === 'comment' && ` commented: "${n.comment}"`}
-                            </p>
-                            <p className="text-xs text-muted-foreground">{n.time}</p>
+            <TabsContent value="all" className="flex-1 overflow-y-auto mt-4 space-y-2">
+                {notifications && notifications.length > 0 ? (
+                    notifications.map(n => (
+                        <div key={n.id} className={cn("flex items-center gap-3 p-2 rounded-lg", !n.isRead && "bg-primary/10")}>
+                            <div className="flex-shrink-0">{getIconForType(n.type)}</div>
+                            <Avatar className="h-10 w-10">
+                                <AvatarImage src={n.actorAvatar} />
+                                <AvatarFallback>{n.actorName.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div className="text-sm flex-1">
+                                <p>
+                                    <Link href={`/profile/${n.actorId}`} className="font-semibold hover:underline">{n.actorName}</Link>
+                                    {' '}
+                                    {n.type === 'follow' && 'started following you.'}
+                                    {n.type === 'like' && n.entityInfo}
+                                    {n.type === 'comment' && n.entityInfo}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                    {n.timestamp ? formatDistanceToNow(n.timestamp.toDate(), { addSuffix: true }) : ''}
+                                </p>
+                            </div>
                         </div>
-                    </div>
-                ))}
+                    ))
+                ) : (
+                    <div className="text-center text-muted-foreground py-16">No notifications yet.</div>
+                )}
             </TabsContent>
             <TabsContent value="messages" className="flex-1 overflow-y-auto mt-4 space-y-2">
                 {messages.map(m => (
@@ -274,6 +299,9 @@ function InboxPanel() {
                         </div>
                     </Link>
                 ))}
+                 {messages.length === 0 && (
+                    <div className="text-center text-muted-foreground py-16">No messages yet.</div>
+                )}
             </TabsContent>
         </Tabs>
     )
@@ -286,14 +314,21 @@ function FeedPageContent() {
     const setActiveBroadcastId = useStreamStore((state) => state.setActiveBroadcastId);
     const disconnect = useStreamStore((state) => state.disconnect);
     const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
-    const [unreadCount, setUnreadCount] = useState(4); // Mock unread count
-
+    
+    // Live broadcasts query
     const liveBroadcastsQuery = useMemoFirebase(() => {
         if (!firestore) return null;
         return query(collection(firestore, 'broadcasts'), where('isLive', '==', true));
     }, [firestore]);
-
     const { data: liveBroadcasts, isLoading: areBroadcastsLoading } = useCollection<Broadcast>(liveBroadcastsQuery);
+    
+    // Notifications query
+    const notificationsQuery = useMemoFirebase(() => {
+        if (!user) return null;
+        return query(collection(firestore, `users/${user.uid}/notifications`), where('isRead', '==', false));
+    }, [user, firestore]);
+    const { data: unreadNotifications, isLoading: areNotificationsLoading } = useCollection<Notification>(notificationsQuery);
+    const unreadCount = unreadNotifications?.length || 0;
 
     // This effect ensures we disconnect when the user navigates away from the feed.
     useEffect(() => {
@@ -302,7 +337,18 @@ function FeedPageContent() {
         }
     }, [disconnect]);
 
-    if (isUserLoading || areBroadcastsLoading) {
+    const handleOpenInbox = async () => {
+        if (!user || !firestore || !unreadNotifications || unreadNotifications.length === 0) return;
+
+        const batch = writeBatch(firestore);
+        unreadNotifications.forEach(notif => {
+            const notifRef = doc(firestore, `users/${user.uid}/notifications`, notif.id);
+            batch.update(notifRef, { isRead: true });
+        });
+        await batch.commit().catch(err => console.error("Failed to mark notifications as read:", err));
+    };
+
+    if (isUserLoading || areBroadcastsLoading || areNotificationsLoading) {
         return (
             <div className="flex h-screen w-full items-center justify-center bg-background">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -338,7 +384,7 @@ function FeedPageContent() {
                             <UserSearch>
                                 <DropdownMenuSeparator />
                                 <SheetTrigger asChild>
-                                    <DropdownMenuItem>
+                                    <DropdownMenuItem onSelect={handleOpenInbox}>
                                         <Bell className="mr-2 h-4 w-4" />
                                         <span>Inbox</span>
                                         {unreadCount > 0 && <span className="ml-auto bg-primary text-primary-foreground text-xs font-bold px-2 py-0.5 rounded-full">{unreadCount}</span>}
