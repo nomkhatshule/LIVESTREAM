@@ -119,12 +119,12 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
                 </AIChat>
 
                 {/* Games/Dares Action Item */}
-                <div className="flex flex-col items-center group">
+                <Link href="/cards" className="flex flex-col items-center group pointer-events-auto">
                     <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform">
                        <Dice6 className="h-6 w-6 drop-shadow-md" strokeWidth={1.5} />
                     </button>
                     <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">Games</span>
-                </div>
+                </Link>
             </div>
 
 
