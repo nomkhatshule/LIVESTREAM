@@ -21,7 +21,8 @@ import { cn } from '@/lib/utils';
 const appId = process.env.NEXT_PUBLIC_ALGOLIA_APP_ID || '';
 const apiKey = process.env.NEXT_PUBLIC_ALGOLIA_SEARCH_API_KEY || '';
 
-const searchClient = algoliasearch(appId, apiKey);
+// Initialize client only if config is present
+const searchClient = appId && apiKey ? algoliasearch(appId, apiKey) : null;
 
 function Hit({ hit }: { hit: any }) {
   return (
@@ -45,13 +46,24 @@ function Hit({ hit }: { hit: any }) {
 }
 
 function SearchResults({ children }: { children: React.ReactNode }) {
-    const { use, status, results } = useInstantSearch();
-    const hasQuery = results.query.length > 0;
+    const { use, status, results, error } = useInstantSearch();
+
+    // Handle Algolia-specific errors gracefully
+    if (error) {
+        console.warn("Algolia search error:", error.message);
+        return (
+             <p className="p-4 text-center text-sm text-destructive/80">
+                Search is temporarily unavailable.
+             </p>
+        )
+    }
 
     if (status === 'stalled') {
         return <p className="p-4 text-center text-sm text-muted-foreground">Loading...</p>;
     }
     
+    const hasQuery = results.query.length > 0;
+
     if (!hasQuery) {
         return <>{children}</>;
     }
@@ -72,8 +84,19 @@ function SearchResults({ children }: { children: React.ReactNode }) {
 }
 
 export function UserSearch({ children }: { children: React.ReactNode }) {
-  if (!appId || !apiKey) {
-    return <>{children}</>; // Silently fail if Algolia is not configured
+  // If Algolia is not configured, just show the children and don't render the search.
+  if (!searchClient) {
+    return (
+        <>
+            <div className="p-2">
+                <p className="text-center text-xs text-muted-foreground">
+                    Search is not configured. Please add Algolia credentials.
+                </p>
+            </div>
+            <DropdownMenuSeparator />
+            {children}
+        </>
+    );
   }
 
   return (
