@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import Header from '@/components/layout/header';
 import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase';
+import { ChatProvider } from '@/components/chat/ChatProvider';
 
 export const metadata: Metadata = {
   title: 'AgoraLive',
@@ -19,11 +20,13 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <body className={cn('min-h-screen bg-background font-body antialiased')}>
         <FirebaseClientProvider>
-          <div className="relative flex min-h-screen flex-col">
-            <Header />
-            <main className="flex-1">{children}</main>
-          </div>
-          <Toaster />
+          <ChatProvider>
+            <div className="relative flex min-h-screen flex-col">
+              <Header />
+              <main className="flex-1">{children}</main>
+            </div>
+            <Toaster />
+          </ChatProvider>
         </FirebaseClientProvider>
       </body>
     </html>
