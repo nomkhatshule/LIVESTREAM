@@ -3,10 +3,10 @@
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Users, X, Send, Smile, MessageCircle, Video, Mic, UserPlus, ScreenShare, VideoOff, MicOff, ArrowUp, MessageCircleOff, MonitorUp, Heart, ThumbsUp, Loader2 } from 'lucide-react';
+import { Users, X, Send, Smile, MessageCircle, Video, Mic, UserPlus, ScreenShare, VideoOff, MicOff, ArrowUp, MessageCircleOff, MonitorUp, Heart, ThumbsUp, Loader2, Dice6, Trophy, Check } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useEffect, useRef, useState, useMemo, Suspense, forwardRef } from 'react';
+import { Suspense, forwardRef, useEffect, useMemo, useRef, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useDoc, useFirestore, useMemoFirebase, useUserDocument } from '@/firebase';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -29,6 +29,8 @@ import VideoPlayer from '@/components/broadcast/video-player';
 import { User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { generateGamePrompts } from '@/ai/flows/generate-game-prompts';
+import { truthQuestions, dareChallenges } from '@/lib/data';
 
 // Type Definitions
 interface Comment {
@@ -52,6 +54,8 @@ interface BroadcastData {
     hostName: string;
     hostAvatar: string;
     isLive: boolean;
+    challenge?: string;
+    activeChallenge?: string;
     streamDetails?: {
       isScreenSharing: boolean;
     },
@@ -62,7 +66,102 @@ interface BroadcastData {
     }
 }
 
-// Sub-components for AgoraTestPageUI
+// --- Sub-components for AgoraTestPageUI ---
+
+const ChallengeOverlay = ({ challenge, onComplete }: { challenge?: string, onComplete: () => void }) => {
+    if (!challenge) return null;
+
+    return (
+        <div className="absolute top-24 left-1/2 -translate-x-1/2 z-20 bg-black/50 text-white p-3 rounded-lg backdrop-blur-sm max-w-md w-full shadow-lg border border-primary/50">
+            <div className="flex items-center gap-3">
+                <Trophy className="h-6 w-6 text-yellow-400" />
+                <div className="flex-1">
+                    <p className="text-xs font-bold text-yellow-400">CURRENT CHALLENGE</p>
+                    <p className="font-semibold">{challenge}</p>
+                </div>
+                <Button size="sm" variant="ghost" onClick={onComplete} className="text-white hover:bg-white/10 hover:text-white">
+                    <Check className="mr-2 h-4 w-4"/>
+                    Done
+                </Button>
+            </div>
+        </div>
+    )
+}
+
+const InStreamGamesPanel = ({ onSelectChallenge }: { onSelectChallenge: (challenge: string) => void }) => {
+    const [gameType, setGameType] = useState<'truth' | 'dare' | 'ai'>('ai');
+    const [prompt, setPrompt] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+
+    const handleGenerate = async (type: 'truth' | 'dare' | 'ai') => {
+        setIsLoading(true);
+        setPrompt('');
+        setGameType(type);
+
+        try {
+            if (type === 'truth') {
+                setPrompt(truthQuestions[Math.floor(Math.random() * truthQuestions.length)]);
+            } else if (type === 'dare') {
+                setPrompt(dareChallenges[Math.floor(Math.random() * dareChallenges.length)]);
+            } else {
+                 const result = await generateGamePrompts({
+                    gameType: 'challenge',
+                    category: 'Live Stream Audience',
+                    count: 1,
+                });
+                if (result.prompts && result.prompts.length > 0) {
+                    setPrompt(result.prompts[0]);
+                } else {
+                    setPrompt('AI could not generate a challenge. Try again!');
+                }
+            }
+        } catch (error) {
+            console.error("Error generating game prompt:", error);
+            setPrompt("There was an error generating the prompt.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+    
+    return (
+        <Sheet>
+            <SheetTrigger asChild>
+                 <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12">
+                    <Dice6 className="h-5 w-5 md:h-6 md:w-6"/>
+                </Button>
+            </SheetTrigger>
+            <SheetContent>
+                <SheetHeader>
+                    <SheetTitle>In-Stream Games</SheetTitle>
+                </SheetHeader>
+                <div className="py-6 space-y-6">
+                    <div className="text-center p-6 bg-muted rounded-lg min-h-[120px] flex items-center justify-center">
+                        {isLoading ? (
+                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        ) : (
+                            <p className="text-lg font-semibold">{prompt || "Generate a new challenge below."}</p>
+                        )}
+                    </div>
+                    
+                    <div className="grid grid-cols-3 gap-2">
+                        <Button onClick={() => handleGenerate('truth')} disabled={isLoading}>Truth</Button>
+                        <Button onClick={() => handleGenerate('dare')} disabled={isLoading}>Dare</Button>
+                        <Button onClick={() => handleGenerate('ai')} disabled={isLoading}>AI Challenge</Button>
+                    </div>
+
+                    <Button 
+                        size="lg" 
+                        className="w-full" 
+                        disabled={!prompt || isLoading} 
+                        onClick={() => onSelectChallenge(prompt)}
+                    >
+                        Start This Challenge
+                    </Button>
+                </div>
+            </SheetContent>
+        </Sheet>
+    )
+}
 
 const StreamHeader = ({ broadcastData, viewerCount, onEndStream }: { broadcastData: BroadcastData, viewerCount: number, onEndStream: () => void }) => {
     return (
@@ -91,7 +190,7 @@ const StreamHeader = ({ broadcastData, viewerCount, onEndStream }: { broadcastDa
     );
 };
 
-const StreamControls = ({ onToggleVideo, onToggleMic, onToggleScreenShare, onInviteGuest, isVideoEnabled, isMicEnabled, isScreenSharing, isCallJoined }: any) => {
+const StreamControls = ({ onToggleVideo, onToggleMic, onToggleScreenShare, onInviteGuest, isVideoEnabled, isMicEnabled, isScreenSharing, isCallJoined, onSelectChallenge }: any) => {
     const { useParticipants } = useCallStateHooks();
     const participants = useParticipants();
     const viewerCount = Math.max(0, participants.length -1);
@@ -111,6 +210,7 @@ const StreamControls = ({ onToggleVideo, onToggleMic, onToggleScreenShare, onInv
                 <UserPlus className="h-5 w-5 md:h-6 md:w-6"/>
             </Button>
             <ParticipantsPanel viewerCount={viewerCount} participants={participants} />
+            <InStreamGamesPanel onSelectChallenge={onSelectChallenge} />
         </div>
     );
 };
@@ -217,7 +317,7 @@ const FloatingReactions = ({ reactions }: { reactions: Reaction[] }) => (
 );
 
 
-// Main UI Component
+// --- Main UI Component ---
 function AgoraTestPageUI() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -333,7 +433,7 @@ function AgoraTestPageUI() {
         await call.leave();
     }
     if (broadcastDocRef) {
-        await updateDoc(broadcastDocRef, { isLive: false });
+        await updateDoc(broadcastDocRef, { isLive: false, activeChallenge: null });
     }
     router.push('/');
   }
@@ -361,6 +461,20 @@ function AgoraTestPageUI() {
         setReactions(prev => prev.filter(r => r.id !== newReaction.id));
     }, 5000);
   }
+
+  const handleChallengeSelect = async (challenge: string) => {
+    if (broadcastDocRef) {
+        await updateDoc(broadcastDocRef, { activeChallenge: challenge });
+        toast({ title: 'New Challenge Started!', description: challenge });
+    }
+  };
+
+  const handleChallengeComplete = async () => {
+      if (broadcastDocRef) {
+          await updateDoc(broadcastDocRef, { activeChallenge: null });
+          toast({ title: 'Challenge Complete!' });
+      }
+  };
   
   if (isBroadcastLoading || !broadcastData) {
       return (
@@ -385,12 +499,18 @@ function AgoraTestPageUI() {
             viewerCount={viewerCount}
             onEndStream={handleEndStream}
         />
+        
+        <ChallengeOverlay 
+            challenge={broadcastData.activeChallenge || broadcastData.challenge}
+            onComplete={handleChallengeComplete}
+        />
 
         <StreamControls 
             onToggleVideo={handleToggleVideo}
             onToggleMic={handleToggleMic}
             onToggleScreenShare={handleToggleScreenShare}
             onInviteGuest={handleInviteGuest}
+            onSelectChallenge={handleChallengeSelect}
             isVideoEnabled={isVideoEnabled}
             isMicEnabled={isMicEnabled}
             isScreenSharing={isScreenSharing}
@@ -410,7 +530,7 @@ function AgoraTestPageUI() {
   );
 }
 
-// Wrapper Component for Initialization and Auth
+// --- Wrapper Component for Initialization and Auth ---
 function AgoraTestWrapper() {
     const searchParams = useSearchParams();
     const broadcastId = searchParams.get('id');
@@ -550,7 +670,7 @@ function AgoraTestWrapper() {
     )
 }
 
-// Default Export with Suspense
+// --- Default Export with Suspense ---
 export default function AgoraTestPage() {
     return (
         <Suspense fallback={
@@ -562,7 +682,3 @@ export default function AgoraTestPage() {
         </Suspense>
     )
 }
-
-    
-
-    

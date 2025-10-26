@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useRef, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,19 +18,30 @@ import { serverTimestamp, collection, addDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Video, Loader, CameraOff } from 'lucide-react';
 
-export default function CreateBroadcastPage() {
+function CreateBroadcastPageComponent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
   const { userDocument, isDocLoading } = useUserDocument();
   const { toast } = useToast();
 
-  const [title, setTitle] = useState('');
-  const [category, setCategory] = useState('');
+  const challengeParam = searchParams.get('challenge');
+  const [title, setTitle] = useState(challengeParam || '');
+  const [category, setCategory] = useState(challengeParam ? 'Games' : '');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    // If a challenge is passed in the URL, set it as the title
+    const challenge = searchParams.get('challenge');
+    if (challenge) {
+      setTitle(challenge);
+      setCategory('Games'); // Automatically set category to "Games"
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const getCameraPermission = async () => {
@@ -92,13 +103,15 @@ export default function CreateBroadcastPage() {
     const broadcastData = {
       title: title,
       category: category,
+      challenge: challengeParam || null,
+      activeChallenge: challengeParam || null,
       hostId: user.uid,
       hostName: userDocument.username || user.displayName || 'Anonymous',
       hostAvatar: userDocument.profilePicture || user.photoURL || '',
       isLive: true,
       viewers: 0,
       createdAt: serverTimestamp(),
-      tags: ['New', 'Live'],
+      tags: challengeParam ? ['Challenge', 'Games', 'Live'] : ['New', 'Live'],
       streamDetails: {
         isScreenSharing: false,
       },
@@ -149,7 +162,7 @@ export default function CreateBroadcastPage() {
             <div className="text-center">
             <h1 className="text-3xl font-bold font-headline text-foreground">Go Live</h1>
             <p className="text-muted-foreground">
-                Set up the details for your new broadcast.
+                {challengeParam ? "You're about to tackle a challenge!" : "Set up the details for your new broadcast."}
             </p>
             </div>
             <div className="space-y-4">
@@ -167,7 +180,7 @@ export default function CreateBroadcastPage() {
             <div className="grid w-full items-center gap-1.5">
                 <Label className="text-foreground">Category</Label>
                 <Select onValueChange={setCategory} value={category}>
-                <SelectTrigger className="w-full bg-background/80">
+                <SelectTrigger className="w-full bg-background/80" disabled={!!challengeParam}>
                     <SelectValue placeholder="Select a category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -196,4 +209,18 @@ export default function CreateBroadcastPage() {
         </div>
     </div>
   );
+}
+
+
+export default function CreateBroadcastPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex h-screen w-full items-center justify-center bg-background">
+                <Loader className="h-8 w-8 animate-spin text-primary" />
+                <p className="ml-2">Loading Setup...</p>
+            </div>
+        }>
+            <CreateBroadcastPageComponent />
+        </Suspense>
+    )
 }

@@ -98,6 +98,14 @@
           "description": "The server timestamp when the broadcast was created.",
           "format": "date-time"
         },
+        "challenge": {
+          "type": "string",
+          "description": "An initial challenge or topic for the stream, often set at creation."
+        },
+        "activeChallenge": {
+          "type": "string",
+          "description": "The current challenge or prompt being displayed on stream, can be updated live."
+        },
         "streamDetails": {
           "type": "object",
           "description": "Holds dynamic details about the live stream session.",
