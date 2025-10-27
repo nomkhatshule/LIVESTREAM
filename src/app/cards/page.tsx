@@ -46,8 +46,9 @@ export default function CardsPage() {
       setDuration(60);
     } else {
       const randomIndex = Math.floor(Math.random() * dareChallenges.length);
-      setPrompt(dareChallenges[randomIndex]);
-      setDuration(90);
+      const selectedDare = dareChallenges[randomIndex];
+      setPrompt(selectedDare.text);
+      setDuration(selectedDare.duration);
     }
     setPromptType(type);
     setGameState('reveal');
@@ -122,7 +123,7 @@ export default function CardsPage() {
                         setIsGameStarted(false);
                         setChallenge('');
                       }}
-                    timer={!isLoadingChallenge && !error && challenge && <SimpleTimerDisplay durationSeconds={duration} />}
+                    timer={<SimpleTimerDisplay durationSeconds={duration} />}
                 >
                     {isLoadingChallenge && <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />}
                     {!isLoadingChallenge && (
