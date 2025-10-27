@@ -40,12 +40,11 @@ function CreateBroadcastPageComponent() {
 
   useEffect(() => {
     // If a challenge is passed in the URL, set it as the title
-    const challenge = searchParams.get('challenge');
-    if (challenge) {
-      setTitle(challenge);
+    if (challengeParam) {
+      setTitle(challengeParam);
       setCategory('Games'); // Automatically set category to "Games"
     }
-  }, [searchParams]);
+  }, [challengeParam]);
 
   useEffect(() => {
     const getCameraPermission = async () => {
@@ -111,7 +110,7 @@ function CreateBroadcastPageComponent() {
       activeChallenge: challengeParam || null,
       activeChallengeType: challengeTypeParam || null,
       challengeStartTime: challengeParam ? serverTimestamp() : null,
-      challengeDurationSeconds: durationParam ? parseInt(durationParam) : null,
+      challengeDurationSeconds: durationParam ? parseInt(durationParam, 10) : null,
       hostId: user.uid,
       hostName: userDocument.username || user.displayName || 'Anonymous',
       hostAvatar: userDocument.profilePicture || user.photoURL || '',

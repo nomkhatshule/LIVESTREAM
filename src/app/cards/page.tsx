@@ -29,7 +29,7 @@ const SimpleTimerDisplay = ({ durationSeconds }: { durationSeconds: number }) =>
 export default function CardsPage() {
   // --- State for Truth or Dare game ---
   const [gameState, setGameState] = useState<'choice' | 'reveal'>('choice');
-  const [promptType, setPromptType] = useState<'truth' | 'dare' | null>(null);
+  const [promptType, setPromptType] = useState<'truth' | 'dare' | 'challenge' | null>(null);
   const [prompt, setPrompt] = useState('');
   const [duration, setDuration] = useState(60);
 
@@ -73,6 +73,7 @@ export default function CardsPage() {
       if (result.prompts && result.prompts.length > 0) {
         setChallenge(result.prompts[0]);
         setDuration(result.durationsInSeconds[0] || 120);
+        setPromptType('challenge');
       } else {
         setError('No challenges were generated. Please try again.');
       }
@@ -137,7 +138,7 @@ export default function CardsPage() {
                             Next
                             </Button>
                             <Button asChild size="lg" className="flex-1" disabled={!challenge || !!error}>
-                               <Link href="/broadcast/create">
+                               <Link href={`/broadcast/create?challenge=${encodeURIComponent(challenge)}&type=${promptType}&duration=${duration}`}>
                                 Go Live!
                                </Link>
                             </Button>
@@ -171,7 +172,7 @@ export default function CardsPage() {
                       Next
                     </Button>
                     <Button asChild size="lg" className="flex-1" disabled={!prompt}>
-                       <Link href="/broadcast/create">
+                       <Link href={`/broadcast/create?challenge=${encodeURIComponent(prompt)}&type=${promptType}&duration=${duration}`}>
                          Go Live!
                        </Link>
                     </Button>
@@ -184,7 +185,3 @@ export default function CardsPage() {
     </div>
   );
 }
-
-    
-
-    
