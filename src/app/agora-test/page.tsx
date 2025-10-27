@@ -59,6 +59,7 @@ function AgoraTestPageUI() {
   const [showChallengeCoverCard, setShowChallengeCoverCard] = useState(false);
   const [stagedChallenge, setStagedChallenge] = useState<StagedChallenge | null>(null);
   const [cardPosition, setCardPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
 
   // Stream SDK Hooks
   const { useCameraState, useMicrophoneState, useScreenShareState, useParticipants, useCallCallingState } = useCallStateHooks();
