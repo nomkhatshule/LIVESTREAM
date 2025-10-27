@@ -3,7 +3,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Users, X, Send, Smile, MessageCircle, Video, Mic, UserPlus, ScreenShare, VideoOff, MicOff, ArrowUp, MessageCircleOff, MonitorUp, Heart, ThumbsUp, Loader2, Dice6, Trophy, Check } from 'lucide-react';
+import { Users, X, Send, Smile, MessageCircle, Video, Mic, UserPlus, ScreenShare, VideoOff, MicOff, ArrowUp, MessageCircleOff, MonitorUp, Heart, ThumbsUp, Loader2, Dice6, Trophy, Check, Swords } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Suspense, forwardRef, useEffect, useMemo, useRef, useState } from 'react';
@@ -89,8 +89,9 @@ const InStreamGamesPanel = ({ onSelectChallenge }: { onSelectChallenge: (challen
                 setPrompt(truthQuestions[Math.floor(Math.random() * truthQuestions.length)]);
                 setDuration(60); // Standard duration for truth
             } else if (type === 'dare') {
-                setPrompt(dareChallenges[Math.floor(Math.random() * dareChallenges.length)]);
-                setDuration(90); // Standard duration for dare
+                const selectedDare = dareChallenges[Math.floor(Math.random() * dareChallenges.length)];
+                setPrompt(selectedDare.text);
+                setDuration(selectedDare.duration);
             } else {
                  const result = await generateGamePrompts({
                     gameType: 'challenge',
@@ -207,6 +208,9 @@ const StreamControls = ({ onToggleVideo, onToggleMic, onToggleScreenShare, onInv
             </Button>
             <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onInviteGuest}>
                 <UserPlus className="h-5 w-5 md:h-6 md:w-6"/>
+            </Button>
+            <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12">
+                <Swords className="h-5 w-5 md:h-6 md:w-6"/>
             </Button>
             <ParticipantsPanel viewerCount={viewerCount} participants={participants} />
             <InStreamGamesPanel onSelectChallenge={onSelectChallenge} />
@@ -706,3 +710,5 @@ export default function AgoraTestPage() {
         </Suspense>
     )
 }
+
+    
