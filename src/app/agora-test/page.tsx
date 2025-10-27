@@ -361,9 +361,9 @@ function AgoraTestPageUI() {
         {/* Active Challenge Display Card */}
         {isChallengeVisible && broadcastData.activeChallenge && broadcastData.activeChallengeType && (
             <div 
-                className="absolute inset-0 flex items-center justify-center p-4 pointer-events-none"
+                className="absolute top-1/2 left-1/2 w-[384px] -translate-x-1/2 -translate-y-1/2 pointer-events-none"
                 style={{
-                  transform: `translate(${cardPosition.x}px, ${cardPosition.y}px)`,
+                  transform: `translate(calc(-50% + ${cardPosition.x}px), calc(-50% + ${cardPosition.y}px))`,
                 }}
             >
                 <div 
