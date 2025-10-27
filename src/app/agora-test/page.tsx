@@ -190,7 +190,7 @@ const StreamHeader = ({ broadcastData, viewerCount, onEndStream }: { broadcastDa
     );
 };
 
-const StreamControls = ({ onToggleVideo, onToggleMic, onToggleScreenShare, onInviteGuest, isVideoEnabled, isMicEnabled, isScreenSharing, isCallJoined, onSelectChallenge }: any) => {
+const StreamControls = ({ onToggleVideo, onToggleMic, onToggleScreenShare, onInviteGuest, isVideoEnabled, isMicEnabled, isScreenSharing, isCallJoined, onSelectChallenge, onToggleChallengeVisibility, isChallengeActive }: any) => {
     const { useParticipants } = useCallStateHooks();
     const participants = useParticipants();
     const viewerCount = Math.max(0, participants.length -1);
@@ -209,9 +209,11 @@ const StreamControls = ({ onToggleVideo, onToggleMic, onToggleScreenShare, onInv
             <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onInviteGuest}>
                 <UserPlus className="h-5 w-5 md:h-6 md:w-6"/>
             </Button>
-            <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12">
-                <Swords className="h-5 w-5 md:h-6 md:w-6"/>
-            </Button>
+            {isChallengeActive && (
+              <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onToggleChallengeVisibility}>
+                  <Swords className="h-5 w-5 md:h-6 md:w-6"/>
+              </Button>
+            )}
             <ParticipantsPanel viewerCount={viewerCount} participants={participants} />
             <InStreamGamesPanel onSelectChallenge={onSelectChallenge} />
         </div>
@@ -334,6 +336,7 @@ function AgoraTestPageUI() {
   const { user } = useUser();
   const { userDocument } = useUserDocument();
   const [reactions, setReactions] = useState<Reaction[]>([]);
+  const [isChallengeVisible, setIsChallengeVisible] = useState(true);
 
   // Stream SDK Hooks
   const { useCameraState, useMicrophoneState, useScreenShareState, useParticipants, useCallCallingState } = useCallStateHooks();
@@ -379,6 +382,11 @@ function AgoraTestPageUI() {
     }
   }, [callingState, call]);
 
+  useEffect(() => {
+    if (broadcastData?.activeChallenge) {
+        setIsChallengeVisible(true);
+    }
+  }, [broadcastData?.activeChallenge]);
 
   const handleToggleVideo = async () => {
     if (call && call.camera) {
@@ -513,7 +521,7 @@ function AgoraTestPageUI() {
             onEndStream={handleEndStream}
         />
         
-        {broadcastData.activeChallenge && broadcastData.activeChallengeType && (
+        {isChallengeVisible && broadcastData.activeChallenge && broadcastData.activeChallengeType && (
             <div className="absolute inset-0 bg-black/60 z-20 flex items-center justify-center p-4 pointer-events-auto">
                 <ChallengeDisplayCard 
                     text={broadcastData.activeChallenge}
@@ -539,6 +547,8 @@ function AgoraTestPageUI() {
             onToggleScreenShare={handleToggleScreenShare}
             onInviteGuest={handleInviteGuest}
             onSelectChallenge={handleChallengeSelect}
+            onToggleChallengeVisibility={() => setIsChallengeVisible(prev => !prev)}
+            isChallengeActive={!!broadcastData.activeChallenge}
             isVideoEnabled={isVideoEnabled}
             isMicEnabled={isMicEnabled}
             isScreenSharing={isScreenSharing}
@@ -630,7 +640,7 @@ function AgoraTestWrapper() {
             try {
                 const response = await fetch('/api/stream/token', {
                   method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
+                  headers: { 'Content-Type': 'json' },
                   body: JSON.stringify({ userId: user.uid }),
                 });
                 if (!response.ok) throw new Error('Failed to fetch stream token');
