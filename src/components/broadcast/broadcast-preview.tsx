@@ -104,6 +104,7 @@ function BroadcastPreviewUIManager({
                     text={broadcast.activeChallenge}
                     type={broadcast.activeChallengeType}
                     size="small"
+                    variant="simple"
                     onClose={() => setIsChallengeVisible(false)}
                 />
             )}

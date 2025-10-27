@@ -11,10 +11,11 @@ interface ChallengeCardProps {
   text: string;
   type: 'truth' | 'dare' | 'challenge';
   size?: 'large' | 'small';
+  variant?: 'stacked' | 'simple';
   onClose: () => void;
 }
 
-export default function ChallengeCard({ text, type, size, onClose }: ChallengeCardProps) {
+export default function ChallengeCard({ text, type, size, variant, onClose }: ChallengeCardProps) {
 
   return (
     <div className="absolute inset-0 bg-black/60 z-50 flex items-center justify-center p-4 pointer-events-auto">
@@ -22,6 +23,7 @@ export default function ChallengeCard({ text, type, size, onClose }: ChallengeCa
             text={text}
             type={type}
             size={size}
+            variant={variant}
             onClose={onClose}
         />
     </div>

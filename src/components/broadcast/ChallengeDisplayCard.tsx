@@ -11,11 +11,12 @@ interface ChallengeDisplayCardProps {
   text: string;
   type: 'truth' | 'dare' | 'challenge';
   size?: 'large' | 'small';
+  variant?: 'stacked' | 'simple'; // New prop
   children?: React.ReactNode; // For action buttons
   onClose?: () => void;
 }
 
-export default function ChallengeDisplayCard({ text, type, size = 'large', children, onClose }: ChallengeDisplayCardProps) {
+export default function ChallengeDisplayCard({ text, type, size = 'large', variant = 'stacked', children, onClose }: ChallengeDisplayCardProps) {
   const getBadgeInfo = () => {
     switch (type) {
       case 'truth':
@@ -35,10 +36,13 @@ export default function ChallengeDisplayCard({ text, type, size = 'large', child
         "relative w-full max-w-sm",
         size === 'large' ? 'h-[550px]' : 'h-[480px]'
     )}>
-      {/* Background Card 2 */}
-      <div className="absolute top-0 left-0 w-full h-full bg-white/80 rounded-3xl p-4 shadow-2xl transform -rotate-6 scale-95" />
-      {/* Background Card 1 */}
-      <div className="absolute top-0 left-0 w-full h-full bg-white/90 rounded-3xl p-4 shadow-2xl transform rotate-3 scale-95" />
+      {/* Conditionally render stacked card backgrounds */}
+      {variant === 'stacked' && (
+        <>
+          <div className="absolute top-0 left-0 w-full h-full bg-white/80 rounded-3xl p-4 shadow-2xl transform -rotate-6 scale-95" />
+          <div className="absolute top-0 left-0 w-full h-full bg-white/90 rounded-3xl p-4 shadow-2xl transform rotate-3 scale-95" />
+        </>
+      )}
       {/* Main Card */}
       <div className="absolute top-0 left-0 w-full h-full bg-white rounded-3xl p-6 shadow-2xl flex flex-col items-center justify-center">
         {onClose && (
