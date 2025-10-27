@@ -49,7 +49,7 @@ export default function ChallengeDisplayCard({ text, type, size = 'large', varia
             <Button
               variant="ghost"
               size="icon"
-              className="absolute top-4 right-4 text-muted-foreground"
+              className="absolute top-4 right-4 text-muted-foreground rounded-full hover:bg-black/10"
               onClick={onClose}
             >
               <X className="h-6 w-6" />
