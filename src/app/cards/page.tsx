@@ -14,6 +14,18 @@ import { generateGamePrompts } from '@/ai/flows/generate-game-prompts';
 import Link from 'next/link';
 import ChallengeDisplayCard from '@/components/broadcast/ChallengeDisplayCard';
 
+const SimpleTimerDisplay = ({ durationSeconds }: { durationSeconds: number }) => {
+    const minutes = Math.floor(durationSeconds / 60);
+    const seconds = durationSeconds % 60;
+    return (
+        <div className="w-16 h-16 rounded-full bg-black/70 flex items-center justify-center text-white border-4 border-white shadow-lg">
+            <h3 className="text-lg font-bold font-mono tracking-tighter">
+                {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
+            </h3>
+        </div>
+    );
+};
+
 export default function CardsPage() {
   // --- State for Truth or Dare game ---
   const [gameState, setGameState] = useState<'choice' | 'reveal'>('choice');
@@ -110,6 +122,7 @@ export default function CardsPage() {
                         setIsGameStarted(false);
                         setChallenge('');
                       }}
+                    timer={!isLoadingChallenge && !error && challenge && <SimpleTimerDisplay durationSeconds={duration} />}
                 >
                     {isLoadingChallenge && <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />}
                     {!isLoadingChallenge && (
@@ -147,7 +160,12 @@ export default function CardsPage() {
                   </div>
                 </div>
               ) : promptType && (
-                 <ChallengeDisplayCard text={prompt} type={promptType} variant="stacked">
+                 <ChallengeDisplayCard 
+                    text={prompt} 
+                    type={promptType} 
+                    variant="stacked"
+                    timer={<SimpleTimerDisplay durationSeconds={duration} />}
+                 >
                     <Button size="lg" variant="outline" className="flex-1" onClick={handleNextRound}>
                       Next
                     </Button>
