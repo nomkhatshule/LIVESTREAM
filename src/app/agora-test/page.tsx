@@ -58,6 +58,7 @@ function AgoraTestPageUI() {
   const [isGamePanelOpen, setIsGamePanelOpen] = useState(false);
   const [showChallengeCoverCard, setShowChallengeCoverCard] = useState(false);
   const [stagedChallenge, setStagedChallenge] = useState<StagedChallenge | null>(null);
+  const [cardPosition, setCardPosition] = useState({ x: 0, y: 0 });
 
   // Stream SDK Hooks
   const { useCameraState, useMicrophoneState, useScreenShareState, useParticipants, useCallCallingState } = useCallStateHooks();
@@ -551,3 +552,5 @@ export default function AgoraTestPage() {
         </Suspense>
     )
 }
+
+    
