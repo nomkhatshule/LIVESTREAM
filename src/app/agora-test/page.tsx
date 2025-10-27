@@ -61,7 +61,7 @@ function AgoraTestPageUI() {
   const [showChallengeCoverCard, setShowChallengeCoverCard] = useState(false);
   const [stagedChallenge, setStagedChallenge] = useState<StagedChallenge | null>(null);
   const [cardPosition, setCardPosition] = useState({ x: 0, y: 0 });
-  const [cardSize, setCardSize] = useState({ width: 384, height: 550 });
+  const [cardSize, setCardSize] = useState({ width: 320, height: 460 });
   const [isDragging, setIsDragging] = useState(false);
   const dragOffsetRef = useRef({ x: 0, y: 0 });
 
