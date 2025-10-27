@@ -55,12 +55,12 @@ export default function ChallengeDisplayCard({ text, type, size = 'large', varia
               <X className="h-6 w-6" />
             </Button>
         )}
-        <div className="relative">
-            <Badge className={cn("mb-4 text-lg", badgeInfo.className)}>
-            {badgeInfo.text}
+        <div className="relative mb-4 w-full flex justify-center">
+            <Badge className={cn("text-lg", badgeInfo.className)}>
+              {badgeInfo.text}
             </Badge>
             {timer && (
-                <div className="absolute -top-5 -left-10">
+                <div className="absolute top-0 -left-4">
                     {timer}
                 </div>
             )}
