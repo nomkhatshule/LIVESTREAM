@@ -29,301 +29,14 @@ import VideoPlayer from '@/components/broadcast/video-player';
 import { User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
-import { generateGamePrompts } from '@/ai/flows/generate-game-prompts';
-import { truthQuestions, dareChallenges } from '@/lib/data';
 import ChallengeDisplayCard from '@/components/broadcast/ChallengeDisplayCard';
 import CountdownTimer from '@/components/broadcast/CountdownTimer';
-
-// Type Definitions
-interface Comment {
-  id: string;
-  userId: string;
-  username: string;
-  userAvatar: string;
-  message: string;
-  timestamp: any;
-}
-
-interface Reaction {
-  id: number;
-  emoji: React.ReactNode;
-  x: number;
-}
-
-interface StagedChallenge {
-    text: string;
-    type: 'truth' | 'dare' | 'challenge';
-    duration: number;
-}
-
-interface BroadcastData {
-    title: string;
-    hostId: string;
-    hostName: string;
-    hostAvatar: string;
-    isLive: boolean;
-    challenge?: string;
-    activeChallenge?: string;
-    activeChallengeType?: 'truth' | 'dare' | 'challenge';
-    challengeStartTime?: Timestamp;
-    challengeDurationSeconds?: number;
-    streamDetails?: {
-      isScreenSharing: boolean;
-    },
-    user?: {
-        id: string;
-        name: string;
-        avatarUrl: string;
-    }
-}
-
-// --- Sub-components for AgoraTestPageUI ---
-
-const InStreamGamesPanel = ({ onSelectChallenge, open, onOpenChange }: { onSelectChallenge: (challenge: string, type: 'truth' | 'dare' | 'challenge', duration: number) => void, open: boolean, onOpenChange: (open: boolean) => void }) => {
-    const [gameType, setGameType] = useState<'truth' | 'dare' | 'ai'>('ai');
-    const [prompt, setPrompt] = useState('');
-    const [duration, setDuration] = useState(60); // Default duration
-    const [isLoading, setIsLoading] = useState(false);
-
-    const handleGenerate = async (type: 'truth' | 'dare' | 'ai') => {
-        setIsLoading(true);
-        setPrompt('');
-        setGameType(type);
-
-        try {
-            if (type === 'truth') {
-                setPrompt(truthQuestions[Math.floor(Math.random() * truthQuestions.length)]);
-                setDuration(60); // Standard duration for truth
-            } else if (type === 'dare') {
-                const selectedDare = dareChallenges[Math.floor(Math.random() * dareChallenges.length)];
-                setPrompt(selectedDare.text);
-                setDuration(selectedDare.duration);
-            } else {
-                 const result = await generateGamePrompts({
-                    gameType: 'challenge',
-                    category: 'Live Stream Audience',
-                    count: 1,
-                });
-                if (result.prompts && result.prompts.length > 0) {
-                    setPrompt(result.prompts[0]);
-                    setDuration(result.durationsInSeconds[0] || 120);
-                } else {
-                    setPrompt('AI could not generate a challenge. Try again!');
-                }
-            }
-        } catch (error) {
-            console.error("Error generating game prompt:", error);
-            setPrompt("There was an error generating the prompt.");
-        } finally {
-            setIsLoading(false);
-        }
-    };
-    
-    const handleStartChallenge = () => {
-        let challengeType: 'truth' | 'dare' | 'challenge';
-        if (gameType === 'ai') {
-            challengeType = 'challenge';
-        } else {
-            challengeType = gameType;
-        }
-        onSelectChallenge(prompt, challengeType, duration);
-        onOpenChange(false);
-    };
-
-    return (
-        <Sheet open={open} onOpenChange={onOpenChange}>
-            <SheetContent>
-                <SheetHeader>
-                    <SheetTitle>In-Stream Games</SheetTitle>
-                </SheetHeader>
-                <div className="py-6 space-y-6">
-                    <div className="text-center p-6 bg-muted rounded-lg min-h-[120px] flex items-center justify-center">
-                        {isLoading ? (
-                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                        ) : (
-                            <p className="text-lg font-semibold">{prompt || "Generate a new challenge below."}</p>
-                        )}
-                    </div>
-                    
-                    <div className="grid grid-cols-3 gap-2">
-                        <Button onClick={() => handleGenerate('truth')} disabled={isLoading}>Truth</Button>
-                        <Button onClick={() => handleGenerate('dare')} disabled={isLoading}>Dare</Button>
-                        <Button onClick={() => handleGenerate('ai')} disabled={isLoading}>AI Challenge</Button>
-                    </div>
-
-                    <Button 
-                        size="lg" 
-                        className="w-full" 
-                        disabled={!prompt || isLoading} 
-                        onClick={handleStartChallenge}
-                    >
-                        Start This Challenge
-                    </Button>
-                </div>
-            </SheetContent>
-        </Sheet>
-    )
-}
-
-const StreamHeader = ({ broadcastData, viewerCount, onEndStream }: { broadcastData: BroadcastData, viewerCount: number, onEndStream: () => void }) => {
-    return (
-        <div className="absolute top-0 left-0 right-0 z-10 p-2 md:p-4 flex items-center justify-between bg-gradient-to-b from-black/50 to-transparent">
-            <div className="flex items-center gap-2 md:gap-3 bg-black/30 p-1.5 md:p-2 rounded-full">
-                <Avatar className={cn("h-8 w-8 md:h-9 md:w-9 border-4 border-destructive", broadcastData?.isLive && "animate-breathing")}>
-                    <AvatarImage src={broadcastData?.hostAvatar || broadcastData?.user?.avatarUrl || ''} alt={broadcastData?.hostName || broadcastData?.user?.name || ''} />
-                    <AvatarFallback>{(broadcastData?.hostName || broadcastData?.user?.name || 'U').charAt(0)}</AvatarFallback>
-                </Avatar>
-                <div className="flex flex-col">
-                    <div className="flex items-center gap-2">
-                        <span className="font-bold font-headline text-xs md:text-sm leading-tight text-white">{broadcastData?.hostName || broadcastData?.user?.name || 'Host'}</span>
-                    </div>
-                    <div className="flex items-center gap-2 md:gap-3 mt-0.5">
-                        <span className="inline-flex items-center text-[10px] md:text-xs font-medium gap-1 text-white">
-                            <Users className="h-3 w-3" />
-                            {viewerCount.toLocaleString()}
-                        </span>
-                    </div>
-                </div>
-            </div>
-            <Button variant="destructive" size="sm" className="h-8 px-3 md:h-9 md:px-4" onClick={onEndStream}>
-                <X className="h-4 w-4 mr-1.5" /> End
-            </Button>
-        </div>
-    );
-};
-
-const StreamControls = ({ onToggleVideo, onToggleMic, onToggleScreenShare, onInviteGuest, isVideoEnabled, isMicEnabled, isScreenSharing, isCallJoined, onSelectChallenge, onToggleChallengeVisibility, isChallengeActive, onOpenGames }: any) => {
-    const { useParticipants } = useCallStateHooks();
-    const participants = useParticipants();
-    const viewerCount = Math.max(0, participants.length -1);
-
-    return (
-        <div className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-2 md:gap-4 p-2 bg-black/40 rounded-full backdrop-blur-sm">
-            <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onToggleVideo} disabled={!isCallJoined}>
-                {isVideoEnabled ? <Video className="h-5 w-5 md:h-6 md:w-6"/> : <VideoOff className="h-5 w-5 md:h-6 md:w-6"/>}
-            </Button>
-            <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onToggleMic} disabled={!isCallJoined}>
-                {isMicEnabled ? <Mic className="h-5 w-5 md:h-6 md:w-6"/> : <MicOff className="h-5 w-5 md:h-6 md:w-6"/>}
-            </Button>
-            <Button variant={isScreenSharing ? "primary" : "secondary"} size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onToggleScreenShare} disabled={!isCallJoined}>
-                {isScreenSharing ? <MonitorUp className="h-5 w-5 md:h-6 md:w-6"/> : <ScreenShare className="h-5 w-5 md:h-6 md:w-6"/>}
-            </Button>
-            <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onInviteGuest}>
-                <UserPlus className="h-5 w-5 md:h-6 md:w-6"/>
-            </Button>
-            {isChallengeActive && (
-              <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onToggleChallengeVisibility}>
-                  <Minus className="h-5 w-5 md:h-6 md:w-6"/>
-              </Button>
-            )}
-            <ParticipantsPanel viewerCount={viewerCount} participants={participants} />
-            <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onOpenGames}>
-                <Dice6 className="h-5 w-5 md:h-6 md:w-6"/>
-            </Button>
-        </div>
-    );
-};
-
-const ParticipantsPanel = ({ viewerCount, participants }: any) => {
-    return (
-        <Sheet>
-            <SheetTrigger asChild>
-                <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12">
-                    <Users className="h-5 w-5 md:h-6 md:w-6" />
-                </Button>
-            </SheetTrigger>
-            <SheetContent>
-                <SheetHeader>
-                    <SheetTitle>Participants ({viewerCount})</SheetTitle>
-                </SheetHeader>
-                <ScrollArea className="h-[calc(100vh-8rem)] mt-4">
-                    <div className="space-y-4">
-                        {participants.map((p: any) => (
-                            <div key={p.sessionId} className="flex items-center gap-3">
-                                <Avatar>
-                                    <AvatarImage src={p.image} alt={p.name} />
-                                    <AvatarFallback>{p.name?.charAt(0) || 'A'}</AvatarFallback>
-                                </Avatar>
-                                <span className="font-headline">{p.name || 'Anonymous Viewer'}</span>
-                            </div>
-                        ))}
-                        {participants.length <= 1 && (
-                            <p className="text-muted-foreground text-center py-8">
-                                Just you for now.
-                            </p>
-                        )}
-                    </div>
-                </ScrollArea>
-            </SheetContent>
-        </Sheet>
-    );
-};
-
-const ChatPanel = ({ isVisible, comments, newMessage, onNewMessageChange, onSendMessage, onReaction, onToggleVisibility }: any) => {
-    if (!isVisible) {
-        return (
-            <div className="absolute bottom-4 right-4 z-10 pointer-events-auto">
-                <Button variant="ghost" size="icon" onClick={onToggleVisibility} className="text-white bg-black/50 rounded-full h-10 w-10">
-                    <MessageCircle className="h-5 w-5" />
-                </Button>
-            </div>
-        );
-    }
-
-    return (
-        <div className="absolute bottom-0 left-0 right-0 z-10 p-4 flex flex-col justify-end bg-gradient-to-t from-black/70 via-black/40 to-transparent h-[40%] pointer-events-none">
-            <ScrollArea className="h-full pr-4 pointer-events-auto">
-                <div className="flex flex-col gap-3">
-                    {comments && comments.map((comment: Comment) => (
-                        <div key={comment.id} className="flex items-start gap-3 text-sm text-white bg-black/20 p-2 rounded-lg max-w-xs sm:max-w-sm">
-                            <Avatar className="h-6 w-6 border-2 border-secondary">
-                                <AvatarImage src={comment.userAvatar} alt={comment.username} />
-                                <AvatarFallback>{comment.username.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1">
-                                <span className="font-bold font-headline text-primary mr-1.5">{comment.username}:</span>
-                                <p className="break-words inline">{comment.message}</p>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </ScrollArea>
-            <form onSubmit={onSendMessage} className="relative mt-4 flex items-center gap-2 pointer-events-auto">
-                <div className="relative flex-1">
-                    <Input
-                        placeholder="Add a comment..."
-                        value={newMessage}
-                        onChange={(e) => onNewMessageChange(e.target.value)}
-                        className="bg-black/50 border-white/20 text-white placeholder:text-gray-400 pr-10"
-                    />
-                    <Button variant="ghost" size="icon" type="submit" className="absolute inset-y-0 right-0 text-white">
-                        <ArrowUp className="h-5 w-5" />
-                    </Button>
-                </div>
-                <Button variant="ghost" size="icon" onClick={onReaction} className="text-white bg-black/50 rounded-full h-10 w-10">
-                    <Smile className="h-5 w-5" />
-                </Button>
-                <Button variant="ghost" size="icon" onClick={onToggleVisibility} className="text-white bg-black/50 rounded-full h-10 w-10">
-                    <MessageCircleOff className="h-5 w-5" />
-                </Button>
-            </form>
-        </div>
-    );
-};
-
-const FloatingReactions = ({ reactions }: { reactions: Reaction[] }) => (
-    <div className="absolute bottom-16 left-4 h-96 w-64 z-30 pointer-events-none">
-        {reactions.map(reaction => (
-            <div
-                key={reaction.id}
-                className="animate-float-up absolute bottom-0 text-3xl opacity-0"
-                style={{ left: `${reaction.x}%` }}
-            >
-                {reaction.emoji}
-            </div>
-        ))}
-    </div>
-);
+import StreamHeader from '@/components/agora-test/StreamHeader';
+import FloatingReactions from '@/components/agora-test/FloatingReactions';
+import InStreamGamesPanel from '@/components/agora-test/InStreamGamesPanel';
+import StreamControls from '@/components/agora-test/StreamControls';
+import ChatPanel from '@/components/agora-test/ChatPanel';
+import type { Reaction, StagedChallenge, BroadcastData, Comment } from '@/lib/types';
 
 
 // --- Main UI Component ---
@@ -541,45 +254,24 @@ function AgoraTestPageUI() {
   };
 
   const handleGenerateNextChallenge = async (gameType: 'truth' | 'dare' | 'challenge') => {
-    if (!broadcastDocRef) return;
-    
-    let newPrompt = '';
-    let newDuration = 60;
-    
-    try {
-        if (gameType === 'truth') {
-            newPrompt = truthQuestions[Math.floor(Math.random() * truthQuestions.length)];
-            newDuration = 60;
-        } else if (gameType === 'dare') {
-            const selectedDare = dareChallenges[Math.floor(Math.random() * dareChallenges.length)];
-            newPrompt = selectedDare.text;
-            newDuration = selectedDare.duration;
-        } else { // 'challenge'
-            const result = await generateGamePrompts({
-                gameType: 'challenge',
-                category: 'Live Stream Audience',
-                count: 1,
+      // Re-use logic from InStreamGamesPanel to generate next challenge
+      const panel = InStreamGamesPanel({ onSelectChallenge: handleChallengeSelect, open: false, onOpenChange: () => {} });
+      // This is a bit of a hack, ideally the generation logic is a standalone utility
+      // For now, we simulate opening the panel and clicking a button
+       if (broadcastDocRef) {
+         try {
+            const nextChallenge = await (panel.type as any).generateNextChallengeLogic(gameType);
+            await updateDoc(broadcastDocRef, {
+                activeChallenge: nextChallenge.prompt,
+                activeChallengeType: gameType,
+                challengeDurationSeconds: nextChallenge.duration,
+                challengeStartTime: serverTimestamp(),
             });
-            if (result.prompts && result.prompts.length > 0) {
-                newPrompt = result.prompts[0];
-                newDuration = result.durationsInSeconds[0] || 120;
-            } else {
-                toast({ variant: 'destructive', title: 'AI Error', description: 'Could not generate a new challenge.' });
-                return;
-            }
-        }
-
-        await updateDoc(broadcastDocRef, {
-            activeChallenge: newPrompt,
-            activeChallengeType: gameType,
-            challengeDurationSeconds: newDuration,
-            challengeStartTime: serverTimestamp(),
-        });
-
-    } catch (error) {
-        console.error("Error generating next challenge:", error);
-        toast({ variant: 'destructive', title: 'Error', description: 'Could not generate the next challenge.' });
-    }
+         } catch(e) {
+            console.error(e);
+            toast({ variant: 'destructive', title: 'Error', description: 'Could not generate next challenge.' });
+         }
+       }
   };
 
   if (isBroadcastLoading || !broadcastData) {
@@ -650,35 +342,23 @@ function AgoraTestPageUI() {
                     ) : null}
                 >
                     <div className="flex w-full gap-2">
-                        {isTimerFinished ? (
-                           <>
-                             <Button 
+                        <Button 
+                            size="lg" 
+                            variant="outline" 
+                            className="w-full bg-black/80 text-white" 
+                            onClick={() => handleGenerateNextChallenge(broadcastData.activeChallengeType!)}
+                        >
+                            <Undo2 className="mr-2 h-5 w-5" />
+                            Skip
+                        </Button>
+                        {isTimerFinished && (
+                           <Button 
                                 size="lg" 
-                                variant="outline" 
-                                className="flex-1 bg-black/80 text-white" 
-                                onClick={() => handleGenerateNextChallenge(broadcastData.activeChallengeType!)}
-                            >
-                                <Undo2 className="mr-2 h-5 w-5" />
-                                Skip
-                            </Button>
-                             <Button 
-                                size="lg" 
-                                className="flex-1"
+                                className="w-full"
                                 onClick={() => handleGenerateNextChallenge(broadcastData.activeChallengeType!)}
                             >
                                 <Check className="mr-2 h-5 w-5" />
                                 Continue
-                            </Button>
-                           </>
-                        ) : (
-                           <Button 
-                                size="lg" 
-                                variant="outline" 
-                                className="w-full bg-black/80 text-white" 
-                                onClick={() => handleGenerateNextChallenge(broadcastData.activeChallengeType!)}
-                            >
-                                <Undo2 className="mr-2 h-5 w-5" />
-                                Skip
                             </Button>
                         )}
                     </div>
@@ -691,7 +371,6 @@ function AgoraTestPageUI() {
             onToggleMic={handleToggleMic}
             onToggleScreenShare={handleToggleScreenShare}
             onInviteGuest={handleInviteGuest}
-            onSelectChallenge={handleChallengeSelect}
             onToggleChallengeVisibility={() => setIsChallengeVisible(prev => !prev)}
             isChallengeActive={!!broadcastData.activeChallenge}
             isVideoEnabled={isVideoEnabled}
@@ -872,5 +551,3 @@ export default function AgoraTestPage() {
         </Suspense>
     )
 }
-
-    
