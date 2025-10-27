@@ -57,7 +57,7 @@ export default function ChallengeDisplayCard({ text, type, size = 'large', varia
         )}
         <div className="relative mb-4 w-full h-12">
             {timer && (
-                <div className="absolute top-0 left-0">
+                <div className="absolute top-0 left-6">
                     {timer}
                 </div>
             )}
