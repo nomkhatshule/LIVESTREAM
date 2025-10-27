@@ -4,6 +4,7 @@
 import { useState, useEffect } from 'react';
 import { Timestamp } from 'firebase/firestore';
 import { Progress } from '@/components/ui/progress';
+import { cn } from '@/lib/utils';
 
 interface CountdownTimerProps {
   startTime: Timestamp;
@@ -30,17 +31,16 @@ export default function CountdownTimer({ startTime, durationSeconds }: Countdown
 
   const minutes = Math.floor(remainingSeconds / 60);
   const seconds = remainingSeconds % 60;
-  const progress = (remainingSeconds / durationSeconds) * 100;
-
+  
   return (
-    <div className="w-full text-center my-4">
-        <h3 className="text-4xl font-bold font-mono tracking-tighter text-black">
+    <div className="w-16 h-16 rounded-full bg-black/70 flex items-center justify-center text-white border-4 border-white shadow-lg">
+        <h3 className={cn(
+            "text-lg font-bold font-mono tracking-tighter",
+            remainingSeconds <= 10 && remainingSeconds > 0 && "blinking-text text-red-500",
+            remainingSeconds === 0 && "text-destructive"
+            )}>
             {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
         </h3>
-        <Progress value={progress} className="w-full h-2 mt-3" />
-        {remainingSeconds === 0 && (
-             <p className="text-destructive font-semibold mt-2 animate-pulse">Time's Up!</p>
-        )}
     </div>
   );
 }

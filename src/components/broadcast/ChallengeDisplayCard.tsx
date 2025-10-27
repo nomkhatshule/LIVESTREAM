@@ -14,9 +14,10 @@ interface ChallengeDisplayCardProps {
   variant?: 'stacked' | 'simple'; // New prop
   children?: React.ReactNode; // For action buttons
   onClose?: () => void;
+  timer?: React.ReactNode;
 }
 
-export default function ChallengeDisplayCard({ text, type, size = 'large', variant = 'stacked', children, onClose }: ChallengeDisplayCardProps) {
+export default function ChallengeDisplayCard({ text, type, size = 'large', variant = 'stacked', children, onClose, timer }: ChallengeDisplayCardProps) {
   const getBadgeInfo = () => {
     switch (type) {
       case 'truth':
@@ -34,9 +35,8 @@ export default function ChallengeDisplayCard({ text, type, size = 'large', varia
   return (
     <div className={cn(
         "relative w-full",
-        size === 'large' ? 'max-w-sm h-[550px]' : 'max-w-xs h-[420px]'
+        size === 'large' ? 'max-w-sm h-[550px]' : 'max-w-xs h-[480px]'
     )}>
-      {/* Conditionally render stacked card backgrounds */}
       {variant === 'stacked' && (
         <>
           <div className="absolute top-0 left-0 w-full h-full bg-white/80 rounded-3xl p-4 shadow-2xl transform -rotate-6 scale-95" />
@@ -55,15 +55,21 @@ export default function ChallengeDisplayCard({ text, type, size = 'large', varia
               <X className="h-6 w-6" />
             </Button>
         )}
-        <Badge className={cn("mb-4 text-lg", badgeInfo.className)}>
-          {badgeInfo.text}
-        </Badge>
+        <div className="relative">
+            <Badge className={cn("mb-4 text-lg", badgeInfo.className)}>
+            {badgeInfo.text}
+            </Badge>
+            {timer && (
+                <div className="absolute -top-5 -right-5">
+                    {timer}
+                </div>
+            )}
+        </div>
         <div className="flex-grow w-full flex flex-col items-center justify-center text-center">
             <h2 className={cn(
                 "font-bold text-black font-headline",
                 size === 'large' ? 'text-3xl' : 'text-2xl'
             )}>{text}</h2>
-             {/* The timer will be passed in as a child */}
         </div>
         {children && (
             <div className="mt-auto pt-4 w-full flex flex-col gap-y-2">

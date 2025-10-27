@@ -100,6 +100,10 @@ body {
     .rotate-y-180 {
       transform: rotateY(180deg);
     }
+    
+    .blinking-text {
+        animation: blink-animation 1s infinite;
+    }
 
 
     @keyframes float-up {
@@ -128,6 +132,12 @@ body {
         }
         50% {
             box-shadow: 0 0 25px 12px hsl(var(--destructive) / 0.5);
+        }
+    }
+
+    @keyframes blink-animation {
+        50% {
+            opacity: 0.5;
         }
     }
 }
