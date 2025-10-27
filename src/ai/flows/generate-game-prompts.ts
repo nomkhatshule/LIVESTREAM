@@ -36,7 +36,9 @@ const prompt = ai.definePrompt({
   - If the game type is 'dare', generate silly but safe physical challenges that are fun to do on a live stream. Avoid anything dangerous, harmful, or inappropriate.
   - If the game type is 'challenge', invent creative mini-games or tasks for the streamer to perform.
   
-  Return ONLY the list of prompts in the format requested. Do not add any extra commentary or text.
+  For each prompt, you must also determine a reasonable duration in seconds for a person to complete it. The duration should be between 30 and 180 seconds.
+  
+  Return ONLY the list of prompts and their corresponding durations in the format requested. Do not add any extra commentary or text.
   `,
 });
 
