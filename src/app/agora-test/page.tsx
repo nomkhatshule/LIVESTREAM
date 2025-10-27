@@ -337,6 +337,8 @@ function AgoraTestPageUI() {
   const { userDocument } = useUserDocument();
   const [reactions, setReactions] = useState<Reaction[]>([]);
   const [isChallengeVisible, setIsChallengeVisible] = useState(true);
+  const [isTimerFinished, setIsTimerFinished] = useState(false);
+
 
   // Stream SDK Hooks
   const { useCameraState, useMicrophoneState, useScreenShareState, useParticipants, useCallCallingState } = useCallStateHooks();
@@ -387,6 +389,41 @@ function AgoraTestPageUI() {
         setIsChallengeVisible(true);
     }
   }, [broadcastData?.activeChallenge]);
+
+  // Effect to manage timer state
+  useEffect(() => {
+    setIsTimerFinished(false); // Reset on challenge change
+
+    if (broadcastData?.challengeStartTime && broadcastData?.challengeDurationSeconds) {
+      const { challengeStartTime, challengeDurationSeconds } = broadcastData;
+      
+      const checkTimer = () => {
+        const now = new Date();
+        const start = challengeStartTime.toDate();
+        const elapsedSeconds = Math.floor((now.getTime() - start.getTime()) / 1000);
+        
+        if (elapsedSeconds >= challengeDurationSeconds) {
+          setIsTimerFinished(true);
+          return true; // Timer is done
+        }
+        return false; // Timer is still running
+      };
+
+      if (!checkTimer()) { // If not already finished
+        const interval = setInterval(() => {
+          if (checkTimer()) {
+            clearInterval(interval);
+          }
+        }, 1000);
+        return () => clearInterval(interval);
+      }
+    } else {
+        // If there's no timer, the "continue" button can be shown immediately
+        if (broadcastData?.activeChallenge) {
+             setIsTimerFinished(true);
+        }
+    }
+  }, [broadcastData?.challengeStartTime, broadcastData?.challengeDurationSeconds, broadcastData?.activeChallenge]);
 
   const handleToggleVideo = async () => {
     if (call && call.camera) {
@@ -534,10 +571,12 @@ function AgoraTestPageUI() {
                         />
                     ) : null}
                 >
-                     <Button size="lg" className="w-full" onClick={handleChallengeComplete}>
-                        <Check className="mr-2 h-5 w-5" />
-                        Complete Challenge
-                    </Button>
+                    {isTimerFinished && (
+                        <Button size="lg" className="w-full" onClick={handleChallengeComplete}>
+                            <Check className="mr-2 h-5 w-5" />
+                            Continue
+                        </Button>
+                    )}
                 </ChallengeDisplayCard>
             </div>
         )}
