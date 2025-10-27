@@ -62,7 +62,7 @@ export default function ChallengeDisplayCard({ text, type, size = 'large', varia
                 </div>
             )}
             <div className="absolute inset-x-0 top-0 flex justify-center">
-                <Badge className={cn("text-lg border-4 border-white shadow-md", badgeInfo.className)}>
+                <Badge className={cn("text-lg", badgeInfo.className)}>
                     {badgeInfo.text}
                 </Badge>
             </div>
