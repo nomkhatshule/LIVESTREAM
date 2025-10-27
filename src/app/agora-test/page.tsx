@@ -126,11 +126,6 @@ const InStreamGamesPanel = ({ onSelectChallenge, open, onOpenChange }: { onSelec
 
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
-            <SheetTrigger asChild>
-                 <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12">
-                    <Dice6 className="h-5 w-5 md:h-6 md:w-6"/>
-                </Button>
-            </SheetTrigger>
             <SheetContent>
                 <SheetHeader>
                     <SheetTitle>In-Stream Games</SheetTitle>
@@ -191,7 +186,7 @@ const StreamHeader = ({ broadcastData, viewerCount, onEndStream }: { broadcastDa
     );
 };
 
-const StreamControls = ({ onToggleVideo, onToggleMic, onToggleScreenShare, onInviteGuest, isVideoEnabled, isMicEnabled, isScreenSharing, isCallJoined, onSelectChallenge, onToggleChallengeVisibility, isChallengeActive, isGamePanelOpen, setIsGamePanelOpen }: any) => {
+const StreamControls = ({ onToggleVideo, onToggleMic, onToggleScreenShare, onInviteGuest, isVideoEnabled, isMicEnabled, isScreenSharing, isCallJoined, onSelectChallenge, onToggleChallengeVisibility, isChallengeActive, onOpenGames }: any) => {
     const { useParticipants } = useCallStateHooks();
     const participants = useParticipants();
     const viewerCount = Math.max(0, participants.length -1);
@@ -216,7 +211,9 @@ const StreamControls = ({ onToggleVideo, onToggleMic, onToggleScreenShare, onInv
               </Button>
             )}
             <ParticipantsPanel viewerCount={viewerCount} participants={participants} />
-            <InStreamGamesPanel onSelectChallenge={onSelectChallenge} open={isGamePanelOpen} onOpenChange={setIsGamePanelOpen} />
+            <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onOpenGames}>
+                <Dice6 className="h-5 w-5 md:h-6 md:w-6"/>
+            </Button>
         </div>
     );
 };
@@ -340,6 +337,7 @@ function AgoraTestPageUI() {
   const [isChallengeVisible, setIsChallengeVisible] = useState(true);
   const [isTimerFinished, setIsTimerFinished] = useState(false);
   const [isGamePanelOpen, setIsGamePanelOpen] = useState(false);
+  const [showChallengeStartCard, setShowChallengeStartCard] = useState(false);
 
 
   // Stream SDK Hooks
@@ -578,6 +576,11 @@ function AgoraTestPageUI() {
           toast({ title: 'Challenge Cleared!' });
       }
   };
+
+  const handleStartGame = () => {
+    setShowChallengeStartCard(false);
+    setIsGamePanelOpen(true);
+  };
   
   if (isBroadcastLoading || !broadcastData) {
       return (
@@ -603,6 +606,19 @@ function AgoraTestPageUI() {
             onEndStream={handleEndStream}
         />
         
+        {/* "Ready for a Challenge?" Start Card */}
+        {showChallengeStartCard && (
+             <div className="absolute inset-0 bg-black/60 z-20 flex items-center justify-center p-4 pointer-events-auto">
+                 <div className="relative h-[550px] w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl flex flex-col items-center justify-center text-center">
+                    <h2 className="text-3xl font-bold text-black font-headline mb-8">Ready for a Challenge?</h2>
+                    <Button size="lg" className="w-full" onClick={handleStartGame}>
+                      Start
+                    </Button>
+                </div>
+            </div>
+        )}
+
+        {/* Active Challenge Display Card */}
         {isChallengeVisible && broadcastData.activeChallenge && broadcastData.activeChallengeType && (
             <div className="absolute inset-0 bg-black/60 z-20 flex items-center justify-center p-4 pointer-events-auto">
                 <ChallengeDisplayCard 
@@ -651,8 +667,13 @@ function AgoraTestPageUI() {
             isMicEnabled={isMicEnabled}
             isScreenSharing={isScreenSharing}
             isCallJoined={isCallJoined}
-            isGamePanelOpen={isGamePanelOpen}
-            setIsGamePanelOpen={setIsGamePanelOpen}
+            onOpenGames={() => setShowChallengeStartCard(true)}
+        />
+        
+        <InStreamGamesPanel 
+            onSelectChallenge={handleChallengeSelect} 
+            open={isGamePanelOpen} 
+            onOpenChange={setIsGamePanelOpen} 
         />
 
         <ChatPanel 
@@ -820,7 +841,3 @@ export default function AgoraTestPage() {
         </Suspense>
     )
 }
-
-    
-
-    
