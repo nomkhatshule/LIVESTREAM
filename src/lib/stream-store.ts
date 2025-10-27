@@ -13,9 +13,11 @@ interface StreamState {
   call: Call | null;
   status: ConnectionStatus;
   activeBroadcastId: string | null;
+  isIntentionalConnect: boolean; // Flag to track if connection was user-initiated
   connect: (user: User, broadcastId: string) => Promise<void>;
   disconnect: () => Promise<void>;
   setActiveBroadcastId: (broadcastId: string | null) => void;
+  setIsIntentionalConnect: (isIntentional: boolean) => void;
 }
 
 export const useStreamStore = create<StreamState>((set, get) => ({
@@ -23,11 +25,16 @@ export const useStreamStore = create<StreamState>((set, get) => ({
   call: null,
   status: 'idle',
   activeBroadcastId: null,
+  isIntentionalConnect: false, // Default to false
   setActiveBroadcastId: (broadcastId) => {
     const currentId = get().activeBroadcastId;
     if (currentId !== broadcastId) {
-      set({ activeBroadcastId: broadcastId });
+       // When the active broadcast changes (i.e., user scrolls), reset the intentional connect flag
+      set({ activeBroadcastId: broadcastId, isIntentionalConnect: false });
     }
+  },
+  setIsIntentionalConnect: (isIntentional) => {
+    set({ isIntentionalConnect: isIntentional });
   },
   connect: async (user, broadcastId) => {
     if (get().status === 'connected' && get().call?.id === broadcastId) {
@@ -75,7 +82,9 @@ export const useStreamStore = create<StreamState>((set, get) => ({
   },
 
   disconnect: async () => {
-    const { call, client } = get();
+    const { call, client, status } = get();
+    if (status === 'idle' || status === 'disconnected') return;
+    
     if (call) {
       await call.leave().catch(err => console.error("Failed to leave call on cleanup", err));
     }

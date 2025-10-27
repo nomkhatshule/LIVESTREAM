@@ -9,7 +9,7 @@ import { collection, query, orderBy, limit, serverTimestamp, doc, deleteDoc } fr
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { addDocumentNonBlocking, setDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Heart, MessageSquareMore, PlusCircle, Search, Users, ArrowUp, CornerUpLeft, Dice6 } from 'lucide-react';
+import { Heart, MessageSquareMore, PlusCircle, Search, Users, ArrowUp, CornerUpLeft, Dice6, Play, Loader2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import Link from 'next/link';
@@ -18,6 +18,7 @@ import { cn } from '@/lib/utils';
 import { useInView } from 'react-intersection-observer';
 import { Button } from '@/components/ui/button';
 import AIChat from './ai-chat';
+import { useStreamStore } from '@/lib/stream-store';
 
 
 interface BroadcastPreviewUIManagerProps {
@@ -29,9 +30,26 @@ interface BroadcastPreviewUIManagerProps {
     onSendMessage: (message: string) => void;
     onReply: (username: string) => void;
     currentUserAvatar?: string;
+    onPlay: () => void;
+    isCurrentActiveStream: boolean;
+    isConnecting: boolean;
+    isConnected: boolean;
 }
 
-function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLike, onSendMessage, onReply, currentUserAvatar }: BroadcastPreviewUIManagerProps) {
+function BroadcastPreviewUIManager({ 
+    broadcast, 
+    comments, 
+    likes, 
+    hasLiked, 
+    onLike, 
+    onSendMessage, 
+    onReply, 
+    currentUserAvatar,
+    onPlay,
+    isCurrentActiveStream,
+    isConnecting,
+    isConnected,
+}: BroadcastPreviewUIManagerProps) {
     const [newMessage, setNewMessage] = useState('');
     const [isChatVisible, setIsChatVisible] = useState(true);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -54,8 +72,31 @@ function BroadcastPreviewUIManager({ broadcast, comments, likes, hasLiked, onLik
 
     const broadcastContext = `The streamer is ${broadcast.hostName}. The stream is titled "${broadcast.title}" under the category "${broadcast.category}".`;
 
+    // Only show the play button if this is the active stream and the user hasn't intentionally connected yet.
+    const showPlayButton = isCurrentActiveStream && !isConnected;
+
     return (
         <div className="absolute inset-0 flex flex-col justify-between p-3 md:p-4 text-white z-30 pointer-events-none">
+             {/* Dimmer and Play Button Overlay */}
+            {showPlayButton && (
+                <div className="absolute inset-0 bg-black/40 z-20 flex items-center justify-center pointer-events-auto">
+                    <button
+                        onClick={onPlay}
+                        disabled={isConnecting}
+                        className="group flex flex-col items-center justify-center text-white transition-transform hover:scale-110 disabled:opacity-50"
+                    >
+                        {isConnecting ? (
+                            <Loader2 className="h-24 w-24 animate-spin" />
+                        ) : (
+                            <Play className="h-24 w-24 fill-white/80 drop-shadow-2xl" />
+                        )}
+                        <span className="mt-2 text-lg font-semibold drop-shadow-lg">
+                            {isConnecting ? 'Joining...' : 'Watch Live'}
+                        </span>
+                    </button>
+                </div>
+            )}
+            
             {/* Top Info */}
             <div className="bg-gradient-to-b from-black/50 to-transparent -m-4 p-4">
                 <div className="flex items-start gap-3">
@@ -189,12 +230,26 @@ export function BroadcastPreview({ broadcast, onVisible }: BroadcastPreviewProps
     const { userDocument } = useUserDocument();
     const firestore = useFirestore();
     const { toast } = useToast();
+
+    // Access the stream store
+    const { 
+        activeBroadcastId, 
+        setIsIntentionalConnect, 
+        status, 
+        isIntentionalConnect,
+        disconnect,
+    } = useStreamStore();
     
     useEffect(() => {
         if (inView) {
             onVisible();
+        } else {
+             // If this preview scrolls out of view and it was the one playing, disconnect.
+            if (activeBroadcastId === broadcast.id && isIntentionalConnect) {
+                disconnect();
+            }
         }
-    }, [inView, onVisible]);
+    }, [inView, onVisible, activeBroadcastId, broadcast.id, isIntentionalConnect, disconnect]);
 
     // Real-time chat messages
     const messagesQuery = useMemoFirebase(() => {
@@ -260,8 +315,17 @@ export function BroadcastPreview({ broadcast, onVisible }: BroadcastPreviewProps
         // This is a placeholder now, the logic is inside the UI manager
     }
 
+    const handlePlay = () => {
+        setIsIntentionalConnect(true);
+    };
+
+    const isCurrentActiveStream = activeBroadcastId === broadcast.id;
+    const isConnecting = isCurrentActiveStream && status === 'connecting';
+    const isConnected = isCurrentActiveStream && status === 'connected' && isIntentionalConnect;
+
+
     return (
-        <div ref={ref} className="h-full w-full snap-start relative">
+        <div ref={ref} className="h-full w-full snap-start relative bg-cover bg-center" style={{backgroundImage: `url(${broadcast.thumbnailUrl})`}}>
            <BroadcastPreviewUIManager
                 broadcast={broadcast}
                 comments={comments || []}
@@ -271,6 +335,10 @@ export function BroadcastPreview({ broadcast, onVisible }: BroadcastPreviewProps
                 onSendMessage={handleSendMessage}
                 onReply={handleReply}
                 currentUserAvatar={userDocument?.profilePicture}
+                onPlay={handlePlay}
+                isCurrentActiveStream={isCurrentActiveStream}
+                isConnecting={isConnecting}
+                isConnected={isConnected}
             />
         </div>
     );

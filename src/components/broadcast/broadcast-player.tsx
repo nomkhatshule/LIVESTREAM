@@ -16,27 +16,30 @@ export default function BroadcastPlayer({ user }: BroadcastPlayerProps) {
         client, 
         call, 
         status, 
-        activeBroadcastId, 
+        activeBroadcastId,
+        isIntentionalConnect, 
         connect 
     } = useStreamStore();
 
     useEffect(() => {
-        if (activeBroadcastId && user) {
+        // Only connect if the user has explicitly requested it via the play button
+        if (activeBroadcastId && user && isIntentionalConnect && status !== 'connected' && status !== 'connecting') {
             connect(user, activeBroadcastId);
         }
-    }, [activeBroadcastId, user, connect]);
+    }, [activeBroadcastId, user, isIntentionalConnect, connect, status]);
 
-    if (status === 'connecting' || status === 'idle') {
+    if (status === 'connecting') {
         return (
             <div className="absolute inset-0 bg-black flex flex-col items-center justify-center text-white z-20">
                 <Loader2 className="h-12 w-12 animate-spin mb-4" />
-                <p>Connecting to Stream...</p>
+                <p>Joining Stream...</p>
             </div>
         )
     }
 
-    if (!client || !call || status !== 'connected') {
-        return null; // Don't render anything if not connected
+    // If we aren't intentionally connected, we shouldn't show a player
+    if (!isIntentionalConnect || !client || !call || status !== 'connected') {
+        return null; // Don't render anything if not intentionally connected
     }
 
     // Since we can't pass the full broadcast object easily, we construct a minimal one.
