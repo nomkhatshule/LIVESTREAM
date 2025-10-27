@@ -24,6 +24,7 @@ export type Broadcast = {
   hostId: string;
   hostName: string;
   hostAvatar: string;
+  activeChallenge?: string;
 };
 
 export type Category = {

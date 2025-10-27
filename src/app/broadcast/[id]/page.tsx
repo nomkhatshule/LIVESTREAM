@@ -5,7 +5,7 @@ import { notFound, useParams } from 'next/navigation';
 import VideoPlayer from '@/components/broadcast/video-player';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Heart, UserSearch, MoreVertical, PlusCircle, Users, ArrowUp, MessageSquareMore, Share2, Clapperboard, User as UserIcon } from 'lucide-react';
+import { Heart, UserSearch, MoreVertical, PlusCircle, Users, ArrowUp, MessageSquareMore, Share2, Clapperboard, User as UserIcon, Trophy } from 'lucide-react';
 import { useUser, useMemoFirebase, useUserDocument } from '@/firebase';
 import type { Broadcast, ChatMessage } from '@/lib/data';
 import { useDoc, useFirestore, useCollection } from '@/firebase';
@@ -27,6 +27,22 @@ import { cn } from '@/lib/utils';
 import { useCallStateHooks } from '@stream-io/video-react-sdk';
 import { Badge } from '@/components/ui/badge';
 
+
+const ChallengeOverlay = ({ challenge }: { challenge?: string }) => {
+    if (!challenge) return null;
+
+    return (
+        <div className="absolute top-40 left-1/2 -translate-x-1/2 z-20 bg-black/50 text-white p-3 rounded-lg backdrop-blur-sm max-w-md w-full shadow-lg border border-primary/50">
+            <div className="flex items-center gap-3">
+                <Trophy className="h-6 w-6 text-yellow-400" />
+                <div className="flex-1">
+                    <p className="text-xs font-bold text-yellow-400">CURRENT CHALLENGE</p>
+                    <p className="font-semibold">{challenge}</p>
+                </div>
+            </div>
+        </div>
+    )
+}
 
 export default function BroadcastPage() {
   const params = useParams();
@@ -82,6 +98,7 @@ export default function BroadcastPage() {
       hostId: broadcastData.hostId,
       hostName: broadcastData.hostName,
       hostAvatar: broadcastData.hostAvatar,
+      activeChallenge: broadcastData.activeChallenge,
     };
   }, [broadcastData, id]);
 
@@ -169,6 +186,8 @@ export default function BroadcastPage() {
     <div className="relative h-[calc(100vh-4rem)] w-full bg-black snap-start">
       <VideoPlayer broadcast={broadcast} isHost={false} />
       
+      <ChallengeOverlay challenge={broadcast.activeChallenge} />
+
       <div className="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/50 to-transparent text-white">
          <div className="flex items-start gap-4">
             <Avatar className={cn("h-14 w-14 border-4 border-destructive", broadcast.isLive && "animate-breathing")}>
