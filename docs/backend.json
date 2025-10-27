@@ -120,6 +120,20 @@
           "type": "number",
           "description": "The duration in seconds for the active challenge."
         },
+        "challengeCardPosition": {
+            "type": "object",
+            "properties": {
+                "x": {
+                    "type": "number",
+                    "description": "The x-coordinate of the challenge card."
+                },
+                "y": {
+                    "type": "number",
+                    "description": "The y-coordinate of the challenge card."
+                }
+            },
+            "description": "The position of the draggable challenge card on the screen."
+        },
         "streamDetails": {
           "type": "object",
           "description": "Holds dynamic details about the live stream session.",

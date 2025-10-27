@@ -34,6 +34,7 @@ export interface BroadcastData {
     activeChallengeType?: 'truth' | 'dare' | 'challenge';
     challengeStartTime?: Timestamp;
     challengeDurationSeconds?: number;
+    challengeCardPosition?: { x: number; y: number };
     streamDetails?: {
       isScreenSharing: boolean;
     },
