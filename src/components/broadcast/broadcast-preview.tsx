@@ -9,7 +9,7 @@ import { collection, query, orderBy, limit, serverTimestamp, doc, deleteDoc } fr
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { addDocumentNonBlocking, setDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Heart, MessageSquareMore, PlusCircle, Search, Users, ArrowUp, CornerUpLeft, Dice6, Play, Loader2, Swords } from 'lucide-react';
+import { Heart, MessageSquareMore, PlusCircle, Search, Users, ArrowUp, CornerUpLeft, Dice6, Play, Loader2, Swords, X } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import Link from 'next/link';
@@ -19,7 +19,7 @@ import { useInView } from 'react-intersection-observer';
 import { Button } from '@/components/ui/button';
 import AIChat from './ai-chat';
 import { useStreamStore } from '@/lib/stream-store';
-import ChallengeCard from './ChallengeCard';
+import ChallengeDisplayCard from './ChallengeDisplayCard';
 
 
 interface BroadcastPreviewUIManagerProps {
@@ -100,11 +100,13 @@ function BroadcastPreviewUIManager({
             )}
 
             {isChallengeVisible && broadcast.activeChallenge && broadcast.activeChallengeType && (
-                <ChallengeCard
-                    text={broadcast.activeChallenge}
-                    type={broadcast.activeChallengeType}
-                    onClose={() => setIsChallengeVisible(false)}
-                />
+                <div className="absolute inset-0 bg-black/60 z-50 flex items-center justify-center p-4 pointer-events-auto">
+                    <ChallengeDisplayCard
+                        text={broadcast.activeChallenge}
+                        type={broadcast.activeChallengeType}
+                        onClose={() => setIsChallengeVisible(false)}
+                    />
+                </div>
             )}
             
             {/* Top Info */}
@@ -366,3 +368,6 @@ export function BroadcastPreview({ broadcast, onVisible }: BroadcastPreviewProps
 
 
 
+
+
+    
