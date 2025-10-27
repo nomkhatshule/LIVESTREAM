@@ -68,7 +68,7 @@ export default function ChallengeDisplayCard({ text, type, size = 'large', varia
         <div className="flex-grow w-full flex flex-col items-center justify-center text-center">
             <h2 className={cn(
                 "font-bold text-black font-headline",
-                size === 'large' ? 'text-3xl' : 'text-2xl'
+                size === 'large' ? 'text-2xl' : 'text-2xl'
             )}>{text}</h2>
         </div>
         {children && (
