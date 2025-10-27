@@ -27,6 +27,7 @@ function CreateBroadcastPageComponent() {
   const { toast } = useToast();
 
   const challengeParam = searchParams.get('challenge');
+  const challengeTypeParam = searchParams.get('type') as 'truth' | 'dare' | 'challenge' | null;
   const [title, setTitle] = useState(challengeParam || '');
   const [category, setCategory] = useState(challengeParam ? 'Games' : '');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -105,6 +106,7 @@ function CreateBroadcastPageComponent() {
       category: category,
       challenge: challengeParam || null,
       activeChallenge: challengeParam || null,
+      activeChallengeType: challengeTypeParam || null,
       hostId: user.uid,
       hostName: userDocument.username || user.displayName || 'Anonymous',
       hostAvatar: userDocument.profilePicture || user.photoURL || '',

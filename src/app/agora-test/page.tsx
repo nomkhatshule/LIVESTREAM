@@ -56,6 +56,7 @@ interface BroadcastData {
     isLive: boolean;
     challenge?: string;
     activeChallenge?: string;
+    activeChallengeType?: 'truth' | 'dare' | 'challenge';
     streamDetails?: {
       isScreenSharing: boolean;
     },
@@ -88,7 +89,7 @@ const ChallengeOverlay = ({ challenge, onComplete }: { challenge?: string, onCom
     )
 }
 
-const InStreamGamesPanel = ({ onSelectChallenge }: { onSelectChallenge: (challenge: string) => void }) => {
+const InStreamGamesPanel = ({ onSelectChallenge }: { onSelectChallenge: (challenge: string, type: 'truth' | 'dare' | 'challenge') => void }) => {
     const [gameType, setGameType] = useState<'truth' | 'dare' | 'ai'>('ai');
     const [prompt, setPrompt] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -123,6 +124,16 @@ const InStreamGamesPanel = ({ onSelectChallenge }: { onSelectChallenge: (challen
         }
     };
     
+    const handleStartChallenge = () => {
+        let challengeType: 'truth' | 'dare' | 'challenge';
+        if (gameType === 'ai') {
+            challengeType = 'challenge';
+        } else {
+            challengeType = gameType;
+        }
+        onSelectChallenge(prompt, challengeType);
+    };
+
     return (
         <Sheet>
             <SheetTrigger asChild>
@@ -153,7 +164,7 @@ const InStreamGamesPanel = ({ onSelectChallenge }: { onSelectChallenge: (challen
                         size="lg" 
                         className="w-full" 
                         disabled={!prompt || isLoading} 
-                        onClick={() => onSelectChallenge(prompt)}
+                        onClick={handleStartChallenge}
                     >
                         Start This Challenge
                     </Button>
@@ -433,7 +444,7 @@ function AgoraTestPageUI() {
         await call.leave();
     }
     if (broadcastDocRef) {
-        await updateDoc(broadcastDocRef, { isLive: false, activeChallenge: null });
+        await updateDoc(broadcastDocRef, { isLive: false, activeChallenge: null, activeChallengeType: null });
     }
     router.push('/');
   }
@@ -462,16 +473,16 @@ function AgoraTestPageUI() {
     }, 5000);
   }
 
-  const handleChallengeSelect = async (challenge: string) => {
+  const handleChallengeSelect = async (challenge: string, type: 'truth' | 'dare' | 'challenge') => {
     if (broadcastDocRef) {
-        await updateDoc(broadcastDocRef, { activeChallenge: challenge });
+        await updateDoc(broadcastDocRef, { activeChallenge: challenge, activeChallengeType: type });
         toast({ title: 'New Challenge Started!', description: challenge });
     }
   };
 
   const handleChallengeComplete = async () => {
       if (broadcastDocRef) {
-          await updateDoc(broadcastDocRef, { activeChallenge: null });
+          await updateDoc(broadcastDocRef, { activeChallenge: null, activeChallengeType: null });
           toast({ title: 'Challenge Complete!' });
       }
   };

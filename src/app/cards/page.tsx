@@ -141,7 +141,7 @@ export default function CardsPage() {
                           Next
                         </Button>
                         <Button asChild size="lg" className="w-full" disabled={!challenge}>
-                           <Link href={`/broadcast/create?challenge=${encodeURIComponent(challenge)}`}>
+                           <Link href={`/broadcast/create?challenge=${encodeURIComponent(challenge)}&type=challenge`}>
                              <Video className="mr-2 h-5 w-5" />
                              Go Live!
                            </Link>
@@ -189,7 +189,7 @@ export default function CardsPage() {
                           Next
                         </Button>
                         <Button asChild size="lg" className="w-full" disabled={!prompt}>
-                           <Link href={`/broadcast/create?challenge=${encodeURIComponent(prompt)}`}>
+                           <Link href={`/broadcast/create?challenge=${encodeURIComponent(prompt)}&type=${promptType}`}>
                              <Video className="mr-2 h-5 w-5" />
                              Go Live!
                            </Link>
