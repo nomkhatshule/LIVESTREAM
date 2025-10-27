@@ -3,7 +3,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Users, X, Send, Smile, MessageCircle, Video, Mic, UserPlus, ScreenShare, VideoOff, MicOff, ArrowUp, MessageCircleOff, MonitorUp, Heart, ThumbsUp, Loader2, Dice6, Trophy, Check, Minus, Swords } from 'lucide-react';
+import { Users, X, Send, Smile, MessageCircle, Video, Mic, UserPlus, ScreenShare, VideoOff, MicOff, ArrowUp, MessageCircleOff, MonitorUp, Heart, ThumbsUp, Loader2, Dice6, Trophy, Check, Minus, Swords, Undo2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Suspense, forwardRef, useEffect, useMemo, useRef, useState } from 'react';
@@ -537,6 +537,19 @@ function AgoraTestPageUI() {
       }
   };
   
+    const handleChallengeSkip = async () => {
+        if (broadcastDocRef) {
+            await updateDoc(broadcastDocRef, {
+                activeChallenge: null,
+                activeChallengeType: null,
+                challengeDurationSeconds: null,
+                challengeStartTime: null,
+            });
+            toast({ title: 'Challenge Skipped!' });
+            setIsGamePanelOpen(true);
+        }
+    };
+  
   if (isBroadcastLoading || !broadcastData) {
       return (
           <div className="flex h-screen w-full items-center justify-center bg-gray-900">
@@ -574,8 +587,12 @@ function AgoraTestPageUI() {
                         />
                     ) : null}
                 >
+                    <Button size="lg" variant="outline" className="flex-1" onClick={handleChallengeSkip}>
+                        <Undo2 className="mr-2 h-5 w-5" />
+                        Skip
+                    </Button>
                     {isTimerFinished && (
-                        <Button size="lg" className="w-full" onClick={handleChallengeComplete}>
+                        <Button size="lg" className="flex-1" onClick={handleChallengeComplete}>
                             <Check className="mr-2 h-5 w-5" />
                             Continue
                         </Button>
