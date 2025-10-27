@@ -1,3 +1,4 @@
+
 import { z } from 'zod';
 import type { Timestamp } from 'firebase/firestore';
 
@@ -25,6 +26,7 @@ export type Broadcast = {
   hostName: string;
   hostAvatar: string;
   activeChallenge?: string;
+  activeChallengeType?: 'truth' | 'dare' | 'challenge';
 };
 
 export type Category = {

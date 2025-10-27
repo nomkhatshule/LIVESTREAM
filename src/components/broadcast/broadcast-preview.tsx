@@ -19,6 +19,7 @@ import { useInView } from 'react-intersection-observer';
 import { Button } from '@/components/ui/button';
 import AIChat from './ai-chat';
 import { useStreamStore } from '@/lib/stream-store';
+import ChallengeCard from './ChallengeCard';
 
 
 interface BroadcastPreviewUIManagerProps {
@@ -53,6 +54,7 @@ function BroadcastPreviewUIManager({
     const [newMessage, setNewMessage] = useState('');
     const [isChatVisible, setIsChatVisible] = useState(true);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const [isChallengeVisible, setIsChallengeVisible] = useState(false);
 
     const reversedComments = useMemo(() => comments ? [...comments].reverse() : [], [comments]);
 
@@ -95,6 +97,14 @@ function BroadcastPreviewUIManager({
                         </span>
                     </button>
                 </div>
+            )}
+
+            {isChallengeVisible && broadcast.activeChallenge && broadcast.activeChallengeType && (
+                <ChallengeCard
+                    text={broadcast.activeChallenge}
+                    type={broadcast.activeChallengeType}
+                    onClose={() => setIsChallengeVisible(false)}
+                />
             )}
             
             {/* Top Info */}
@@ -170,7 +180,7 @@ function BroadcastPreviewUIManager({
                 {/* Live Challenge Icon */}
                 {broadcast.activeChallenge && (
                      <div className="flex flex-col items-center group">
-                        <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform">
+                        <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform" onClick={() => setIsChallengeVisible(true)}>
                            <Swords className="h-6 w-6 drop-shadow-md text-yellow-400" strokeWidth={1.5} />
                         </button>
                         <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">Challenge</span>
@@ -353,5 +363,6 @@ export function BroadcastPreview({ broadcast, onVisible }: BroadcastPreviewProps
         </div>
     );
 };
+
 
 
