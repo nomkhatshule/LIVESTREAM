@@ -134,6 +134,20 @@
             },
             "description": "The position of the draggable challenge card on the screen."
         },
+        "challengeCardSize": {
+            "type": "object",
+            "properties": {
+                "width": {
+                    "type": "number",
+                    "description": "The width of the challenge card."
+                },
+                "height": {
+                    "type": "number",
+                    "description": "The height of the challenge card."
+                }
+            },
+            "description": "The size of the resizable challenge card on the screen."
+        },
         "streamDetails": {
           "type": "object",
           "description": "Holds dynamic details about the live stream session.",
