@@ -23,7 +23,7 @@ export default function ChallengeDisplayCard({ text, type, children, onClose }: 
         return { text: 'DARE', className: 'bg-destructive text-destructive-foreground' };
       case 'challenge':
       default:
-        return { text: 'CHALLENGE', className: 'bg-secondary text-secondary-foreground' };
+        return { text: 'CHALLENGE', className: 'bg-primary text-primary-foreground' };
     }
   };
 
