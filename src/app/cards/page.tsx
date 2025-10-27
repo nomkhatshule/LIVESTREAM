@@ -124,7 +124,6 @@ export default function CardsPage() {
                             </Button>
                             <Button asChild size="lg" className="flex-1" disabled={!challenge || !!error}>
                             <Link href={`/broadcast/create?challenge=${encodeURIComponent(challenge)}&type=challenge&duration=${duration}`}>
-                                <Video className="mr-2 h-5 w-5" />
                                 Go Live!
                             </Link>
                             </Button>
@@ -154,7 +153,6 @@ export default function CardsPage() {
                     </Button>
                     <Button asChild size="lg" className="flex-1" disabled={!prompt}>
                        <Link href={`/broadcast/create?challenge=${encodeURIComponent(prompt)}&type=${promptType}&duration=${duration}`}>
-                         <Video className="mr-2 h-5 w-5" />
                          Go Live!
                        </Link>
                     </Button>
