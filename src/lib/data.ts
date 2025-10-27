@@ -29,6 +29,8 @@ export type Broadcast = {
   activeChallengeType?: 'truth' | 'dare' | 'challenge';
   challengeStartTime?: Timestamp;
   challengeDurationSeconds?: number;
+  challengeCardPosition?: { x: number, y: number };
+  challengeCardSize?: { width: number, height: number };
 };
 
 export type Category = {
@@ -176,3 +178,5 @@ export const dareChallenges = [
     { text: "Speak only in questions for the next 3 minutes.", duration: 180 },
     { text: "Try to lick your elbow.", duration: 30 },
 ];
+
+    

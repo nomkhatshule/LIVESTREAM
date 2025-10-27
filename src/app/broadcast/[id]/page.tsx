@@ -88,6 +88,8 @@ export default function BroadcastPage() {
       activeChallengeType: broadcastData.activeChallengeType,
       challengeStartTime: broadcastData.challengeStartTime,
       challengeDurationSeconds: broadcastData.challengeDurationSeconds,
+      challengeCardPosition: broadcastData.challengeCardPosition,
+      challengeCardSize: broadcastData.challengeCardSize,
     };
   }, [broadcastData, id]);
 
@@ -171,12 +173,22 @@ export default function BroadcastPage() {
     notFound();
   }
   
+  const cardPosition = broadcast.challengeCardPosition || { x: 0, y: 0 };
+  const cardSize = broadcast.challengeCardSize || { width: 384, height: 550 };
+
   return (
     <div className="relative h-[calc(100vh-4rem)] w-full bg-black snap-start">
       <VideoPlayer broadcast={broadcast} isHost={false} />
       
       {broadcast.activeChallenge && broadcast.activeChallengeType && (
-            <div className="absolute inset-0 bg-black/60 z-20 flex items-center justify-center p-4 pointer-events-none">
+            <div 
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-20"
+              style={{
+                  transform: `translate(calc(-50% + ${cardPosition.x}px), calc(-50% + ${cardPosition.y}px))`,
+                  width: `${cardSize.width}px`,
+                  height: `${cardSize.height}px`,
+              }}
+            >
                 <ChallengeDisplayCard 
                     text={broadcast.activeChallenge}
                     type={broadcast.activeChallengeType}
@@ -325,3 +337,5 @@ function BroadcastSkeleton() {
     </div>
   );
 }
+
+    
