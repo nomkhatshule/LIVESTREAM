@@ -58,14 +58,15 @@ export default function ChallengeDisplayCard({ text, type, size = 'large', varia
         <Badge className={cn("mb-4 text-lg", badgeInfo.className)}>
           {badgeInfo.text}
         </Badge>
-        <div className="flex-grow w-full flex items-center justify-center text-center">
+        <div className="flex-grow w-full flex flex-col items-center justify-center text-center">
             <h2 className={cn(
                 "font-bold text-black font-headline",
                 size === 'large' ? 'text-3xl' : 'text-2xl'
             )}>{text}</h2>
+             {/* The timer will be passed in as a child */}
         </div>
         {children && (
-            <div className="mt-auto pt-4 w-full flex flex-row gap-x-2">
+            <div className="mt-auto pt-4 w-full flex flex-col gap-y-2">
                 {children}
             </div>
         )}

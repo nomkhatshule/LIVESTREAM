@@ -32,6 +32,7 @@ import { Badge } from '@/components/ui/badge';
 import { generateGamePrompts } from '@/ai/flows/generate-game-prompts';
 import { truthQuestions, dareChallenges } from '@/lib/data';
 import ChallengeDisplayCard from '@/components/broadcast/ChallengeDisplayCard';
+import CountdownTimer from '@/components/broadcast/CountdownTimer';
 
 // Type Definitions
 interface Comment {
@@ -514,6 +515,12 @@ function AgoraTestPageUI() {
                     text={broadcastData.activeChallenge}
                     type={broadcastData.activeChallengeType}
                 >
+                    {broadcastData.challengeStartTime && broadcastData.challengeDurationSeconds && (
+                        <CountdownTimer 
+                            startTime={broadcastData.challengeStartTime} 
+                            durationSeconds={broadcastData.challengeDurationSeconds} 
+                        />
+                    )}
                      <Button size="lg" className="w-full" onClick={handleChallengeComplete}>
                         <Check className="mr-2 h-5 w-5" />
                         Complete Challenge
@@ -699,7 +706,3 @@ export default function AgoraTestPage() {
         </Suspense>
     )
 }
-
-    
-
-    

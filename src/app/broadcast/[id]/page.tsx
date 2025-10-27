@@ -27,6 +27,7 @@ import { cn } from '@/lib/utils';
 import { useCallStateHooks } from '@stream-io/video-react-sdk';
 import { Badge } from '@/components/ui/badge';
 import ChallengeDisplayCard from '@/components/broadcast/ChallengeDisplayCard';
+import CountdownTimer from '@/components/broadcast/CountdownTimer';
 
 
 export default function BroadcastPage() {
@@ -85,6 +86,8 @@ export default function BroadcastPage() {
       hostAvatar: broadcastData.hostAvatar,
       activeChallenge: broadcastData.activeChallenge,
       activeChallengeType: broadcastData.activeChallengeType,
+      challengeStartTime: broadcastData.challengeStartTime,
+      challengeDurationSeconds: broadcastData.challengeDurationSeconds,
     };
   }, [broadcastData, id]);
 
@@ -177,7 +180,14 @@ export default function BroadcastPage() {
                 <ChallengeDisplayCard 
                     text={broadcast.activeChallenge}
                     type={broadcast.activeChallengeType}
-                />
+                >
+                    {broadcast.challengeStartTime && broadcast.challengeDurationSeconds && (
+                        <CountdownTimer 
+                            startTime={broadcast.challengeStartTime} 
+                            durationSeconds={broadcast.challengeDurationSeconds} 
+                        />
+                    )}
+                </ChallengeDisplayCard>
             </div>
         )}
 
