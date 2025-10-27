@@ -10,7 +10,7 @@ import { Suspense, forwardRef, useEffect, useMemo, useRef, useState } from 'reac
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useDoc, useFirestore, useMemoFirebase, useUserDocument } from '@/firebase';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { doc, updateDoc, collection, query, orderBy, limit, serverTimestamp } from 'firebase/firestore';
+import { doc, updateDoc, collection, query, orderBy, limit, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { useCollection } from '@/firebase';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import {
@@ -58,6 +58,8 @@ interface BroadcastData {
     challenge?: string;
     activeChallenge?: string;
     activeChallengeType?: 'truth' | 'dare' | 'challenge';
+    challengeStartTime?: Timestamp;
+    challengeDurationSeconds?: number;
     streamDetails?: {
       isScreenSharing: boolean;
     },
@@ -70,9 +72,10 @@ interface BroadcastData {
 
 // --- Sub-components for AgoraTestPageUI ---
 
-const InStreamGamesPanel = ({ onSelectChallenge }: { onSelectChallenge: (challenge: string, type: 'truth' | 'dare' | 'challenge') => void }) => {
+const InStreamGamesPanel = ({ onSelectChallenge }: { onSelectChallenge: (challenge: string, type: 'truth' | 'dare' | 'challenge', duration: number) => void }) => {
     const [gameType, setGameType] = useState<'truth' | 'dare' | 'ai'>('ai');
     const [prompt, setPrompt] = useState('');
+    const [duration, setDuration] = useState(60); // Default duration
     const [isLoading, setIsLoading] = useState(false);
 
     const handleGenerate = async (type: 'truth' | 'dare' | 'ai') => {
@@ -83,8 +86,10 @@ const InStreamGamesPanel = ({ onSelectChallenge }: { onSelectChallenge: (challen
         try {
             if (type === 'truth') {
                 setPrompt(truthQuestions[Math.floor(Math.random() * truthQuestions.length)]);
+                setDuration(60); // Standard duration for truth
             } else if (type === 'dare') {
                 setPrompt(dareChallenges[Math.floor(Math.random() * dareChallenges.length)]);
+                setDuration(90); // Standard duration for dare
             } else {
                  const result = await generateGamePrompts({
                     gameType: 'challenge',
@@ -93,6 +98,7 @@ const InStreamGamesPanel = ({ onSelectChallenge }: { onSelectChallenge: (challen
                 });
                 if (result.prompts && result.prompts.length > 0) {
                     setPrompt(result.prompts[0]);
+                    setDuration(result.durationsInSeconds[0] || 120);
                 } else {
                     setPrompt('AI could not generate a challenge. Try again!');
                 }
@@ -112,7 +118,7 @@ const InStreamGamesPanel = ({ onSelectChallenge }: { onSelectChallenge: (challen
         } else {
             challengeType = gameType;
         }
-        onSelectChallenge(prompt, challengeType);
+        onSelectChallenge(prompt, challengeType, duration);
     };
 
     return (
@@ -454,16 +460,26 @@ function AgoraTestPageUI() {
     }, 5000);
   }
 
-  const handleChallengeSelect = async (challenge: string, type: 'truth' | 'dare' | 'challenge') => {
+  const handleChallengeSelect = async (challenge: string, type: 'truth' | 'dare' | 'challenge', duration: number) => {
     if (broadcastDocRef) {
-        await updateDoc(broadcastDocRef, { activeChallenge: challenge, activeChallengeType: type });
+        await updateDoc(broadcastDocRef, { 
+            activeChallenge: challenge, 
+            activeChallengeType: type,
+            challengeDurationSeconds: duration,
+            challengeStartTime: serverTimestamp(),
+        });
         toast({ title: 'New Challenge Started!', description: challenge });
     }
   };
 
   const handleChallengeComplete = async () => {
       if (broadcastDocRef) {
-          await updateDoc(broadcastDocRef, { activeChallenge: null, activeChallengeType: null });
+          await updateDoc(broadcastDocRef, { 
+              activeChallenge: null, 
+              activeChallengeType: null,
+              challengeDurationSeconds: null,
+              challengeStartTime: null,
+          });
           toast({ title: 'Challenge Complete!' });
       }
   };
@@ -497,7 +513,6 @@ function AgoraTestPageUI() {
                 <ChallengeDisplayCard 
                     text={broadcastData.activeChallenge}
                     type={broadcastData.activeChallengeType}
-                    onClose={handleChallengeComplete}
                 >
                      <Button size="lg" className="w-full" onClick={handleChallengeComplete}>
                         <Check className="mr-2 h-5 w-5" />

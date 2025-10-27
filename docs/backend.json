@@ -111,6 +111,15 @@
           "enum": ["truth", "dare", "challenge"],
           "description": "The type of the active challenge, used for UI styling."
         },
+        "challengeStartTime": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The server timestamp when the active challenge was started."
+        },
+        "challengeDurationSeconds": {
+          "type": "number",
+          "description": "The duration in seconds for the active challenge."
+        },
         "streamDetails": {
           "type": "object",
           "description": "Holds dynamic details about the live stream session.",

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useRef, Suspense } from 'react';
@@ -28,6 +29,8 @@ function CreateBroadcastPageComponent() {
 
   const challengeParam = searchParams.get('challenge');
   const challengeTypeParam = searchParams.get('type') as 'truth' | 'dare' | 'challenge' | null;
+  const durationParam = searchParams.get('duration');
+
   const [title, setTitle] = useState(challengeParam || '');
   const [category, setCategory] = useState(challengeParam ? 'Games' : '');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -107,6 +110,8 @@ function CreateBroadcastPageComponent() {
       challenge: challengeParam || null,
       activeChallenge: challengeParam || null,
       activeChallengeType: challengeTypeParam || null,
+      challengeStartTime: challengeParam ? serverTimestamp() : null,
+      challengeDurationSeconds: durationParam ? parseInt(durationParam) : null,
       hostId: user.uid,
       hostName: userDocument.username || user.displayName || 'Anonymous',
       hostAvatar: userDocument.profilePicture || user.photoURL || '',

@@ -19,6 +19,7 @@ export default function CardsPage() {
   const [gameState, setGameState] = useState<'choice' | 'reveal'>('choice');
   const [promptType, setPromptType] = useState<'truth' | 'dare' | null>(null);
   const [prompt, setPrompt] = useState('');
+  const [duration, setDuration] = useState(60);
   const [isFlipped, setIsFlipped] = useState(false);
 
   // --- State for Challenges game ---
@@ -31,23 +32,20 @@ export default function CardsPage() {
     if (type === 'truth') {
       const randomIndex = Math.floor(Math.random() * truthQuestions.length);
       setPrompt(truthQuestions[randomIndex]);
+      setDuration(60);
     } else {
       const randomIndex = Math.floor(Math.random() * dareChallenges.length);
       setPrompt(dareChallenges[randomIndex]);
+      setDuration(90);
     }
     setPromptType(type);
     setGameState('reveal');
-    setIsFlipped(true);
   };
 
   const handleNextRound = () => {
     setGameState('choice');
-    setIsFlipped(false);
-    // We delay clearing the prompt to prevent it from disappearing during the flip back animation
-    setTimeout(() => {
-        setPrompt('');
-        setPromptType(null);
-    }, 300); // This duration should match the transition duration
+    setPrompt('');
+    setPromptType(null);
   };
 
   const handleGenerateChallenge = async () => {
@@ -62,6 +60,7 @@ export default function CardsPage() {
       });
       if (result.prompts && result.prompts.length > 0) {
         setChallenge(result.prompts[0]);
+        setDuration(result.durationsInSeconds[0] || 120);
       } else {
         setError('No challenges were generated. Please try again.');
       }
@@ -107,6 +106,7 @@ export default function CardsPage() {
                 <ChallengeDisplayCard
                     text={isLoadingChallenge ? '' : error ? error : challenge}
                     type="challenge"
+                    variant="stacked"
                     onClose={() => {
                         setIsGameStarted(false);
                         setChallenge('');
@@ -124,7 +124,7 @@ export default function CardsPage() {
                             Next
                             </Button>
                             <Button asChild size="lg" className="w-full" disabled={!challenge || !!error}>
-                            <Link href={`/broadcast/create?challenge=${encodeURIComponent(challenge)}&type=challenge`}>
+                            <Link href={`/broadcast/create?challenge=${encodeURIComponent(challenge)}&type=challenge&duration=${duration}`}>
                                 <Video className="mr-2 h-5 w-5" />
                                 Go Live!
                             </Link>
@@ -135,16 +135,9 @@ export default function CardsPage() {
             )}
           </TabsContent>
           <TabsContent value="truth-or-dare">
-             <div className="relative h-[550px] perspective-1000">
-              {/* Card Inner container for 3D rotation */}
-              <div
-                className={cn(
-                  'relative w-full h-full transform-style-3d transition-transform duration-500',
-                  isFlipped && 'rotate-y-180'
-                )}
-              >
-                {/* Front of the Card */}
-                <div className="absolute w-full h-full backface-hidden bg-white rounded-3xl p-6 shadow-2xl flex flex-col items-center justify-center text-center">
+             <div className="relative h-[550px]">
+              {gameState === 'choice' ? (
+                <div className="absolute w-full h-full bg-white rounded-3xl p-6 shadow-2xl flex flex-col items-center justify-center text-center">
                   <h2 className="text-3xl font-bold text-black font-headline mb-8">Truth or Dare?</h2>
                   <div className="w-full space-y-4">
                     <Button size="lg" className="w-full" onClick={() => handleChoice('truth')}>
@@ -155,24 +148,19 @@ export default function CardsPage() {
                     </Button>
                   </div>
                 </div>
-
-                {/* Back of the Card */}
-                <div className="absolute w-full h-full backface-hidden rotate-y-180">
-                  {gameState === 'reveal' && promptType && (
-                     <ChallengeDisplayCard text={prompt} type={promptType}>
-                        <Button size="lg" variant="outline" className="w-full" onClick={handleNextRound}>
-                          Next
-                        </Button>
-                        <Button asChild size="lg" className="w-full" disabled={!prompt}>
-                           <Link href={`/broadcast/create?challenge=${encodeURIComponent(prompt)}&type=${promptType}`}>
-                             <Video className="mr-2 h-5 w-5" />
-                             Go Live!
-                           </Link>
-                        </Button>
-                    </ChallengeDisplayCard>
-                  )}
-                </div>
-              </div>
+              ) : promptType && (
+                 <ChallengeDisplayCard text={prompt} type={promptType} variant="stacked">
+                    <Button size="lg" variant="outline" className="w-full" onClick={handleNextRound}>
+                      Next
+                    </Button>
+                    <Button asChild size="lg" className="w-full" disabled={!prompt}>
+                       <Link href={`/broadcast/create?challenge=${encodeURIComponent(prompt)}&type=${promptType}&duration=${duration}`}>
+                         <Video className="mr-2 h-5 w-5" />
+                         Go Live!
+                       </Link>
+                    </Button>
+                </ChallengeDisplayCard>
+              )}
             </div>
           </TabsContent>
         </Tabs>

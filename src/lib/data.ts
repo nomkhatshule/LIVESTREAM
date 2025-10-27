@@ -27,6 +27,8 @@ export type Broadcast = {
   hostAvatar: string;
   activeChallenge?: string;
   activeChallengeType?: 'truth' | 'dare' | 'challenge';
+  challengeStartTime?: Timestamp;
+  challengeDurationSeconds?: number;
 };
 
 export type Category = {
