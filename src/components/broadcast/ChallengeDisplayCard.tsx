@@ -56,16 +56,16 @@ export default function ChallengeDisplayCard({ text, type, size = 'large', varia
             </Button>
         )}
         <div className="relative mb-4 w-full h-12">
-            <div className="absolute inset-x-0 top-0 flex justify-center">
-                <Badge className={cn("text-lg", badgeInfo.className)}>
-                    {badgeInfo.text}
-                </Badge>
-            </div>
             {timer && (
                 <div className="absolute top-0 left-0">
                     {timer}
                 </div>
             )}
+            <div className="absolute inset-x-0 top-0 flex justify-center">
+                <Badge className={cn("text-lg border-4 border-white shadow-md", badgeInfo.className)}>
+                    {badgeInfo.text}
+                </Badge>
+            </div>
         </div>
         <div className="flex-grow w-full flex flex-col items-center justify-center text-center">
             <h2 className={cn(
