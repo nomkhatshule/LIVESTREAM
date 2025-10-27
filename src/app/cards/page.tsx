@@ -115,14 +115,14 @@ export default function CardsPage() {
                     {!isLoadingChallenge && (
                         <>
                             <Button
-                            className="w-auto"
+                            className="flex-1"
                             onClick={handleGenerateChallenge}
                             disabled={isLoadingChallenge}
                             variant="outline"
                             >
                             Next
                             </Button>
-                            <Button asChild size="lg" className="w-auto" disabled={!challenge || !!error}>
+                            <Button asChild size="lg" className="flex-1" disabled={!challenge || !!error}>
                             <Link href={`/broadcast/create?challenge=${encodeURIComponent(challenge)}&type=challenge&duration=${duration}`}>
                                 <Video className="mr-2 h-5 w-5" />
                                 Go Live!
@@ -149,10 +149,10 @@ export default function CardsPage() {
                 </div>
               ) : promptType && (
                  <ChallengeDisplayCard text={prompt} type={promptType} variant="stacked">
-                    <Button size="lg" variant="outline" className="w-auto" onClick={handleNextRound}>
+                    <Button size="lg" variant="outline" className="flex-1" onClick={handleNextRound}>
                       Next
                     </Button>
-                    <Button asChild size="lg" className="w-auto" disabled={!prompt}>
+                    <Button asChild size="lg" className="flex-1" disabled={!prompt}>
                        <Link href={`/broadcast/create?challenge=${encodeURIComponent(prompt)}&type=${promptType}&duration=${duration}`}>
                          <Video className="mr-2 h-5 w-5" />
                          Go Live!
