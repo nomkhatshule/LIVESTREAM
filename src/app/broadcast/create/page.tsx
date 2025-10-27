@@ -31,7 +31,7 @@ function CreateBroadcastPageComponent() {
   const challengeTypeParam = searchParams.get('type') as 'truth' | 'dare' | 'challenge' | null;
   const durationParam = searchParams.get('duration');
 
-  const [title, setTitle] = useState(challengeParam || '');
+  const [title, setTitle] = useState('');
   const [category, setCategory] = useState(challengeParam ? 'Games' : '');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -39,10 +39,9 @@ function CreateBroadcastPageComponent() {
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
 
   useEffect(() => {
-    // If a challenge is passed in the URL, set it as the title
+    // If a challenge is passed, set the category, but not the title
     if (challengeParam) {
-      setTitle(challengeParam);
-      setCategory('Games'); // Automatically set category to "Games"
+      setCategory('Games');
     }
   }, [challengeParam]);
 
