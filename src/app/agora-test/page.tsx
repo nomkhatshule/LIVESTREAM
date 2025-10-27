@@ -37,6 +37,7 @@ import InStreamGamesPanel from '@/components/agora-test/InStreamGamesPanel';
 import StreamControls from '@/components/agora-test/StreamControls';
 import ChatPanel from '@/components/agora-test/ChatPanel';
 import type { Reaction, StagedChallenge, BroadcastData, Comment } from '@/lib/types';
+import { generateGamePrompts } from '@/ai/flows/generate-game-prompts';
 
 
 // --- Main UI Component ---
@@ -165,6 +166,9 @@ function AgoraTestPageUI() {
   };
 
   const handleMouseUp = () => {
+    if (isDragging && broadcastDocRef) {
+        updateDoc(broadcastDocRef, { challengeCardPosition: cardPosition });
+    }
     setIsDragging(false);
   };
   
@@ -294,19 +298,24 @@ function AgoraTestPageUI() {
   };
 
   const handleGenerateNextChallenge = async (gameType: 'truth' | 'dare' | 'challenge') => {
-      // Re-use logic from InStreamGamesPanel to generate next challenge
-      const panel = InStreamGamesPanel({ onSelectChallenge: handleChallengeSelect, open: false, onOpenChange: () => {} });
-      // This is a bit of a hack, ideally the generation logic is a standalone utility
-      // For now, we simulate opening the panel and clicking a button
        if (broadcastDocRef) {
          try {
-            const nextChallenge = await (panel.type as any).generateNextChallengeLogic(gameType);
-            await updateDoc(broadcastDocRef, {
-                activeChallenge: nextChallenge.prompt,
-                activeChallengeType: gameType,
-                challengeDurationSeconds: nextChallenge.duration,
-                challengeStartTime: serverTimestamp(),
+            const result = await generateGamePrompts({
+                gameType: gameType === 'ai' ? 'challenge' : gameType,
+                category: 'Live Stream Audience',
+                count: 1,
             });
+
+            if (result.prompts && result.prompts.length > 0) {
+                 await updateDoc(broadcastDocRef, {
+                    activeChallenge: result.prompts[0],
+                    activeChallengeType: gameType,
+                    challengeDurationSeconds: result.durationsInSeconds[0] || 120,
+                    challengeStartTime: serverTimestamp(),
+                });
+            } else {
+                 throw new Error('AI could not generate a challenge.');
+            }
          } catch(e) {
             console.error(e);
             toast({ variant: 'destructive', title: 'Error', description: 'Could not generate next challenge.' });
@@ -361,7 +370,7 @@ function AgoraTestPageUI() {
         {/* Active Challenge Display Card */}
         {isChallengeVisible && broadcastData.activeChallenge && broadcastData.activeChallengeType && (
             <div 
-                className="absolute top-1/2 left-1/2 w-[384px] -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+                className="absolute top-1/2 left-1/2 w-[384px] -translate-x-1/2 -translate-y-1/2 pointer-events-none z-20"
                 style={{
                   transform: `translate(calc(-50% + ${cardPosition.x}px), calc(-50% + ${cardPosition.y}px))`,
                 }}
