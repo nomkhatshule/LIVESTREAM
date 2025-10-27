@@ -33,8 +33,8 @@ export default function ChallengeDisplayCard({ text, type, size = 'large', varia
 
   return (
     <div className={cn(
-        "relative w-full max-w-sm",
-        size === 'large' ? 'h-[550px]' : 'h-[480px]'
+        "relative w-full",
+        size === 'large' ? 'max-w-sm h-[550px]' : 'max-w-xs h-[420px]'
     )}>
       {/* Conditionally render stacked card backgrounds */}
       {variant === 'stacked' && (

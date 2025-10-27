@@ -18,7 +18,7 @@ interface ChallengeCardProps {
 export default function ChallengeCard({ text, type, size, variant, onClose }: ChallengeCardProps) {
 
   return (
-    <div className="absolute inset-0 bg-black/60 z-50 flex items-center justify-end p-4 pr-24 pointer-events-auto">
+    <div className="absolute inset-0 bg-black/60 z-50 flex items-center justify-end p-4 pr-32 pointer-events-auto">
         <ChallengeDisplayCard 
             text={text}
             type={type}
