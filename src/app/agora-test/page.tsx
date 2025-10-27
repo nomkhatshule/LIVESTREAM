@@ -3,7 +3,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Users, X, Send, Smile, MessageCircle, Video, Mic, UserPlus, ScreenShare, VideoOff, MicOff, ArrowUp, MessageCircleOff, MonitorUp, Heart, ThumbsUp, Loader2, Dice6, Trophy, Check, Minus } from 'lucide-react';
+import { Users, X, Send, Smile, MessageCircle, Video, Mic, UserPlus, ScreenShare, VideoOff, MicOff, ArrowUp, MessageCircleOff, MonitorUp, Heart, ThumbsUp, Loader2, Dice6, Trophy, Check, Minus, Swords } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Suspense, forwardRef, useEffect, useMemo, useRef, useState } from 'react';
@@ -526,6 +526,7 @@ function AgoraTestPageUI() {
                 <ChallengeDisplayCard 
                     text={broadcastData.activeChallenge}
                     type={broadcastData.activeChallengeType}
+                    onClose={handleChallengeComplete}
                     timer={broadcastData.challengeStartTime && broadcastData.challengeDurationSeconds ? (
                         <CountdownTimer 
                             startTime={broadcastData.challengeStartTime} 
@@ -720,5 +721,3 @@ export default function AgoraTestPage() {
         </Suspense>
     )
 }
-
-    
