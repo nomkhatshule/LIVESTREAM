@@ -501,7 +501,7 @@ function AgoraTestPageUI() {
         />
         
         <ChallengeOverlay 
-            challenge={broadcastData.activeChallenge || broadcastData.challenge}
+            challenge={broadcastData.activeChallenge}
             onComplete={handleChallengeComplete}
         />
 
@@ -682,3 +682,5 @@ export default function AgoraTestPage() {
         </Suspense>
     )
 }
+
+    
