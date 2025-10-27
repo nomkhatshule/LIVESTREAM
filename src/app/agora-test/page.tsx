@@ -73,7 +73,7 @@ interface BroadcastData {
 
 // --- Sub-components for AgoraTestPageUI ---
 
-const InStreamGamesPanel = ({ onSelectChallenge }: { onSelectChallenge: (challenge: string, type: 'truth' | 'dare' | 'challenge', duration: number) => void }) => {
+const InStreamGamesPanel = ({ onSelectChallenge, open, onOpenChange }: { onSelectChallenge: (challenge: string, type: 'truth' | 'dare' | 'challenge', duration: number) => void, open: boolean, onOpenChange: (open: boolean) => void }) => {
     const [gameType, setGameType] = useState<'truth' | 'dare' | 'ai'>('ai');
     const [prompt, setPrompt] = useState('');
     const [duration, setDuration] = useState(60); // Default duration
@@ -121,10 +121,11 @@ const InStreamGamesPanel = ({ onSelectChallenge }: { onSelectChallenge: (challen
             challengeType = gameType;
         }
         onSelectChallenge(prompt, challengeType, duration);
+        onOpenChange(false);
     };
 
     return (
-        <Sheet>
+        <Sheet open={open} onOpenChange={onOpenChange}>
             <SheetTrigger asChild>
                  <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12">
                     <Dice6 className="h-5 w-5 md:h-6 md:w-6"/>
@@ -190,7 +191,7 @@ const StreamHeader = ({ broadcastData, viewerCount, onEndStream }: { broadcastDa
     );
 };
 
-const StreamControls = ({ onToggleVideo, onToggleMic, onToggleScreenShare, onInviteGuest, isVideoEnabled, isMicEnabled, isScreenSharing, isCallJoined, onSelectChallenge, onToggleChallengeVisibility, isChallengeActive }: any) => {
+const StreamControls = ({ onToggleVideo, onToggleMic, onToggleScreenShare, onInviteGuest, isVideoEnabled, isMicEnabled, isScreenSharing, isCallJoined, onSelectChallenge, onToggleChallengeVisibility, isChallengeActive, isGamePanelOpen, setIsGamePanelOpen }: any) => {
     const { useParticipants } = useCallStateHooks();
     const participants = useParticipants();
     const viewerCount = Math.max(0, participants.length -1);
@@ -215,7 +216,7 @@ const StreamControls = ({ onToggleVideo, onToggleMic, onToggleScreenShare, onInv
               </Button>
             )}
             <ParticipantsPanel viewerCount={viewerCount} participants={participants} />
-            <InStreamGamesPanel onSelectChallenge={onSelectChallenge} />
+            <InStreamGamesPanel onSelectChallenge={onSelectChallenge} open={isGamePanelOpen} onOpenChange={setIsGamePanelOpen} />
         </div>
     );
 };
@@ -338,6 +339,7 @@ function AgoraTestPageUI() {
   const [reactions, setReactions] = useState<Reaction[]>([]);
   const [isChallengeVisible, setIsChallengeVisible] = useState(true);
   const [isTimerFinished, setIsTimerFinished] = useState(false);
+  const [isGamePanelOpen, setIsGamePanelOpen] = useState(false);
 
 
   // Stream SDK Hooks
@@ -531,6 +533,7 @@ function AgoraTestPageUI() {
               challengeStartTime: null,
           });
           toast({ title: 'Challenge Complete!' });
+          setIsGamePanelOpen(true);
       }
   };
   
@@ -593,6 +596,8 @@ function AgoraTestPageUI() {
             isMicEnabled={isMicEnabled}
             isScreenSharing={isScreenSharing}
             isCallJoined={isCallJoined}
+            isGamePanelOpen={isGamePanelOpen}
+            setIsGamePanelOpen={setIsGamePanelOpen}
         />
 
         <ChatPanel 
