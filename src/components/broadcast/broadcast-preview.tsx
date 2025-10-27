@@ -9,7 +9,7 @@ import { collection, query, orderBy, limit, serverTimestamp, doc, deleteDoc } fr
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { addDocumentNonBlocking, setDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Heart, MessageSquareMore, PlusCircle, Search, Users, ArrowUp, CornerUpLeft, Dice6, Play, Loader2 } from 'lucide-react';
+import { Heart, MessageSquareMore, PlusCircle, Search, Users, ArrowUp, CornerUpLeft, Dice6, Play, Loader2, Swords } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import Link from 'next/link';
@@ -166,6 +166,16 @@ function BroadcastPreviewUIManager({
                     </button>
                     <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">Games</span>
                 </Link>
+
+                {/* Live Challenge Icon */}
+                {broadcast.activeChallenge && (
+                     <div className="flex flex-col items-center group">
+                        <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform">
+                           <Swords className="h-6 w-6 drop-shadow-md text-yellow-400" strokeWidth={1.5} />
+                        </button>
+                        <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">Challenge</span>
+                    </div>
+                )}
             </div>
 
 
@@ -343,3 +353,4 @@ export function BroadcastPreview({ broadcast, onVisible }: BroadcastPreviewProps
         </div>
     );
 };
+
