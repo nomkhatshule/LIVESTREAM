@@ -64,6 +64,9 @@ function AgoraTestPageUI() {
   const [cardSize, setCardSize] = useState({ width: 320, height: 460 });
   const [isDragging, setIsDragging] = useState(false);
   const dragOffsetRef = useRef({ x: 0, y: 0 });
+  const [isPinching, setIsPinching] = useState(false);
+  const initialPinchDistanceRef = useRef(0);
+  const initialCardSizeRef = useRef({ width: 320, height: 460 });
 
   // Stream SDK Hooks
   const { useCameraState, useMicrophoneState, useScreenShareState, useParticipants, useCallCallingState } = useCallStateHooks();
@@ -200,6 +203,60 @@ function AgoraTestPageUI() {
         window.removeEventListener('mouseup', handleMouseUp);
     };
   }, [isDragging]);
+
+  const getDistance = (touches: React.TouchList) => {
+    const [touch1, touch2] = [touches[0], touches[1]];
+    return Math.sqrt(
+        Math.pow(touch2.clientX - touch1.clientX, 2) +
+        Math.pow(touch2.clientY - touch1.clientY, 2)
+    );
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+     if (e.touches.length === 2) {
+        // Pinch gesture
+        e.preventDefault(); // prevent page scroll
+        setIsPinching(true);
+        initialPinchDistanceRef.current = getDistance(e.touches);
+        initialCardSizeRef.current = cardSize;
+    } else if (e.touches.length === 1) {
+        // Drag gesture
+        setIsDragging(true);
+        dragOffsetRef.current = {
+            x: e.touches[0].clientX - cardPosition.x,
+            y: e.touches[0].clientY - cardPosition.y,
+        };
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+     if (e.touches.length === 2 && isPinching) {
+        // Pinch to resize
+        const newDist = getDistance(e.touches);
+        const scale = newDist / initialPinchDistanceRef.current;
+        const newWidth = Math.max(300, initialCardSizeRef.current.width * scale);
+        const aspectRatio = initialCardSizeRef.current.width / initialCardSizeRef.current.height;
+        setCardSize({ width: newWidth, height: newWidth / aspectRatio });
+    } else if (e.touches.length === 1 && isDragging) {
+        // Drag to move
+        const newX = e.touches[0].clientX - dragOffsetRef.current.x;
+        const newY = e.touches[0].clientY - dragOffsetRef.current.y;
+        setCardPosition({ x: newX, y: newY });
+    }
+  };
+  
+  const handleTouchEnd = () => {
+    if (broadcastDocRef) {
+        if (isDragging) {
+            updateDoc(broadcastDocRef, { challengeCardPosition: cardPosition });
+        }
+        if (isPinching) {
+            updateDoc(broadcastDocRef, { challengeCardSize: cardSize });
+        }
+    }
+    setIsDragging(false);
+    setIsPinching(false);
+  };
   
   const handleResizeStop = (e: any, direction: any, ref: any, d: any) => {
     const newSize = {
@@ -417,6 +474,9 @@ function AgoraTestPageUI() {
                     <div 
                       className={cn("pointer-events-auto h-full w-full", isDragging ? 'cursor-grabbing' : 'cursor-grab')}
                       onMouseDown={handleMouseDown}
+                      onTouchStart={handleTouchStart}
+                      onTouchMove={handleTouchMove}
+                      onTouchEnd={handleTouchEnd}
                     >
                         <ChallengeDisplayCard 
                             text={broadcastData.activeChallenge}
