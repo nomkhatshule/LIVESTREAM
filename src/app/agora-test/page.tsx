@@ -524,6 +524,49 @@ function AgoraTestPageUI() {
     }
   };
 
+  const handleGenerateNextChallenge = async (gameType: 'truth' | 'dare' | 'challenge') => {
+    if (!broadcastDocRef) return;
+    
+    let newPrompt = '';
+    let newDuration = 60;
+    
+    try {
+        if (gameType === 'truth') {
+            newPrompt = truthQuestions[Math.floor(Math.random() * truthQuestions.length)];
+            newDuration = 60;
+        } else if (gameType === 'dare') {
+            const selectedDare = dareChallenges[Math.floor(Math.random() * dareChallenges.length)];
+            newPrompt = selectedDare.text;
+            newDuration = selectedDare.duration;
+        } else { // 'challenge'
+            const result = await generateGamePrompts({
+                gameType: 'challenge',
+                category: 'Live Stream Audience',
+                count: 1,
+            });
+            if (result.prompts && result.prompts.length > 0) {
+                newPrompt = result.prompts[0];
+                newDuration = result.durationsInSeconds[0] || 120;
+            } else {
+                toast({ variant: 'destructive', title: 'AI Error', description: 'Could not generate a new challenge.' });
+                return;
+            }
+        }
+
+        await updateDoc(broadcastDocRef, {
+            activeChallenge: newPrompt,
+            activeChallengeType: gameType,
+            challengeDurationSeconds: newDuration,
+            challengeStartTime: serverTimestamp(),
+        });
+
+    } catch (error) {
+        console.error("Error generating next challenge:", error);
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not generate the next challenge.' });
+    }
+  };
+
+
   const handleChallengeComplete = async () => {
       if (broadcastDocRef) {
           await updateDoc(broadcastDocRef, { 
@@ -532,21 +575,7 @@ function AgoraTestPageUI() {
               challengeDurationSeconds: null,
               challengeStartTime: null,
           });
-          toast({ title: 'Challenge Complete!' });
-          setIsGamePanelOpen(true);
-      }
-  };
-  
-  const handleChallengeSkip = async () => {
-      if (broadcastDocRef) {
-          await updateDoc(broadcastDocRef, {
-              activeChallenge: null,
-              activeChallengeType: null,
-              challengeDurationSeconds: null,
-              challengeStartTime: null,
-          });
-          toast({ title: 'Challenge Skipped!' });
-          setIsGamePanelOpen(true);
+          toast({ title: 'Challenge Cleared!' });
       }
   };
   
@@ -587,22 +616,24 @@ function AgoraTestPageUI() {
                         />
                     ) : null}
                 >
-                    {!isTimerFinished ? (
-                         <Button size="lg" variant="outline" className="w-full bg-black/80 text-white" onClick={handleChallengeSkip}>
-                            <Undo2 className="mr-2 h-5 w-5" />
-                            Skip
+                    <Button 
+                        size="lg" 
+                        variant="outline" 
+                        className="w-full bg-black/80 text-white" 
+                        onClick={() => handleGenerateNextChallenge(broadcastData.activeChallengeType!)}
+                    >
+                        <Undo2 className="mr-2 h-5 w-5" />
+                        Skip
+                    </Button>
+                    {isTimerFinished && (
+                        <Button 
+                            size="lg" 
+                            className="w-full"
+                            onClick={() => handleGenerateNextChallenge(broadcastData.activeChallengeType!)}
+                        >
+                            <Check className="mr-2 h-5 w-5" />
+                            Continue
                         </Button>
-                    ) : (
-                        <>
-                             <Button size="lg" variant="outline" className="flex-1" onClick={handleChallengeSkip}>
-                                <Undo2 className="mr-2 h-5 w-5" />
-                                Skip
-                            </Button>
-                            <Button size="lg" className="flex-1" onClick={handleChallengeComplete}>
-                                <Check className="mr-2 h-5 w-5" />
-                                Continue
-                            </Button>
-                        </>
                     )}
                 </ChallengeDisplayCard>
             </div>
@@ -789,5 +820,7 @@ export default function AgoraTestPage() {
         </Suspense>
     )
 }
+
+    
 
     
