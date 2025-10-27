@@ -60,6 +60,7 @@ function AgoraTestPageUI() {
   const [stagedChallenge, setStagedChallenge] = useState<StagedChallenge | null>(null);
   const [cardPosition, setCardPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
+  const dragOffsetRef = useRef({ x: 0, y: 0 });
 
   // Stream SDK Hooks
   const { useCameraState, useMicrophoneState, useScreenShareState, useParticipants, useCallCallingState } = useCallStateHooks();
@@ -145,6 +146,43 @@ function AgoraTestPageUI() {
         }
     }
   }, [broadcastData?.challengeStartTime, broadcastData?.challengeDurationSeconds, broadcastData?.activeChallenge]);
+
+    // Drag and Drop Handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    dragOffsetRef.current = {
+      x: e.clientX - cardPosition.x,
+      y: e.clientY - cardPosition.y,
+    };
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (isDragging) {
+      const newX = e.clientX - dragOffsetRef.current.x;
+      const newY = e.clientY - dragOffsetRef.current.y;
+      setCardPosition({ x: newX, y: newY });
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+  
+  useEffect(() => {
+    if (isDragging) {
+        window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mouseup', handleMouseUp);
+    } else {
+        window.removeEventListener('mousemove', handleMouseMove);
+        window.removeEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+        window.removeEventListener('mousemove', handleMouseMove);
+        window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging]);
+
 
   const handleToggleVideo = async () => {
     if (call && call.camera) {
@@ -322,49 +360,59 @@ function AgoraTestPageUI() {
 
         {/* Active Challenge Display Card */}
         {isChallengeVisible && broadcastData.activeChallenge && broadcastData.activeChallengeType && (
-            <div className="absolute inset-0 bg-black/60 z-20 flex items-center justify-center p-4 pointer-events-auto">
-                <ChallengeDisplayCard 
-                    text={broadcastData.activeChallenge}
-                    type={broadcastData.activeChallengeType}
-                    onClose={() => {
-                        if (broadcastDocRef) {
-                          updateDoc(broadcastDocRef, {
-                            activeChallenge: null,
-                            activeChallengeType: null,
-                            challengeStartTime: null,
-                            challengeDurationSeconds: null,
-                          });
-                        }
-                    }}
-                    timer={broadcastData.challengeStartTime && broadcastData.challengeDurationSeconds ? (
-                        <CountdownTimer 
-                            startTime={broadcastData.challengeStartTime} 
-                            durationSeconds={broadcastData.challengeDurationSeconds} 
-                        />
-                    ) : null}
+            <div 
+                className="absolute inset-0 flex items-center justify-center p-4 pointer-events-none"
+                style={{
+                  transform: `translate(${cardPosition.x}px, ${cardPosition.y}px)`,
+                }}
+            >
+                <div 
+                  className={cn("pointer-events-auto", isDragging ? 'cursor-grabbing' : 'cursor-grab')}
+                  onMouseDown={handleMouseDown}
                 >
-                    <div className="flex w-full gap-2">
-                        <Button 
-                            size="lg" 
-                            variant="outline" 
-                            className="w-full bg-black/80 text-white" 
-                            onClick={() => handleGenerateNextChallenge(broadcastData.activeChallengeType!)}
-                        >
-                            <Undo2 className="mr-2 h-5 w-5" />
-                            Skip
-                        </Button>
-                        {isTimerFinished && (
-                           <Button 
+                    <ChallengeDisplayCard 
+                        text={broadcastData.activeChallenge}
+                        type={broadcastData.activeChallengeType}
+                        onClose={() => {
+                            if (broadcastDocRef) {
+                              updateDoc(broadcastDocRef, {
+                                activeChallenge: null,
+                                activeChallengeType: null,
+                                challengeStartTime: null,
+                                challengeDurationSeconds: null,
+                              });
+                            }
+                        }}
+                        timer={broadcastData.challengeStartTime && broadcastData.challengeDurationSeconds ? (
+                            <CountdownTimer 
+                                startTime={broadcastData.challengeStartTime} 
+                                durationSeconds={broadcastData.challengeDurationSeconds} 
+                            />
+                        ) : null}
+                    >
+                        <div className="flex w-full gap-2">
+                            <Button 
                                 size="lg" 
-                                className="w-full"
+                                variant="outline" 
+                                className="w-full bg-black/80 text-white" 
                                 onClick={() => handleGenerateNextChallenge(broadcastData.activeChallengeType!)}
                             >
-                                <Check className="mr-2 h-5 w-5" />
-                                Continue
+                                <Undo2 className="mr-2 h-5 w-5" />
+                                Skip
                             </Button>
-                        )}
-                    </div>
-                </ChallengeDisplayCard>
+                            {isTimerFinished && (
+                               <Button 
+                                    size="lg" 
+                                    className="w-full"
+                                    onClick={() => handleGenerateNextChallenge(broadcastData.activeChallengeType!)}
+                                >
+                                    <Check className="mr-2 h-5 w-5" />
+                                    Continue
+                                </Button>
+                            )}
+                        </div>
+                    </ChallengeDisplayCard>
+                </div>
             </div>
         )}
 
