@@ -31,6 +31,7 @@ import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { generateGamePrompts } from '@/ai/flows/generate-game-prompts';
 import { truthQuestions, dareChallenges } from '@/lib/data';
+import ChallengeDisplayCard from '@/components/broadcast/ChallengeDisplayCard';
 
 // Type Definitions
 interface Comment {
@@ -68,26 +69,6 @@ interface BroadcastData {
 }
 
 // --- Sub-components for AgoraTestPageUI ---
-
-const ChallengeOverlay = ({ challenge, onComplete }: { challenge?: string, onComplete: () => void }) => {
-    if (!challenge) return null;
-
-    return (
-        <div className="absolute top-24 left-1/2 -translate-x-1/2 z-20 bg-black/50 text-white p-3 rounded-lg backdrop-blur-sm max-w-md w-full shadow-lg border border-primary/50">
-            <div className="flex items-center gap-3">
-                <Trophy className="h-6 w-6 text-yellow-400" />
-                <div className="flex-1">
-                    <p className="text-xs font-bold text-yellow-400">CURRENT CHALLENGE</p>
-                    <p className="font-semibold">{challenge}</p>
-                </div>
-                <Button size="sm" variant="ghost" onClick={onComplete} className="text-white hover:bg-white/10 hover:text-white">
-                    <Check className="mr-2 h-4 w-4"/>
-                    Done
-                </Button>
-            </div>
-        </div>
-    )
-}
 
 const InStreamGamesPanel = ({ onSelectChallenge }: { onSelectChallenge: (challenge: string, type: 'truth' | 'dare' | 'challenge') => void }) => {
     const [gameType, setGameType] = useState<'truth' | 'dare' | 'ai'>('ai');
@@ -511,10 +492,20 @@ function AgoraTestPageUI() {
             onEndStream={handleEndStream}
         />
         
-        <ChallengeOverlay 
-            challenge={broadcastData.activeChallenge}
-            onComplete={handleChallengeComplete}
-        />
+        {broadcastData.activeChallenge && broadcastData.activeChallengeType && (
+            <div className="absolute inset-0 bg-black/60 z-20 flex items-center justify-center p-4 pointer-events-auto">
+                <ChallengeDisplayCard 
+                    text={broadcastData.activeChallenge}
+                    type={broadcastData.activeChallengeType}
+                    onClose={handleChallengeComplete}
+                >
+                     <Button size="lg" className="w-full" onClick={handleChallengeComplete}>
+                        <Check className="mr-2 h-5 w-5" />
+                        Complete Challenge
+                    </Button>
+                </ChallengeDisplayCard>
+            </div>
+        )}
 
         <StreamControls 
             onToggleVideo={handleToggleVideo}
@@ -693,5 +684,7 @@ export default function AgoraTestPage() {
         </Suspense>
     )
 }
+
+    
 
     
