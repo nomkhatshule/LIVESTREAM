@@ -50,6 +50,12 @@ interface Reaction {
   x: number;
 }
 
+interface StagedChallenge {
+    text: string;
+    type: 'truth' | 'dare' | 'challenge';
+    duration: number;
+}
+
 interface BroadcastData {
     title: string;
     hostId: string;
@@ -337,8 +343,8 @@ function AgoraTestPageUI() {
   const [isChallengeVisible, setIsChallengeVisible] = useState(true);
   const [isTimerFinished, setIsTimerFinished] = useState(false);
   const [isGamePanelOpen, setIsGamePanelOpen] = useState(false);
-  const [showChallengeStartCard, setShowChallengeStartCard] = useState(false);
-
+  const [showChallengeCoverCard, setShowChallengeCoverCard] = useState(false);
+  const [stagedChallenge, setStagedChallenge] = useState<StagedChallenge | null>(null);
 
   // Stream SDK Hooks
   const { useCameraState, useMicrophoneState, useScreenShareState, useParticipants, useCallCallingState } = useCallStateHooks();
@@ -510,15 +516,22 @@ function AgoraTestPageUI() {
     }, 5000);
   }
 
-  const handleChallengeSelect = async (challenge: string, type: 'truth' | 'dare' | 'challenge', duration: number) => {
-    if (broadcastDocRef) {
+  const handleChallengeSelect = (challenge: string, type: 'truth' | 'dare' | 'challenge', duration: number) => {
+    setStagedChallenge({ text: challenge, type, duration });
+    setShowChallengeCoverCard(true); // Show the cover card first
+  };
+
+  const handleStartStagedChallenge = async () => {
+    if (broadcastDocRef && stagedChallenge) {
         await updateDoc(broadcastDocRef, { 
-            activeChallenge: challenge, 
-            activeChallengeType: type,
-            challengeDurationSeconds: duration,
+            activeChallenge: stagedChallenge.text, 
+            activeChallengeType: stagedChallenge.type,
+            challengeDurationSeconds: stagedChallenge.duration,
             challengeStartTime: serverTimestamp(),
         });
-        toast({ title: 'New Challenge Started!', description: challenge });
+        toast({ title: 'New Challenge Started!', description: stagedChallenge.text });
+        setStagedChallenge(null);
+        setShowChallengeCoverCard(false);
     }
   };
 
@@ -564,24 +577,6 @@ function AgoraTestPageUI() {
     }
   };
 
-
-  const handleChallengeComplete = async () => {
-      if (broadcastDocRef) {
-          await updateDoc(broadcastDocRef, { 
-              activeChallenge: null, 
-              activeChallengeType: null,
-              challengeDurationSeconds: null,
-              challengeStartTime: null,
-          });
-          toast({ title: 'Challenge Cleared!' });
-      }
-  };
-
-  const handleStartGame = () => {
-    setShowChallengeStartCard(false);
-    setIsGamePanelOpen(true);
-  };
-  
   if (isBroadcastLoading || !broadcastData) {
       return (
           <div className="flex h-screen w-full items-center justify-center bg-gray-900">
@@ -606,12 +601,12 @@ function AgoraTestPageUI() {
             onEndStream={handleEndStream}
         />
         
-        {/* "Ready for a Challenge?" Start Card */}
-        {showChallengeStartCard && (
+        {/* "Ready for a Challenge?" Cover Card */}
+        {showChallengeCoverCard && (
              <div className="absolute inset-0 bg-black/60 z-20 flex items-center justify-center p-4 pointer-events-auto">
                  <div className="relative h-[550px] w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl flex flex-col items-center justify-center text-center">
                     <h2 className="text-3xl font-bold text-black font-headline mb-8">Ready for a Challenge?</h2>
-                    <Button size="lg" className="w-full" onClick={handleStartGame}>
+                    <Button size="lg" className="w-full" onClick={handleStartStagedChallenge}>
                       Start
                     </Button>
                 </div>
@@ -624,7 +619,16 @@ function AgoraTestPageUI() {
                 <ChallengeDisplayCard 
                     text={broadcastData.activeChallenge}
                     type={broadcastData.activeChallengeType}
-                    onClose={handleChallengeComplete}
+                    onClose={() => {
+                        if (broadcastDocRef) {
+                          updateDoc(broadcastDocRef, {
+                            activeChallenge: null,
+                            activeChallengeType: null,
+                            challengeStartTime: null,
+                            challengeDurationSeconds: null,
+                          });
+                        }
+                    }}
                     timer={broadcastData.challengeStartTime && broadcastData.challengeDurationSeconds ? (
                         <CountdownTimer 
                             startTime={broadcastData.challengeStartTime} 
@@ -632,25 +636,39 @@ function AgoraTestPageUI() {
                         />
                     ) : null}
                 >
-                    <Button 
-                        size="lg" 
-                        variant="outline" 
-                        className="w-full bg-black/80 text-white" 
-                        onClick={() => handleGenerateNextChallenge(broadcastData.activeChallengeType!)}
-                    >
-                        <Undo2 className="mr-2 h-5 w-5" />
-                        Skip
-                    </Button>
-                    {isTimerFinished && (
-                        <Button 
-                            size="lg" 
-                            className="w-full"
-                            onClick={() => handleGenerateNextChallenge(broadcastData.activeChallengeType!)}
-                        >
-                            <Check className="mr-2 h-5 w-5" />
-                            Continue
-                        </Button>
-                    )}
+                    <div className="flex w-full gap-2">
+                        {isTimerFinished ? (
+                           <>
+                             <Button 
+                                size="lg" 
+                                variant="outline" 
+                                className="flex-1 bg-black/80 text-white" 
+                                onClick={() => handleGenerateNextChallenge(broadcastData.activeChallengeType!)}
+                            >
+                                <Undo2 className="mr-2 h-5 w-5" />
+                                Skip
+                            </Button>
+                             <Button 
+                                size="lg" 
+                                className="flex-1"
+                                onClick={() => handleGenerateNextChallenge(broadcastData.activeChallengeType!)}
+                            >
+                                <Check className="mr-2 h-5 w-5" />
+                                Continue
+                            </Button>
+                           </>
+                        ) : (
+                           <Button 
+                                size="lg" 
+                                variant="outline" 
+                                className="w-full bg-black/80 text-white" 
+                                onClick={() => handleGenerateNextChallenge(broadcastData.activeChallengeType!)}
+                            >
+                                <Undo2 className="mr-2 h-5 w-5" />
+                                Skip
+                            </Button>
+                        )}
+                    </div>
                 </ChallengeDisplayCard>
             </div>
         )}
@@ -667,7 +685,7 @@ function AgoraTestPageUI() {
             isMicEnabled={isMicEnabled}
             isScreenSharing={isScreenSharing}
             isCallJoined={isCallJoined}
-            onOpenGames={() => setShowChallengeStartCard(true)}
+            onOpenGames={() => setIsGamePanelOpen(true)}
         />
         
         <InStreamGamesPanel 
@@ -841,3 +859,5 @@ export default function AgoraTestPage() {
         </Suspense>
     )
 }
+
+    
