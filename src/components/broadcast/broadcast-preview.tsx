@@ -19,7 +19,7 @@ import { useInView } from 'react-intersection-observer';
 import { Button } from '@/components/ui/button';
 import AIChat from './ai-chat';
 import { useStreamStore } from '@/lib/stream-store';
-import ChallengeDisplayCard from './ChallengeDisplayCard';
+import ChallengeCard from './ChallengeCard';
 
 
 interface BroadcastPreviewUIManagerProps {
@@ -100,13 +100,12 @@ function BroadcastPreviewUIManager({
             )}
 
             {isChallengeVisible && broadcast.activeChallenge && broadcast.activeChallengeType && (
-                <div className="absolute inset-0 bg-black/60 z-50 flex items-center justify-center p-4 pointer-events-auto">
-                    <ChallengeDisplayCard
-                        text={broadcast.activeChallenge}
-                        type={broadcast.activeChallengeType}
-                        onClose={() => setIsChallengeVisible(false)}
-                    />
-                </div>
+                <ChallengeCard
+                    text={broadcast.activeChallenge}
+                    type={broadcast.activeChallengeType}
+                    size="small"
+                    onClose={() => setIsChallengeVisible(false)}
+                />
             )}
             
             {/* Top Info */}
@@ -365,9 +364,3 @@ export function BroadcastPreview({ broadcast, onVisible }: BroadcastPreviewProps
         </div>
     );
 };
-
-
-
-
-
-    
