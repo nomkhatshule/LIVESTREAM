@@ -33,9 +33,9 @@ export default function CountdownTimer({ startTime, durationSeconds }: Countdown
   const seconds = remainingSeconds % 60;
   
   return (
-    <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center text-black border-4 border-black shadow-lg">
+    <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-black border-2 border-black shadow-lg">
         <h3 className={cn(
-            "text-lg font-bold font-mono tracking-tighter",
+            "text-sm font-bold font-mono tracking-tighter",
             remainingSeconds <= 10 && remainingSeconds > 0 && "blinking-text text-red-500",
             remainingSeconds === 0 && "text-destructive"
             )}>
