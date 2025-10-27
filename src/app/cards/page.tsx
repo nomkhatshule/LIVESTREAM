@@ -19,7 +19,7 @@ const SimpleTimerDisplay = ({ durationSeconds }: { durationSeconds: number }) =>
     const seconds = durationSeconds % 60;
     return (
         <div className="w-12 h-12 rounded-full bg-black/70 flex items-center justify-center text-white border-2 border-white shadow-lg">
-            <h3 className="text-base font-bold font-mono tracking-tighter">
+            <h3 className="text-sm font-bold font-mono tracking-tighter">
                 {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
             </h3>
         </div>
