@@ -537,18 +537,18 @@ function AgoraTestPageUI() {
       }
   };
   
-    const handleChallengeSkip = async () => {
-        if (broadcastDocRef) {
-            await updateDoc(broadcastDocRef, {
-                activeChallenge: null,
-                activeChallengeType: null,
-                challengeDurationSeconds: null,
-                challengeStartTime: null,
-            });
-            toast({ title: 'Challenge Skipped!' });
-            setIsGamePanelOpen(true);
-        }
-    };
+  const handleChallengeSkip = async () => {
+      if (broadcastDocRef) {
+          await updateDoc(broadcastDocRef, {
+              activeChallenge: null,
+              activeChallengeType: null,
+              challengeDurationSeconds: null,
+              challengeStartTime: null,
+          });
+          toast({ title: 'Challenge Skipped!' });
+          setIsGamePanelOpen(true);
+      }
+  };
   
   if (isBroadcastLoading || !broadcastData) {
       return (
@@ -587,15 +587,22 @@ function AgoraTestPageUI() {
                         />
                     ) : null}
                 >
-                    <Button size="lg" variant="outline" className="flex-1" onClick={handleChallengeSkip}>
-                        <Undo2 className="mr-2 h-5 w-5" />
-                        Skip
-                    </Button>
-                    {isTimerFinished && (
-                        <Button size="lg" className="flex-1" onClick={handleChallengeComplete}>
-                            <Check className="mr-2 h-5 w-5" />
-                            Continue
+                    {!isTimerFinished ? (
+                         <Button size="lg" variant="outline" className="w-full bg-black/80 text-white" onClick={handleChallengeSkip}>
+                            <Undo2 className="mr-2 h-5 w-5" />
+                            Skip
                         </Button>
+                    ) : (
+                        <>
+                             <Button size="lg" variant="outline" className="flex-1" onClick={handleChallengeSkip}>
+                                <Undo2 className="mr-2 h-5 w-5" />
+                                Skip
+                            </Button>
+                            <Button size="lg" className="flex-1" onClick={handleChallengeComplete}>
+                                <Check className="mr-2 h-5 w-5" />
+                                Continue
+                            </Button>
+                        </>
                     )}
                 </ChallengeDisplayCard>
             </div>
