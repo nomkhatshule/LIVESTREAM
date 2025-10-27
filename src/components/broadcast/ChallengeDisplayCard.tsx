@@ -72,7 +72,7 @@ export default function ChallengeDisplayCard({ text, type, size = 'large', varia
             )}>{text}</h2>
         </div>
         {children && (
-            <div className="mt-auto pt-4 w-full flex flex-col gap-y-2">
+            <div className="mt-auto pt-4 w-full flex flex-row justify-between items-center gap-x-2">
                 {children}
             </div>
         )}

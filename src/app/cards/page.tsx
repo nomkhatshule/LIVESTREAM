@@ -20,7 +20,6 @@ export default function CardsPage() {
   const [promptType, setPromptType] = useState<'truth' | 'dare' | null>(null);
   const [prompt, setPrompt] = useState('');
   const [duration, setDuration] = useState(60);
-  const [isFlipped, setIsFlipped] = useState(false);
 
   // --- State for Challenges game ---
   const [isGameStarted, setIsGameStarted] = useState(false);
@@ -116,14 +115,14 @@ export default function CardsPage() {
                     {!isLoadingChallenge && (
                         <>
                             <Button
-                            className="w-full"
+                            className="w-auto"
                             onClick={handleGenerateChallenge}
                             disabled={isLoadingChallenge}
                             variant="outline"
                             >
                             Next
                             </Button>
-                            <Button asChild size="lg" className="w-full" disabled={!challenge || !!error}>
+                            <Button asChild size="lg" className="w-auto" disabled={!challenge || !!error}>
                             <Link href={`/broadcast/create?challenge=${encodeURIComponent(challenge)}&type=challenge&duration=${duration}`}>
                                 <Video className="mr-2 h-5 w-5" />
                                 Go Live!
@@ -150,10 +149,10 @@ export default function CardsPage() {
                 </div>
               ) : promptType && (
                  <ChallengeDisplayCard text={prompt} type={promptType} variant="stacked">
-                    <Button size="lg" variant="outline" className="w-full" onClick={handleNextRound}>
+                    <Button size="lg" variant="outline" className="w-auto" onClick={handleNextRound}>
                       Next
                     </Button>
-                    <Button asChild size="lg" className="w-full" disabled={!prompt}>
+                    <Button asChild size="lg" className="w-auto" disabled={!prompt}>
                        <Link href={`/broadcast/create?challenge=${encodeURIComponent(prompt)}&type=${promptType}&duration=${duration}`}>
                          <Video className="mr-2 h-5 w-5" />
                          Go Live!
