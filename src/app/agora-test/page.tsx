@@ -38,6 +38,7 @@ import StreamControls from '@/components/agora-test/StreamControls';
 import ChatPanel from '@/components/agora-test/ChatPanel';
 import type { Reaction, StagedChallenge, BroadcastData, Comment } from '@/lib/types';
 import { generateGamePrompts } from '@/ai/flows/generate-game-prompts';
+import { Resizable } from 're-resizable';
 
 
 // --- Main UI Component ---
@@ -60,6 +61,7 @@ function AgoraTestPageUI() {
   const [showChallengeCoverCard, setShowChallengeCoverCard] = useState(false);
   const [stagedChallenge, setStagedChallenge] = useState<StagedChallenge | null>(null);
   const [cardPosition, setCardPosition] = useState({ x: 0, y: 0 });
+  const [cardSize, setCardSize] = useState({ width: 384, height: 550 });
   const [isDragging, setIsDragging] = useState(false);
   const dragOffsetRef = useRef({ x: 0, y: 0 });
 
@@ -111,7 +113,14 @@ function AgoraTestPageUI() {
     if (broadcastData?.activeChallenge) {
         setIsChallengeVisible(true);
     }
-  }, [broadcastData?.activeChallenge]);
+    if (broadcastData?.challengeCardPosition) {
+        setCardPosition(broadcastData.challengeCardPosition);
+    }
+    if (broadcastData?.challengeCardSize) {
+        setCardSize(broadcastData.challengeCardSize);
+    }
+  }, [broadcastData?.activeChallenge, broadcastData?.challengeCardPosition, broadcastData?.challengeCardSize]);
+
 
   // Effect to manage timer state
   useEffect(() => {
@@ -150,6 +159,11 @@ function AgoraTestPageUI() {
 
     // Drag and Drop Handlers
   const handleMouseDown = (e: React.MouseEvent) => {
+    // Prevent drag from starting if the click is on a resize handle
+    const target = e.target as HTMLElement;
+    if (target.className.includes('handle')) {
+        return;
+    }
     setIsDragging(true);
     dragOffsetRef.current = {
       x: e.clientX - cardPosition.x,
@@ -186,6 +200,17 @@ function AgoraTestPageUI() {
         window.removeEventListener('mouseup', handleMouseUp);
     };
   }, [isDragging]);
+  
+  const handleResizeStop = (e: any, direction: any, ref: any, d: any) => {
+    const newSize = {
+        width: cardSize.width + d.width,
+        height: cardSize.height + d.height
+    };
+    setCardSize(newSize);
+    if (broadcastDocRef) {
+        updateDoc(broadcastDocRef, { challengeCardSize: newSize });
+    }
+  };
 
 
   const handleToggleVideo = async () => {
@@ -370,58 +395,73 @@ function AgoraTestPageUI() {
         {/* Active Challenge Display Card */}
         {isChallengeVisible && broadcastData.activeChallenge && broadcastData.activeChallengeType && (
             <div 
-                className="absolute top-1/2 left-1/2 w-[384px] -translate-x-1/2 -translate-y-1/2 pointer-events-none z-20"
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-20"
                 style={{
                   transform: `translate(calc(-50% + ${cardPosition.x}px), calc(-50% + ${cardPosition.y}px))`,
                 }}
             >
-                <div 
-                  className={cn("pointer-events-auto", isDragging ? 'cursor-grabbing' : 'cursor-grab')}
-                  onMouseDown={handleMouseDown}
+                <Resizable
+                    size={{ width: cardSize.width, height: cardSize.height }}
+                    onResizeStop={handleResizeStop}
+                    onResize={(e, direction, ref, d) => {
+                        setCardSize({
+                            width: cardSize.width + d.width,
+                            height: cardSize.height + d.height,
+                        });
+                    }}
+                    minWidth={300}
+                    minHeight={400}
+                    lockAspectRatio
+                    className="relative"
                 >
-                    <ChallengeDisplayCard 
-                        text={broadcastData.activeChallenge}
-                        type={broadcastData.activeChallengeType}
-                        onClose={() => {
-                            if (broadcastDocRef) {
-                              updateDoc(broadcastDocRef, {
-                                activeChallenge: null,
-                                activeChallengeType: null,
-                                challengeStartTime: null,
-                                challengeDurationSeconds: null,
-                              });
-                            }
-                        }}
-                        timer={broadcastData.challengeStartTime && broadcastData.challengeDurationSeconds ? (
-                            <CountdownTimer 
-                                startTime={broadcastData.challengeStartTime} 
-                                durationSeconds={broadcastData.challengeDurationSeconds} 
-                            />
-                        ) : null}
+                    <div 
+                      className={cn("pointer-events-auto h-full w-full", isDragging ? 'cursor-grabbing' : 'cursor-grab')}
+                      onMouseDown={handleMouseDown}
                     >
-                        <div className="flex w-full gap-2">
-                            <Button 
-                                size="lg" 
-                                variant="outline" 
-                                className="w-full bg-black/80 text-white" 
-                                onClick={() => handleGenerateNextChallenge(broadcastData.activeChallengeType!)}
-                            >
-                                <Undo2 className="mr-2 h-5 w-5" />
-                                Skip
-                            </Button>
-                            {isTimerFinished && (
-                               <Button 
+                        <ChallengeDisplayCard 
+                            text={broadcastData.activeChallenge}
+                            type={broadcastData.activeChallengeType}
+                            onClose={() => {
+                                if (broadcastDocRef) {
+                                  updateDoc(broadcastDocRef, {
+                                    activeChallenge: null,
+                                    activeChallengeType: null,
+                                    challengeStartTime: null,
+                                    challengeDurationSeconds: null,
+                                  });
+                                }
+                            }}
+                            timer={broadcastData.challengeStartTime && broadcastData.challengeDurationSeconds ? (
+                                <CountdownTimer 
+                                    startTime={broadcastData.challengeStartTime} 
+                                    durationSeconds={broadcastData.challengeDurationSeconds} 
+                                />
+                            ) : null}
+                        >
+                            <div className="flex w-full gap-2">
+                                <Button 
                                     size="lg" 
-                                    className="w-full"
+                                    variant="outline" 
+                                    className="w-full bg-black/80 text-white" 
                                     onClick={() => handleGenerateNextChallenge(broadcastData.activeChallengeType!)}
                                 >
-                                    <Check className="mr-2 h-5 w-5" />
-                                    Continue
+                                    <Undo2 className="mr-2 h-5 w-5" />
+                                    Skip
                                 </Button>
-                            )}
-                        </div>
-                    </ChallengeDisplayCard>
-                </div>
+                                {isTimerFinished && (
+                                   <Button 
+                                        size="lg" 
+                                        className="w-full"
+                                        onClick={() => handleGenerateNextChallenge(broadcastData.activeChallengeType!)}
+                                    >
+                                        <Check className="mr-2 h-5 w-5" />
+                                        Continue
+                                    </Button>
+                                )}
+                            </div>
+                        </ChallengeDisplayCard>
+                    </div>
+                </Resizable>
             </div>
         )}
 
@@ -610,7 +650,5 @@ export default function AgoraTestPage() {
         </Suspense>
     )
 }
-
-    
 
     
