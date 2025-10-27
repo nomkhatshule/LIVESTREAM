@@ -514,12 +514,12 @@ function AgoraTestPageUI() {
                 <ChallengeDisplayCard 
                     text={broadcastData.activeChallenge}
                     type={broadcastData.activeChallengeType}
-                    timer={broadcastData.challengeStartTime && broadcastData.challengeDurationSeconds && (
+                    timer={broadcastData.challengeStartTime && broadcastData.challengeDurationSeconds ? (
                         <CountdownTimer 
                             startTime={broadcastData.challengeStartTime} 
                             durationSeconds={broadcastData.challengeDurationSeconds} 
                         />
-                    )}
+                    ) : null}
                 >
                      <Button size="lg" className="w-full" onClick={handleChallengeComplete}>
                         <Check className="mr-2 h-5 w-5" />

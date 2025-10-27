@@ -180,12 +180,12 @@ export default function BroadcastPage() {
                 <ChallengeDisplayCard 
                     text={broadcast.activeChallenge}
                     type={broadcast.activeChallengeType}
-                    timer={broadcast.challengeStartTime && broadcast.challengeDurationSeconds && (
+                    timer={broadcast.challengeStartTime && broadcast.challengeDurationSeconds ? (
                         <CountdownTimer 
                             startTime={broadcast.challengeStartTime} 
                             durationSeconds={broadcast.challengeDurationSeconds} 
                         />
-                    )}
+                    ) : null}
                 />
             </div>
         )}
