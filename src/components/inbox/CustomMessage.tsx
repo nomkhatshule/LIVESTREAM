@@ -214,7 +214,7 @@ export default function CustomMessage({ message, onReply, isEditing, onStartEdit
             )}
             <div className={cn("flex flex-col", isCurrentUser ? "items-end" : "items-start")}>
                  <div className={cn(
-                    "max-w-[80%] sm:max-w-md rounded-lg text-sm relative", 
+                    "max-w-[90%] sm:max-w-md rounded-lg text-sm relative", 
                     isEditing ? 'p-0' : (attachment?.type === 'giphy' || attachment?.type === 'image' ? 'bg-transparent p-1' : (isCurrentUser ? "bg-primary text-primary-foreground p-2 md:p-3" : "bg-zinc-200 text-black p-2 md:p-3"))
                 )}>
                     {showReactionPicker && <ReactionPicker onSelect={handleReaction} />}
