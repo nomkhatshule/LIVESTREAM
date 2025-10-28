@@ -35,7 +35,7 @@ const InboxChannelPreview = (props: ChannelPreviewProps) => {
     return (
         <Link href={href} passHref>
              <div 
-                className="flex items-center gap-3 p-2 hover:bg-muted rounded-lg cursor-pointer"
+                className="flex items-center gap-3 p-2 rounded-lg cursor-pointer"
                 onClick={() => setActiveChannel(channel)}
             >
                 <Avatar className="h-12 w-12">
