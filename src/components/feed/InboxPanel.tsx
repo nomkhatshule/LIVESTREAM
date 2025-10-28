@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { useChatContext } from '../chat/ChatProvider';
 import { ChannelList, ChannelListController, useChannelListContext, ChannelPreviewProps } from 'stream-chat-react';
+import { Separator } from '../ui/separator';
 
 const InboxChannelPreview = (props: ChannelPreviewProps) => {
     const { channel } = props;
@@ -33,37 +34,39 @@ const InboxChannelPreview = (props: ChannelPreviewProps) => {
     const href = `/inbox-page?with=${otherUser.id}`;
 
     return (
-        <Link href={href} passHref>
-             <div 
-                className="flex items-center gap-3 p-2 rounded-lg cursor-pointer"
-                onClick={() => setActiveChannel(channel)}
-            >
-                <Avatar className="h-12 w-12">
-                    <AvatarImage src={otherUser.image as string} />
-                    <AvatarFallback>{otherUser.name?.charAt(0).toUpperCase()}</AvatarFallback>
-                </Avatar>
-                <div className="text-sm flex-1 overflow-hidden">
-                    <div className="flex justify-between items-center">
-                        <p className="font-semibold truncate">{otherUser.name}</p>
-                        {lastMessage?.created_at && (
-                           <p className="text-xs text-muted-foreground flex-shrink-0 ml-2">
-                                {formatDistanceToNow(new Date(lastMessage.created_at), { addSuffix: true })}
+        <div className="border-b">
+            <Link href={href} passHref>
+                <div 
+                    className="flex items-center gap-3 p-3 cursor-pointer"
+                    onClick={() => setActiveChannel(channel)}
+                >
+                    <Avatar className="h-12 w-12">
+                        <AvatarImage src={otherUser.image as string} />
+                        <AvatarFallback>{otherUser.name?.charAt(0).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                    <div className="text-sm flex-1 overflow-hidden">
+                        <div className="flex justify-between items-center">
+                            <p className="font-semibold truncate">{otherUser.name}</p>
+                            {lastMessage?.created_at && (
+                            <p className="text-xs text-muted-foreground flex-shrink-0 ml-2">
+                                    {formatDistanceToNow(new Date(lastMessage.created_at), { addSuffix: true })}
+                                </p>
+                            )}
+                        </div>
+                        <div className="flex justify-between items-start mt-1">
+                            <p className={cn("truncate text-muted-foreground", unreadCount > 0 && "font-bold text-primary")}>
+                                {lastMessage?.text || 'No messages yet'}
                             </p>
-                        )}
-                    </div>
-                    <div className="flex justify-between items-start">
-                        <p className={cn("truncate text-muted-foreground", unreadCount > 0 && "font-bold text-primary")}>
-                            {lastMessage?.text || 'No messages yet'}
-                        </p>
-                        {unreadCount > 0 && (
-                            <span className="ml-2 flex-shrink-0 bg-primary text-primary-foreground text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
-                                {unreadCount}
-                            </span>
-                        )}
+                            {unreadCount > 0 && (
+                                <span className="ml-2 flex-shrink-0 bg-primary text-primary-foreground text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
+                                    {unreadCount}
+                                </span>
+                            )}
+                        </div>
                     </div>
                 </div>
-            </div>
-        </Link>
+            </Link>
+        </div>
     )
 }
 
