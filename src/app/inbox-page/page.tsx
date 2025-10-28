@@ -58,12 +58,18 @@ function CustomMessage({ message }: { message: Message }) {
     
     const { userDocument: otherUserDocument } = useUserDocumentById(isCurrentUser ? undefined : message.user?.id);
 
-    const otherUser = message.user;
+    const streamUser = message.user;
     const avatarUrl = isCurrentUser ? currentUserDocument?.profilePicture : otherUserDocument?.profilePicture;
-    const fallback = (isCurrentUser ? currentUserDocument?.username : otherUserDocument?.username)?.charAt(0).toUpperCase() || 'U';
+    
+    let fallback = 'U';
+    if (isCurrentUser) {
+        fallback = currentUserDocument?.username?.charAt(0).toUpperCase() || 'U';
+    } else {
+        fallback = otherUserDocument?.username?.charAt(0).toUpperCase() || streamUser?.name?.charAt(0).toUpperCase() || 'U';
+    }
 
 
-    if (!otherUser) return null;
+    if (!streamUser) return null;
 
     return (
         <div className={cn("flex items-end gap-2 my-2", isCurrentUser ? "justify-end" : "justify-start")}>
