@@ -226,9 +226,9 @@ function InboxPageComponent() {
                 <div key={msg.id}>
                     {msg.id === firstUnreadId && (
                         <div className="relative my-4 flex items-center">
-                            <div className="flex-grow border-t border-red-500"></div>
-                            <span className="flex-shrink mx-4 text-xs text-red-500 font-semibold">New Messages</span>
-                            <div className="flex-grow border-t border-red-500"></div>
+                            <div className="flex-grow border-t border-zinc-500"></div>
+                            <span className="flex-shrink mx-4 text-xs text-white font-semibold">New Messages</span>
+                            <div className="flex-grow border-t border-zinc-500"></div>
                         </div>
                     )}
                     <CustomMessage 
