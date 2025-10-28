@@ -204,7 +204,7 @@ function BroadcastPreviewUIManager({
 
             {/* Bottom Chat Area */}
             <div className="bg-gradient-to-t from-black/70 to-transparent -m-4 p-4 flex flex-col justify-end gap-4">
-                <div className="w-full sm:max-w-sm">
+                <div className="w-full sm:max-w-sm md:max-w-md">
                     {isChatVisible && (
                         <ScrollArea className="h-48 w-full pr-4 pointer-events-auto">
                             <div className="flex flex-col gap-y-3">
@@ -254,7 +254,7 @@ function BroadcastPreviewUIManager({
                                         <b className="text-xs">GIF</b>
                                     </Button>
                                 </PopoverTrigger>
-                                <PopoverContent className="w-[90vw] sm:w-96 h-96 p-0 border-zinc-700 bg-zinc-900" side="top" align="end">
+                                <PopoverContent className="w-screen sm:w-96 h-96 p-0 border-zinc-700 bg-zinc-900" side="top" align="end">
                                 <GifPicker onSendGif={handleGifSelect} />
                                 </PopoverContent>
                             </Popover>
