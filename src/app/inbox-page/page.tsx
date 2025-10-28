@@ -1,12 +1,10 @@
-
-
 'use client';
 
 import { Suspense, useEffect, useState, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useChatContext } from '@/components/chat/ChatProvider';
 import { useUser, useUserDocument, useUserDocumentById } from '@/firebase';
-import { Loader2, ArrowLeft, ArrowUp, MessageSquare, CornerUpLeft, Smile, GitCommit, X, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import { Loader2, ArrowLeft, ArrowUp, MessageSquare, CornerUpLeft, Smile, GitCommit, X, MoreHorizontal, Pencil, Trash2, Check, CheckCheck } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -70,6 +68,7 @@ function CustomMessage({ message, onReply, isEditing, onStartEdit, onCancelEdit,
     onDelete: (messageId: string) => void;
 }) {
     const { user: currentUser } = useUser();
+    const { channel: activeChannel } = useChatContext();
     const { userDocument: currentUserDocument } = useUserDocument();
     const isCurrentUser = message.user?.id === currentUser?.uid;
     const [editText, setEditText] = useState(message.text || '');
@@ -113,6 +112,10 @@ function CustomMessage({ message, onReply, isEditing, onStartEdit, onCancelEdit,
             onCancelEdit();
         }
     };
+    
+    const otherUser = Object.values(activeChannel?.state.members || {}).find(member => member.user_id !== currentUser?.uid);
+    const isRead = isCurrentUser && message.readBy.some(read => read.id === otherUser?.user_id);
+    const ReadReceipt = isRead ? CheckCheck : Check;
 
     return (
         <div className={cn("flex items-end gap-2 my-2 group", isCurrentUser ? "justify-end" : "justify-start")}>
@@ -191,11 +194,12 @@ function CustomMessage({ message, onReply, isEditing, onStartEdit, onCancelEdit,
                         </>
                     )}
                 </div>
-                 {!isEditing && message.created_at && (
-                    <p className={cn("text-xs text-zinc-500 mt-1", isCurrentUser ? "text-right" : "text-left")}>
-                         {format(new Date(message.created_at), 'p')}
-                         {message.updated_at && message.created_at !== message.updated_at && ' (edited)'}
-                    </p>
+                 {message.created_at && (
+                    <div className={cn("text-xs text-zinc-500 mt-1 flex items-center gap-1", isCurrentUser ? "text-right flex-row-reverse" : "text-left")}>
+                         <p>{format(new Date(message.created_at), 'p')}</p>
+                         {message.updated_at && message.created_at !== message.updated_at && <p>(edited)</p>}
+                         {isCurrentUser && <ReadReceipt className={cn("h-4 w-4", isRead ? "text-blue-400" : "text-zinc-500")} />}
+                    </div>
                 )}
             </div>
              {isCurrentUser && (
@@ -308,6 +312,7 @@ function InboxPageComponent() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [replyToMessage, setReplyToMessage] = useState<Message | null>(null);
   const [editingMessage, setEditingMessage] = useState<Message | null>(null);
+  const [typingUsers, setTypingUsers] = useState<UserResponse[]>([]);
   const currentChannelId = useRef<string | null>(null);
   
   const withUserId = searchParams.get('with');
@@ -331,20 +336,38 @@ function InboxPageComponent() {
             }
             setMessages(prev => prev.map(m => m.id === event.message.id ? event.message : m));
         }
+        const handleMessageRead = (event: any) => {
+            setMessages(prev => [...prev]); // Trigger re-render
+        }
+        const handleTypingStart = (event: any) => {
+            if (event.user?.id === user?.uid) return;
+            setTypingUsers((prev) => [...prev, event.user]);
+        };
+
+        const handleTypingStop = (event: any) => {
+            if (event.user?.id === user?.uid) return;
+            setTypingUsers((prev) => prev.filter((u) => u.id !== event.user?.id));
+        };
 
         activeChannel.on('message.new', handleNewMessage);
         activeChannel.on('reaction.new', handleReaction);
         activeChannel.on('reaction.deleted', handleReaction);
         activeChannel.on('message.updated', handleMessageUpdated);
+        activeChannel.on('message.read', handleMessageRead);
+        activeChannel.on('typing.start', handleTypingStart);
+        activeChannel.on('typing.stop', handleTypingStop);
 
         return () => {
             activeChannel.off('message.new', handleNewMessage);
             activeChannel.off('reaction.new', handleReaction);
             activeChannel.off('reaction.deleted', handleReaction);
             activeChannel.off('message.updated', handleMessageUpdated);
+            activeChannel.off('message.read', handleMessageRead);
+            activeChannel.off('typing.start', handleTypingStart);
+            activeChannel.off('typing.stop', handleTypingStop);
         };
     }
-  }, [activeChannel, editingMessage]);
+  }, [activeChannel, editingMessage, user?.uid]);
 
   useEffect(() => {
     // Auto-scroll to the bottom when new messages are added
@@ -370,6 +393,7 @@ function InboxPageComponent() {
         setIsLoadingChannel(true);
         setActiveChannel(null); 
         setEditingMessage(null); // Reset editing state when channel changes
+        setTypingUsers([]);
 
         const createAndWatchChannel = async () => {
             const channel = client.channel('messaging', {
@@ -418,6 +442,8 @@ function InboxPageComponent() {
       if (!activeChannel) return;
       await activeChannel.deleteMessage(messageId);
   }
+
+  const typingUserNames = typingUsers.map(u => u.name || 'Someone').join(', ');
 
   if (!client || !user) {
     return (
@@ -470,7 +496,10 @@ function InboxPageComponent() {
                 />
              ))}
         </ScrollArea>
-        <div className="p-4 border-t border-zinc-800">
+        <div className="p-4 pt-2 border-t border-zinc-800">
+            <div className="h-5 text-xs text-zinc-400 italic px-2">
+                {typingUsers.length > 0 && `${typingUserNames} is typing...`}
+            </div>
             <CustomMessageInput 
                 replyToMessage={replyToMessage}
                 onCancelReply={handleCancelReply}
@@ -500,6 +529,13 @@ const CustomMessageInput = ({ replyToMessage, onCancelReply }: { replyToMessage:
             });
             setText('');
             onCancelReply();
+        }
+    }
+
+    const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setText(e.target.value);
+        if (activeChannel) {
+            activeChannel.keystroke();
         }
     }
 
@@ -551,7 +587,7 @@ const CustomMessageInput = ({ replyToMessage, onCancelReply }: { replyToMessage:
             <form onSubmit={handleSubmit} className="relative flex items-center gap-2">
                 <input
                     value={text}
-                    onChange={(e) => setText(e.target.value)}
+                    onChange={handleTextChange}
                     placeholder="Send a message..."
                     className="w-full bg-zinc-800 border-none text-white rounded-full px-4 py-2 pr-12 focus:outline-none focus:ring-2 focus:ring-primary"
                 />
