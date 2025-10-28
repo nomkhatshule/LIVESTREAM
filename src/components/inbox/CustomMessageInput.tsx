@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ArrowUp, Paperclip, X } from 'lucide-react';
 import GifPicker, { type TenorResult } from './GifPicker';
+import Image from 'next/image';
 
 
 interface CustomMessageInputProps {
@@ -20,6 +21,7 @@ export default function CustomMessageInput({ replyToMessage, onCancelReply }: Cu
     const [text, setText] = useState('');
     const [isGifPickerOpen, setIsGifPickerOpen] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [imagePreview, setImagePreview] = useState<{ file: File, url: string } | null>(null);
 
 
     useEffect(() => {
@@ -30,12 +32,18 @@ export default function CustomMessageInput({ replyToMessage, onCancelReply }: Cu
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (text.trim() && activeChannel) {
+        if (!activeChannel) return;
+
+        const shouldSendMessage = text.trim() || imagePreview;
+
+        if (shouldSendMessage) {
             await activeChannel.sendMessage({ 
-                text,
-                quoted_message_id: replyToMessage?.id
+                text: text,
+                quoted_message_id: replyToMessage?.id,
+                attachments: imagePreview ? [{ file: imagePreview.file }] : [],
             });
             setText('');
+            setImagePreview(null);
             onCancelReply();
         }
     }
@@ -50,7 +58,7 @@ export default function CustomMessageInput({ replyToMessage, onCancelReply }: Cu
     const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file && activeChannel) {
-            await activeChannel.sendImage(file);
+             setImagePreview({ file, url: URL.createObjectURL(file) });
         }
         // Reset file input
         if(fileInputRef.current) {
@@ -70,8 +78,10 @@ export default function CustomMessageInput({ replyToMessage, onCancelReply }: Cu
                         thumb_url: gif.media_formats.tinygif.url,
                     },
                 ],
+                quoted_message_id: replyToMessage?.id,
             });
             setIsGifPickerOpen(false);
+            onCancelReply();
         }
     };
     
@@ -84,6 +94,14 @@ export default function CustomMessageInput({ replyToMessage, onCancelReply }: Cu
                         <p className="text-zinc-400 truncate">{replyToMessage.text}</p>
                     </div>
                     <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onCancelReply}>
+                        <X className="h-4 w-4" />
+                    </Button>
+                </div>
+            )}
+             {imagePreview && (
+                <div className="bg-zinc-800 p-2 rounded-md relative w-24 h-24">
+                    <Image src={imagePreview.url} alt="Image preview" layout="fill" className="object-cover rounded-md" />
+                    <Button variant="destructive" size="icon" className="absolute -top-2 -right-2 h-6 w-6 rounded-full" onClick={() => setImagePreview(null)}>
                         <X className="h-4 w-4" />
                     </Button>
                 </div>
@@ -125,4 +143,3 @@ export default function CustomMessageInput({ replyToMessage, onCancelReply }: Cu
     )
 }
 
-    
