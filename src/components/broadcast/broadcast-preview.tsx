@@ -5,11 +5,11 @@
 import { useMemo, useState, useRef, useEffect } from 'react';
 import type { Broadcast, User as AppUser, ChatMessage } from '@/lib/data';
 import { useUser, useFirestore, useMemoFirebase, useUserDocument } from '@/firebase';
-import { collection, query, orderBy, limit, serverTimestamp, doc, deleteDoc } from 'firebase/firestore';
+import { collection, query, orderBy, limit, serverTimestamp, doc, writeBatch } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { addDocumentNonBlocking, setDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Heart, MessageSquareMore, PlusCircle, Search, Users, ArrowUp, CornerUpLeft, Dice6, Play, Loader2, Swords, X } from 'lucide-react';
+import { Heart, MessageSquareMore, Search, Users, ArrowUp, CornerUpLeft, Dice6, Play, Loader2, Swords, UserCheck, UserPlus } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import Link from 'next/link';
@@ -30,7 +30,9 @@ interface BroadcastPreviewUIManagerProps {
     comments: ChatMessage[];
     likes: any[];
     hasLiked: boolean;
+    isFollowing: boolean;
     onLike: () => void;
+    onFollow: () => void;
     onSendMessage: (message: string) => void;
     onSendGif: (gif: GiphyResult) => void;
     onReply: (username: string) => void;
@@ -45,8 +47,10 @@ function BroadcastPreviewUIManager({
     broadcast, 
     comments, 
     likes, 
-    hasLiked, 
-    onLike, 
+    hasLiked,
+    isFollowing, 
+    onLike,
+    onFollow, 
     onSendMessage,
     onSendGif, 
     onReply, 
@@ -61,6 +65,7 @@ function BroadcastPreviewUIManager({
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const [isChallengeVisible, setIsChallengeVisible] = useState(false);
     const [isGifPickerOpen, setIsGifPickerOpen] = useState(false);
+    const { user } = useUser();
 
     const reversedComments = useMemo(() => comments ? [...comments].reverse() : [], [comments]);
 
@@ -135,7 +140,12 @@ function BroadcastPreviewUIManager({
                                 <Link href={`/profile/${broadcast.hostId}`} className="pointer-events-auto">
                                     <p className="font-bold font-headline text-base md:text-lg hover:underline">{broadcast.hostName}</p>
                                 </Link>
-                                <Button size="sm" className="h-7 rounded-full px-4 text-xs pointer-events-auto">Follow</Button>
+                                {user && user.uid !== broadcast.hostId && (
+                                    <Button size="sm" className="h-7 rounded-full px-4 text-xs pointer-events-auto" onClick={onFollow} variant={isFollowing ? 'secondary' : 'default'}>
+                                        {isFollowing ? <UserCheck className="mr-1.5 h-4 w-4" /> : <UserPlus className="mr-1.5 h-4 w-4" />}
+                                        {isFollowing ? 'Following' : 'Follow'}
+                                    </Button>
+                                )}
                             </div>
                             <p className="text-sm md:text-base font-normal mt-1">{broadcast.title}</p>
                             <div className="flex items-center gap-2 text-xs mt-1">
@@ -151,13 +161,6 @@ function BroadcastPreviewUIManager({
             
             {/* Right Side Vertical Action Bar */}
              <div className="absolute top-1/2 right-4 -translate-y-1/2 z-40 flex flex-col items-center gap-y-4 md:gap-y-6 pointer-events-auto text-white">
-
-                {/* Follow Action Item */}
-                <div className="flex flex-col items-center group">
-                    <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform">
-                        <PlusCircle className="h-6 w-6 drop-shadow-md" strokeWidth={1.5}/>
-                    </button>
-                </div>
 
                 {/* Like Action Item */}
                  <div className="flex flex-col items-center group">
@@ -242,29 +245,27 @@ function BroadcastPreviewUIManager({
                 </div>
                 
                 <form onSubmit={handleFormSubmit} className="relative flex w-full pointer-events-auto items-center gap-2">
-                    <div className="relative flex-1">
-                        <Textarea
-                            ref={textareaRef}
-                            placeholder="Add a comment..."
-                            value={newMessage}
-                            onChange={(e) => setNewMessage(e.target.value)}
-                            className="bg-black/50 border-white/20 placeholder:text-gray-400 w-full min-h-[40px] h-10 resize-none rounded-full pr-[72px] pl-4"
-                        />
-                        <div className="absolute top-1/2 -translate-y-1/2 right-1 flex items-center">
-                            <Popover open={isGifPickerOpen} onOpenChange={setIsGifPickerOpen}>
-                                <PopoverTrigger asChild>
-                                    <Button size="icon" type="button" variant="ghost" className="rounded-full h-9 w-9 text-white">
-                                        <b className="text-xs">GIF</b>
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-screen sm:w-96 h-96 p-0 border-zinc-700 bg-zinc-900" side="top" align="end">
-                                <GifPicker onSendGif={handleGifSelect} />
-                                </PopoverContent>
-                            </Popover>
-                            <Button variant="ghost" size="icon" type="submit" className="text-white hover:bg-transparent hover:text-white h-9 w-9">
-                                <ArrowUp className="h-5 w-5" />
-                            </Button>
-                        </div>
+                     <Textarea
+                        ref={textareaRef}
+                        placeholder="Add a comment..."
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        className="bg-black/50 border-white/20 placeholder:text-gray-400 w-full min-h-[40px] h-10 resize-none rounded-full py-2 pr-[80px] pl-4"
+                    />
+                    <div className="absolute top-1/2 -translate-y-1/2 right-1 flex items-center">
+                        <Popover open={isGifPickerOpen} onOpenChange={setIsGifPickerOpen}>
+                            <PopoverTrigger asChild>
+                                <Button size="icon" type="button" variant="ghost" className="rounded-full h-9 w-9 text-white">
+                                    <b className="text-xs">GIF</b>
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-screen sm:w-96 h-96 p-0 border-zinc-700 bg-zinc-900" side="top" align="end">
+                            <GifPicker onSendGif={handleGifSelect} />
+                            </PopoverContent>
+                        </Popover>
+                        <Button variant="ghost" size="icon" type="submit" className="text-white hover:bg-transparent hover:text-white h-9 w-9">
+                            <ArrowUp className="h-5 w-5" />
+                        </Button>
                     </div>
                 </form>
             </div>
@@ -323,6 +324,18 @@ export function BroadcastPreview({ broadcast, onVisible }: BroadcastPreviewProps
         return collection(firestore, `broadcasts/${broadcast.id}/likes`);
     }, [broadcast.id, firestore]);
     const { data: likes } = useCollection(likesCollectionRef);
+
+    // Follow status
+    const currentUserFollowingRef = useMemoFirebase(() => {
+        if (!user) return null;
+        return collection(firestore, `users/${user.uid}/following`);
+    }, [user, firestore]);
+    const { data: currentUserFollowingList } = useCollection(currentUserFollowingRef);
+    const isFollowing = useMemo(() => {
+        if (!currentUserFollowingList) return false;
+        return currentUserFollowingList.some(follow => follow.id === broadcast.hostId);
+    }, [currentUserFollowingList, broadcast.hostId]);
+
 
     const hasLiked = useMemo(() => {
         if (!user || !likes) return false;
@@ -385,6 +398,49 @@ export function BroadcastPreview({ broadcast, onVisible }: BroadcastPreviewProps
         }
     };
     
+    const handleFollowToggle = async () => {
+        if (!user || !userDocument) {
+          toast({ title: 'Please log in', description: 'You need to be logged in to follow users.', variant: 'destructive' });
+          return;
+        }
+        if (user.uid === broadcast.hostId) return;
+
+        const batch = writeBatch(firestore);
+        const followingDocRef = doc(firestore, `users/${user.uid}/following`, broadcast.hostId);
+        const followerDocRef = doc(firestore, `users/${broadcast.hostId}/followers`, user.uid);
+
+        if (isFollowing) {
+            batch.delete(followingDocRef);
+            batch.delete(followerDocRef);
+            toast({ title: `Unfollowed ${broadcast.hostName}` });
+        } else {
+            const followData = { userId: user.uid, timestamp: serverTimestamp() };
+            batch.set(followingDocRef, followData);
+            batch.set(followerDocRef, followData);
+            
+            const notificationsCollectionRef = collection(firestore, `users/${broadcast.hostId}/notifications`);
+            const newNotifRef = doc(notificationsCollectionRef);
+            batch.set(newNotifRef, {
+                userId: broadcast.hostId,
+                type: 'follow',
+                actorId: user.uid,
+                actorName: userDocument.username || 'Someone',
+                actorAvatar: userDocument.profilePicture || '',
+                isRead: false,
+                timestamp: serverTimestamp(),
+            });
+
+            toast({ title: `Followed ${broadcast.hostName}` });
+        }
+        
+        try {
+            await batch.commit();
+        } catch (error) {
+            console.error("Follow/unfollow failed:", error);
+            toast({ title: 'Error', description: 'Could not update follow status.', variant: 'destructive' });
+        }
+    };
+
     const handleReply = (username: string) => {
         // This is a placeholder now, the logic is inside the UI manager
     }
@@ -405,7 +461,9 @@ export function BroadcastPreview({ broadcast, onVisible }: BroadcastPreviewProps
                 comments={comments || []}
                 likes={likes || []}
                 hasLiked={hasLiked}
+                isFollowing={isFollowing}
                 onLike={handleLike}
+                onFollow={handleFollowToggle}
                 onSendMessage={handleSendMessage}
                 onSendGif={handleSendGif}
                 onReply={handleReply}
