@@ -80,7 +80,7 @@ const ReactionSummary = ({ reactions, messageId }: { reactions: StreamReaction[]
     }
     
     return (
-        <div className="absolute -bottom-4 right-2 flex items-center gap-1">
+        <div className="flex items-center gap-1 mt-1">
             {Object.entries(reactionCounts).map(([type, count]) => {
                 const userHasReacted = reactions.some(r => r.type === type && r.user_id === currentUser?.uid);
                 const emoji = reverseEmojiMap[type] || type;
@@ -173,7 +173,7 @@ export default function CustomMessage({ message, onReply, isEditing, onStartEdit
     };
 
     return (
-        <div className={cn("flex items-end gap-2 my-4 group relative", isCurrentUser ? "justify-end" : "justify-start")}>
+        <div className={cn("flex items-end gap-2 my-4 group", isCurrentUser ? "justify-end" : "justify-start")}>
              {isCurrentUser && (
                  <div className="flex-col items-center gap-2 hidden group-hover:flex">
                     <DropdownMenu>
@@ -217,7 +217,7 @@ export default function CustomMessage({ message, onReply, isEditing, onStartEdit
                     <AvatarFallback>{fallback}</AvatarFallback>
                 </Avatar>
             )}
-            <div className="flex flex-col">
+            <div className={cn("flex flex-col", isCurrentUser ? "items-end" : "items-start")}>
                  <div className={cn(
                     "max-w-xs md:max-w-md rounded-lg text-sm relative", 
                     isEditing ? 'p-0' : (attachment?.type === 'giphy' ? 'bg-transparent' : (isCurrentUser ? "bg-primary text-primary-foreground p-3" : "bg-zinc-200 text-black p-3"))
@@ -249,13 +249,12 @@ export default function CustomMessage({ message, onReply, isEditing, onStartEdit
                             ) : (
                                 <p>{message.text}</p>
                             )}
-                            
-                            <ReactionSummary reactions={latestReactions} messageId={message.id} />
                         </>
                     )}
                 </div>
+                 <ReactionSummary reactions={latestReactions} messageId={message.id} />
                  {message.created_at && (
-                    <div className={cn("text-xs text-zinc-200 mt-1 flex items-center gap-1", isCurrentUser ? "text-right flex-row-reverse" : "text-left")}>
+                    <div className={cn("text-xs text-zinc-200 mt-1 flex items-center gap-1", isCurrentUser ? "justify-end" : "justify-start")}>
                          <p>{format(new Date(message.created_at), 'p')}</p>
                          
                          {isCurrentUser && <ReadReceipt className={cn("h-4 w-4", isRead ? "text-blue-400" : "text-zinc-400")} />}
