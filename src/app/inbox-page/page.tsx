@@ -1,11 +1,11 @@
 
 'use client';
 
-import { Suspense, useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { notFound, useSearchParams } from 'next/navigation';
-import { useChatContext, Channel, Window, MessageList, MessageInput, Thread, LoadingIndicator, useChannelStateContext, CustomStyles } from 'stream-chat-react';
+import { useChatContext, Channel, Window, MessageList, MessageInput, Thread, LoadingIndicator, useChannelStateContext } from 'stream-chat-react';
 import { useUser, useUserDocumentById } from '@/firebase';
-import { Loader2, ArrowLeft } from 'lucide-react';
+import { Loader2, ArrowLeft, ArrowUp } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -71,8 +71,11 @@ function InboxPageComponent() {
                         <MessageList />
                     </Window>
                 </div>
-                <div className="p-4 border-t border-zinc-800">
+                <div className="relative p-4 border-t border-zinc-800">
                     <MessageInput />
+                    <Button size="icon" className="absolute right-6 top-1/2 -translate-y-1/2 rounded-full">
+                        <ArrowUp className="h-5 w-5" />
+                    </Button>
                 </div>
             </div>
         </Channel>
