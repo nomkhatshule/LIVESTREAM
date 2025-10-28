@@ -22,18 +22,17 @@ interface GifPickerProps {
 export default function GifPicker({ onSendGif }: GifPickerProps) {
     const [searchTerm, setSearchTerm] = useState('');
     const [results, setResults] = useState<GiphyResult[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(true); // Start loading initially for trending GIFs
     const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const giphyApiKey = process.env.NEXT_PUBLIC_GIPHY_API_KEY;
 
-    const searchGifs = async (query: string) => {
+    const fetchGifs = async (url: string) => {
         if (!giphyApiKey) {
             console.error("GIPHY API key is missing.");
             return;
         }
         setIsLoading(true);
-        const url = `https://api.giphy.com/v1/gifs/search?api_key=${giphyApiKey}&q=${encodeURIComponent(query)}&limit=24&rating=g`;
         try {
             const response = await fetch(url);
             const data = await response.json();
@@ -44,17 +43,31 @@ export default function GifPicker({ onSendGif }: GifPickerProps) {
             setIsLoading(false);
         }
     };
-
+    
     useEffect(() => {
-        if (searchTerm.trim().length > 2) {
-            if (searchTimeoutRef.current) {
-                clearTimeout(searchTimeoutRef.current);
+        const handleFetch = () => {
+            if (searchTerm.trim().length > 2) {
+                // Search for GIFs
+                const searchUrl = `https://api.giphy.com/v1/gifs/search?api_key=${giphyApiKey}&q=${encodeURIComponent(searchTerm)}&limit=24&rating=g`;
+                fetchGifs(searchUrl);
+            } else if (searchTerm.trim().length === 0) {
+                // Fetch trending GIFs if search is empty
+                const trendingUrl = `https://api.giphy.com/v1/gifs/trending?api_key=${giphyApiKey}&limit=24&rating=g`;
+                fetchGifs(trendingUrl);
+            } else {
+                setResults([]);
             }
-            searchTimeoutRef.current = setTimeout(() => {
-                searchGifs(searchTerm);
-            }, 500); // Debounce for 500ms
+        };
+
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
+        }
+        
+        // Debounce for search, but fetch trending immediately on initial load
+        if (searchTerm.trim().length > 2) {
+             searchTimeoutRef.current = setTimeout(handleFetch, 500);
         } else {
-            setResults([]);
+            handleFetch();
         }
 
         return () => {
