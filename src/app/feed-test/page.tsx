@@ -34,6 +34,7 @@ import { UserSearch } from '@/components/search/user-search';
 import UploadHighlightForm from '@/components/feed/UploadHighlightForm';
 import InboxPanel from '@/components/feed/InboxPanel';
 import { Film, User as UserIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 function FeedPageContent() {
     const router = useRouter();
@@ -157,7 +158,7 @@ function FeedPageContent() {
                         )}
                     </div>
                 </div>
-                 <SheetContent className="w-[400px] sm:w-[540px]">
+                 <SheetContent className="w-full sm:w-[540px]">
                     <SheetHeader>
                         <SheetTitle>Inbox</SheetTitle>
                         <SheetDescription>
@@ -169,7 +170,7 @@ function FeedPageContent() {
                     </div>
                 </SheetContent>
             </Sheet>
-            <DialogContent>
+            <DialogContent className="w-[90vw] max-w-lg">
                 <DialogHeader>
                     <DialogTitle>Upload a New Highlight</DialogTitle>
                     <DialogDescription>

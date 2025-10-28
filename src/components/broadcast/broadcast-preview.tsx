@@ -147,7 +147,7 @@ function BroadcastPreviewUIManager({
             </div>
             
             {/* Right Side Vertical Action Bar */}
-             <div className="absolute top-1/2 right-4 -translate-y-1/2 z-40 flex flex-col items-center gap-y-6 pointer-events-auto text-white">
+             <div className="absolute top-1/2 right-4 -translate-y-1/2 z-40 flex flex-col items-center gap-y-4 md:gap-y-6 pointer-events-auto text-white">
 
                 {/* Follow Action Item */}
                 <div className="flex flex-col items-center group">
@@ -204,7 +204,7 @@ function BroadcastPreviewUIManager({
 
             {/* Bottom Chat Area */}
             <div className="bg-gradient-to-t from-black/70 to-transparent -m-4 p-4 flex flex-col justify-end gap-4">
-                <div className="w-full max-w-sm">
+                <div className="w-full sm:max-w-sm">
                     {isChatVisible && (
                         <ScrollArea className="h-48 w-full pr-4 pointer-events-auto">
                             <div className="flex flex-col gap-y-3">
@@ -245,7 +245,7 @@ function BroadcastPreviewUIManager({
                             placeholder="Add a comment..."
                             value={newMessage}
                             onChange={(e) => setNewMessage(e.target.value)}
-                            className="bg-black/50 border-white/20 placeholder:text-gray-400 pr-20 w-full min-h-[40px] h-10 resize-none rounded-full"
+                            className="bg-black/50 border-white/20 placeholder:text-gray-400 w-full min-h-[40px] h-10 resize-none rounded-full pr-[72px] pl-4"
                         />
                         <div className="absolute top-1/2 -translate-y-1/2 right-1 flex items-center">
                             <Popover open={isGifPickerOpen} onOpenChange={setIsGifPickerOpen}>
@@ -415,5 +415,3 @@ export function BroadcastPreview({ broadcast, onVisible }: BroadcastPreviewProps
         </div>
     );
 };
-
-    

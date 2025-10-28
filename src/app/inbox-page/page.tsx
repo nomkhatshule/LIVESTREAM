@@ -221,12 +221,12 @@ function InboxPageComponent() {
   return (
     <div className="h-full w-full flex flex-col bg-black text-white">
         <ChannelHeader />
-        <ScrollArea className="flex-1 px-4 border-t border-zinc-800" ref={scrollAreaRef}>
+        <ScrollArea className="flex-1 px-4" ref={scrollAreaRef}>
              {messages.map((msg) => (
                 <div key={msg.id}>
                     {msg.id === firstUnreadId && (
                        <div className="flex justify-center my-4">
-                            <div className="bg-zinc-700 text-zinc-200 text-xs font-semibold px-3 py-1 rounded-full">
+                            <div className="bg-zinc-700 text-zinc-300 text-xs font-semibold px-3 py-1 rounded-full">
                                 New Messages
                             </div>
                         </div>
@@ -243,7 +243,7 @@ function InboxPageComponent() {
                 </div>
              ))}
         </ScrollArea>
-        <div className="p-4 pt-2">
+        <div className="p-4 pt-2 border-t border-zinc-800">
             <div className="h-5 text-xs text-zinc-400 italic px-2">
                 {typingUsers.length > 0 && `${typingUserNames} is typing...`}
             </div>

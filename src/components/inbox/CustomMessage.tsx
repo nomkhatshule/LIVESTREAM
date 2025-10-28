@@ -289,5 +289,3 @@ export default function CustomMessage({ message, onReply, isEditing, onStartEdit
     );
 }
     
-
-    
