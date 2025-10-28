@@ -122,24 +122,27 @@ function BroadcastPreviewUIManager({
             
             {/* Top Info */}
             <div className="bg-gradient-to-b from-black/50 to-transparent -m-4 p-4">
-                <div className="flex items-start gap-3">
-                    <Link href={`/profile/${broadcast.hostId}`} className="pointer-events-auto">
-                        <Avatar className={cn("h-12 w-12 border-4 border-destructive", broadcast.isLive && "animate-breathing-prominent")}>
-                            <AvatarImage src={broadcast.hostAvatar} alt={broadcast.hostName} />
-                            <AvatarFallback>{broadcast.hostName?.charAt(0) || 'A'}</AvatarFallback>
-                        </Avatar>
-                    </Link>
-                    <div>
-                        <div className="flex items-center gap-2">
-                             <Link href={`/profile/${broadcast.hostId}`} className="pointer-events-auto">
-                                <p className="font-bold font-headline text-base md:text-lg hover:underline">{broadcast.hostName}</p>
-                            </Link>
-                        </div>
-                         <p className="text-sm md:text-base font-normal mt-1">{broadcast.title}</p>
-                         <div className="flex items-center gap-2 text-xs mt-1">
-                            <div className="flex items-center gap-1">
-                                <Users className="h-3 w-3" />
-                                <span>{broadcast.viewers?.toLocaleString() || 0}</span>
+                <div className="flex items-start justify-between">
+                    <div className="flex items-start gap-3">
+                        <Link href={`/profile/${broadcast.hostId}`} className="pointer-events-auto">
+                            <Avatar className={cn("h-12 w-12 border-4 border-destructive", broadcast.isLive && "animate-breathing-prominent")}>
+                                <AvatarImage src={broadcast.hostAvatar} alt={broadcast.hostName} />
+                                <AvatarFallback>{broadcast.hostName?.charAt(0) || 'A'}</AvatarFallback>
+                            </Avatar>
+                        </Link>
+                        <div>
+                            <div className="flex items-center gap-2">
+                                <Link href={`/profile/${broadcast.hostId}`} className="pointer-events-auto">
+                                    <p className="font-bold font-headline text-base md:text-lg hover:underline">{broadcast.hostName}</p>
+                                </Link>
+                                <Button size="sm" className="h-7 rounded-full px-4 text-xs pointer-events-auto">Follow</Button>
+                            </div>
+                            <p className="text-sm md:text-base font-normal mt-1">{broadcast.title}</p>
+                            <div className="flex items-center gap-2 text-xs mt-1">
+                                <div className="flex items-center gap-1">
+                                    <Users className="h-3 w-3" />
+                                    <span>{broadcast.viewers?.toLocaleString() || 0}</span>
+                                </div>
                             </div>
                         </div>
                     </div>
