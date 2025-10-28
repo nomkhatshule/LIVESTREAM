@@ -140,10 +140,9 @@ function BroadcastPreviewUIManager({
                                 <Link href={`/profile/${broadcast.hostId}`} className="pointer-events-auto">
                                     <p className="font-bold font-headline text-base md:text-lg hover:underline">{broadcast.hostName}</p>
                                 </Link>
-                                {user && user.uid !== broadcast.hostId && (
-                                    <Button size="sm" className="h-7 rounded-full px-4 text-xs pointer-events-auto" onClick={onFollow} variant={isFollowing ? 'secondary' : 'default'}>
-                                        {isFollowing ? <UserCheck className="mr-1.5 h-4 w-4" /> : <UserPlus className="mr-1.5 h-4 w-4" />}
-                                        {isFollowing ? 'Following' : 'Follow'}
+                                {user && user.uid !== broadcast.hostId && !isFollowing && (
+                                    <Button size="sm" className="h-7 rounded-full px-4 text-xs pointer-events-auto" onClick={onFollow} variant='default'>
+                                        Follow
                                     </Button>
                                 )}
                             </div>
@@ -245,27 +244,29 @@ function BroadcastPreviewUIManager({
                 </div>
                 
                 <form onSubmit={handleFormSubmit} className="relative flex w-full pointer-events-auto items-center gap-2">
-                     <Textarea
-                        ref={textareaRef}
-                        placeholder="Add a comment..."
-                        value={newMessage}
-                        onChange={(e) => setNewMessage(e.target.value)}
-                        className="bg-black/50 border-white/20 placeholder:text-gray-400 w-full min-h-[40px] h-10 resize-none rounded-full py-2 pr-[80px] pl-4"
-                    />
-                    <div className="absolute top-1/2 -translate-y-1/2 right-1 flex items-center">
-                        <Popover open={isGifPickerOpen} onOpenChange={setIsGifPickerOpen}>
-                            <PopoverTrigger asChild>
-                                <Button size="icon" type="button" variant="ghost" className="rounded-full h-9 w-9 text-white">
-                                    <b className="text-xs">GIF</b>
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-screen sm:w-96 h-96 p-0 border-zinc-700 bg-zinc-900" side="top" align="end">
-                            <GifPicker onSendGif={handleGifSelect} />
-                            </PopoverContent>
-                        </Popover>
-                        <Button variant="ghost" size="icon" type="submit" className="text-white hover:bg-transparent hover:text-white h-9 w-9">
-                            <ArrowUp className="h-5 w-5" />
-                        </Button>
+                     <div className="relative flex-1">
+                        <Textarea
+                            ref={textareaRef}
+                            placeholder="Add a comment..."
+                            value={newMessage}
+                            onChange={(e) => setNewMessage(e.target.value)}
+                            className="bg-black/50 border-white/20 placeholder:text-gray-400 w-full min-h-[40px] h-10 resize-none rounded-full py-2 pr-[80px] pl-4"
+                        />
+                        <div className="absolute top-1/2 -translate-y-1/2 right-1 flex items-center">
+                            <Popover open={isGifPickerOpen} onOpenChange={setIsGifPickerOpen}>
+                                <PopoverTrigger asChild>
+                                    <Button size="icon" type="button" variant="ghost" className="rounded-full h-9 w-9 text-white">
+                                        <b className="text-xs">GIF</b>
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-screen sm:w-96 h-96 p-0 border-zinc-700 bg-zinc-900" side="top" align="end">
+                                <GifPicker onSendGif={handleGifSelect} />
+                                </PopoverContent>
+                            </Popover>
+                            <Button variant="ghost" size="icon" type="submit" className="text-white hover:bg-transparent hover:text-white h-9 w-9">
+                                <ArrowUp className="h-5 w-5" />
+                            </Button>
+                        </div>
                     </div>
                 </form>
             </div>
