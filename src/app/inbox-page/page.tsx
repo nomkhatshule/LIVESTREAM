@@ -221,7 +221,7 @@ function InboxPageComponent() {
   return (
     <div className="h-full w-full flex flex-col bg-black text-white">
         <ChannelHeader />
-        <ScrollArea className="flex-1 px-4" ref={scrollAreaRef}>
+        <ScrollArea className="flex-1 px-4 border-t border-zinc-800" ref={scrollAreaRef}>
              {messages.map((msg) => (
                 <div key={msg.id}>
                     {msg.id === firstUnreadId && (
@@ -243,7 +243,7 @@ function InboxPageComponent() {
                 </div>
              ))}
         </ScrollArea>
-        <div className="p-4 pt-2 border-t border-zinc-800">
+        <div className="p-4 pt-2">
             <div className="h-5 text-xs text-zinc-400 italic px-2">
                 {typingUsers.length > 0 && `${typingUserNames} is typing...`}
             </div>
