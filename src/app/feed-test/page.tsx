@@ -109,7 +109,7 @@ function FeedPageContent() {
                                 )}
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent className="w-80 p-0" align="end">
+                        <DropdownMenuContent className="w-56 p-0" align="end">
                             <UserSearch>
                                 <DropdownMenuSeparator />
                                 <SheetTrigger asChild>
@@ -160,7 +160,7 @@ function FeedPageContent() {
                         )}
                     </div>
                 </div>
-                 <SheetContent className="w-full sm:w-[540px]">
+                 <SheetContent className="w-full sm:max-w-md">
                     <SheetHeader>
                         <SheetTitle>Inbox</SheetTitle>
                         <SheetDescription>
