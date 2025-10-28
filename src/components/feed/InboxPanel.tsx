@@ -24,7 +24,12 @@ const InboxChannelPreview = ({ channel, currentUser, setActiveChannel }: { chann
 
     const otherUser = otherUserMember.user;
     const lastMessage = channel.state.messages[channel.state.messages.length - 1];
+    
+    // Corrected unread logic: only count if the last message is not from the current user.
     const unreadCount = channel.countUnread();
+    const isUnread = unreadCount > 0 && lastMessage?.user?.id !== currentUser.uid;
+    const lastMessageSenderIsCurrentUser = lastMessage?.user?.id === currentUser.uid;
+    
     const href = `/inbox-page?with=${otherUser.id}`;
 
     return (
@@ -48,10 +53,15 @@ const InboxChannelPreview = ({ channel, currentUser, setActiveChannel }: { chann
                             )}
                         </div>
                         <div className="flex justify-between items-start mt-1">
-                            <p className={cn("truncate text-zinc-400", unreadCount > 0 && "font-bold text-primary")}>
-                                {lastMessage?.text || 'No messages yet'}
+                            <p className={cn("truncate text-zinc-400", isUnread && "font-bold text-primary")}>
+                                {lastMessage ? (
+                                    <>
+                                        {lastMessageSenderIsCurrentUser && 'You: '}
+                                        {lastMessage.text || 'Sent an attachment'}
+                                    </>
+                                ) : 'No messages yet'}
                             </p>
-                            {unreadCount > 0 && (
+                            {isUnread && (
                                 <span className="ml-2 flex-shrink-0 bg-primary text-primary-foreground text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
                                     {unreadCount}
                                 </span>
