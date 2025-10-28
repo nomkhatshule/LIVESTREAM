@@ -61,7 +61,7 @@ function BroadcastPreviewUIManager({
     isConnected,
 }: BroadcastPreviewUIManagerProps) {
     const [newMessage, setNewMessage] = useState('');
-    const [isChatVisible, setIsChatVisible] = useState(true);
+    const [isChatVisible, setIsChatVisible] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const [isChallengeVisible, setIsChallengeVisible] = useState(false);
     const [isGifPickerOpen, setIsGifPickerOpen] = useState(false);
@@ -208,69 +208,69 @@ function BroadcastPreviewUIManager({
 
 
             {/* Bottom Chat Area */}
-            <div className="bg-gradient-to-t from-black/70 to-transparent -m-4 p-4 flex flex-col justify-end gap-4">
-                <div className="w-full sm:max-w-sm md:max-w-md">
-                    {isChatVisible && (
-                        <>
-                        <ScrollArea className="h-48 w-full pr-4 pointer-events-auto">
-                            <div className="flex flex-col gap-y-3">
-                                {reversedComments.map((comment) => (
-                                    <div key={comment.id} className="group flex items-start gap-2 text-sm bg-black/25 p-2 rounded-lg">
-                                        <Link href={`/profile/${comment.userId}`} className="pointer-events-auto">
-                                            <Avatar className="h-6 w-6 border-secondary">
-                                                <AvatarImage src={comment.userAvatar} alt={comment.username} />
-                                                <AvatarFallback>{comment.username.charAt(0)}</AvatarFallback>
-                                            </Avatar>
-                                        </Link>
-                                        <div className="flex-1">
+             {isChatVisible && (
+                <div className="bg-gradient-to-t from-black/70 to-transparent -m-4 p-4 flex flex-col justify-end gap-4">
+                    <div className="w-full sm:max-w-sm md:max-w-md">
+                            <>
+                            <ScrollArea className="h-48 w-full pr-4 pointer-events-auto">
+                                <div className="flex flex-col gap-y-3">
+                                    {reversedComments.map((comment) => (
+                                        <div key={comment.id} className="group flex items-start gap-2 text-sm bg-black/25 p-2 rounded-lg">
                                             <Link href={`/profile/${comment.userId}`} className="pointer-events-auto">
-                                                <span className="font-bold font-headline text-primary mr-1.5 hover:underline">{comment.username}:</span>
+                                                <Avatar className="h-6 w-6 border-secondary">
+                                                    <AvatarImage src={comment.userAvatar} alt={comment.username} />
+                                                    <AvatarFallback>{comment.username.charAt(0)}</AvatarFallback>
+                                                </Avatar>
                                             </Link>
-                                            {comment.replyingTo && <Link href={`/profile/${comment.replyingTo}`} className="text-accent font-semibold mr-1.5 hover:underline pointer-events-auto">@{comment.replyingTo}</Link>}
-                                            
-                                            {comment.attachment?.type === 'giphy' ? (
-                                                <Image src={comment.attachment.imageUrl} width={150} height={100} alt={comment.attachment.title || 'gif'} className="mt-1 rounded-md" />
-                                            ) : (
-                                                <span className="break-words">{comment.message.replace(/^@\w+\s/, '')}</span>
-                                            )}
+                                            <div className="flex-1">
+                                                <Link href={`/profile/${comment.userId}`} className="pointer-events-auto">
+                                                    <span className="font-bold font-headline text-primary mr-1.5 hover:underline">{comment.username}:</span>
+                                                </Link>
+                                                {comment.replyingTo && <Link href={`/profile/${comment.replyingTo}`} className="text-accent font-semibold mr-1.5 hover:underline pointer-events-auto">@{comment.replyingTo}</Link>}
+                                                
+                                                {comment.attachment?.type === 'giphy' ? (
+                                                    <Image src={comment.attachment.imageUrl} width={150} height={100} alt={comment.attachment.title || 'gif'} className="mt-1 rounded-md" />
+                                                ) : (
+                                                    <span className="break-words">{comment.message.replace(/^@\w+\s/, '')}</span>
+                                                )}
+                                            </div>
+                                            <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 pointer-events-auto" onClick={() => handleReplyClick(comment.username)}>
+                                                <CornerUpLeft className="h-4 w-4" />
+                                            </Button>
                                         </div>
-                                        <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 pointer-events-auto" onClick={() => handleReplyClick(comment.username)}>
-                                            <CornerUpLeft className="h-4 w-4" />
+                                    ))}
+                                </div>
+                            </ScrollArea>
+                            <form onSubmit={handleFormSubmit} className="relative flex w-full pointer-events-auto items-center gap-2 mt-2">
+                                <div className="relative flex-1">
+                                    <Textarea
+                                        ref={textareaRef}
+                                        placeholder="Add a comment..."
+                                        value={newMessage}
+                                        onChange={(e) => setNewMessage(e.target.value)}
+                                        className="bg-black/50 border-white/20 placeholder:text-gray-400 w-full min-h-[40px] h-10 resize-none rounded-full py-2 pr-20 pl-4"
+                                    />
+                                    <div className="absolute top-1/2 -translate-y-1/2 right-1 flex items-center">
+                                        <Popover open={isGifPickerOpen} onOpenChange={setIsGifPickerOpen}>
+                                            <PopoverTrigger asChild>
+                                                <Button size="icon" type="button" variant="ghost" className="rounded-full h-9 w-9 text-white">
+                                                    <b className="text-xs">GIF</b>
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-screen sm:w-96 h-96 p-0 border-zinc-700 bg-zinc-900" side="top" align="end">
+                                            <GifPicker onSendGif={handleGifSelect} />
+                                            </PopoverContent>
+                                        </Popover>
+                                        <Button variant="ghost" size="icon" type="submit" className="text-white hover:bg-transparent hover:text-white h-9 w-9">
+                                            <ArrowUp className="h-5 w-5" />
                                         </Button>
                                     </div>
-                                ))}
-                            </div>
-                        </ScrollArea>
-                         <form onSubmit={handleFormSubmit} className="relative flex w-full pointer-events-auto items-center gap-2 mt-2">
-                             <div className="relative flex-1">
-                                <Textarea
-                                    ref={textareaRef}
-                                    placeholder="Add a comment..."
-                                    value={newMessage}
-                                    onChange={(e) => setNewMessage(e.target.value)}
-                                    className="bg-black/50 border-white/20 placeholder:text-gray-400 w-full min-h-[40px] h-10 resize-none rounded-full py-2 pr-[80px] pl-4"
-                                />
-                                <div className="absolute top-1/2 -translate-y-1/2 right-1 flex items-center">
-                                    <Popover open={isGifPickerOpen} onOpenChange={setIsGifPickerOpen}>
-                                        <PopoverTrigger asChild>
-                                            <Button size="icon" type="button" variant="ghost" className="rounded-full h-9 w-9 text-white">
-                                                <b className="text-xs">GIF</b>
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-screen sm:w-96 h-96 p-0 border-zinc-700 bg-zinc-900" side="top" align="end">
-                                        <GifPicker onSendGif={handleGifSelect} />
-                                        </PopoverContent>
-                                    </Popover>
-                                    <Button variant="ghost" size="icon" type="submit" className="text-white hover:bg-transparent hover:text-white h-9 w-9">
-                                        <ArrowUp className="h-5 w-5" />
-                                    </Button>
                                 </div>
-                            </div>
-                        </form>
-                        </>
-                    )}
+                            </form>
+                            </>
+                    </div>
                 </div>
-            </div>
+            )}
         </div>
     );
 }
@@ -368,7 +368,7 @@ export function BroadcastPreview({ broadcast, onVisible }: BroadcastPreviewProps
             userId: user.uid,
             username: userDocument.username || 'Anonymous',
             userAvatar: userDocument.profilePicture || '',
-            message: gif.title || '',
+            message: gif.title,
             timestamp: serverTimestamp(),
             attachment: {
                 type: 'giphy' as const,
