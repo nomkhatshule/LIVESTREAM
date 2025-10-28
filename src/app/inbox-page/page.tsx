@@ -14,6 +14,9 @@ import { UserProfile } from '@/firebase/firestore/use-user-document';
 import type { Message, Reaction as StreamReaction, UserResponse } from 'stream-chat';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { format } from 'date-fns';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Input } from '@/components/ui/input';
+
 
 function ChannelHeader() {
     const { channel: activeChannel } = useChatContext();
@@ -66,11 +69,7 @@ function CustomMessage({ message, onReply }: { message: Message, onReply: (messa
     const avatarUrl = isCurrentUser ? currentUserDocument?.profilePicture : otherUserDocument?.profilePicture;
     
     let fallback = 'U';
-    if (isCurrentUser && currentUserDocument?.username) {
-        fallback = currentUserDocument.username.charAt(0).toUpperCase();
-    } else if (!isCurrentUser && otherUserDocument?.username) {
-        fallback = otherUserDocument.username.charAt(0).toUpperCase();
-    } else if (streamUser?.name) {
+    if (streamUser?.name) {
         fallback = streamUser.name.charAt(0).toUpperCase();
     }
 
@@ -104,7 +103,7 @@ function CustomMessage({ message, onReply }: { message: Message, onReply: (messa
                         </div>
                     )}
                     {attachment?.type === 'giphy' ? (
-                        <img src={attachment.thumb_url} alt={attachment.title} className="rounded-md" />
+                        <img src={attachment.image_url || attachment.thumb_url} alt={attachment.title} className="rounded-md" />
                     ) : (
                         <p>{message.text}</p>
                     )}
@@ -138,6 +137,80 @@ function CustomMessage({ message, onReply }: { message: Message, onReply: (messa
         </div>
     );
 }
+
+// --- Tenor GIF Picker ---
+interface TenorResult {
+    id: string;
+    media_formats: {
+        gif: { url: string };
+        tinygif: { url: string; dims: number[] };
+    };
+    content_description: string;
+}
+
+const GifPicker = ({ onSendGif }: { onSendGif: (gif: TenorResult) => void }) => {
+    const [searchTerm, setSearchTerm] = useState('');
+    const [results, setResults] = useState<TenorResult[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    const tenorApiKey = process.env.NEXT_PUBLIC_TENOR_API_KEY;
+
+    const searchGifs = async (query: string) => {
+        if (!tenorApiKey) return;
+        setIsLoading(true);
+        const url = `https://tenor.googleapis.com/v2/search?q=${encodeURIComponent(query)}&key=${tenorApiKey}&client_key=agorlive-chat&limit=20`;
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+            setResults(data.results || []);
+        } catch (error) {
+            console.error("Failed to fetch GIFs from Tenor:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (searchTerm.trim().length > 2) {
+            if (searchTimeoutRef.current) {
+                clearTimeout(searchTimeoutRef.current);
+            }
+            searchTimeoutRef.current = setTimeout(() => {
+                searchGifs(searchTerm);
+            }, 500); // Debounce for 500ms
+        } else {
+            setResults([]);
+        }
+
+        return () => {
+            if (searchTimeoutRef.current) {
+                clearTimeout(searchTimeoutRef.current);
+            }
+        };
+    }, [searchTerm]);
+
+    return (
+        <div className="w-full h-full flex flex-col p-2 bg-zinc-900">
+            <Input
+                placeholder="Search for GIFs..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="bg-zinc-800 border-none text-white focus:ring-primary"
+            />
+            <ScrollArea className="flex-1 mt-2">
+                {isLoading && <div className="flex justify-center p-4"><Loader2 className="animate-spin" /></div>}
+                <div className="grid grid-cols-2 gap-1">
+                    {results.map((gif) => (
+                        <button key={gif.id} onClick={() => onSendGif(gif)} className="aspect-square bg-zinc-800 rounded-md overflow-hidden">
+                            <img src={gif.media_formats.tinygif.url} alt={gif.content_description} className="w-full h-full object-cover" />
+                        </button>
+                    ))}
+                </div>
+            </ScrollArea>
+        </div>
+    );
+};
 
 
 function InboxPageComponent() {
@@ -282,6 +355,7 @@ function InboxPageComponent() {
 const CustomMessageInput = ({ replyToMessage, onCancelReply }: { replyToMessage: Message | null; onCancelReply: () => void; }) => {
     const { channel: activeChannel } = useChatContext();
     const [text, setText] = useState('');
+    const [isGifPickerOpen, setIsGifPickerOpen] = useState(false);
 
     useEffect(() => {
         if (replyToMessage) {
@@ -316,19 +390,20 @@ const CustomMessageInput = ({ replyToMessage, onCancelReply }: { replyToMessage:
         }
     };
 
-    const handleSendGif = async () => {
+    const handleSendGif = async (gif: TenorResult) => {
         if (activeChannel) {
             await activeChannel.sendMessage({
-                text: 'GIF!',
+                text: gif.content_description,
                 attachments: [
                     {
-                        type: 'giphy',
-                        title: 'Mind Blown',
-                        thumb_url: 'https://media.giphy.com/media/xT0xeJpnrWC4XWblEk/giphy_s.gif',
-                        image_url: 'https://media.giphy.com/media/xT0xeJpnrWC4XWblEk/giphy.gif',
+                        type: 'giphy', // Stream's generic 'image' or 'video' type is also an option
+                        title: gif.content_description,
+                        image_url: gif.media_formats.gif.url,
+                        thumb_url: gif.media_formats.tinygif.url,
                     },
                 ],
             });
+            setIsGifPickerOpen(false);
         }
     };
     
@@ -353,12 +428,19 @@ const CustomMessageInput = ({ replyToMessage, onCancelReply }: { replyToMessage:
                     className="w-full bg-zinc-800 border-none text-white rounded-full px-4 py-2 pr-12 focus:outline-none focus:ring-2 focus:ring-primary"
                 />
                  <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center">
-                    <Button size="icon" type="button" variant="ghost" className="rounded-full h-9 w-9 text-zinc-400" onClick={handleReaction}>
+                     <Button size="icon" type="button" variant="ghost" className="rounded-full h-9 w-9 text-zinc-400" onClick={handleReaction}>
                         <Smile className="h-5 w-5" />
                     </Button>
-                    <Button size="icon" type="button" variant="ghost" className="rounded-full h-9 w-9 text-zinc-400" onClick={handleSendGif}>
-                        <b className="text-xs">GIF</b>
-                    </Button>
+                    <Popover open={isGifPickerOpen} onOpenChange={setIsGifPickerOpen}>
+                        <PopoverTrigger asChild>
+                            <Button size="icon" type="button" variant="ghost" className="rounded-full h-9 w-9 text-zinc-400">
+                                <b className="text-xs">GIF</b>
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-80 h-96 p-0 border-zinc-700 bg-zinc-900" side="top" align="end">
+                           <GifPicker onSendGif={handleSendGif} />
+                        </PopoverContent>
+                    </Popover>
                     <Button size="icon" type="submit" className="rounded-full h-8 w-8 bg-primary">
                         <ArrowUp className="h-5 w-5" />
                     </Button>
