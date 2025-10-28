@@ -6,7 +6,7 @@ import { useUser, useFirestore, useMemoFirebase, useStorage } from '@/firebase';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { collection, query, where, writeBatch, doc, orderBy } from 'firebase/firestore';
 import type { Broadcast, Notification } from '@/lib/data';
-import { Clapperboard, Loader2, MoreVertical, Bell } from 'lucide-react';
+import { Clapperboard, Loader2, Bell, ChevronDownCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import BroadcastPlayer from '@/components/broadcast/broadcast-player';
 import { useStreamStore } from '@/lib/stream-store';
@@ -100,8 +100,8 @@ function FeedPageContent() {
 
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="absolute top-4 right-4 z-40 text-white transition-transform hover:bg-transparent hover:scale-110 pointer-events-auto focus-visible:ring-0">
-                                <MoreVertical className="h-8 w-8" />
+                            <Button variant="ghost" size="icon" className="absolute top-4 right-4 z-40 text-white transition-transform hover:bg-black/20 hover:scale-110 pointer-events-auto focus-visible:ring-0 rounded-full h-9 w-9 bg-black/20">
+                                <ChevronDownCircle className="h-6 w-6" />
                                  {unreadCount > 0 && (
                                     <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold text-white">
                                         {unreadCount}
@@ -119,12 +119,14 @@ function FeedPageContent() {
                                         {unreadCount > 0 && <span className="ml-auto bg-primary text-primary-foreground text-xs font-bold px-2 py-0.5 rounded-full">{unreadCount}</span>}
                                     </DropdownMenuItem>
                                 </SheetTrigger>
+                                <DropdownMenuSeparator />
                                 <DropdownMenuItem asChild>
                                     <Link href="/broadcast/create">
                                         <Clapperboard className="mr-2 h-4 w-4" />
                                         <span>Go Stream</span>
                                     </Link>
                                 </DropdownMenuItem>
+                                <DropdownMenuSeparator />
                                 <DialogTrigger asChild>
                                     <DropdownMenuItem>
                                         <Film className="mr-2 h-4 w-4" />
