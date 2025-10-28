@@ -245,22 +245,24 @@ function BroadcastPreviewUIManager({
                             placeholder="Add a comment..."
                             value={newMessage}
                             onChange={(e) => setNewMessage(e.target.value)}
-                            className="bg-black/50 border-white/20 placeholder:text-gray-400 pr-10 w-full min-h-[40px] h-10 resize-none rounded-full"
+                            className="bg-black/50 border-white/20 placeholder:text-gray-400 pr-20 w-full min-h-[40px] h-10 resize-none rounded-full"
                         />
-                        <Button variant="ghost" size="icon" type="submit" className="absolute top-1/2 -translate-y-1/2 right-1 text-white hover:bg-transparent hover:text-white">
-                            <ArrowUp className="h-5 w-5" />
-                        </Button>
-                    </div>
-                     <Popover open={isGifPickerOpen} onOpenChange={setIsGifPickerOpen}>
-                        <PopoverTrigger asChild>
-                             <Button size="icon" type="button" variant="ghost" className="rounded-full h-9 w-9 text-white bg-black/50">
-                                <b className="text-xs">GIF</b>
+                        <div className="absolute top-1/2 -translate-y-1/2 right-1 flex items-center">
+                            <Popover open={isGifPickerOpen} onOpenChange={setIsGifPickerOpen}>
+                                <PopoverTrigger asChild>
+                                    <Button size="icon" type="button" variant="ghost" className="rounded-full h-9 w-9 text-white">
+                                        <b className="text-xs">GIF</b>
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[90vw] sm:w-96 h-96 p-0 border-zinc-700 bg-zinc-900" side="top" align="end">
+                                <GifPicker onSendGif={handleGifSelect} />
+                                </PopoverContent>
+                            </Popover>
+                            <Button variant="ghost" size="icon" type="submit" className="text-white hover:bg-transparent hover:text-white h-9 w-9">
+                                <ArrowUp className="h-5 w-5" />
                             </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-[90vw] sm:w-96 h-96 p-0 border-zinc-700 bg-zinc-900" side="top" align="end">
-                           <GifPicker onSendGif={handleGifSelect} />
-                        </PopoverContent>
-                    </Popover>
+                        </div>
+                    </div>
                 </form>
             </div>
         </div>
@@ -413,3 +415,5 @@ export function BroadcastPreview({ broadcast, onVisible }: BroadcastPreviewProps
         </div>
     );
 };
+
+    
