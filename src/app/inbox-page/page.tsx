@@ -36,7 +36,7 @@ function ChannelHeader() {
     
     return (
         <div className="border-b p-3 flex items-center gap-3 bg-black border-zinc-800">
-             <Link href="/feed-test" className="md:hidden">
+             <Link href="/feed-test">
                 <Button variant="ghost" size="icon">
                     <ArrowLeft className="h-5 w-5" />
                 </Button>
@@ -172,7 +172,7 @@ function InboxPageComponent() {
              <MessageSquare className="h-12 w-12 mb-4"/>
              <h2 className="text-xl font-bold text-white">Your Messages</h2>
              <p>Select a conversation from your inbox to start chatting.</p>
-             <Button variant="outline" asChild className="mt-4 bg-transparent border-zinc-700 hover:bg-zinc-900 hover:text-white md:hidden">
+             <Button variant="outline" asChild className="mt-4 bg-transparent border-zinc-700 hover:bg-zinc-900 hover:text-white">
                 <Link href="/feed-test">
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Back to Feed
@@ -224,26 +224,9 @@ const CustomMessageInput = () => {
 }
 
 function InboxPageLayout() {
-    const searchParams = useSearchParams();
-    const withUserId = searchParams.get('with');
-
     return (
          <div className="h-[calc(100vh-4rem)] w-full flex">
-            <aside className={cn(
-                "w-full md:w-96 border-r border-zinc-800 flex-col",
-                withUserId ? "hidden md:flex" : "flex"
-            )}>
-                <div className="p-4 border-b border-zinc-800 flex items-center justify-between">
-                    <h2 className="text-xl font-bold">Inbox</h2>
-                     <Link href="/feed-test">
-                        <Button variant="ghost" size="icon">
-                            <ArrowLeft className="h-5 w-5" />
-                        </Button>
-                    </Link>
-                </div>
-                 <InboxPanel />
-            </aside>
-            <main className={cn("flex-1", !withUserId && "hidden md:flex")}>
+            <main className="flex-1">
                 <InboxPageComponent />
             </main>
         </div>
