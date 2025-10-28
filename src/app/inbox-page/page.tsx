@@ -4,7 +4,7 @@
 import { Suspense, useEffect, useState, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useChatContext } from '@/components/chat/ChatProvider';
-import { useUser, useUserDocumentById } from '@/firebase';
+import { useUser, useUserDocument, useUserDocumentById } from '@/firebase';
 import { Loader2, ArrowLeft, ArrowUp, MessageSquare } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -50,18 +50,23 @@ function ChannelHeader() {
     )
 }
 
-function CustomMessage({ message, user }: { message: Message, user: UserResponse | undefined }) {
+function CustomMessage({ message }: { message: Message }) {
     const { user: currentUser } = useUser();
+    const { userDocument: currentUserDocument } = useUserDocument();
     const isCurrentUser = message.user?.id === currentUser?.uid;
+    
+    const otherUser = message.user;
+    const avatarUrl = isCurrentUser ? currentUserDocument?.profilePicture : otherUser?.image;
+    const fallback = (isCurrentUser ? currentUserDocument?.username : otherUser?.name)?.charAt(0).toUpperCase() || 'U';
 
-    if (!message.user) return null;
+    if (!otherUser) return null;
 
     return (
         <div className={cn("flex items-end gap-2 my-4", isCurrentUser ? "justify-end" : "justify-start")}>
             {!isCurrentUser && (
                 <Avatar className="h-8 w-8">
-                    <AvatarImage src={message.user.image as string | undefined} />
-                    <AvatarFallback>{message.user.name?.charAt(0).toUpperCase()}</AvatarFallback>
+                    <AvatarImage src={avatarUrl} />
+                    <AvatarFallback>{fallback}</AvatarFallback>
                 </Avatar>
             )}
             <div className={cn("max-w-[70%] p-3 rounded-lg text-sm", isCurrentUser ? "bg-primary text-primary-foreground" : "bg-zinc-800 text-white")}>
@@ -69,8 +74,8 @@ function CustomMessage({ message, user }: { message: Message, user: UserResponse
             </div>
              {isCurrentUser && (
                 <Avatar className="h-8 w-8">
-                    <AvatarImage src={message.user.image as string | undefined} />
-                    <AvatarFallback>{message.user.name?.charAt(0).toUpperCase()}</AvatarFallback>
+                    <AvatarImage src={avatarUrl} />
+                    <AvatarFallback>{fallback}</AvatarFallback>
                 </Avatar>
             )}
         </div>
@@ -187,7 +192,7 @@ function InboxPageComponent() {
         <ChannelHeader />
         <ScrollArea className="flex-1 px-4" ref={scrollAreaRef}>
              {messages.map((msg) => (
-                <CustomMessage key={msg.id} message={msg} user={msg.user} />
+                <CustomMessage key={msg.id} message={msg} />
              ))}
         </ScrollArea>
         <div className="p-4 border-t border-zinc-800">
@@ -246,3 +251,5 @@ export default function InboxPage() {
         </Suspense>
     )
 }
+
+    
