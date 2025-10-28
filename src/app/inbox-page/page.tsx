@@ -95,7 +95,7 @@ function CustomMessage({ message, onReply }: { message: Message, onReply: (messa
             <div className="flex flex-col">
                 <div className={cn(
                     "max-w-xs md:max-w-md rounded-lg text-sm relative", 
-                    attachment?.type === 'giphy' ? 'bg-transparent' : (isCurrentUser ? "bg-primary text-primary-foreground p-3" : "bg-zinc-800 text-white p-3")
+                    attachment?.type === 'giphy' ? 'bg-transparent' : (isCurrentUser ? "bg-primary text-primary-foreground p-3" : "bg-zinc-200 text-black p-3")
                 )}>
                     {quotedMessage && (
                         <div className="border-l-2 border-white/50 pl-2 mb-2 text-xs opacity-80">
