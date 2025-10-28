@@ -14,7 +14,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { MoreHorizontal, Pencil, Trash2, CornerUpLeft, Check, CheckCheck, SmilePlus } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 
-
 interface CustomMessageProps {
     message: Message, 
     onReply: (message: Message) => void;
@@ -25,14 +24,27 @@ interface CustomMessageProps {
     onDelete: (messageId: string) => void;
 }
 
-const ReactionPicker = ({ onSelect }: { onSelect: (emoji: string) => void }) => {
-    const emojis = ['👍', '❤️', '😂', '😮', '😢', '🎉'];
+const emojiMap: Record<string, string> = {
+    '👍': 'thumbs-up',
+    '❤️': 'love',
+    '😂': 'laugh',
+    '😮': 'wow',
+    '😢': 'sad',
+    '🎉': 'party',
+};
+
+const reverseEmojiMap: Record<string, string> = Object.fromEntries(
+    Object.entries(emojiMap).map(([key, value]) => [value, key])
+);
+
+
+const ReactionPicker = ({ onSelect }: { onSelect: (emojiId: string) => void }) => {
     return (
         <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-zinc-800 border border-zinc-700 rounded-full p-1 flex items-center gap-1 shadow-lg z-10">
-            {emojis.map(emoji => (
+            {Object.entries(emojiMap).map(([emoji, id]) => (
                 <button
-                    key={emoji}
-                    onClick={() => onSelect(emoji)}
+                    key={id}
+                    onClick={() => onSelect(id)}
                     className="text-lg p-1 rounded-full hover:bg-zinc-700 transition-colors"
                 >
                     {emoji}
@@ -71,6 +83,7 @@ const ReactionSummary = ({ reactions, messageId }: { reactions: StreamReaction[]
         <div className="absolute -bottom-4 right-2 flex items-center gap-1">
             {Object.entries(reactionCounts).map(([type, count]) => {
                 const userHasReacted = reactions.some(r => r.type === type && r.user_id === currentUser?.uid);
+                const emoji = reverseEmojiMap[type] || type;
                 return (
                     <TooltipProvider key={type} delayDuration={100}>
                         <Tooltip>
@@ -82,7 +95,7 @@ const ReactionSummary = ({ reactions, messageId }: { reactions: StreamReaction[]
                                         userHasReacted ? "border-primary bg-primary/20" : "hover:bg-zinc-600"
                                     )}
                                 >
-                                    <span>{type}</span>
+                                    <span>{emoji}</span>
                                     <span>{count}</span>
                                 </button>
                             </TooltipTrigger>
@@ -147,13 +160,13 @@ export default function CustomMessage({ message, onReply, isEditing, onStartEdit
     const isRead = isCurrentUser && otherUser && (message.readBy || []).some(read => read.id === otherUser.user_id);
     const ReadReceipt = isRead ? CheckCheck : Check;
 
-    const handleReaction = async (emoji: string) => {
-        if (activeChannel) {
-            const existingReaction = latestReactions.find(r => r.type === emoji && r.user_id === currentUser?.uid);
+    const handleReaction = async (emojiId: string) => {
+        if (activeChannel && currentUser) {
+            const existingReaction = latestReactions.find(r => r.type === emojiId && r.user_id === currentUser.uid);
             if (existingReaction) {
                 await activeChannel.deleteReaction(message.id, existingReaction.type);
             } else {
-                await activeChannel.sendReaction(message.id, { type: emoji });
+                await activeChannel.sendReaction(message.id, { type: emojiId });
             }
         }
         setShowReactionPicker(false);
@@ -278,4 +291,6 @@ export default function CustomMessage({ message, onReply, isEditing, onStartEdit
         </div>
     );
 }
+    
+
     

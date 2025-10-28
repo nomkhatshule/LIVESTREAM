@@ -31,7 +31,7 @@ export default function CustomMessageInput({ replyToMessage, onCancelReply }: Cu
         if (text.trim() && activeChannel) {
             await activeChannel.sendMessage({ 
                 text,
-                parent_id: replyToMessage?.id
+                quoted_message_id: replyToMessage?.id
             });
             setText('');
             onCancelReply();
@@ -47,15 +47,15 @@ export default function CustomMessageInput({ replyToMessage, onCancelReply }: Cu
 
     const handleHeartReaction = async () => {
         if (activeChannel) {
-            const lastMessage = activeChannel.state.messages[activeChannel.state.messages.length - 1];
-            if (lastMessage) {
-                // Check if user already liked it
-                const existingReaction = lastMessage.latest_reactions?.find(r => r.type === '❤️' && r.user_id === activeChannel.client.userID);
-                if (existingReaction) {
-                    await activeChannel.deleteReaction(lastMessage.id, existingReaction.type);
-                } else {
-                    await activeChannel.sendReaction(lastMessage.id, { type: '❤️' });
-                }
+             try {
+                await activeChannel.sendReaction(
+                  activeChannel.state.messages[
+                    activeChannel.state.messages.length - 1
+                  ].id,
+                  { type: 'love' }
+                );
+            } catch(e) {
+                console.warn(e);
             }
         }
     };
@@ -119,5 +119,7 @@ export default function CustomMessageInput({ replyToMessage, onCancelReply }: Cu
         </div>
     )
 }
+
+    
 
     
