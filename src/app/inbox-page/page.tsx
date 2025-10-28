@@ -98,14 +98,14 @@ function InboxPageComponent() {
 
   if (!activeChannel) {
       return (
-           <div className="flex h-[calc(100vh-4rem)] items-center justify-center text-muted-foreground">
+           <div className="flex h-screen w-full items-center justify-center text-muted-foreground">
                 <p>No conversation selected.</p>
             </div>
       )
   }
 
   return (
-    <div className="h-[calc(100vh-4rem)]">
+    <div className="h-screen">
         <Channel channel={activeChannel} EmptyStateIndicator={CustomEmptyState}>
             <div className="flex flex-col h-full">
                 {/* Custom Header */}
@@ -147,7 +147,7 @@ function InboxPageComponent() {
 export default function InboxPage() {
     return (
         <Suspense fallback={
-             <div className="flex h-[calc(100vh-4rem)] items-center justify-center">
+             <div className="flex h-screen items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin" />
             </div>
         }>
@@ -155,5 +155,3 @@ export default function InboxPage() {
         </Suspense>
     )
 }
-
-    
