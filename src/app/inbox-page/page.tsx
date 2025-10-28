@@ -6,7 +6,7 @@ import { Suspense, useEffect, useState, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useChatContext } from '@/components/chat/ChatProvider';
 import { useUser, useUserDocument, useUserDocumentById } from '@/firebase';
-import { Loader2, ArrowLeft, ArrowUp, MessageSquare, CornerUpLeft, Smile, GitCommit, X } from 'lucide-react';
+import { Loader2, ArrowLeft, ArrowUp, MessageSquare, CornerUpLeft, Smile, GitCommit, X, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -17,6 +17,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { format } from 'date-fns';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Input } from '@/components/ui/input';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 
 function ChannelHeader() {
@@ -59,10 +60,19 @@ function ChannelHeader() {
     )
 }
 
-function CustomMessage({ message, onReply }: { message: Message, onReply: (message: Message) => void; }) {
+function CustomMessage({ message, onReply, isEditing, onStartEdit, onCancelEdit, onSaveEdit, onDelete }: { 
+    message: Message, 
+    onReply: (message: Message) => void;
+    isEditing: boolean;
+    onStartEdit: (message: Message) => void;
+    onCancelEdit: () => void;
+    onSaveEdit: (messageId: string, newText: string) => void;
+    onDelete: (messageId: string) => void;
+}) {
     const { user: currentUser } = useUser();
     const { userDocument: currentUserDocument } = useUserDocument();
     const isCurrentUser = message.user?.id === currentUser?.uid;
+    const [editText, setEditText] = useState(message.text || '');
     
     const { userDocument: otherUserDocument } = useUserDocumentById(isCurrentUser ? undefined : message.user?.id);
 
@@ -76,6 +86,14 @@ function CustomMessage({ message, onReply }: { message: Message, onReply: (messa
 
 
     if (!streamUser) return null;
+    
+    if (message.deleted_at) {
+        return (
+             <div className={cn("flex items-center gap-2 my-2 text-xs text-zinc-500", isCurrentUser ? "justify-end" : "justify-start ml-10")}>
+                <em>This message was deleted.</em>
+            </div>
+        )
+    }
 
     const latestReactions = message.latest_reactions || [];
     const hasLiked = latestReactions.some(r => r.type === 'like' && r.user_id === currentUser?.uid);
@@ -83,9 +101,50 @@ function CustomMessage({ message, onReply }: { message: Message, onReply: (messa
 
     const quotedMessage = message.quoted_message;
     const attachment = message.attachments?.[0];
+    
+    const handleSave = () => {
+        onSaveEdit(message.id, editText);
+    }
+    
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            handleSave();
+        } else if (e.key === 'Escape') {
+            onCancelEdit();
+        }
+    };
 
     return (
         <div className={cn("flex items-end gap-2 my-2 group", isCurrentUser ? "justify-end" : "justify-start")}>
+             {isCurrentUser && (
+                 <div className="flex-col items-center gap-2 hidden group-hover:flex">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full">
+                                <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                            <DropdownMenuItem onSelect={() => onStartEdit(message)}>
+                                <Pencil className="mr-2 h-4 w-4"/>
+                                Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => onDelete(message.id)} className="text-destructive">
+                                <Trash2 className="mr-2 h-4 w-4"/>
+                                Delete
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 rounded-full"
+                        onClick={() => onReply(message)}
+                    >
+                        <CornerUpLeft className="h-4 w-4" />
+                    </Button>
+                 </div>
+            )}
             {!isCurrentUser && (
                 <Avatar className="h-8 w-8 self-end">
                     <AvatarImage src={avatarUrl} />
@@ -95,29 +154,47 @@ function CustomMessage({ message, onReply }: { message: Message, onReply: (messa
             <div className="flex flex-col">
                 <div className={cn(
                     "max-w-xs md:max-w-md rounded-lg text-sm relative", 
-                    attachment?.type === 'giphy' ? 'bg-transparent' : (isCurrentUser ? "bg-primary text-primary-foreground p-3" : "bg-zinc-200 text-black p-3")
+                    isEditing ? 'p-0' : (attachment?.type === 'giphy' ? 'bg-transparent' : (isCurrentUser ? "bg-primary text-primary-foreground p-3" : "bg-zinc-200 text-black p-3"))
                 )}>
-                    {quotedMessage && (
-                        <div className="border-l-2 border-white/50 pl-2 mb-2 text-xs opacity-80">
-                            <p className="font-bold">{quotedMessage.user?.name || 'User'}</p>
-                            <p className="truncate">{quotedMessage.text}</p>
+                    {isEditing ? (
+                        <div className="space-y-2">
+                           <Input 
+                             value={editText} 
+                             onChange={(e) => setEditText(e.target.value)}
+                             onKeyDown={handleKeyDown}
+                             className="bg-zinc-700 border-zinc-600 focus-visible:ring-primary"
+                             autoFocus
+                           />
+                           <div className="text-xs">
+                             esc to <Button variant="link" size="sm" className="p-0 h-auto text-primary" onClick={onCancelEdit}>cancel</Button> • enter to <Button variant="link" size="sm" className="p-0 h-auto text-primary" onClick={handleSave}>save</Button>
+                           </div>
                         </div>
-                    )}
-                    {attachment?.type === 'giphy' ? (
-                        <img src={attachment.image_url || attachment.thumb_url} alt={attachment.title} className="rounded-md" />
                     ) : (
-                        <p>{message.text}</p>
-                    )}
-                    
-                    {likeCount > 0 && (
-                        <div className="absolute -bottom-3 right-2 bg-zinc-700 text-white rounded-full px-2 py-0.5 text-xs flex items-center">
-                            👍 {likeCount}
-                        </div>
+                         <>
+                            {quotedMessage && (
+                                <div className="border-l-2 border-white/50 pl-2 mb-2 text-xs opacity-80">
+                                    <p className="font-bold">{quotedMessage.user?.name || 'User'}</p>
+                                    <p className="truncate">{quotedMessage.text}</p>
+                                </div>
+                            )}
+                            {attachment?.type === 'giphy' ? (
+                                <img src={attachment.image_url || attachment.thumb_url} alt={attachment.title} className="rounded-md" />
+                            ) : (
+                                <p>{message.text}</p>
+                            )}
+                            
+                            {likeCount > 0 && (
+                                <div className="absolute -bottom-3 right-2 bg-zinc-700 text-white rounded-full px-2 py-0.5 text-xs flex items-center">
+                                    👍 {likeCount}
+                                </div>
+                            )}
+                        </>
                     )}
                 </div>
-                 {message.created_at && (
+                 {!isEditing && message.created_at && (
                     <p className={cn("text-xs text-zinc-500 mt-1", isCurrentUser ? "text-right" : "text-left")}>
-                        {format(new Date(message.created_at), 'p')}
+                         {format(new Date(message.created_at), 'p')}
+                         {message.updated_at && message.created_at !== message.updated_at && ' (edited)'}
                     </p>
                 )}
             </div>
@@ -127,14 +204,16 @@ function CustomMessage({ message, onReply }: { message: Message, onReply: (messa
                     <AvatarFallback>{fallback}</AvatarFallback>
                 </Avatar>
             )}
-            <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 rounded-full bg-zinc-800 opacity-0 group-hover:opacity-100 transition-opacity"
-                onClick={() => onReply(message)}
-            >
-                <CornerUpLeft className="h-4 w-4" />
-            </Button>
+             {!isCurrentUser && (
+                 <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 rounded-full bg-zinc-800 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => onReply(message)}
+                >
+                    <CornerUpLeft className="h-4 w-4" />
+                </Button>
+            )}
         </div>
     );
 }
@@ -228,6 +307,7 @@ function InboxPageComponent() {
   const [isLoadingChannel, setIsLoadingChannel] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [replyToMessage, setReplyToMessage] = useState<Message | null>(null);
+  const [editingMessage, setEditingMessage] = useState<Message | null>(null);
   const currentChannelId = useRef<string | null>(null);
   
   const withUserId = searchParams.get('with');
@@ -237,27 +317,38 @@ function InboxPageComponent() {
         setMessages(activeChannel.state.messages);
 
         const handleNewMessage = (event: any) => {
+            if (event.message?.id === editingMessage?.id) {
+                setEditingMessage(null);
+            }
             setMessages(prevMessages => [...prevMessages, event.message]);
         };
         const handleReaction = (event: any) => {
+            setMessages(prev => prev.map(m => m.id === event.message.id ? event.message : m));
+        }
+        const handleMessageUpdated = (event: any) => {
+             if (event.message?.id === editingMessage?.id) {
+                setEditingMessage(null);
+            }
             setMessages(prev => prev.map(m => m.id === event.message.id ? event.message : m));
         }
 
         activeChannel.on('message.new', handleNewMessage);
         activeChannel.on('reaction.new', handleReaction);
         activeChannel.on('reaction.deleted', handleReaction);
+        activeChannel.on('message.updated', handleMessageUpdated);
 
         return () => {
             activeChannel.off('message.new', handleNewMessage);
             activeChannel.off('reaction.new', handleReaction);
             activeChannel.off('reaction.deleted', handleReaction);
+            activeChannel.off('message.updated', handleMessageUpdated);
         };
     }
-  }, [activeChannel]);
+  }, [activeChannel, editingMessage]);
 
   useEffect(() => {
     // Auto-scroll to the bottom when new messages are added
-    if (scrollAreaRef.current) {
+    if (scrollAreaRef.current && !editingMessage) { // Don't scroll while editing
       const viewport = scrollAreaRef.current.querySelector(
         '[data-radix-scroll-area-viewport]'
       );
@@ -265,7 +356,7 @@ function InboxPageComponent() {
         viewport.scrollTop = viewport.scrollHeight;
       }
     }
-  }, [messages]);
+  }, [messages, editingMessage]);
 
   useEffect(() => {
     if (withUserId && client && user) {
@@ -278,6 +369,7 @@ function InboxPageComponent() {
         currentChannelId.current = channelId;
         setIsLoadingChannel(true);
         setActiveChannel(null); 
+        setEditingMessage(null); // Reset editing state when channel changes
 
         const createAndWatchChannel = async () => {
             const channel = client.channel('messaging', {
@@ -304,6 +396,28 @@ function InboxPageComponent() {
   const handleCancelReply = () => {
     setReplyToMessage(null);
   };
+  
+  const handleStartEdit = (message: Message) => {
+      setEditingMessage(message);
+  }
+  
+  const handleCancelEdit = () => {
+      setEditingMessage(null);
+  }
+  
+  const handleSaveEdit = async (messageId: string, newText: string) => {
+      if (!activeChannel) return;
+      await activeChannel.updateMessage({
+          id: messageId,
+          text: newText,
+      });
+      setEditingMessage(null);
+  }
+
+  const handleDelete = async (messageId: string) => {
+      if (!activeChannel) return;
+      await activeChannel.deleteMessage(messageId);
+  }
 
   if (!client || !user) {
     return (
@@ -344,7 +458,16 @@ function InboxPageComponent() {
         <ChannelHeader />
         <ScrollArea className="flex-1 px-4" ref={scrollAreaRef}>
              {messages.map((msg) => (
-                <CustomMessage key={msg.id} message={msg} onReply={handleReply} />
+                <CustomMessage 
+                    key={msg.id} 
+                    message={msg} 
+                    onReply={handleReply} 
+                    isEditing={editingMessage?.id === msg.id}
+                    onStartEdit={handleStartEdit}
+                    onCancelEdit={handleCancelEdit}
+                    onSaveEdit={handleSaveEdit}
+                    onDelete={handleDelete}
+                />
              ))}
         </ScrollArea>
         <div className="p-4 border-t border-zinc-800">
@@ -476,3 +599,5 @@ export default function InboxPage() {
         </Suspense>
     )
 }
+
+    
