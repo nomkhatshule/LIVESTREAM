@@ -47,6 +47,12 @@ export type ChatMessage = {
   replyingTo?: string;
   broadcastTitle?: string;
   broadcastId?: string;
+  attachment?: {
+    type: 'giphy';
+    title: string;
+    imageUrl: string;
+    thumbUrl: string;
+  }
 };
 
 export type Notification = {
@@ -178,5 +184,3 @@ export const dareChallenges = [
     { text: "Speak only in questions for the next 3 minutes.", duration: 180 },
     { text: "Try to lick your elbow.", duration: 30 },
 ];
-
-    

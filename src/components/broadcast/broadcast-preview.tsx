@@ -20,6 +20,9 @@ import { Button } from '@/components/ui/button';
 import AIChat from './ai-chat';
 import { useStreamStore } from '@/lib/stream-store';
 import ChallengeCard from './ChallengeCard';
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import GifPicker, { GiphyResult } from '../inbox/GifPicker';
+import Image from 'next/image';
 
 
 interface BroadcastPreviewUIManagerProps {
@@ -29,6 +32,7 @@ interface BroadcastPreviewUIManagerProps {
     hasLiked: boolean;
     onLike: () => void;
     onSendMessage: (message: string) => void;
+    onSendGif: (gif: GiphyResult) => void;
     onReply: (username: string) => void;
     currentUserAvatar?: string;
     onPlay: () => void;
@@ -43,7 +47,8 @@ function BroadcastPreviewUIManager({
     likes, 
     hasLiked, 
     onLike, 
-    onSendMessage, 
+    onSendMessage,
+    onSendGif, 
     onReply, 
     currentUserAvatar,
     onPlay,
@@ -55,6 +60,7 @@ function BroadcastPreviewUIManager({
     const [isChatVisible, setIsChatVisible] = useState(true);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const [isChallengeVisible, setIsChallengeVisible] = useState(false);
+    const [isGifPickerOpen, setIsGifPickerOpen] = useState(false);
 
     const reversedComments = useMemo(() => comments ? [...comments].reverse() : [], [comments]);
 
@@ -70,6 +76,11 @@ function BroadcastPreviewUIManager({
         onReply(username);
         setNewMessage(`@${username} `);
         textareaRef.current?.focus();
+    }
+    
+    const handleGifSelect = (gif: GiphyResult) => {
+        onSendGif(gif);
+        setIsGifPickerOpen(false);
     }
 
     const broadcastContext = `The streamer is ${broadcast.hostName}. The stream is titled "${broadcast.title}" under the category "${broadcast.category}".`;
@@ -210,7 +221,12 @@ function BroadcastPreviewUIManager({
                                                 <span className="font-bold font-headline text-primary mr-1.5 hover:underline">{comment.username}:</span>
                                             </Link>
                                             {comment.replyingTo && <Link href={`/profile/${comment.replyingTo}`} className="text-accent font-semibold mr-1.5 hover:underline pointer-events-auto">@{comment.replyingTo}</Link>}
-                                            <span className="break-words">{comment.message.replace(/^@\w+\s/, '')}</span>
+                                            
+                                            {comment.attachment?.type === 'giphy' ? (
+                                                <Image src={comment.attachment.imageUrl} width={150} height={100} alt={comment.attachment.title || 'gif'} className="mt-1 rounded-md" />
+                                            ) : (
+                                                <span className="break-words">{comment.message.replace(/^@\w+\s/, '')}</span>
+                                            )}
                                         </div>
                                         <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 pointer-events-auto" onClick={() => handleReplyClick(comment.username)}>
                                             <CornerUpLeft className="h-4 w-4" />
@@ -222,17 +238,29 @@ function BroadcastPreviewUIManager({
                     )}
                 </div>
                 
-                <form onSubmit={handleFormSubmit} className="relative w-full pointer-events-auto">
-                    <Textarea
-                        ref={textareaRef}
-                        placeholder="Add a comment..."
-                        value={newMessage}
-                        onChange={(e) => setNewMessage(e.target.value)}
-                        className="bg-black/50 border-white/20 placeholder:text-gray-400 pr-10 w-full min-h-[40px] h-10 resize-none rounded-full"
-                    />
-                    <Button variant="ghost" size="icon" type="submit" className="absolute top-1/2 -translate-y-1/2 right-1 text-white hover:bg-transparent hover:text-white">
-                        <ArrowUp className="h-5 w-5" />
-                    </Button>
+                <form onSubmit={handleFormSubmit} className="relative flex w-full pointer-events-auto items-center gap-2">
+                    <div className="relative flex-1">
+                        <Textarea
+                            ref={textareaRef}
+                            placeholder="Add a comment..."
+                            value={newMessage}
+                            onChange={(e) => setNewMessage(e.target.value)}
+                            className="bg-black/50 border-white/20 placeholder:text-gray-400 pr-10 w-full min-h-[40px] h-10 resize-none rounded-full"
+                        />
+                        <Button variant="ghost" size="icon" type="submit" className="absolute top-1/2 -translate-y-1/2 right-1 text-white hover:bg-transparent hover:text-white">
+                            <ArrowUp className="h-5 w-5" />
+                        </Button>
+                    </div>
+                     <Popover open={isGifPickerOpen} onOpenChange={setIsGifPickerOpen}>
+                        <PopoverTrigger asChild>
+                             <Button size="icon" type="button" variant="ghost" className="rounded-full h-9 w-9 text-white bg-black/50">
+                                <b className="text-xs">GIF</b>
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[90vw] sm:w-96 h-96 p-0 border-zinc-700 bg-zinc-900" side="top" align="end">
+                           <GifPicker onSendGif={handleGifSelect} />
+                        </PopoverContent>
+                    </Popover>
                 </form>
             </div>
         </div>
@@ -313,6 +341,25 @@ export function BroadcastPreview({ broadcast, onVisible }: BroadcastPreviewProps
         addDocumentNonBlocking(messagesCollectionRef, newComment);
     };
 
+    const handleSendGif = (gif: GiphyResult) => {
+        if (!user || !userDocument) return;
+        const messagesCollectionRef = collection(firestore, 'broadcasts', broadcast.id, 'messages');
+        const newComment = {
+            userId: user.uid,
+            username: userDocument.username || 'Anonymous',
+            userAvatar: userDocument.profilePicture || '',
+            message: gif.title || '',
+            timestamp: serverTimestamp(),
+            attachment: {
+                type: 'giphy' as const,
+                title: gif.title,
+                imageUrl: gif.images.original.url,
+                thumbUrl: gif.images.fixed_width.url,
+            },
+        };
+        addDocumentNonBlocking(messagesCollectionRef, newComment);
+    };
+
     const handleLike = () => {
         if (!broadcast.isLive) {
             toast({ title: 'Stream is offline', description: 'You can only like live streams.', variant: 'destructive' });
@@ -355,6 +402,7 @@ export function BroadcastPreview({ broadcast, onVisible }: BroadcastPreviewProps
                 hasLiked={hasLiked}
                 onLike={handleLike}
                 onSendMessage={handleSendMessage}
+                onSendGif={handleSendGif}
                 onReply={handleReply}
                 currentUserAvatar={userDocument?.profilePicture}
                 onPlay={handlePlay}
