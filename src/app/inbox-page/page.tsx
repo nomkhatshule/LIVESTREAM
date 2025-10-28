@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Suspense, useEffect, useState, useRef } from 'react';
@@ -27,6 +28,11 @@ function ChannelHeader() {
     if (isDocLoading || !otherUser) {
         return (
              <div className="border-b p-3 flex items-center gap-3 bg-black border-zinc-800">
+                <Link href="/feed-test">
+                    <Button variant="ghost" size="icon">
+                        <ArrowLeft className="h-5 w-5" />
+                    </Button>
+                </Link>
                 <div className="h-10 w-10 bg-zinc-800 rounded-full animate-pulse" />
                 <div className="h-5 w-32 bg-zinc-800 rounded-md animate-pulse" />
             </div>
@@ -60,9 +66,9 @@ function CustomMessage({ message, onReply }: { message: Message, onReply: (messa
     const avatarUrl = isCurrentUser ? currentUserDocument?.profilePicture : otherUserDocument?.profilePicture;
     
     let fallback = 'U';
-    if (isCurrentUser) {
-        fallback = currentUserDocument?.username?.charAt(0).toUpperCase() || 'U';
-    } else if (otherUserDocument?.username) {
+    if (isCurrentUser && currentUserDocument?.username) {
+        fallback = currentUserDocument.username.charAt(0).toUpperCase();
+    } else if (!isCurrentUser && otherUserDocument?.username) {
         fallback = otherUserDocument.username.charAt(0).toUpperCase();
     } else if (streamUser?.name) {
         fallback = streamUser.name.charAt(0).toUpperCase();
@@ -88,8 +94,8 @@ function CustomMessage({ message, onReply }: { message: Message, onReply: (messa
             )}
             <div className="flex flex-col">
                 <div className={cn(
-                    "max-w-xs md:max-w-md p-3 rounded-lg text-sm relative", 
-                    isCurrentUser ? "bg-primary text-primary-foreground" : "bg-zinc-800 text-white"
+                    "max-w-xs md:max-w-md rounded-lg text-sm relative", 
+                    attachment?.type === 'giphy' ? 'bg-transparent' : (isCurrentUser ? "bg-primary text-primary-foreground p-3" : "bg-zinc-800 text-white p-3")
                 )}>
                     {quotedMessage && (
                         <div className="border-l-2 border-white/50 pl-2 mb-2 text-xs opacity-80">
