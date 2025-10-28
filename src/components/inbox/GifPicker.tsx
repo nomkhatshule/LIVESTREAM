@@ -62,7 +62,7 @@ export default function GifPicker({ onSendGif }: GifPickerProps) {
                 clearTimeout(searchTimeoutRef.current);
             }
         };
-    }, [searchTerm]);
+    }, [searchTerm, giphyApiKey]);
 
     return (
         <div className="w-full h-full flex flex-col p-2 bg-zinc-900">
