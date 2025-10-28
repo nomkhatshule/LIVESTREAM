@@ -40,12 +40,12 @@ const InboxChannelPreview = ({ channel, currentUser, setActiveChannel }: { chann
                     onClick={() => setActiveChannel(channel)}
                 >
                     <Avatar className="h-12 w-12">
-                        <AvatarImage src={otherUser.image as string} />
-                        <AvatarFallback>{otherUser.name?.charAt(0).toUpperCase()}</AvatarFallback>
+                        <AvatarImage src={otherUser.image as string} alt={otherUser.name} />
+                        <AvatarFallback>{otherUser.name?.charAt(0).toUpperCase() || 'A'}</AvatarFallback>
                     </Avatar>
                     <div className="text-sm flex-1 overflow-hidden">
                         <div className="flex justify-between items-center">
-                            <p className="font-semibold truncate text-white">{otherUser.name}</p>
+                            <p className="font-semibold truncate text-white">{otherUser.name || 'Anonymous'}</p>
                             {lastMessage?.created_at && (
                             <p className="text-xs text-zinc-400 flex-shrink-0 ml-2">
                                     {formatDistanceToNow(new Date(lastMessage.created_at), { addSuffix: true })}
