@@ -130,7 +130,7 @@ export default function CustomMessageInput({ replyToMessage, onCancelReply }: Cu
                                 <b className="text-xs">GIF</b>
                             </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-[90vw] md:w-96 h-96 p-0 border-zinc-700 bg-zinc-900" side="top" align="end">
+                        <PopoverContent className="w-[90vw] sm:w-96 h-96 p-0 border-zinc-700 bg-zinc-900" side="top" align="end">
                            <GifPicker onSendGif={handleSendGif} />
                         </PopoverContent>
                     </Popover>
@@ -142,3 +142,5 @@ export default function CustomMessageInput({ replyToMessage, onCancelReply }: Cu
         </div>
     )
 }
+
+    

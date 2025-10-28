@@ -79,7 +79,7 @@ export default function GifPicker({ onSendGif }: GifPickerProps) {
             />
             <ScrollArea className="flex-1 mt-2">
                 {isLoading && <div className="flex justify-center p-4"><Loader2 className="animate-spin" /></div>}
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-1">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-1">
                     {results.map((gif) => (
                         <button key={gif.id} onClick={() => onSendGif(gif)} className="aspect-square bg-zinc-800 rounded-md overflow-hidden">
                             <img src={gif.images.fixed_width.url} alt={gif.title} className="w-full h-full object-cover" />
@@ -90,3 +90,5 @@ export default function GifPicker({ onSendGif }: GifPickerProps) {
         </div>
     );
 };
+
+    
