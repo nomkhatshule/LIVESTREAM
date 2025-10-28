@@ -7,7 +7,7 @@ import type { Message } from 'stream-chat';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ArrowUp, Paperclip, X } from 'lucide-react';
-import GifPicker, { type TenorResult } from './GifPicker';
+import GifPicker, { type GiphyResult } from './GifPicker';
 import Image from 'next/image';
 
 
@@ -66,16 +66,16 @@ export default function CustomMessageInput({ replyToMessage, onCancelReply }: Cu
         }
     };
 
-    const handleSendGif = async (gif: TenorResult) => {
+    const handleSendGif = async (gif: GiphyResult) => {
         if (activeChannel) {
             await activeChannel.sendMessage({
-                text: gif.content_description,
+                text: gif.title,
                 attachments: [
                     {
-                        type: 'giphy', // Stream's generic 'image' or 'video' type is also an option
-                        title: gif.content_description,
-                        image_url: gif.media_formats.gif.url,
-                        thumb_url: gif.media_formats.tinygif.url,
+                        type: 'giphy',
+                        title: gif.title,
+                        image_url: gif.images.original.url,
+                        thumb_url: gif.images.fixed_width.url,
                     },
                 ],
                 quoted_message_id: replyToMessage?.id,
@@ -142,4 +142,3 @@ export default function CustomMessageInput({ replyToMessage, onCancelReply }: Cu
         </div>
     )
 }
-
