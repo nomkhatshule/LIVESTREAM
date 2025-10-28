@@ -207,7 +207,7 @@ export default function UserProfilePage() {
                     {isFollowing ? 'Following' : 'Follow'}
                   </Button>
                    <Button asChild variant="outline" size="lg">
-                      <Link href={`/messages?with=${profileUserId}`}>
+                      <Link href={`/inbox-page?with=${profileUserId}`}>
                         <MessageSquare className="mr-2" />
                         Message
                       </Link>
@@ -382,5 +382,7 @@ function ProfileSkeleton() {
     </div>
   );
 }
+
+    
 
     

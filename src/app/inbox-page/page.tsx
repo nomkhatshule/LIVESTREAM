@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Suspense, useEffect, useMemo, useState } from 'react';
@@ -58,24 +59,39 @@ function InboxPageComponent() {
   const { client, setActiveChannel, channel: activeChannel } = useChatContext();
   const { user } = useUser();
   const [isCreatingChannel, setIsCreatingChannel] = useState(false);
+  
+  const withUserId = searchParams.get('with');
 
-   // This effect sets up a temporary channel for design preview purposes.
-   // In a real implementation, this would be driven by a URL parameter.
   useEffect(() => {
-    if (client && user && !activeChannel) {
-        const withUserId = 'temp-preview-user-id'; // A fake user ID for preview
+    if (withUserId && client && user) {
+        setIsCreatingChannel(true);
         const channel = client.channel('messaging', {
             members: [user.uid, withUserId],
         });
-        setActiveChannel(channel);
+        channel.watch().then(() => {
+            setActiveChannel(channel);
+            setIsCreatingChannel(false);
+        }).catch(err => {
+            console.error("Failed to watch channel:", err);
+            setIsCreatingChannel(false);
+        })
     }
-  }, [client, user, activeChannel, setActiveChannel]);
+  }, [withUserId, client, user, setActiveChannel]);
 
   if (!client || !user) {
     return (
         <div className="flex h-[calc(100vh-4rem)] items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin" />
             <p className="ml-2">Initializing Chat...</p>
+        </div>
+    );
+  }
+  
+  if (isCreatingChannel) {
+    return (
+        <div className="flex h-[calc(100vh-4rem)] items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin" />
+            <p className="ml-2">Starting conversation...</p>
         </div>
     );
   }
@@ -94,8 +110,10 @@ function InboxPageComponent() {
             <div className="flex flex-col h-full">
                 {/* Custom Header */}
                 <div className="flex items-center gap-3 p-2 border-b">
-                    <Button variant="ghost" size="icon">
-                        <ArrowLeft />
+                    <Button variant="ghost" size="icon" asChild>
+                        <Link href="/feed-test">
+                           <ArrowLeft />
+                        </Link>
                     </Button>
                     {/* In a real implementation, we'd get the other user's info here */}
                     <Avatar className="h-8 w-8">
@@ -137,3 +155,5 @@ export default function InboxPage() {
         </Suspense>
     )
 }
+
+    
