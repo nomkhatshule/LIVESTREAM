@@ -196,10 +196,10 @@ function CustomMessage({ message, onReply, isEditing, onStartEdit, onCancelEdit,
                     )}
                 </div>
                  {message.created_at && (
-                    <div className={cn("text-xs text-zinc-500 mt-1 flex items-center gap-1", isCurrentUser ? "text-right flex-row-reverse" : "text-left")}>
+                    <div className={cn("text-xs text-zinc-200 mt-1 flex items-center gap-1", isCurrentUser ? "text-right flex-row-reverse" : "text-left")}>
                          <p>{format(new Date(message.created_at), 'p')}</p>
                          {message.updated_at && message.created_at !== message.updated_at && <p>(edited)</p>}
-                         {isCurrentUser && <ReadReceipt className={cn("h-4 w-4", isRead ? "text-blue-400" : "text-zinc-500")} />}
+                         {isCurrentUser && <ReadReceipt className={cn("h-4 w-4", isRead ? "text-blue-400" : "text-zinc-400")} />}
                     </div>
                 )}
             </div>
@@ -664,3 +664,4 @@ export default function InboxPage() {
     )
 }
 
+    
