@@ -6,7 +6,7 @@ import { useChatContext } from '@/components/chat/ChatProvider';
 import type { Message } from 'stream-chat';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ArrowUp, Smile, X } from 'lucide-react';
+import { ArrowUp, Smile, X, Heart } from 'lucide-react';
 import GifPicker, { type TenorResult } from './GifPicker';
 
 
@@ -45,16 +45,16 @@ export default function CustomMessageInput({ replyToMessage, onCancelReply }: Cu
         }
     }
 
-    const handleReaction = async () => {
+    const handleHeartReaction = async () => {
         if (activeChannel) {
             const lastMessage = activeChannel.state.messages[activeChannel.state.messages.length - 1];
             if (lastMessage) {
                 // Check if user already liked it
-                const existingReaction = lastMessage.latest_reactions?.find(r => r.type === 'like' && r.user_id === activeChannel.client.userID);
+                const existingReaction = lastMessage.latest_reactions?.find(r => r.type === '❤️' && r.user_id === activeChannel.client.userID);
                 if (existingReaction) {
                     await activeChannel.deleteReaction(lastMessage.id, existingReaction.type);
                 } else {
-                    await activeChannel.sendReaction(lastMessage.id, { type: 'like' });
+                    await activeChannel.sendReaction(lastMessage.id, { type: '❤️' });
                 }
             }
         }
@@ -98,8 +98,8 @@ export default function CustomMessageInput({ replyToMessage, onCancelReply }: Cu
                     className="w-full bg-zinc-800 border-none text-white rounded-full px-4 py-2 pr-12 focus:outline-none focus:ring-2 focus:ring-primary"
                 />
                  <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center">
-                     <Button size="icon" type="button" variant="ghost" className="rounded-full h-9 w-9 text-zinc-400" onClick={handleReaction}>
-                        <Smile className="h-5 w-5" />
+                     <Button size="icon" type="button" variant="ghost" className="rounded-full h-9 w-9 text-zinc-400" onClick={handleHeartReaction}>
+                        <Heart className="h-5 w-5" />
                     </Button>
                     <Popover open={isGifPickerOpen} onOpenChange={setIsGifPickerOpen}>
                         <PopoverTrigger asChild>
@@ -119,3 +119,5 @@ export default function CustomMessageInput({ replyToMessage, onCancelReply }: Cu
         </div>
     )
 }
+
+    
