@@ -1,12 +1,12 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useChatContext } from '@/components/chat/ChatProvider';
 import type { Message } from 'stream-chat';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ArrowUp, Smile, X, Heart } from 'lucide-react';
+import { ArrowUp, Paperclip, X } from 'lucide-react';
 import GifPicker, { type TenorResult } from './GifPicker';
 
 
@@ -19,6 +19,8 @@ export default function CustomMessageInput({ replyToMessage, onCancelReply }: Cu
     const { channel: activeChannel } = useChatContext();
     const [text, setText] = useState('');
     const [isGifPickerOpen, setIsGifPickerOpen] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
 
     useEffect(() => {
         if (replyToMessage) {
@@ -45,18 +47,14 @@ export default function CustomMessageInput({ replyToMessage, onCancelReply }: Cu
         }
     }
 
-    const handleHeartReaction = async () => {
-        if (activeChannel) {
-             try {
-                await activeChannel.sendReaction(
-                  activeChannel.state.messages[
-                    activeChannel.state.messages.length - 1
-                  ].id,
-                  { type: 'love' }
-                );
-            } catch(e) {
-                console.warn(e);
-            }
+    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file && activeChannel) {
+            await activeChannel.sendImage(file);
+        }
+        // Reset file input
+        if(fileInputRef.current) {
+            fileInputRef.current.value = '';
         }
     };
 
@@ -91,6 +89,13 @@ export default function CustomMessageInput({ replyToMessage, onCancelReply }: Cu
                 </div>
             )}
             <form onSubmit={handleSubmit} className="relative flex items-center gap-2">
+                 <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="hidden"
+                />
                 <input
                     value={text}
                     onChange={handleTextChange}
@@ -98,8 +103,8 @@ export default function CustomMessageInput({ replyToMessage, onCancelReply }: Cu
                     className="w-full bg-zinc-800 border-none text-white rounded-full px-4 py-2 pr-12 focus:outline-none focus:ring-2 focus:ring-primary"
                 />
                  <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center">
-                     <Button size="icon" type="button" variant="ghost" className="rounded-full h-9 w-9 text-zinc-400" onClick={handleHeartReaction}>
-                        <Heart className="h-5 w-5" />
+                     <Button size="icon" type="button" variant="ghost" className="rounded-full h-9 w-9 text-zinc-400" onClick={() => fileInputRef.current?.click()}>
+                        <Paperclip className="h-5 w-5" />
                     </Button>
                     <Popover open={isGifPickerOpen} onOpenChange={setIsGifPickerOpen}>
                         <PopoverTrigger asChild>
@@ -119,7 +124,5 @@ export default function CustomMessageInput({ replyToMessage, onCancelReply }: Cu
         </div>
     )
 }
-
-    
 
     

@@ -80,7 +80,7 @@ const ReactionSummary = ({ reactions, messageId }: { reactions: StreamReaction[]
     }
     
     return (
-        <div className="flex items-center gap-2 mt-1">
+        <div className="flex items-center gap-2">
             {Object.entries(reactionCounts).map(([type]) => {
                 const emoji = reverseEmojiMap[type] || type;
                 return (
@@ -215,7 +215,7 @@ export default function CustomMessage({ message, onReply, isEditing, onStartEdit
             <div className={cn("flex flex-col", isCurrentUser ? "items-end" : "items-start")}>
                  <div className={cn(
                     "max-w-xs md:max-w-md rounded-lg text-sm relative", 
-                    isEditing ? 'p-0' : (attachment?.type === 'giphy' ? 'bg-transparent' : (isCurrentUser ? "bg-primary text-primary-foreground p-3" : "bg-zinc-200 text-black p-3"))
+                    isEditing ? 'p-0' : (attachment?.type === 'giphy' || attachment?.type === 'image' ? 'bg-transparent' : (isCurrentUser ? "bg-primary text-primary-foreground p-3" : "bg-zinc-200 text-black p-3"))
                 )}>
                     {showReactionPicker && <ReactionPicker onSelect={handleReaction} />}
                     {isEditing ? (
@@ -239,7 +239,7 @@ export default function CustomMessage({ message, onReply, isEditing, onStartEdit
                                     <p className="truncate">{quotedMessage.text}</p>
                                 </div>
                             )}
-                            {attachment?.type === 'giphy' ? (
+                            {attachment?.type === 'giphy' || attachment?.type === 'image' ? (
                                 <img src={attachment.image_url || attachment.thumb_url} alt={attachment.title} className="rounded-md" />
                             ) : (
                                 <p>{message.text}</p>
