@@ -12,6 +12,41 @@ import Link from 'next/link';
 import { Card } from '@/components/ui/card';
 import { UserProfile } from '@/firebase/firestore/use-user-document';
 
+function ChannelHeader() {
+    const { channel } = useChannelStateContext();
+    const { user: currentUser } = useUser();
+
+    const otherUserMember = Object.values(channel.state.members).find(
+        (member) => member.user?.id !== currentUser?.uid
+    );
+
+    const { userDocument: otherUser, isDocLoading } = useUserDocumentById(otherUserMember?.user?.id);
+
+    if (isDocLoading || !otherUser) {
+        return (
+             <div className="border-b border-zinc-800 p-3 flex items-center gap-3">
+                <div className="h-10 w-10 bg-zinc-800 rounded-full animate-pulse" />
+                <div className="h-5 w-32 bg-zinc-800 rounded-md animate-pulse" />
+            </div>
+        );
+    }
+    
+    return (
+        <div className="border-b border-zinc-800 p-3 flex items-center gap-3">
+             <Link href="/feed-test">
+                <Button variant="ghost" size="icon">
+                    <ArrowLeft className="h-5 w-5" />
+                </Button>
+            </Link>
+            <Avatar>
+                <AvatarImage src={otherUser.profilePicture} />
+                <AvatarFallback>{otherUser.username?.charAt(0).toUpperCase()}</AvatarFallback>
+            </Avatar>
+            <span className="font-bold">{otherUser.username}</span>
+        </div>
+    )
+}
+
 
 function InboxPageComponent() {
   const searchParams = useSearchParams();
@@ -57,7 +92,11 @@ function InboxPageComponent() {
 
   if (!activeChannel) {
       return (
-           <div className="flex-1 flex flex-col" />
+           <div className="flex-1 flex flex-col items-center justify-center text-center text-muted-foreground bg-zinc-900">
+             <MessageSquare className="h-12 w-12 mb-4"/>
+             <h2 className="text-xl font-bold text-foreground">Your Messages</h2>
+             <p>Select a conversation to start chatting.</p>
+           </div>
       )
   }
 
@@ -65,9 +104,7 @@ function InboxPageComponent() {
     <div className="h-screen w-full flex flex-col bg-black text-white">
         <Channel channel={activeChannel} EmptyStateIndicator={() => null}>
             <div className="flex-1 flex flex-col">
-                 <div className="border-b border-zinc-800">
-                    {/* Header content will go here */}
-                </div>
+                 <ChannelHeader />
                 <div className="flex-1 min-h-0">
                     <Window>
                         <MessageList />
