@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { Suspense, useEffect, useState, useRef } from 'react';
@@ -157,9 +158,13 @@ const GifPicker = ({ onSendGif }: { onSendGif: (gif: TenorResult) => void }) => 
     const tenorApiKey = process.env.NEXT_PUBLIC_TENOR_API_KEY;
 
     const searchGifs = async (query: string) => {
-        if (!tenorApiKey) return;
+        if (!tenorApiKey) {
+            console.error("Tenor API key is missing.");
+            return;
+        }
         setIsLoading(true);
-        const url = `https://tenor.googleapis.com/v2/search?q=${encodeURIComponent(query)}&key=${tenorApiKey}&client_key=agorlive-chat&limit=20`;
+        const clientKey = "agorlive-chat";
+        const url = `https://tenor.googleapis.com/v2/search?q=${encodeURIComponent(query)}&key=${tenorApiKey}&client_key=${clientKey}&limit=20`;
         try {
             const response = await fetch(url);
             const data = await response.json();
