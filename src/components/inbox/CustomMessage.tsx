@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal, Pencil, Trash2, CornerUpLeft, Check, CheckCheck, SmilePlus } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
+import Image from 'next/image';
 
 interface CustomMessageProps {
     message: Message, 
@@ -60,12 +61,6 @@ const ReactionSummary = ({ reactions, messageId }: { reactions: StreamReaction[]
 
     if (!reactions || reactions.length === 0) return null;
 
-    // Group reactions by type
-    const reactionCounts = reactions.reduce((acc, reaction) => {
-        acc[reaction.type] = (acc[reaction.type] || 0) + 1;
-        return acc;
-    }, {} as Record<string, number>);
-
     const handleReactionClick = async (reactionType: string) => {
         if (!activeChannel || !currentUser) return;
          const userReaction = reactions.find(
@@ -80,8 +75,13 @@ const ReactionSummary = ({ reactions, messageId }: { reactions: StreamReaction[]
     }
     
     return (
-        <div className="flex items-center gap-2">
-            {Object.entries(reactionCounts).map(([type]) => {
+        <div className="flex items-center gap-2 mt-1">
+            {Object.entries(
+                reactions.reduce((acc, reaction) => {
+                    acc[reaction.type] = (acc[reaction.type] || 0) + 1;
+                    return acc;
+                }, {} as Record<string, number>)
+            ).map(([type, count]) => {
                 const emoji = reverseEmojiMap[type] || type;
                 return (
                     <TooltipProvider key={type} delayDuration={100}>
@@ -170,10 +170,10 @@ export default function CustomMessage({ message, onReply, isEditing, onStartEdit
     return (
         <div className={cn("flex items-end gap-2 my-4 group", isCurrentUser ? "justify-end" : "justify-start")}>
              {isCurrentUser && (
-                 <div className="flex-col items-center gap-2 hidden group-hover:flex">
+                 <div className="flex-row items-center gap-1 hidden group-hover:flex">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full">
+                            <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full">
                                 <MoreHorizontal className="h-4 w-4" />
                             </Button>
                         </DropdownMenuTrigger>
@@ -191,7 +191,7 @@ export default function CustomMessage({ message, onReply, isEditing, onStartEdit
                      <Button
                         variant="ghost"
                         size="icon"
-                        className="h-6 w-6 rounded-full"
+                        className="h-7 w-7 rounded-full"
                         onClick={() => setShowReactionPicker(prev => !prev)}
                     >
                         <SmilePlus className="h-4 w-4" />
@@ -199,7 +199,7 @@ export default function CustomMessage({ message, onReply, isEditing, onStartEdit
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="h-6 w-6 rounded-full"
+                        className="h-7 w-7 rounded-full"
                         onClick={() => onReply(message)}
                     >
                         <CornerUpLeft className="h-4 w-4" />
@@ -215,7 +215,7 @@ export default function CustomMessage({ message, onReply, isEditing, onStartEdit
             <div className={cn("flex flex-col", isCurrentUser ? "items-end" : "items-start")}>
                  <div className={cn(
                     "max-w-xs md:max-w-md rounded-lg text-sm relative", 
-                    isEditing ? 'p-0' : (attachment?.type === 'giphy' || attachment?.type === 'image' ? 'bg-transparent' : (isCurrentUser ? "bg-primary text-primary-foreground p-3" : "bg-zinc-200 text-black p-3"))
+                    isEditing ? 'p-0' : (attachment?.type === 'giphy' || attachment?.type === 'image' ? 'bg-transparent p-1' : (isCurrentUser ? "bg-primary text-primary-foreground p-3" : "bg-zinc-200 text-black p-3"))
                 )}>
                     {showReactionPicker && <ReactionPicker onSelect={handleReaction} />}
                     {isEditing ? (
@@ -240,16 +240,16 @@ export default function CustomMessage({ message, onReply, isEditing, onStartEdit
                                 </div>
                             )}
                             {attachment?.type === 'giphy' || attachment?.type === 'image' ? (
-                                <img src={attachment.image_url || attachment.thumb_url} alt={attachment.title} className="rounded-md" />
+                                <Image src={attachment.image_url || attachment.thumb_url || ''} width={250} height={200} alt={attachment.title || 'attachment'} className="rounded-md" />
                             ) : (
                                 <p>{message.text}</p>
                             )}
                         </>
                     )}
+                    <ReactionSummary reactions={latestReactions} messageId={message.id} />
                 </div>
                  
                  <div className="flex items-center gap-2">
-                    <ReactionSummary reactions={latestReactions} messageId={message.id} />
                     {message.created_at && (
                         <div className={cn("text-xs text-zinc-200 mt-1 flex items-center gap-1", isCurrentUser ? "justify-end" : "justify-start")}>
                             <p>{format(new Date(message.created_at), 'p')}</p>
@@ -266,11 +266,11 @@ export default function CustomMessage({ message, onReply, isEditing, onStartEdit
                 </Avatar>
             )}
              {!isCurrentUser && (
-                 <div className="flex-col items-center gap-2 hidden group-hover:flex">
+                 <div className="flex-row items-center gap-1 hidden group-hover:flex">
                      <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7 rounded-full bg-zinc-800"
+                        className="h-7 w-7 rounded-full"
                         onClick={() => setShowReactionPicker(prev => !prev)}
                     >
                         <SmilePlus className="h-4 w-4" />
@@ -278,7 +278,7 @@ export default function CustomMessage({ message, onReply, isEditing, onStartEdit
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7 rounded-full bg-zinc-800"
+                        className="h-7 w-7 rounded-full"
                         onClick={() => onReply(message)}
                     >
                         <CornerUpLeft className="h-4 w-4" />
@@ -288,4 +288,6 @@ export default function CustomMessage({ message, onReply, isEditing, onStartEdit
         </div>
     );
 }
+    
+
     
