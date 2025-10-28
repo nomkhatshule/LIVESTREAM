@@ -14,6 +14,7 @@ import { UserProfile } from '@/firebase/firestore/use-user-document';
 import InboxPanel from '@/components/feed/InboxPanel';
 import type { Message, UserResponse } from 'stream-chat';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { format } from 'date-fns';
 
 function ChannelHeader() {
     const { channel: activeChannel } = useChatContext();
@@ -62,18 +63,25 @@ function CustomMessage({ message }: { message: Message }) {
     if (!otherUser) return null;
 
     return (
-        <div className={cn("flex items-end gap-2 my-4", isCurrentUser ? "justify-end" : "justify-start")}>
+        <div className={cn("flex items-end gap-2 my-2", isCurrentUser ? "justify-end" : "justify-start")}>
             {!isCurrentUser && (
-                <Avatar className="h-8 w-8">
+                <Avatar className="h-8 w-8 self-end">
                     <AvatarImage src={avatarUrl} />
                     <AvatarFallback>{fallback}</AvatarFallback>
                 </Avatar>
             )}
-            <div className={cn("max-w-[70%] p-3 rounded-lg text-sm", isCurrentUser ? "bg-primary text-primary-foreground" : "bg-zinc-800 text-white")}>
-                <p>{message.text}</p>
+            <div className="flex flex-col">
+                <div className={cn("max-w-xs md:max-w-md p-3 rounded-lg text-sm", isCurrentUser ? "bg-primary text-primary-foreground" : "bg-zinc-800 text-white")}>
+                    <p>{message.text}</p>
+                </div>
+                 {message.created_at && (
+                    <p className={cn("text-xs text-zinc-500 mt-1", isCurrentUser ? "text-right" : "text-left")}>
+                        {format(new Date(message.created_at), 'p')}
+                    </p>
+                )}
             </div>
              {isCurrentUser && (
-                <Avatar className="h-8 w-8">
+                <Avatar className="h-8 w-8 self-end">
                     <AvatarImage src={avatarUrl} />
                     <AvatarFallback>{fallback}</AvatarFallback>
                 </Avatar>
@@ -251,5 +259,3 @@ export default function InboxPage() {
         </Suspense>
     )
 }
-
-    
