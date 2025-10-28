@@ -100,7 +100,7 @@ export default function CustomMessageInput({ replyToMessage, onCancelReply }: Cu
             )}
              {imagePreview && (
                 <div className="bg-zinc-800 p-2 rounded-md relative w-24 h-24">
-                    <Image src={imagePreview.url} alt="Image preview" layout="fill" className="object-cover rounded-md" />
+                    <Image src={imagePreview.url} alt="Image preview" fill className="object-cover rounded-md" />
                     <Button variant="destructive" size="icon" className="absolute -top-2 -right-2 h-6 w-6 rounded-full" onClick={() => setImagePreview(null)}>
                         <X className="h-4 w-4" />
                     </Button>
