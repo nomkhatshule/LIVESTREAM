@@ -9,7 +9,7 @@ import { collection, query, orderBy, limit, serverTimestamp, doc, writeBatch } f
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { addDocumentNonBlocking, setDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Heart, MessageSquareMore, Search, Users, ArrowUp, CornerUpLeft, Dice6, Play, Loader2, Swords, UserCheck, UserPlus } from 'lucide-react';
+import { Heart, MessageSquareMore, Search, Users, ArrowUp, CornerUpLeft, Dice6, Play, Loader2, Swords, Gift, UserPlus } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import Link from 'next/link';
@@ -180,7 +180,7 @@ function BroadcastPreviewUIManager({
                 {/* Games/Dares Action Item */}
                 <Link href="/cards" className="flex flex-col items-center group pointer-events-auto">
                     <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform">
-                       <Dice6 className="h-6 w-6 drop-shadow-md" strokeWidth={1.5} />
+                       <Gift className="h-6 w-6 drop-shadow-md" strokeWidth={1.5} />
                     </button>
                     <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">Games</span>
                 </Link>
@@ -211,6 +211,7 @@ function BroadcastPreviewUIManager({
             <div className="bg-gradient-to-t from-black/70 to-transparent -m-4 p-4 flex flex-col justify-end gap-4">
                 <div className="w-full sm:max-w-sm md:max-w-md">
                     {isChatVisible && (
+                        <>
                         <ScrollArea className="h-48 w-full pr-4 pointer-events-auto">
                             <div className="flex flex-col gap-y-3">
                                 {reversedComments.map((comment) => (
@@ -240,35 +241,35 @@ function BroadcastPreviewUIManager({
                                 ))}
                             </div>
                         </ScrollArea>
+                         <form onSubmit={handleFormSubmit} className="relative flex w-full pointer-events-auto items-center gap-2 mt-2">
+                             <div className="relative flex-1">
+                                <Textarea
+                                    ref={textareaRef}
+                                    placeholder="Add a comment..."
+                                    value={newMessage}
+                                    onChange={(e) => setNewMessage(e.target.value)}
+                                    className="bg-black/50 border-white/20 placeholder:text-gray-400 w-full min-h-[40px] h-10 resize-none rounded-full py-2 pr-[80px] pl-4"
+                                />
+                                <div className="absolute top-1/2 -translate-y-1/2 right-1 flex items-center">
+                                    <Popover open={isGifPickerOpen} onOpenChange={setIsGifPickerOpen}>
+                                        <PopoverTrigger asChild>
+                                            <Button size="icon" type="button" variant="ghost" className="rounded-full h-9 w-9 text-white">
+                                                <b className="text-xs">GIF</b>
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-screen sm:w-96 h-96 p-0 border-zinc-700 bg-zinc-900" side="top" align="end">
+                                        <GifPicker onSendGif={handleGifSelect} />
+                                        </PopoverContent>
+                                    </Popover>
+                                    <Button variant="ghost" size="icon" type="submit" className="text-white hover:bg-transparent hover:text-white h-9 w-9">
+                                        <ArrowUp className="h-5 w-5" />
+                                    </Button>
+                                </div>
+                            </div>
+                        </form>
+                        </>
                     )}
                 </div>
-                
-                <form onSubmit={handleFormSubmit} className="relative flex w-full pointer-events-auto items-center gap-2">
-                     <div className="relative flex-1">
-                        <Textarea
-                            ref={textareaRef}
-                            placeholder="Add a comment..."
-                            value={newMessage}
-                            onChange={(e) => setNewMessage(e.target.value)}
-                            className="bg-black/50 border-white/20 placeholder:text-gray-400 w-full min-h-[40px] h-10 resize-none rounded-full py-2 pr-[80px] pl-4"
-                        />
-                        <div className="absolute top-1/2 -translate-y-1/2 right-1 flex items-center">
-                            <Popover open={isGifPickerOpen} onOpenChange={setIsGifPickerOpen}>
-                                <PopoverTrigger asChild>
-                                    <Button size="icon" type="button" variant="ghost" className="rounded-full h-9 w-9 text-white">
-                                        <b className="text-xs">GIF</b>
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-screen sm:w-96 h-96 p-0 border-zinc-700 bg-zinc-900" side="top" align="end">
-                                <GifPicker onSendGif={handleGifSelect} />
-                                </PopoverContent>
-                            </Popover>
-                            <Button variant="ghost" size="icon" type="submit" className="text-white hover:bg-transparent hover:text-white h-9 w-9">
-                                <ArrowUp className="h-5 w-5" />
-                            </Button>
-                        </div>
-                    </div>
-                </form>
             </div>
         </div>
     );
