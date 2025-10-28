@@ -80,9 +80,8 @@ const ReactionSummary = ({ reactions, messageId }: { reactions: StreamReaction[]
     }
     
     return (
-        <div className="flex items-center gap-1 mt-1">
-            {Object.entries(reactionCounts).map(([type, count]) => {
-                const userHasReacted = reactions.some(r => r.type === type && r.user_id === currentUser?.uid);
+        <div className="flex items-center gap-2 mt-1">
+            {Object.entries(reactionCounts).map(([type]) => {
                 const emoji = reverseEmojiMap[type] || type;
                 return (
                     <TooltipProvider key={type} delayDuration={100}>
@@ -90,13 +89,9 @@ const ReactionSummary = ({ reactions, messageId }: { reactions: StreamReaction[]
                             <TooltipTrigger asChild>
                                 <button 
                                     onClick={() => handleReactionClick(type)}
-                                    className={cn(
-                                        "bg-zinc-700/80 backdrop-blur-sm text-white rounded-full px-2 py-0.5 text-xs flex items-center gap-1 border border-transparent transition-colors",
-                                        userHasReacted ? "border-primary bg-primary/20" : "hover:bg-zinc-600"
-                                    )}
+                                    className="text-sm"
                                 >
                                     <span>{emoji}</span>
-                                    <span>{count}</span>
                                 </button>
                             </TooltipTrigger>
                             <TooltipContent side="top" className="text-xs p-1">
@@ -252,14 +247,17 @@ export default function CustomMessage({ message, onReply, isEditing, onStartEdit
                         </>
                     )}
                 </div>
-                 <ReactionSummary reactions={latestReactions} messageId={message.id} />
-                 {message.created_at && (
-                    <div className={cn("text-xs text-zinc-200 mt-1 flex items-center gap-1", isCurrentUser ? "justify-end" : "justify-start")}>
-                         <p>{format(new Date(message.created_at), 'p')}</p>
-                         
-                         {isCurrentUser && <ReadReceipt className={cn("h-4 w-4", isRead ? "text-blue-400" : "text-zinc-400")} />}
-                    </div>
-                )}
+                 
+                 <div className="flex items-center gap-2">
+                    <ReactionSummary reactions={latestReactions} messageId={message.id} />
+                    {message.created_at && (
+                        <div className={cn("text-xs text-zinc-200 mt-1 flex items-center gap-1", isCurrentUser ? "justify-end" : "justify-start")}>
+                            <p>{format(new Date(message.created_at), 'p')}</p>
+                            
+                            {isCurrentUser && <ReadReceipt className={cn("h-4 w-4", isRead ? "text-blue-400" : "text-zinc-400")} />}
+                        </div>
+                    )}
+                 </div>
             </div>
              {isCurrentUser && (
                 <Avatar className="h-8 w-8 self-end">
@@ -290,6 +288,4 @@ export default function CustomMessage({ message, onReply, isEditing, onStartEdit
         </div>
     );
 }
-    
-
     
