@@ -56,9 +56,12 @@ function CustomMessage({ message }: { message: Message }) {
     const { userDocument: currentUserDocument } = useUserDocument();
     const isCurrentUser = message.user?.id === currentUser?.uid;
     
+    const { userDocument: otherUserDocument } = useUserDocumentById(isCurrentUser ? undefined : message.user?.id);
+
     const otherUser = message.user;
-    const avatarUrl = isCurrentUser ? currentUserDocument?.profilePicture : otherUser?.image;
-    const fallback = (isCurrentUser ? currentUserDocument?.username : otherUser?.name)?.charAt(0).toUpperCase() || 'U';
+    const avatarUrl = isCurrentUser ? currentUserDocument?.profilePicture : otherUserDocument?.profilePicture;
+    const fallback = (isCurrentUser ? currentUserDocument?.username : otherUserDocument?.username)?.charAt(0).toUpperCase() || 'U';
+
 
     if (!otherUser) return null;
 
