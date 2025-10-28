@@ -1,9 +1,9 @@
 
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
-import { notFound, useSearchParams } from 'next/navigation';
-import { useChatContext, Channel, Window, MessageList, MessageInput, Thread, LoadingIndicator, useChannelStateContext } from 'stream-chat-react';
+import { Suspense, useEffect, useState, useRef, ComponentProps } from 'react';
+import { notFound, useSearchParams, useRouter } from 'next/navigation';
+import { useChatContext, Channel, Window, MessageList, MessageInput, Thread, LoadingIndicator, useChannelStateContext, MessageSimple, MessageProps } from 'stream-chat-react';
 import { useUser, useUserDocumentById } from '@/firebase';
 import { Loader2, ArrowLeft, ArrowUp, MessageSquare } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Card } from '@/components/ui/card';
 import { UserProfile } from '@/firebase/firestore/use-user-document';
+import { cn } from '@/lib/utils';
 
 function ChannelHeader() {
     const { channel } = useChannelStateContext();
@@ -24,7 +25,7 @@ function ChannelHeader() {
 
     if (isDocLoading || !otherUser) {
         return (
-             <div className="border-b border-zinc-800 p-3 flex items-center gap-3">
+             <div className="border-b p-3 flex items-center gap-3 bg-black border-zinc-800">
                 <div className="h-10 w-10 bg-zinc-800 rounded-full animate-pulse" />
                 <div className="h-5 w-32 bg-zinc-800 rounded-md animate-pulse" />
             </div>
@@ -32,7 +33,7 @@ function ChannelHeader() {
     }
     
     return (
-        <div className="border-b border-zinc-800 p-3 flex items-center gap-3">
+        <div className="border-b p-3 flex items-center gap-3 bg-black border-zinc-800">
              <Link href="/feed-test">
                 <Button variant="ghost" size="icon">
                     <ArrowLeft className="h-5 w-5" />
@@ -47,30 +48,77 @@ function ChannelHeader() {
     )
 }
 
+function CustomMessage(props: MessageProps) {
+    const { message } = props;
+    const { user: currentUser } = useUser();
+    const isCurrentUser = message.user?.id === currentUser?.uid;
+
+    if (!message.user) return null;
+
+    return (
+        <div className={cn("flex items-end gap-2 my-4", isCurrentUser ? "justify-end" : "justify-start")}>
+            {!isCurrentUser && (
+                <Avatar className="h-8 w-8">
+                    <AvatarImage src={message.user.image} />
+                    <AvatarFallback>{message.user.name?.charAt(0).toUpperCase()}</AvatarFallback>
+                </Avatar>
+            )}
+            <div className={cn("max-w-[70%] p-3 rounded-lg text-sm", isCurrentUser ? "bg-primary text-primary-foreground" : "bg-zinc-800 text-white")}>
+                <p>{message.text}</p>
+            </div>
+             {isCurrentUser && (
+                <Avatar className="h-8 w-8">
+                    <AvatarImage src={message.user.image} />
+                    <AvatarFallback>{message.user.name?.charAt(0).toUpperCase()}</AvatarFallback>
+                </Avatar>
+            )}
+        </div>
+    );
+}
+
 
 function InboxPageComponent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const { client, setActiveChannel, channel: activeChannel } = useChatContext();
   const { user } = useUser();
-  const [isCreatingChannel, setIsCreatingChannel] = useState(false);
+  
+  // This state will now primarily be used for the initial "opening conversation" state
+  const [isLoadingChannel, setIsLoadingChannel] = useState(false);
+  const currentChannelId = useRef<string | null>(null);
   
   const withUserId = searchParams.get('with');
 
   useEffect(() => {
     if (withUserId && client && user) {
-        setIsCreatingChannel(true);
-        const channel = client.channel('messaging', {
-            members: [user.uid, withUserId],
-        });
-        channel.watch().then(() => {
+        const channelId = `messaging:${user.uid}-${withUserId}`; // Deterministic channel ID
+
+        if (currentChannelId.current === channelId && activeChannel) {
+             // Already on the correct channel
+            return;
+        }
+
+        currentChannelId.current = channelId;
+        setIsLoadingChannel(true);
+        setActiveChannel(null); // Clear previous channel immediately
+
+        const createAndWatchChannel = async () => {
+            const channel = client.channel('messaging', {
+                members: [user.uid, withUserId],
+            });
+            await channel.watch();
             setActiveChannel(channel);
-            setIsCreatingChannel(false);
-        }).catch(err => {
-            console.error("Failed to watch channel:", err);
-            setIsCreatingChannel(false);
-        })
+            setIsLoadingChannel(false);
+        };
+
+        createAndWatchChannel().catch(err => {
+            console.error("Failed to create or watch channel:", err);
+            setIsLoadingChannel(false);
+            router.push('/feed-test'); // Redirect on error
+        });
+
     }
-  }, [withUserId, client, user, setActiveChannel]);
+  }, [withUserId, client, user, setActiveChannel, router, activeChannel]);
 
   if (!client || !user) {
     return (
@@ -81,7 +129,7 @@ function InboxPageComponent() {
     );
   }
   
-  if (isCreatingChannel) {
+  if (isLoadingChannel) {
     return (
         <div className="flex h-[calc(100vh-4rem)] items-center justify-center bg-black text-white">
             <Loader2 className="h-8 w-8 animate-spin" />
@@ -90,37 +138,83 @@ function InboxPageComponent() {
     );
   }
 
-  if (!activeChannel) {
+  if (!withUserId || !activeChannel) {
       return (
-           <div className="flex-1 flex flex-col items-center justify-center text-center text-muted-foreground bg-zinc-900">
+           <div className="flex-1 flex flex-col items-center justify-center text-center text-zinc-400 bg-black h-full">
              <MessageSquare className="h-12 w-12 mb-4"/>
-             <h2 className="text-xl font-bold text-foreground">Your Messages</h2>
-             <p>Select a conversation to start chatting.</p>
+             <h2 className="text-xl font-bold text-white">Your Messages</h2>
+             <p>Select a conversation from your inbox to start chatting.</p>
+             <Button variant="outline" asChild className="mt-4 bg-transparent border-zinc-700 hover:bg-zinc-900 hover:text-white">
+                <Link href="/feed-test">
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back to Feed
+                </Link>
+             </Button>
            </div>
       )
   }
 
   return (
-    <div className="h-screen w-full flex flex-col bg-black text-white">
-        <Channel channel={activeChannel} EmptyStateIndicator={() => null}>
-            <div className="flex-1 flex flex-col">
+    <div className="h-full w-full flex flex-col bg-black text-white">
+        <Channel channel={activeChannel} Message={CustomMessage} Input={CustomMessageInput} >
+            <div className="flex-1 flex flex-col h-full">
                  <ChannelHeader />
                 <div className="flex-1 min-h-0">
                     <Window>
                         <MessageList />
                     </Window>
                 </div>
-                <div className="relative p-4 border-t border-zinc-800">
+                <div className="p-4 border-t border-zinc-800">
                     <MessageInput />
-                    <Button size="icon" className="absolute right-6 top-1/2 -translate-y-1/2 rounded-full">
-                        <ArrowUp className="h-5 w-5" />
-                    </Button>
                 </div>
             </div>
         </Channel>
     </div>
   );
 }
+
+const CustomMessageInput = () => {
+    const { sendMessage } = useChannelStateContext();
+    const [text, setText] = useState('');
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (text.trim()) {
+            sendMessage({ text });
+            setText('');
+        }
+    }
+    return (
+         <form onSubmit={handleSubmit} className="relative flex items-center">
+            <input
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                placeholder="Send a message..."
+                className="w-full bg-zinc-800 border-none text-white rounded-full px-4 py-2 pr-12 focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+            <Button size="icon" type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full h-8 w-8">
+                <ArrowUp className="h-5 w-5" />
+            </Button>
+        </form>
+    )
+}
+
+function InboxPageLayout() {
+    return (
+         <div className="h-[calc(100vh-4rem)] w-full flex">
+            <aside className="w-96 border-r border-zinc-800 hidden md:flex flex-col">
+                <div className="p-4 border-b border-zinc-800">
+                    <h2 className="text-xl font-bold">Inbox</h2>
+                </div>
+                 <InboxPanel />
+            </aside>
+            <main className="flex-1">
+                <InboxPageComponent />
+            </main>
+        </div>
+    )
+}
+
 
 // Wrap the component in Suspense because it uses useSearchParams
 export default function InboxPage() {
@@ -130,7 +224,7 @@ export default function InboxPage() {
                 <Loader2 className="h-8 w-8 animate-spin" />
             </div>
         }>
-            <InboxPageComponent />
+            <InboxPageLayout />
         </Suspense>
     )
 }
