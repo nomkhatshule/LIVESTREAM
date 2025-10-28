@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Suspense, useEffect, useState, useRef } from 'react';
@@ -114,7 +115,7 @@ function CustomMessage({ message, onReply, isEditing, onStartEdit, onCancelEdit,
     };
     
     const otherUser = Object.values(activeChannel?.state.members || {}).find(member => member.user_id !== currentUser?.uid);
-    const isRead = isCurrentUser && message.readBy.some(read => read.id === otherUser?.user_id);
+    const isRead = isCurrentUser && otherUser && (message.readBy || []).some(read => read.id === otherUser.user_id);
     const ReadReceipt = isRead ? CheckCheck : Check;
 
     return (
@@ -636,4 +637,3 @@ export default function InboxPage() {
     )
 }
 
-    
