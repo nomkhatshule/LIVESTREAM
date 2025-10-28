@@ -177,6 +177,14 @@ function BroadcastPreviewUIManager({
                     <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">{comments?.length || 0}</span>
                 </div>
                 
+                {/* Games/Dares Action Item */}
+                <Link href="/cards" className="flex flex-col items-center group pointer-events-auto">
+                    <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform">
+                       <Dice6 className="h-6 w-6 drop-shadow-md" strokeWidth={1.5} />
+                    </button>
+                    <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">Games</span>
+                </Link>
+
                  {/* AI Search Action Item */}
                 <AIChat userAvatar={currentUserAvatar} broadcastContext={broadcastContext}>
                     <div className="flex flex-col items-center group">
@@ -186,14 +194,6 @@ function BroadcastPreviewUIManager({
                          <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">AI</span>
                     </div>
                 </AIChat>
-
-                {/* Games/Dares Action Item */}
-                <Link href="/cards" className="flex flex-col items-center group pointer-events-auto">
-                    <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform">
-                       <Dice6 className="h-6 w-6 drop-shadow-md" strokeWidth={1.5} />
-                    </button>
-                    <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">Games</span>
-                </Link>
 
                 {/* Live Challenge Icon */}
                 {broadcast.activeChallenge && (
