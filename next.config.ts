@@ -37,6 +37,11 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'firebasestorage.googleapis.com',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'media.giphy.com',
+        pathname: '/**',
       }
     ]
   },
