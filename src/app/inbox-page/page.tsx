@@ -5,7 +5,7 @@ import { Suspense, useEffect, useState } from 'react';
 import { notFound, useSearchParams } from 'next/navigation';
 import { useChatContext, Channel, Window, MessageList, MessageInput, Thread, LoadingIndicator, useChannelStateContext } from 'stream-chat-react';
 import { useUser, useUserDocumentById } from '@/firebase';
-import { Loader2, ArrowLeft, ArrowUp } from 'lucide-react';
+import { Loader2, ArrowLeft, ArrowUp, MessageSquare } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -57,7 +57,6 @@ function InboxPageComponent() {
 
   if (!activeChannel) {
       return (
-          // This view is for when no chat is selected.
            <div className="flex-1 flex flex-col" />
       )
   }
@@ -66,6 +65,9 @@ function InboxPageComponent() {
     <div className="h-screen w-full flex flex-col bg-black text-white">
         <Channel channel={activeChannel} EmptyStateIndicator={() => null}>
             <div className="flex-1 flex flex-col">
+                 <div className="border-b border-zinc-800">
+                    {/* Header content will go here */}
+                </div>
                 <div className="flex-1 min-h-0">
                     <Window>
                         <MessageList />
