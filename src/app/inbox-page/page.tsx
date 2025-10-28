@@ -346,21 +346,23 @@ const CustomMessageInput = ({ replyToMessage, onCancelReply }: { replyToMessage:
                 </div>
             )}
             <form onSubmit={handleSubmit} className="relative flex items-center gap-2">
-                <Button size="icon" type="button" variant="ghost" className="rounded-full h-9 w-9 text-zinc-400" onClick={handleReaction}>
-                    <Smile className="h-5 w-5" />
-                </Button>
-                <Button size="icon" type="button" variant="ghost" className="rounded-full h-9 w-9 text-zinc-400" onClick={handleSendGif}>
-                    <b className="text-xs">GIF</b>
-                </Button>
                 <input
                     value={text}
                     onChange={(e) => setText(e.target.value)}
                     placeholder="Send a message..."
                     className="w-full bg-zinc-800 border-none text-white rounded-full px-4 py-2 pr-12 focus:outline-none focus:ring-2 focus:ring-primary"
                 />
-                <Button size="icon" type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full h-8 w-8">
-                    <ArrowUp className="h-5 w-5" />
-                </Button>
+                 <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center">
+                    <Button size="icon" type="button" variant="ghost" className="rounded-full h-9 w-9 text-zinc-400" onClick={handleReaction}>
+                        <Smile className="h-5 w-5" />
+                    </Button>
+                    <Button size="icon" type="button" variant="ghost" className="rounded-full h-9 w-9 text-zinc-400" onClick={handleSendGif}>
+                        <b className="text-xs">GIF</b>
+                    </Button>
+                    <Button size="icon" type="submit" className="rounded-full h-8 w-8 bg-primary">
+                        <ArrowUp className="h-5 w-5" />
+                    </Button>
+                 </div>
             </form>
         </div>
     )
