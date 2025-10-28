@@ -1,18 +1,16 @@
-
 'use client';
 
 import { Suspense, useEffect, useState, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useChatContext } from '@/components/chat/ChatProvider';
 import { useUser, useUserDocument, useUserDocumentById } from '@/firebase';
-import { Loader2, ArrowLeft, ArrowUp, MessageSquare } from 'lucide-react';
+import { Loader2, ArrowLeft, ArrowUp, MessageSquare, CornerUpLeft, Smile, GitCommit, X } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { UserProfile } from '@/firebase/firestore/use-user-document';
-import InboxPanel from '@/components/feed/InboxPanel';
-import type { Message, UserResponse } from 'stream-chat';
+import type { Message, Reaction as StreamReaction, UserResponse } from 'stream-chat';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { format } from 'date-fns';
 
@@ -51,7 +49,7 @@ function ChannelHeader() {
     )
 }
 
-function CustomMessage({ message }: { message: Message }) {
+function CustomMessage({ message, onReply }: { message: Message, onReply: (message: Message) => void; }) {
     const { user: currentUser } = useUser();
     const { userDocument: currentUserDocument } = useUserDocument();
     const isCurrentUser = message.user?.id === currentUser?.uid;
@@ -64,15 +62,24 @@ function CustomMessage({ message }: { message: Message }) {
     let fallback = 'U';
     if (isCurrentUser) {
         fallback = currentUserDocument?.username?.charAt(0).toUpperCase() || 'U';
-    } else {
-        fallback = otherUserDocument?.username?.charAt(0).toUpperCase() || streamUser?.name?.charAt(0).toUpperCase() || 'U';
+    } else if (otherUserDocument?.username) {
+        fallback = otherUserDocument.username.charAt(0).toUpperCase();
+    } else if (streamUser?.name) {
+        fallback = streamUser.name.charAt(0).toUpperCase();
     }
 
 
     if (!streamUser) return null;
 
+    const latestReactions = message.latest_reactions || [];
+    const hasLiked = latestReactions.some(r => r.type === 'like' && r.user_id === currentUser?.uid);
+    const likeCount = latestReactions.filter(r => r.type === 'like').length;
+
+    const quotedMessage = message.quoted_message;
+    const attachment = message.attachments?.[0];
+
     return (
-        <div className={cn("flex items-end gap-2 my-2", isCurrentUser ? "justify-end" : "justify-start")}>
+        <div className={cn("flex items-end gap-2 my-2 group", isCurrentUser ? "justify-end" : "justify-start")}>
             {!isCurrentUser && (
                 <Avatar className="h-8 w-8 self-end">
                     <AvatarImage src={avatarUrl} />
@@ -80,8 +87,27 @@ function CustomMessage({ message }: { message: Message }) {
                 </Avatar>
             )}
             <div className="flex flex-col">
-                <div className={cn("max-w-xs md:max-w-md p-3 rounded-lg text-sm", isCurrentUser ? "bg-primary text-primary-foreground" : "bg-zinc-800 text-white")}>
-                    <p>{message.text}</p>
+                <div className={cn(
+                    "max-w-xs md:max-w-md p-3 rounded-lg text-sm relative", 
+                    isCurrentUser ? "bg-primary text-primary-foreground" : "bg-zinc-800 text-white"
+                )}>
+                    {quotedMessage && (
+                        <div className="border-l-2 border-white/50 pl-2 mb-2 text-xs opacity-80">
+                            <p className="font-bold">{quotedMessage.user?.name || 'User'}</p>
+                            <p className="truncate">{quotedMessage.text}</p>
+                        </div>
+                    )}
+                    {attachment?.type === 'giphy' ? (
+                        <img src={attachment.thumb_url} alt={attachment.title} className="rounded-md" />
+                    ) : (
+                        <p>{message.text}</p>
+                    )}
+                    
+                    {likeCount > 0 && (
+                        <div className="absolute -bottom-3 right-2 bg-zinc-700 text-white rounded-full px-2 py-0.5 text-xs flex items-center">
+                            👍 {likeCount}
+                        </div>
+                    )}
                 </div>
                  {message.created_at && (
                     <p className={cn("text-xs text-zinc-500 mt-1", isCurrentUser ? "text-right" : "text-left")}>
@@ -95,6 +121,14 @@ function CustomMessage({ message }: { message: Message }) {
                     <AvatarFallback>{fallback}</AvatarFallback>
                 </Avatar>
             )}
+            <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 rounded-full bg-zinc-800 opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={() => onReply(message)}
+            >
+                <CornerUpLeft className="h-4 w-4" />
+            </Button>
         </div>
     );
 }
@@ -109,6 +143,7 @@ function InboxPageComponent() {
   
   const [isLoadingChannel, setIsLoadingChannel] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [replyToMessage, setReplyToMessage] = useState<Message | null>(null);
   const currentChannelId = useRef<string | null>(null);
   
   const withUserId = searchParams.get('with');
@@ -120,10 +155,18 @@ function InboxPageComponent() {
         const handleNewMessage = (event: any) => {
             setMessages(prevMessages => [...prevMessages, event.message]);
         };
+        const handleReaction = (event: any) => {
+            setMessages(prev => prev.map(m => m.id === event.message.id ? event.message : m));
+        }
+
         activeChannel.on('message.new', handleNewMessage);
+        activeChannel.on('reaction.new', handleReaction);
+        activeChannel.on('reaction.deleted', handleReaction);
 
         return () => {
             activeChannel.off('message.new', handleNewMessage);
+            activeChannel.off('reaction.new', handleReaction);
+            activeChannel.off('reaction.deleted', handleReaction);
         };
     }
   }, [activeChannel]);
@@ -170,6 +213,14 @@ function InboxPageComponent() {
     }
   }, [withUserId, client, user, setActiveChannel, router, activeChannel]);
 
+  const handleReply = (message: Message) => {
+    setReplyToMessage(message);
+  };
+
+  const handleCancelReply = () => {
+    setReplyToMessage(null);
+  };
+
   if (!client || !user) {
     return (
         <div className="flex h-full items-center justify-center bg-black text-white">
@@ -209,39 +260,103 @@ function InboxPageComponent() {
         <ChannelHeader />
         <ScrollArea className="flex-1 px-4" ref={scrollAreaRef}>
              {messages.map((msg) => (
-                <CustomMessage key={msg.id} message={msg} />
+                <CustomMessage key={msg.id} message={msg} onReply={handleReply} />
              ))}
         </ScrollArea>
         <div className="p-4 border-t border-zinc-800">
-            <CustomMessageInput />
+            <CustomMessageInput 
+                replyToMessage={replyToMessage}
+                onCancelReply={handleCancelReply}
+            />
         </div>
     </div>
   );
 }
 
-const CustomMessageInput = () => {
+const CustomMessageInput = ({ replyToMessage, onCancelReply }: { replyToMessage: Message | null; onCancelReply: () => void; }) => {
     const { channel: activeChannel } = useChatContext();
     const [text, setText] = useState('');
+
+    useEffect(() => {
+        if (replyToMessage) {
+            // You might want to focus the input here
+        }
+    }, [replyToMessage]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (text.trim() && activeChannel) {
-            await activeChannel.sendMessage({ text });
+            await activeChannel.sendMessage({ 
+                text,
+                parent_id: replyToMessage?.id
+            });
             setText('');
+            onCancelReply();
         }
     }
+
+    const handleReaction = async () => {
+        if (activeChannel) {
+            const lastMessage = activeChannel.state.messages[activeChannel.state.messages.length - 1];
+            if (lastMessage) {
+                // Check if user already liked it
+                const existingReaction = lastMessage.latest_reactions?.find(r => r.type === 'like' && r.user_id === activeChannel.client.userID);
+                if (existingReaction) {
+                    await activeChannel.deleteReaction(lastMessage.id, existingReaction.type);
+                } else {
+                    await activeChannel.sendReaction(lastMessage.id, { type: 'like' });
+                }
+            }
+        }
+    };
+
+    const handleSendGif = async () => {
+        if (activeChannel) {
+            await activeChannel.sendMessage({
+                text: 'GIF!',
+                attachments: [
+                    {
+                        type: 'giphy',
+                        title: 'Mind Blown',
+                        thumb_url: 'https://media.giphy.com/media/xT0xeJpnrWC4XWblEk/giphy_s.gif',
+                        image_url: 'https://media.giphy.com/media/xT0xeJpnrWC4XWblEk/giphy.gif',
+                    },
+                ],
+            });
+        }
+    };
+    
     return (
-         <form onSubmit={handleSubmit} className="relative flex items-center">
-            <input
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                placeholder="Send a message..."
-                className="w-full bg-zinc-800 border-none text-white rounded-full px-4 py-2 pr-12 focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-            <Button size="icon" type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full h-8 w-8">
-                <ArrowUp className="h-5 w-5" />
-            </Button>
-        </form>
+        <div className="space-y-2">
+            {replyToMessage && (
+                <div className="bg-zinc-800 p-2 rounded-md text-sm flex justify-between items-center">
+                    <div className="overflow-hidden">
+                        <p className="font-bold text-primary">Replying to {replyToMessage.user?.name}</p>
+                        <p className="text-zinc-400 truncate">{replyToMessage.text}</p>
+                    </div>
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onCancelReply}>
+                        <X className="h-4 w-4" />
+                    </Button>
+                </div>
+            )}
+            <form onSubmit={handleSubmit} className="relative flex items-center gap-2">
+                <Button size="icon" type="button" variant="ghost" className="rounded-full h-9 w-9 text-zinc-400" onClick={handleReaction}>
+                    <Smile className="h-5 w-5" />
+                </Button>
+                <Button size="icon" type="button" variant="ghost" className="rounded-full h-9 w-9 text-zinc-400" onClick={handleSendGif}>
+                    <b className="text-xs">GIF</b>
+                </Button>
+                <input
+                    value={text}
+                    onChange={(e) => setText(e.target.value)}
+                    placeholder="Send a message..."
+                    className="w-full bg-zinc-800 border-none text-white rounded-full px-4 py-2 pr-12 focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+                <Button size="icon" type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full h-8 w-8">
+                    <ArrowUp className="h-5 w-5" />
+                </Button>
+            </form>
+        </div>
     )
 }
 
@@ -266,3 +381,5 @@ export default function InboxPage() {
         </Suspense>
     )
 }
+
+    
