@@ -3,34 +3,49 @@
 
 import { useMemo, useState, useEffect }from 'react';
 import Link from 'next/link';
-import { useUser } from '@/firebase';
+import { useUser, useUserDocumentById } from '@/firebase';
 import { Loader2, MessageSquare } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { useChatContext } from '../chat/ChatProvider';
 import type { Channel, ChannelMemberResponse } from 'stream-chat';
+import { Skeleton } from '../ui/skeleton';
 
 
 const InboxChannelPreview = ({ channel, currentUser, setActiveChannel }: { channel: Channel, currentUser: any, setActiveChannel: (channel: Channel) => void }) => {
 
-    const otherUserMember = Object.values(channel.state.members).find(
-        (member) => member.user?.id !== currentUser?.uid
-    );
+    const otherUserFromStream = useMemo(() => {
+        return Object.values(channel.state.members).find(
+            (member) => member.user?.id !== currentUser?.uid
+        )?.user;
+    }, [channel.state.members, currentUser?.uid]);
 
-    if (!otherUserMember || !otherUserMember.user) {
+
+    const { userDocument: otherUser, isDocLoading } = useUserDocumentById(otherUserFromStream?.id);
+
+    if (isDocLoading) {
+        return (
+            <div className="flex items-center gap-3 p-3">
+                <Skeleton className="h-12 w-12 rounded-full" />
+                <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-4 w-40" />
+                </div>
+            </div>
+        );
+    }
+    
+    if (!otherUser || !otherUserFromStream) {
         return null;
     }
 
-    const otherUser = otherUserMember.user;
     const lastMessage = channel.state.messages[channel.state.messages.length - 1];
-    
-    // Corrected unread logic: only count if the last message is not from the current user.
     const unreadCount = channel.countUnread();
     const isUnread = unreadCount > 0 && lastMessage?.user?.id !== currentUser.uid;
     const lastMessageSenderIsCurrentUser = lastMessage?.user?.id === currentUser.uid;
     
-    const href = `/inbox-page?with=${otherUser.id}`;
+    const href = `/inbox-page?with=${otherUserFromStream.id}`;
 
     return (
         <div className="border-b border-zinc-800">
@@ -40,12 +55,12 @@ const InboxChannelPreview = ({ channel, currentUser, setActiveChannel }: { chann
                     onClick={() => setActiveChannel(channel)}
                 >
                     <Avatar className="h-12 w-12">
-                        <AvatarImage src={otherUser.image as string} alt={otherUser.name} />
-                        <AvatarFallback>{otherUser.name?.charAt(0).toUpperCase() || 'A'}</AvatarFallback>
+                        <AvatarImage src={otherUser.profilePicture} alt={otherUser.username} />
+                        <AvatarFallback>{otherUser.username?.charAt(0).toUpperCase() || 'A'}</AvatarFallback>
                     </Avatar>
                     <div className="text-sm flex-1 overflow-hidden">
                         <div className="flex justify-between items-center">
-                            <p className="font-semibold truncate text-white">{otherUser.name || 'Anonymous'}</p>
+                            <p className="font-semibold truncate text-white">{otherUser.username || 'Chat User'}</p>
                             {lastMessage?.created_at && (
                             <p className="text-xs text-zinc-400 flex-shrink-0 ml-2">
                                     {formatDistanceToNow(new Date(lastMessage.created_at), { addSuffix: true })}
@@ -88,7 +103,7 @@ export default function InboxPanel() {
             try {
                 const filters = { type: 'messaging' as const, members: { $in: [user.uid] } };
                 const sort = [{ last_message_at: -1 }];
-                const userChannels = await client.queryChannels(filters, sort);
+                const userChannels = await client.queryChannels(filters, sort, { watch: true, state: true });
                 setChannels(userChannels);
             } catch (error) {
                 console.error("Failed to fetch channels:", error);
@@ -98,10 +113,39 @@ export default function InboxPanel() {
         };
 
         fetchChannels();
+
+        const handleNewMessage = () => {
+            // Re-fetch channels to re-order them when a new message comes in
+            fetchChannels();
+        };
+
+        client.on('message.new', handleNewMessage);
+
+        return () => {
+             client.off('message.new', handleNewMessage);
+        }
+
     }, [client, user]);
 
     if (isLoading) {
-        return <div className="flex items-center justify-center h-full bg-black"><Loader2 className="h-6 w-6 animate-spin text-white" /></div>
+        return (
+            <div className="space-y-2 p-2 bg-black h-full">
+                 <div className="flex items-center gap-3 p-3">
+                    <Skeleton className="h-12 w-12 rounded-full" />
+                    <div className="flex-1 space-y-2">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-4 w-40" />
+                    </div>
+                </div>
+                 <div className="flex items-center gap-3 p-3">
+                    <Skeleton className="h-12 w-12 rounded-full" />
+                    <div className="flex-1 space-y-2">
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-4 w-20" />
+                    </div>
+                </div>
+            </div>
+        )
     }
 
     if (channels.length === 0) {
