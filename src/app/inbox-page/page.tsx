@@ -226,7 +226,7 @@ function InboxPageComponent() {
                 <div key={msg.id}>
                     {msg.id === firstUnreadId && (
                        <div className="flex justify-center my-4">
-                            <div className="bg-zinc-800 text-zinc-300 text-xs font-semibold px-3 py-1 rounded-full">
+                            <div className="bg-zinc-700 text-zinc-200 text-xs font-semibold px-3 py-1 rounded-full">
                                 New Messages
                             </div>
                         </div>
