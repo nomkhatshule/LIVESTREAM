@@ -247,11 +247,9 @@ const CustomMessageInput = () => {
 
 function InboxPageLayout() {
     return (
-         <div className="h-[calc(100vh-4rem)] w-full flex">
-            <main className="flex-1">
-                <InboxPageComponent />
-            </main>
-        </div>
+        <main className="h-[calc(100vh-4rem)] w-full">
+            <InboxPageComponent />
+        </main>
     )
 }
 
