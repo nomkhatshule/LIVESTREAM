@@ -215,7 +215,7 @@ export default function CustomMessage({ message, onReply, isEditing, onStartEdit
             <div className={cn("flex flex-col", isCurrentUser ? "items-end" : "items-start")}>
                  <div className={cn(
                     "max-w-[80%] sm:max-w-md rounded-lg text-sm relative", 
-                    isEditing ? 'p-0' : (attachment?.type === 'giphy' || attachment?.type === 'image' ? 'bg-transparent p-1' : (isCurrentUser ? "bg-primary text-primary-foreground p-3" : "bg-zinc-200 text-black p-3"))
+                    isEditing ? 'p-0' : (attachment?.type === 'giphy' || attachment?.type === 'image' ? 'bg-transparent p-1' : (isCurrentUser ? "bg-primary text-primary-foreground p-2 md:p-3" : "bg-zinc-200 text-black p-2 md:p-3"))
                 )}>
                     {showReactionPicker && <ReactionPicker onSelect={handleReaction} />}
                     {isEditing ? (
@@ -251,10 +251,10 @@ export default function CustomMessage({ message, onReply, isEditing, onStartEdit
                  
                  <div className="flex items-center gap-2">
                     {message.created_at && (
-                        <div className={cn("text-xs text-zinc-200 mt-1 flex items-center gap-1", isCurrentUser ? "justify-end" : "justify-start")}>
+                        <div className={cn("text-xs text-zinc-400 mt-1 flex items-center gap-1", isCurrentUser ? "justify-end" : "justify-start")}>
                             <p>{format(new Date(message.created_at), 'p')}</p>
                             
-                            {isCurrentUser && <ReadReceipt className={cn("h-4 w-4", isRead ? "text-blue-400" : "text-zinc-400")} />}
+                            {isCurrentUser && <ReadReceipt className={cn("h-4 w-4", isRead ? "text-blue-400" : "text-zinc-500")} />}
                         </div>
                     )}
                  </div>
