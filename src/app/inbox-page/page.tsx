@@ -314,13 +314,27 @@ function InboxPageComponent() {
   const [replyToMessage, setReplyToMessage] = useState<Message | null>(null);
   const [editingMessage, setEditingMessage] = useState<Message | null>(null);
   const [typingUsers, setTypingUsers] = useState<UserResponse[]>([]);
+  const [firstUnreadId, setFirstUnreadId] = useState<string | null>(null);
   const currentChannelId = useRef<string | null>(null);
   
   const withUserId = searchParams.get('with');
 
   useEffect(() => {
-    if (activeChannel) {
-        setMessages(activeChannel.state.messages);
+    if (activeChannel && user) {
+        const allMessages = activeChannel.state.messages;
+        setMessages(allMessages);
+        
+        // Find and set the first unread message
+        const unreadCount = activeChannel.countUnread();
+        if (unreadCount > 0) {
+            const lastReadTime = activeChannel.state.read[user.uid]?.last_read;
+            if (lastReadTime) {
+                const firstUnread = allMessages.find(m => new Date(m.created_at) > lastReadTime);
+                setFirstUnreadId(firstUnread?.id || null);
+            }
+        } else {
+            setFirstUnreadId(null);
+        }
 
         const handleNewMessage = (event: any) => {
             if (event.message?.id === editingMessage?.id) {
@@ -338,7 +352,11 @@ function InboxPageComponent() {
             setMessages(prev => prev.map(m => m.id === event.message.id ? event.message : m));
         }
         const handleMessageRead = (event: any) => {
-            setMessages(prev => [...prev]); // Trigger re-render
+            // A message was read, so we might need to remove the unread separator
+            if (activeChannel.countUnread() === 0) {
+                setFirstUnreadId(null);
+            }
+            setMessages(prev => [...prev]); // Trigger re-render for read receipts
         }
         const handleTypingStart = (event: any) => {
             if (event.user?.id === user?.uid) return;
@@ -368,7 +386,7 @@ function InboxPageComponent() {
             activeChannel.off('typing.stop', handleTypingStop);
         };
     }
-  }, [activeChannel, editingMessage, user?.uid]);
+  }, [activeChannel, editingMessage, user]);
 
   useEffect(() => {
     // Auto-scroll to the bottom when new messages are added
@@ -395,6 +413,7 @@ function InboxPageComponent() {
         setActiveChannel(null); 
         setEditingMessage(null); // Reset editing state when channel changes
         setTypingUsers([]);
+        setFirstUnreadId(null); // Reset unread marker
 
         const createAndWatchChannel = async () => {
             const channel = client.channel('messaging', {
@@ -485,16 +504,24 @@ function InboxPageComponent() {
         <ChannelHeader />
         <ScrollArea className="flex-1 px-4" ref={scrollAreaRef}>
              {messages.map((msg) => (
-                <CustomMessage 
-                    key={msg.id} 
-                    message={msg} 
-                    onReply={handleReply} 
-                    isEditing={editingMessage?.id === msg.id}
-                    onStartEdit={handleStartEdit}
-                    onCancelEdit={handleCancelEdit}
-                    onSaveEdit={handleSaveEdit}
-                    onDelete={handleDelete}
-                />
+                <div key={msg.id}>
+                    {msg.id === firstUnreadId && (
+                        <div className="relative my-4 flex items-center">
+                            <div className="flex-grow border-t border-red-500"></div>
+                            <span className="flex-shrink mx-4 text-xs text-red-500 font-semibold">New Messages</span>
+                            <div className="flex-grow border-t border-red-500"></div>
+                        </div>
+                    )}
+                    <CustomMessage 
+                        message={msg} 
+                        onReply={handleReply} 
+                        isEditing={editingMessage?.id === msg.id}
+                        onStartEdit={handleStartEdit}
+                        onCancelEdit={handleCancelEdit}
+                        onSaveEdit={handleSaveEdit}
+                        onDelete={handleDelete}
+                    />
+                </div>
              ))}
         </ScrollArea>
         <div className="p-4 pt-2 border-t border-zinc-800">
