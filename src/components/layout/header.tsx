@@ -23,8 +23,20 @@ export default function Header() {
     return '/broadcast/create';
   }
 
-  if (pathname.startsWith('/feed') || pathname.startsWith('/broadcast/') || pathname.startsWith('/live') || pathname.startsWith('/agora-test') || pathname === '/cards' || pathname.startsWith('/profile') || pathname.startsWith('/inbox-page')) {
-    return null; // Hide header on the feed, broadcast, live, test, cards, profile and inbox pages
+  const noHeaderPaths = [
+    '/feed',
+    '/broadcast/',
+    '/live',
+    '/agora-test',
+    '/cards',
+    '/profile',
+    '/inbox-page',
+    '/login',
+    '/signup',
+  ];
+
+  if (noHeaderPaths.some(p => pathname.startsWith(p))) {
+    return null;
   }
 
   return (
