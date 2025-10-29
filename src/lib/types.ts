@@ -9,6 +9,12 @@ export interface Comment {
   userAvatar: string;
   message: string;
   timestamp: any;
+  attachment?: {
+    type: 'giphy';
+    title: string;
+    imageUrl: string;
+    thumbUrl: string;
+  }
 }
 
 export interface Reaction {

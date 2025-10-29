@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Comment } from '@/lib/types';
 import { ArrowUp, MessageCircle, MessageCircleOff, Smile } from 'lucide-react';
+import Image from 'next/image';
 
 interface ChatPanelProps {
     isVisible: boolean;
@@ -41,7 +42,14 @@ export default function ChatPanel({ isVisible, comments, newMessage, onNewMessag
                             </Avatar>
                             <div className="flex-1">
                                 <span className="font-bold font-headline text-primary mr-1.5">{comment.username}:</span>
-                                <p className="break-words inline">{comment.message}</p>
+                                {comment.attachment?.type === 'giphy' ? (
+                                    <div className="mt-1">
+                                        <Image src={comment.attachment.imageUrl} width={150} height={100} alt={comment.attachment.title || 'gif'} className="rounded-md" />
+                                        {comment.message && <p className="break-words inline mt-1">{comment.message}</p>}
+                                    </div>
+                                ) : (
+                                    <p className="break-words inline">{comment.message}</p>
+                                )}
                             </div>
                         </div>
                     ))}

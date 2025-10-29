@@ -9,7 +9,7 @@ import { collection, query, orderBy, limit, serverTimestamp, doc, writeBatch } f
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { addDocumentNonBlocking, setDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Heart, MessageSquareMore, Search, Users, ArrowUp, CornerUpLeft, Dice6, Play, Loader2, Swords, Gift, UserPlus } from 'lucide-react';
+import { Heart, MessageSquareMore, Search, Users, ArrowUp, CornerUpLeft, Dice6, Play, Loader2, Swords, Gift, UserPlus, X } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import Link from 'next/link';
@@ -33,8 +33,7 @@ interface BroadcastPreviewUIManagerProps {
     isFollowing: boolean;
     onLike: () => void;
     onFollow: () => void;
-    onSendMessage: (message: string) => void;
-    onSendGif: (gif: GiphyResult) => void;
+    onSendMessage: (message: string, attachment?: any) => void;
     onReply: (username: string) => void;
     currentUserAvatar?: string;
     onPlay: () => void;
@@ -52,7 +51,6 @@ function BroadcastPreviewUIManager({
     onLike,
     onFollow, 
     onSendMessage,
-    onSendGif, 
     onReply, 
     currentUserAvatar,
     onPlay,
@@ -65,15 +63,26 @@ function BroadcastPreviewUIManager({
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const [isChallengeVisible, setIsChallengeVisible] = useState(false);
     const [isGifPickerOpen, setIsGifPickerOpen] = useState(false);
+    const [selectedGif, setSelectedGif] = useState<GiphyResult | null>(null);
     const { user } = useUser();
 
     const reversedComments = useMemo(() => comments ? [...comments].reverse() : [], [comments]);
 
     const handleFormSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (newMessage.trim()) {
-            onSendMessage(newMessage);
+        if (newMessage.trim() || selectedGif) {
+            let attachment;
+            if (selectedGif) {
+                attachment = {
+                    type: 'giphy',
+                    title: selectedGif.title,
+                    imageUrl: selectedGif.images.original.url,
+                    thumbUrl: selectedGif.images.fixed_width.url,
+                }
+            }
+            onSendMessage(newMessage, attachment);
             setNewMessage('');
+            setSelectedGif(null);
         }
     };
     
@@ -84,7 +93,7 @@ function BroadcastPreviewUIManager({
     }
     
     const handleGifSelect = (gif: GiphyResult) => {
-        onSendGif(gif);
+        setSelectedGif(gif);
         setIsGifPickerOpen(false);
     }
 
@@ -229,7 +238,10 @@ function BroadcastPreviewUIManager({
                                                 {comment.replyingTo && <Link href={`/profile/${comment.replyingTo}`} className="text-accent font-semibold mr-1.5 hover:underline pointer-events-auto">@{comment.replyingTo}</Link>}
                                                 
                                                 {comment.attachment?.type === 'giphy' ? (
-                                                    <Image src={comment.attachment.imageUrl} width={150} height={100} alt={comment.attachment.title || 'gif'} className="mt-1 rounded-md" />
+                                                    <div className='mt-1'>
+                                                        <Image src={comment.attachment.imageUrl} width={150} height={100} alt={comment.attachment.title || 'gif'} className="rounded-md" />
+                                                        {comment.message && <p className="break-words mt-1">{comment.message.replace(/^@\w+\s/, '')}</p>}
+                                                    </div>
                                                 ) : (
                                                     <span className="break-words">{comment.message.replace(/^@\w+\s/, '')}</span>
                                                 )}
@@ -241,6 +253,14 @@ function BroadcastPreviewUIManager({
                                     ))}
                                 </div>
                             </ScrollArea>
+                            {selectedGif && (
+                                <div className="relative w-32 h-24 mt-2 pointer-events-auto">
+                                    <Image src={selectedGif.images.fixed_width.url} alt={selectedGif.title} fill className="object-cover rounded-md" />
+                                     <Button variant="destructive" size="icon" className="absolute -top-2 -right-2 h-6 w-6 rounded-full" onClick={() => setSelectedGif(null)}>
+                                        <X className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            )}
                             <form onSubmit={handleFormSubmit} className="relative flex w-full pointer-events-auto items-center gap-2 mt-2">
                                 <div className="relative flex-1">
                                     <Textarea
@@ -248,6 +268,12 @@ function BroadcastPreviewUIManager({
                                         placeholder="Add a comment..."
                                         value={newMessage}
                                         onChange={(e) => setNewMessage(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' && !e.shiftKey) {
+                                                e.preventDefault();
+                                                handleFormSubmit(e);
+                                            }
+                                        }}
                                         className="bg-black/50 border-white/20 placeholder:text-gray-400 w-full min-h-[40px] h-10 resize-none rounded-full py-2 pr-20 pl-4"
                                     />
                                     <div className="absolute top-1/2 -translate-y-1/2 right-1 flex items-center">
@@ -344,39 +370,21 @@ export function BroadcastPreview({ broadcast, onVisible }: BroadcastPreviewProps
         return likes.some(like => like.id === user.uid);
     }, [user, likes]);
     
-    const handleSendMessage = (message: string) => {
+    const handleSendMessage = (message: string, attachment?: any) => {
         if (!user || !userDocument) return;
         const messagesCollectionRef = collection(firestore, 'broadcasts', broadcast.id, 'messages');
-        const newComment: Omit<ChatMessage, 'id'|'timestamp'> & {timestamp: any, replyingTo?: string} = {
+        const newComment: Omit<ChatMessage, 'id'|'timestamp'> & {timestamp: any, replyingTo?: string, attachment?: any} = {
             userId: user.uid,
             username: userDocument.username || "Anonymous",
             userAvatar: userDocument.profilePicture || '',
             message: message,
             timestamp: serverTimestamp(),
+            attachment: attachment || null,
         };
         const mentionMatch = message.match(/^@(\w+)\s/);
         if (mentionMatch) {
             newComment.replyingTo = mentionMatch[1];
         }
-        addDocumentNonBlocking(messagesCollectionRef, newComment);
-    };
-
-    const handleSendGif = (gif: GiphyResult) => {
-        if (!user || !userDocument) return;
-        const messagesCollectionRef = collection(firestore, 'broadcasts', broadcast.id, 'messages');
-        const newComment = {
-            userId: user.uid,
-            username: userDocument.username || 'Anonymous',
-            userAvatar: userDocument.profilePicture || '',
-            message: gif.title,
-            timestamp: serverTimestamp(),
-            attachment: {
-                type: 'giphy' as const,
-                title: gif.title,
-                imageUrl: gif.images.original.url,
-                thumbUrl: gif.images.fixed_width.url,
-            },
-        };
         addDocumentNonBlocking(messagesCollectionRef, newComment);
     };
 
@@ -467,7 +475,6 @@ export function BroadcastPreview({ broadcast, onVisible }: BroadcastPreviewProps
                 onLike={handleLike}
                 onFollow={handleFollowToggle}
                 onSendMessage={handleSendMessage}
-                onSendGif={handleSendGif}
                 onReply={handleReply}
                 currentUserAvatar={userDocument?.profilePicture}
                 onPlay={handlePlay}
