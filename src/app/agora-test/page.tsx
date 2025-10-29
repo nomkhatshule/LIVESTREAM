@@ -352,15 +352,10 @@ function AgoraTestPageUI() {
     });
   }
 
-  const handleReaction = () => {
-    const emojis = [
-        <Heart key="heart" className="text-red-500 fill-red-500" />,
-        <ThumbsUp key="thumbsup" className="text-yellow-400 fill-yellow-400" />,
-        '😂', '🔥', '🎉'
-    ];
+  const handleReaction = (emoji: React.ReactNode) => {
     const newReaction: Reaction = {
         id: Date.now() + Math.random(),
-        emoji: emojis[Math.floor(Math.random() * emojis.length)],
+        emoji: emoji,
         x: Math.random() * 80 + 10,
     };
     setReactions(prev => [...prev, newReaction]);
