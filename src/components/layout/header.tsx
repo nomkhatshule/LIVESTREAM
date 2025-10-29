@@ -24,6 +24,7 @@ export default function Header() {
   }
 
   const noHeaderPaths = [
+    '/',
     '/feed',
     '/broadcast/',
     '/live',
