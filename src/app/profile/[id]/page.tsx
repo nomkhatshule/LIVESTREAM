@@ -281,45 +281,13 @@ export default function UserProfilePage() {
           </TabsContent>
            <TabsContent value="gifts">
             <Card>
-              <CardContent className="p-6">
-                  {mockGifts.length > 0 ? (
-                      <div className="space-y-8">
-                          <div>
-                              <h3 className="text-lg font-semibold font-headline flex items-center mb-4"><Gem className="mr-2 h-5 w-5 text-primary"/> Legendary Gifts</h3>
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                  {mockGifts.filter(g => g.rarity === 'Legendary').map(gift => (
-                                       <div key={gift.id} className="bg-muted/50 rounded-lg p-4 flex items-center gap-4">
-                                           <Image src={gift.imageUrl} alt={gift.name} width={80} height={80} className="drop-shadow-lg" />
-                                           <div className="flex-1">
-                                               <h4 className="font-bold text-lg">{gift.name}</h4>
-                                               <p className="text-sm text-muted-foreground">{gift.description}</p>
-                                               <p className="text-xs text-muted-foreground mt-2">Top Gifter: <span className="font-semibold text-primary">{gift.topGifter}</span></p>
-                                           </div>
-                                           <Badge variant="destructive" className="self-start">x{gift.count}</Badge>
-                                       </div>
-                                  ))}
-                              </div>
-                          </div>
-                           <div>
-                              <h3 className="text-lg font-semibold font-headline flex items-center mb-4"><Gift className="mr-2 h-5 w-5 text-secondary-foreground"/> Epic & Rare Gifts</h3>
-                              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                                  {mockGifts.filter(g => g.rarity !== 'Legendary').map(gift => (
-                                       <div key={gift.id} className="bg-muted/50 rounded-lg p-3 flex flex-col items-center text-center">
-                                           <Image src={gift.imageUrl} alt={gift.name} width={64} height={64} className="drop-shadow-md" />
-                                           <h4 className="font-bold text-sm mt-2">{gift.name}</h4>
-                                           <p className="text-xs text-muted-foreground">x{gift.count}</p>
-                                       </div>
-                                  ))}
-                              </div>
-                          </div>
-                      </div>
-                  ) : (
-                      <div className="text-center py-12 text-muted-foreground">
-                          <p>No gifts received yet.</p>
-                          <p className="text-sm">Support this creator during their next live stream!</p>
-                      </div>
-                  )}
-              </CardContent>
+                <CardContent className="p-6">
+                    <div className="text-center py-16 text-muted-foreground">
+                        <Gift className="h-12 w-12 mx-auto mb-4" />
+                        <h3 className="text-lg font-semibold">Coming Soon!</h3>
+                        <p className="text-sm">This feature is under construction. Check back later to see all the gifts this creator has received.</p>
+                    </div>
+                </CardContent>
             </Card>
           </TabsContent>
           <TabsContent value="activity">
