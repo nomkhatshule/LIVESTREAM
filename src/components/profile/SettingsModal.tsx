@@ -41,6 +41,7 @@ export default function SettingsModal({ open, onOpenChange, onEditProfileClick, 
           </DialogDescription>
         </DialogHeader>
         <div className="py-2 flex flex-col">
+           <Separator />
            <Button variant="ghost" className="w-full justify-start text-base py-6 rounded-none" onClick={onEditProfileClick}>
              <User className="mr-3 h-5 w-5" />
              Edit Profile
