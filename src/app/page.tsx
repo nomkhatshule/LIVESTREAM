@@ -2,7 +2,7 @@
 'use client';
 
 import { Suspense, useEffect, useRef, useState, useMemo } from 'react';
-import { useUser, useFirestore, useMemoFirebase, useStorage } from '@/firebase';
+import { useUser, useFirestore, useMemoFirebase, useStorage, useUserDocument } from '@/firebase';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { collection, query, where, writeBatch, doc, orderBy } from 'firebase/firestore';
 import type { Broadcast, Notification } from '@/lib/data';
@@ -33,13 +33,15 @@ import {
 import { UserSearch } from '@/components/search/user-search';
 import UploadHighlightForm from '@/components/feed/UploadHighlightForm';
 import InboxPanel from '@/components/feed/InboxPanel';
-import { Film, User as UserIcon } from 'lucide-react';
+import { Film } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import NotificationsPanel from '@/components/feed/NotificationsPanel';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 function HomePageContent() {
     const router = useRouter();
     const { user, isUserLoading } = useUser();
+    const { userDocument, isDocLoading: isUserDocLoading } = useUserDocument();
     const firestore = useFirestore();
     const setActiveBroadcastId = useStreamStore((state) => state.setActiveBroadcastId);
     const disconnect = useStreamStore((state) => state.disconnect);
@@ -85,8 +87,10 @@ function HomePageContent() {
         });
         await batch.commit().catch(err => console.error("Failed to mark notifications as read:", err));
     };
+    
+    const isLoading = isUserLoading || areBroadcastsLoading || areNotificationsLoading || isUserDocLoading;
 
-    if (isUserLoading || areBroadcastsLoading || areNotificationsLoading) {
+    if (isLoading) {
         return (
             <div className="flex h-screen w-full items-center justify-center bg-background">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -165,7 +169,12 @@ function HomePageContent() {
                              <DropdownMenuSeparator />
                             <DropdownMenuItem asChild>
                                 <Link href={`/profile/${user.uid}`}>
-                                    <UserIcon className="mr-2 h-4 w-4" />
+                                    <Avatar className="h-4 w-4 mr-2">
+                                        <AvatarImage src={userDocument?.profilePicture} />
+                                        <AvatarFallback className="text-xs">
+                                            {userDocument?.username?.charAt(0) || user.displayName?.charAt(0)}
+                                        </AvatarFallback>
+                                    </Avatar>
                                     <span>My Profile</span>
                                 </Link>
                             </DropdownMenuItem>
