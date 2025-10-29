@@ -1,4 +1,3 @@
-
 'use client';
 
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -6,7 +5,7 @@ import { SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet
 import ActivityItem from "./ActivityItem";
 import type { Notification } from '@/lib/data';
 import { Skeleton } from "../ui/skeleton";
-import { BellRing } from "lucide-react";
+import { MessageCircleHeart } from "lucide-react";
 
 interface ActivityPanelProps {
     notifications: Notification[];
@@ -47,7 +46,7 @@ export default function ActivityPanel({ notifications, isLoading }: ActivityPane
                         ))
                     ) : (
                         <div className="flex flex-col items-center justify-center h-full text-center text-zinc-500 pt-24">
-                           <BellRing className="h-12 w-12 mb-4" />
+                           <MessageCircleHeart className="h-12 w-12 mb-4" />
                            <h3 className="text-lg font-semibold text-white">No Activity Yet</h3>
                            <p>Likes, comments, and new followers will appear here.</p>
                         </div>

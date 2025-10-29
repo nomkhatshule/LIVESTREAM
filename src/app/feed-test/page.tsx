@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Suspense, useEffect, useRef, useState, useMemo } from 'react';
@@ -6,7 +5,7 @@ import { useUser, useFirestore, useMemoFirebase, useStorage } from '@/firebase';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { collection, query, where, writeBatch, doc, orderBy } from 'firebase/firestore';
 import type { Broadcast, Notification } from '@/lib/data';
-import { Clapperboard, Loader2, Bell, ChevronDownCircle, BellRing } from 'lucide-react';
+import { Clapperboard, Loader2, Bell, ChevronDownCircle, BellRing, MessageCircleHeart } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import BroadcastPlayer from '@/components/broadcast/broadcast-player';
 import { useStreamStore } from '@/lib/stream-store';
@@ -139,7 +138,7 @@ function FeedPageContent() {
                              <Sheet open={isActivityOpen} onOpenChange={setIsActivityOpen}>
                                 <SheetTrigger asChild>
                                     <DropdownMenuItem onSelect={(e) => { e.preventDefault(); handleOpenActivity(); }}>
-                                        <BellRing className="mr-2 h-4 w-4" />
+                                        <MessageCircleHeart className="mr-2 h-4 w-4" />
                                         <span>Activity</span>
                                         {unreadCount > 0 && <span className="ml-auto bg-primary text-primary-foreground text-xs font-bold px-2 py-0.5 rounded-full">{unreadCount}</span>}
                                     </DropdownMenuItem>
