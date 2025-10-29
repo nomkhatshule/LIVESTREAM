@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Comment, GiphyResult } from '@/lib/types';
-import { ArrowUp, MessageCircle, MessageCircleOff, Smile, X } from 'lucide-react';
+import { ArrowUp, MessageCircle, MessageCircleOff, Smile, X, Heart, ThumbsUp } from 'lucide-react';
 import Image from 'next/image';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import GifPicker from '../inbox/GifPicker';
@@ -17,7 +17,7 @@ interface ChatPanelProps {
     newMessage: string;
     onNewMessageChange: (message: string) => void;
     onSendMessage: (e: React.FormEvent, attachment?: any) => void;
-    onReaction: () => void;
+    onReaction: (emoji: React.ReactNode) => void;
     onToggleVisibility: () => void;
     isGifPickerOpen: boolean;
     onGifPickerOpenChange: (open: boolean) => void;
@@ -40,6 +40,15 @@ export default function ChatPanel({
     selectedGif,
     onClearSelectedGif
 }: ChatPanelProps) {
+
+    const reactions = [
+        { id: 'heart', emoji: <Heart key="heart" className="text-red-500 fill-red-500" /> },
+        { id: 'thumb', emoji: <ThumbsUp key="thumbsup" className="text-yellow-400 fill-yellow-400" /> },
+        { id: 'laugh', emoji: '😂' },
+        { id: 'fire', emoji: '🔥' },
+        { id: 'party', emoji: '🎉' },
+    ];
+
     if (!isVisible) {
         return (
             <div className="absolute bottom-4 right-4 z-10 pointer-events-auto">
@@ -92,9 +101,22 @@ export default function ChatPanel({
                         className="bg-black/50 border-white/20 text-white placeholder:text-gray-400 pr-28"
                     />
                     <div className="absolute inset-y-0 right-0 flex items-center">
-                        <Button variant="ghost" size="icon" onClick={onReaction} type="button" className="text-white rounded-full h-9 w-9">
-                            <Smile className="h-5 w-5" />
-                        </Button>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button variant="ghost" size="icon" type="button" className="text-white rounded-full h-9 w-9">
+                                    <Smile className="h-5 w-5" />
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto bg-black/50 border-white/20 p-1" side="top" align="end">
+                                <div className="flex gap-1">
+                                    {reactions.map(r => (
+                                        <Button key={r.id} variant="ghost" size="icon" className="text-white text-xl" onClick={() => onReaction(r.emoji)}>
+                                            {r.emoji}
+                                        </Button>
+                                    ))}
+                                </div>
+                            </PopoverContent>
+                        </Popover>
                         <Popover open={isGifPickerOpen} onOpenChange={onGifPickerOpenChange}>
                             <PopoverTrigger asChild>
                                 <Button size="icon" type="button" variant="ghost" className="rounded-full h-9 w-9 text-white">
@@ -117,3 +139,5 @@ export default function ChatPanel({
         </div>
     );
 };
+
+    
