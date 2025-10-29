@@ -41,6 +41,7 @@ export interface BroadcastData {
     challengeStartTime?: Timestamp;
     challengeDurationSeconds?: number;
     challengeCardPosition?: { x: number; y: number };
+    challengeCardSize?: { width: number, height: number },
     streamDetails?: {
       isScreenSharing: boolean;
     },
@@ -49,4 +50,13 @@ export interface BroadcastData {
         name: string;
         avatarUrl: string;
     }
+}
+
+export interface GiphyResult {
+    id: string;
+    images: {
+        fixed_width: { url: string; };
+        original: { url: string; };
+    };
+    title: string;
 }

@@ -36,7 +36,7 @@ import FloatingReactions from '@/components/agora-test/FloatingReactions';
 import InStreamGamesPanel from '@/components/agora-test/InStreamGamesPanel';
 import StreamControls from '@/components/agora-test/StreamControls';
 import ChatPanel from '@/components/agora-test/ChatPanel';
-import type { Reaction, StagedChallenge, BroadcastData, Comment } from '@/lib/types';
+import type { Reaction, StagedChallenge, BroadcastData, Comment, GiphyResult } from '@/lib/types';
 import { generateGamePrompts } from '@/ai/flows/generate-game-prompts';
 import { Resizable } from 're-resizable';
 
@@ -67,6 +67,8 @@ function AgoraTestPageUI() {
   const [isPinching, setIsPinching] = useState(false);
   const initialPinchDistanceRef = useRef(0);
   const initialCardSizeRef = useRef({ width: 320, height: 460 });
+  const [isGifPickerOpen, setIsGifPickerOpen] = useState(false);
+  const [selectedGif, setSelectedGif] = useState<GiphyResult | null>(null);
 
   // Stream SDK Hooks
   const { useCameraState, useMicrophoneState, useScreenShareState, useParticipants, useCallCallingState } = useCallStateHooks();
@@ -306,19 +308,31 @@ function AgoraTestPageUI() {
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (newMessage.trim() === '' || !user || !broadcastId || !userDocument) return;
+    if ((newMessage.trim() === '' && !selectedGif) || !user || !broadcastId || !userDocument) return;
 
-    const newComment: Omit<Comment, 'id'> & { timestamp: any } = {
+    let attachment;
+    if (selectedGif) {
+        attachment = {
+            type: 'giphy',
+            title: selectedGif.title,
+            imageUrl: selectedGif.images.original.url,
+            thumbUrl: selectedGif.images.fixed_width.url,
+        }
+    }
+
+    const newComment: Omit<Comment, 'id'> & { timestamp: any, attachment?: any } = {
         userId: user.uid,
         username: userDocument.username || 'Anonymous',
         userAvatar: userDocument.profilePicture || '',
         message: newMessage,
         timestamp: serverTimestamp(),
+        attachment: attachment || null,
     };
     
     const messagesCollectionRef = collection(firestore, 'broadcasts', broadcastId, 'messages');
     addDocumentNonBlocking(messagesCollectionRef, newComment);
     setNewMessage('');
+    setSelectedGif(null);
   }
   
   const handleEndStream = async () => {
@@ -404,6 +418,12 @@ function AgoraTestPageUI() {
          }
        }
   };
+  
+    const handleGifSelect = (gif: GiphyResult) => {
+        setSelectedGif(gif);
+        setIsGifPickerOpen(false);
+    };
+
 
   if (isBroadcastLoading || !broadcastData) {
       return (
@@ -553,6 +573,11 @@ function AgoraTestPageUI() {
             onSendMessage={handleSendMessage}
             onReaction={handleReaction}
             onToggleVisibility={() => setIsChatVisible(prev => !prev)}
+            isGifPickerOpen={isGifPickerOpen}
+            onGifPickerOpenChange={setIsGifPickerOpen}
+            onGifSelect={handleGifSelect}
+            selectedGif={selectedGif}
+            onClearSelectedGif={() => setSelectedGif(null)}
         />
     </div>
   );
@@ -710,5 +735,3 @@ export default function AgoraTestPage() {
         </Suspense>
     )
 }
-
-    

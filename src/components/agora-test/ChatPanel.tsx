@@ -5,21 +5,41 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Comment } from '@/lib/types';
-import { ArrowUp, MessageCircle, MessageCircleOff, Smile } from 'lucide-react';
+import { Comment, GiphyResult } from '@/lib/types';
+import { ArrowUp, MessageCircle, MessageCircleOff, Smile, X } from 'lucide-react';
 import Image from 'next/image';
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import GifPicker from '../inbox/GifPicker';
 
 interface ChatPanelProps {
     isVisible: boolean;
     comments: Comment[] | null;
     newMessage: string;
     onNewMessageChange: (message: string) => void;
-    onSendMessage: (e: React.FormEvent) => void;
+    onSendMessage: (e: React.FormEvent, attachment?: any) => void;
     onReaction: () => void;
     onToggleVisibility: () => void;
+    isGifPickerOpen: boolean;
+    onGifPickerOpenChange: (open: boolean) => void;
+    onGifSelect: (gif: GiphyResult) => void;
+    selectedGif: GiphyResult | null;
+    onClearSelectedGif: () => void;
 }
 
-export default function ChatPanel({ isVisible, comments, newMessage, onNewMessageChange, onSendMessage, onReaction, onToggleVisibility }: ChatPanelProps) {
+export default function ChatPanel({ 
+    isVisible, 
+    comments, 
+    newMessage, 
+    onNewMessageChange, 
+    onSendMessage, 
+    onReaction, 
+    onToggleVisibility,
+    isGifPickerOpen,
+    onGifPickerOpenChange,
+    onGifSelect,
+    selectedGif,
+    onClearSelectedGif
+}: ChatPanelProps) {
     if (!isVisible) {
         return (
             <div className="absolute bottom-4 right-4 z-10 pointer-events-auto">
@@ -55,17 +75,37 @@ export default function ChatPanel({ isVisible, comments, newMessage, onNewMessag
                     ))}
                 </div>
             </ScrollArea>
-            <form onSubmit={onSendMessage} className="relative mt-4 flex items-center gap-2 pointer-events-auto">
+             {selectedGif && (
+                <div className="relative w-32 h-24 mt-2 pointer-events-auto">
+                    <Image src={selectedGif.images.fixed_width.url} alt={selectedGif.title} fill className="object-cover rounded-md" />
+                     <Button variant="destructive" size="icon" className="absolute -top-2 -right-2 h-6 w-6 rounded-full" onClick={onClearSelectedGif}>
+                        <X className="h-4 w-4" />
+                    </Button>
+                </div>
+            )}
+            <form onSubmit={onSendMessage} className="relative mt-2 flex items-center gap-2 pointer-events-auto">
                 <div className="relative flex-1">
                     <Input
                         placeholder="Add a comment..."
                         value={newMessage}
                         onChange={(e) => onNewMessageChange(e.target.value)}
-                        className="bg-black/50 border-white/20 text-white placeholder:text-gray-400 pr-10"
+                        className="bg-black/50 border-white/20 text-white placeholder:text-gray-400 pr-20"
                     />
-                    <Button variant="ghost" size="icon" type="submit" className="absolute inset-y-0 right-0 text-white">
-                        <ArrowUp className="h-5 w-5" />
-                    </Button>
+                    <div className="absolute inset-y-0 right-0 flex items-center">
+                        <Popover open={isGifPickerOpen} onOpenChange={onGifPickerOpenChange}>
+                            <PopoverTrigger asChild>
+                                <Button size="icon" type="button" variant="ghost" className="rounded-full h-9 w-9 text-white">
+                                    <b className="text-xs">GIF</b>
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-screen sm:w-96 h-96 p-0 border-zinc-700 bg-zinc-900" side="top" align="end">
+                               <GifPicker onSendGif={onGifSelect} />
+                            </PopoverContent>
+                        </Popover>
+                        <Button variant="ghost" size="icon" type="submit" className="text-white">
+                            <ArrowUp className="h-5 w-5" />
+                        </Button>
+                    </div>
                 </div>
                 <Button variant="ghost" size="icon" onClick={onReaction} className="text-white bg-black/50 rounded-full h-10 w-10">
                     <Smile className="h-5 w-5" />
