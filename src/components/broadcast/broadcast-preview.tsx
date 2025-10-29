@@ -66,8 +66,6 @@ function BroadcastPreviewUIManager({
     const [selectedGif, setSelectedGif] = useState<GiphyResult | null>(null);
     const { user } = useUser();
 
-    const reversedComments = useMemo(() => comments ? [...comments].reverse() : [], [comments]);
-
     const handleFormSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (newMessage.trim() || selectedGif) {
@@ -222,8 +220,8 @@ function BroadcastPreviewUIManager({
                     <div className="w-full sm:max-w-sm md:max-w-md">
                             <>
                             <ScrollArea className="h-48 w-full pr-4 pointer-events-auto">
-                                <div className="flex flex-col gap-y-3">
-                                    {reversedComments.map((comment) => (
+                                <div className="flex flex-col-reverse gap-y-3">
+                                    {comments.map((comment) => (
                                         <div key={comment.id} className="group flex items-start gap-2 text-sm bg-black/25 p-2 rounded-lg">
                                             <Link href={`/profile/${comment.userId}`} className="pointer-events-auto">
                                                 <Avatar className="h-6 w-6 border-secondary">
