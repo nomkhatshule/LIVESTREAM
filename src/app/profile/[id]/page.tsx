@@ -18,6 +18,8 @@ import { mockGifts, type Highlight } from '@/lib/data';
 import { Badge } from '@/components/ui/badge';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import SettingsModal from '@/components/profile/SettingsModal';
+import EditProfileModal from '@/components/profile/EditProfileModal';
+import AccountModal from '@/components/profile/AccountModal';
 
 
 // Mock data for recent activity - in a real app this would be a Firestore query
@@ -35,6 +37,8 @@ export default function UserProfilePage() {
   const firestore = useFirestore();
   const { toast } = useToast();
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
+  const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
   
   const { userDocument, isDocLoading } = useUserDocumentById(profileUserId);
 
@@ -147,7 +151,21 @@ export default function UserProfilePage() {
   
   return (
     <>
-      <SettingsModal open={isSettingsModalOpen} onOpenChange={setIsSettingsModalOpen} />
+      <SettingsModal 
+        open={isSettingsModalOpen} 
+        onOpenChange={setIsSettingsModalOpen}
+        onEditProfileClick={() => {
+            setIsSettingsModalOpen(false);
+            setIsEditProfileModalOpen(true);
+        }}
+        onAccountClick={() => {
+            setIsSettingsModalOpen(false);
+            setIsAccountModalOpen(true);
+        }}
+       />
+      <EditProfileModal open={isEditProfileModalOpen} onOpenChange={setIsEditProfileModalOpen} />
+      <AccountModal open={isAccountModalOpen} onOpenChange={setIsAccountModalOpen} />
+
       <div className="container mx-auto max-w-4xl py-8 px-4">
         <Tabs defaultValue="highlights" className="w-full">
           {/* Profile Header Card */}
