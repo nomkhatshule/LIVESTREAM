@@ -9,7 +9,7 @@ import { useUser, useFirestore, useCollection, useMemoFirebase, useUserDocument 
 import { Button } from '@/components/ui/button';
 import { doc, writeBatch, serverTimestamp, where, query, orderBy, limit, collection, addDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { UserPlus, UserCheck, MessageSquare, Heart, Pencil, Eye, Gem, Gift, Video } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Link from 'next/link';
@@ -17,6 +17,7 @@ import Image from 'next/image';
 import { mockGifts, type Highlight } from '@/lib/data';
 import { Badge } from '@/components/ui/badge';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import EditProfileModal from '@/components/profile/EditProfileModal';
 
 
 // Mock data for recent activity - in a real app this would be a Firestore query
@@ -33,6 +34,7 @@ export default function UserProfilePage() {
   const { userDocument: currentUserDocument } = useUserDocument();
   const firestore = useFirestore();
   const { toast } = useToast();
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   
   const { userDocument, isDocLoading } = useUserDocumentById(profileUserId);
 
@@ -144,192 +146,193 @@ export default function UserProfilePage() {
   }
   
   return (
-    <div className="container mx-auto max-w-4xl py-8 px-4">
-      <Tabs defaultValue="highlights" className="w-full">
-        {/* Profile Header Card */}
-        <Card className="overflow-hidden mb-2">
-            <div className="relative h-48 w-full bg-muted">
-              {userDocument.coverUrl && userDocument.coverType === 'video' ? (
-                    <video
-                        src={userDocument.coverUrl}
-                        autoPlay
-                        loop
-                        muted
-                        playsInline
-                        className="object-cover w-full h-full"
-                    />
-                ) : userDocument.coverUrl && userDocument.coverType === 'image' ? (
-                    <Image 
-                        src={userDocument.coverUrl}
-                        alt="Cover photo"
-                        fill
-                        className="object-cover"
-                    />
-                ) : (
-                    <div className="h-full w-full bg-muted" />
-                )}
-              {isOwnProfile && (
-                <Button asChild size="sm" className="absolute top-3 right-3">
-                    <Link href="/profile">
-                        <Pencil className="mr-2 h-4 w-4" />
-                        Edit Profile
-                    </Link>
-                </Button>
-              )}
-            </div>
-            <div className="flex flex-col items-center p-6 pt-0 -mt-24">
-              <Avatar className="w-28 h-28 border-4 border-background ring-4 ring-primary">
-                <AvatarImage src={userDocument.profilePicture || "https://picsum.photos/seed/profile-placeholder/200"} alt={userDocument.username || ''} />
-                <AvatarFallback className="text-4xl">{userDocument.username?.charAt(0)}</AvatarFallback>
-              </Avatar>
-              <h1 className="text-3xl font-bold font-headline mt-4">{userDocument.username || 'Anonymous'}</h1>
-              <p className="text-center text-muted-foreground max-w-lg mt-2">{userDocument.bio}</p>
-              
-              <div className="flex items-center gap-6 mt-6">
-                <div className="text-center">
-                  <p className="text-2xl font-bold">{followersList?.length || 0}</p>
-                  <p className="text-sm text-muted-foreground">Followers</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-2xl font-bold">{followingList?.length || 0}</p>
-                  <p className="text-sm text-muted-foreground">Following</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-2xl font-bold">{totalLikes.toLocaleString()}</p>
-                  <p className="text-sm text-muted-foreground">Likes</p>
-                </div>
-              </div>
-              
-              {!isOwnProfile && currentUser && (
-                <div className="mt-6 flex items-center gap-2">
-                  <Button onClick={handleFollowToggle} variant={isFollowing ? 'secondary' : 'default'} size="lg">
-                    {isFollowing ? <UserCheck className="mr-2" /> : <UserPlus className="mr-2" />}
-                    {isFollowing ? 'Following' : 'Follow'}
-                  </Button>
-                   <Button asChild variant="outline" size="lg">
-                      <Link href={`/inbox-page?with=${profileUserId}`}>
-                        <MessageSquare className="mr-2" />
-                        Message
-                      </Link>
-                   </Button>
-                </div>
-              )}
-            </div>
-          <TabsList className="grid w-full grid-cols-3 rounded-none border-t">
-            <TabsTrigger value="highlights">Highlights</TabsTrigger>
-            <TabsTrigger value="gifts">Gifts</TabsTrigger>
-            <TabsTrigger value="activity">Activity</TabsTrigger>
-          </TabsList>
-        </Card>
-
-        {/* Activity Tabs Content */}
-        <TabsContent value="highlights">
-          {areHighlightsLoading ? (
-             <div className="grid grid-cols-3 gap-1">
-                {[...Array(6)].map((_, i) => <Skeleton key={i} className="aspect-[9/16]"/>)}
-            </div>
-          ) : highlights && highlights.length > 0 ? (
-            <div className="grid grid-cols-3 gap-1">
-              {highlights.map((highlight) => (
-                  <div key={highlight.id} className="relative group aspect-[9/16] overflow-hidden rounded-md bg-muted">
+    <>
+      <EditProfileModal open={isEditModalOpen} onOpenChange={setIsEditModalOpen} />
+      <div className="container mx-auto max-w-4xl py-8 px-4">
+        <Tabs defaultValue="highlights" className="w-full">
+          {/* Profile Header Card */}
+          <Card className="overflow-hidden mb-2">
+              <div className="relative h-48 w-full bg-muted">
+                {userDocument.coverUrl && userDocument.coverType === 'video' ? (
                       <video
-                          src={highlight.videoUrl}
+                          src={userDocument.coverUrl}
+                          autoPlay
                           loop
                           muted
                           playsInline
-                          className="object-cover w-full h-full transition-transform group-hover:scale-105"
-                          onMouseOver={e => e.currentTarget.play()}
-                          onMouseOut={e => e.currentTarget.pause()}
+                          className="object-cover w-full h-full"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                      <div className="absolute bottom-2 left-2 text-white">
-                        <p className="text-xs font-bold truncate">{highlight.title}</p>
-                      </div>
-                  </div>
-              ))}
-            </div>
-          ) : (
-             <div className="text-center py-16 text-muted-foreground bg-card rounded-b-lg">
-                  <Video className="h-12 w-12 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold">No Highlights Yet</h3>
-                  {isOwnProfile ? (
-                    <p>Upload your first highlight from the feed!</p>
+                  ) : userDocument.coverUrl && userDocument.coverType === 'image' ? (
+                      <Image 
+                          src={userDocument.coverUrl}
+                          alt="Cover photo"
+                          fill
+                          className="object-cover"
+                      />
                   ) : (
-                    <p>This user hasn't shared any highlights.</p>
+                      <div className="h-full w-full bg-muted" />
                   )}
-                </div>
-          )}
-        </TabsContent>
-         <TabsContent value="gifts">
-          <Card>
-            <CardContent className="p-6">
-                {mockGifts.length > 0 ? (
-                    <div className="space-y-8">
-                        <div>
-                            <h3 className="text-lg font-semibold font-headline flex items-center mb-4"><Gem className="mr-2 h-5 w-5 text-primary"/> Legendary Gifts</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {mockGifts.filter(g => g.rarity === 'Legendary').map(gift => (
-                                     <div key={gift.id} className="bg-muted/50 rounded-lg p-4 flex items-center gap-4">
-                                         <Image src={gift.imageUrl} alt={gift.name} width={80} height={80} className="drop-shadow-lg" />
-                                         <div className="flex-1">
-                                             <h4 className="font-bold text-lg">{gift.name}</h4>
-                                             <p className="text-sm text-muted-foreground">{gift.description}</p>
-                                             <p className="text-xs text-muted-foreground mt-2">Top Gifter: <span className="font-semibold text-primary">{gift.topGifter}</span></p>
-                                         </div>
-                                         <Badge variant="destructive" className="self-start">x{gift.count}</Badge>
-                                     </div>
-                                ))}
-                            </div>
-                        </div>
-                         <div>
-                            <h3 className="text-lg font-semibold font-headline flex items-center mb-4"><Gift className="mr-2 h-5 w-5 text-secondary-foreground"/> Epic & Rare Gifts</h3>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                                {mockGifts.filter(g => g.rarity !== 'Legendary').map(gift => (
-                                     <div key={gift.id} className="bg-muted/50 rounded-lg p-3 flex flex-col items-center text-center">
-                                         <Image src={gift.imageUrl} alt={gift.name} width={64} height={64} className="drop-shadow-md" />
-                                         <h4 className="font-bold text-sm mt-2">{gift.name}</h4>
-                                         <p className="text-xs text-muted-foreground">x{gift.count}</p>
-                                     </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                ) : (
-                    <div className="text-center py-12 text-muted-foreground">
-                        <p>No gifts received yet.</p>
-                        <p className="text-sm">Support this creator during their next live stream!</p>
-                    </div>
+                {isOwnProfile && (
+                  <Button size="sm" className="absolute top-3 right-3" onClick={() => setIsEditModalOpen(true)}>
+                      <Pencil className="mr-2 h-4 w-4" />
+                      Edit Profile
+                  </Button>
                 )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="activity">
-          <Card>
-            <CardContent className="p-6 space-y-6">
-              {mockActivity.map(activity => (
-                <div key={activity.id} className="flex items-start gap-4">
-                  <div className="bg-secondary p-3 rounded-full flex-shrink-0">
-                    <MessageSquare className="h-5 w-5 text-secondary-foreground" />
+              </div>
+              <div className="flex flex-col items-center p-6 pt-0 -mt-24">
+                <Avatar className="w-28 h-28 border-4 border-background ring-4 ring-primary">
+                  <AvatarImage src={userDocument.profilePicture || "https://picsum.photos/seed/profile-placeholder/200"} alt={userDocument.username || ''} />
+                  <AvatarFallback className="text-4xl">{userDocument.username?.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <h1 className="text-3xl font-bold font-headline mt-4">{userDocument.username || 'Anonymous'}</h1>
+                <p className="text-center text-muted-foreground max-w-lg mt-2">{userDocument.bio}</p>
+                
+                <div className="flex items-center gap-6 mt-6">
+                  <div className="text-center">
+                    <p className="text-2xl font-bold">{followersList?.length || 0}</p>
+                    <p className="text-sm text-muted-foreground">Followers</p>
                   </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-muted-foreground">
-                      Commented on <Link href={`/broadcast/${activity.broadcastId}`} className="font-semibold text-foreground hover:underline">{activity.broadcastTitle}</Link>
-                    </p>
-                    <p className="p-3 bg-muted/50 rounded-lg mt-1 italic">"{activity.message}"</p>
-                     <p className="text-xs text-muted-foreground mt-1.5">{activity.timestamp}</p>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold">{followingList?.length || 0}</p>
+                    <p className="text-sm text-muted-foreground">Following</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold">{totalLikes.toLocaleString()}</p>
+                    <p className="text-sm text-muted-foreground">Likes</p>
                   </div>
                 </div>
-              ))}
-              {mockActivity.length === 0 && (
-                <div className="text-center py-12 text-muted-foreground">
-                  <p>No recent activity.</p>
-                </div>
-              )}
-            </CardContent>
+                
+                {!isOwnProfile && currentUser && (
+                  <div className="mt-6 flex items-center gap-2">
+                    <Button onClick={handleFollowToggle} variant={isFollowing ? 'secondary' : 'default'} size="lg">
+                      {isFollowing ? <UserCheck className="mr-2" /> : <UserPlus className="mr-2" />}
+                      {isFollowing ? 'Following' : 'Follow'}
+                    </Button>
+                     <Button asChild variant="outline" size="lg">
+                        <Link href={`/inbox-page?with=${profileUserId}`}>
+                          <MessageSquare className="mr-2" />
+                          Message
+                        </Link>
+                     </Button>
+                  </div>
+                )}
+              </div>
+            <TabsList className="grid w-full grid-cols-3 rounded-none border-t">
+              <TabsTrigger value="highlights">Highlights</TabsTrigger>
+              <TabsTrigger value="gifts">Gifts</TabsTrigger>
+              <TabsTrigger value="activity">Activity</TabsTrigger>
+            </TabsList>
           </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
+
+          {/* Activity Tabs Content */}
+          <TabsContent value="highlights">
+            {areHighlightsLoading ? (
+               <div className="grid grid-cols-3 gap-1">
+                  {[...Array(6)].map((_, i) => <Skeleton key={i} className="aspect-[9/16]"/>)}
+              </div>
+            ) : highlights && highlights.length > 0 ? (
+              <div className="grid grid-cols-3 gap-1">
+                {highlights.map((highlight) => (
+                    <div key={highlight.id} className="relative group aspect-[9/16] overflow-hidden rounded-md bg-muted">
+                        <video
+                            src={highlight.videoUrl}
+                            loop
+                            muted
+                            playsInline
+                            className="object-cover w-full h-full transition-transform group-hover:scale-105"
+                            onMouseOver={e => e.currentTarget.play()}
+                            onMouseOut={e => e.currentTarget.pause()}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                        <div className="absolute bottom-2 left-2 text-white">
+                          <p className="text-xs font-bold truncate">{highlight.title}</p>
+                        </div>
+                    </div>
+                ))}
+              </div>
+            ) : (
+               <div className="text-center py-16 text-muted-foreground bg-card rounded-b-lg">
+                    <Video className="h-12 w-12 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold">No Highlights Yet</h3>
+                    {isOwnProfile ? (
+                      <p>Upload your first highlight from the feed!</p>
+                    ) : (
+                      <p>This user hasn't shared any highlights.</p>
+                    )}
+                  </div>
+            )}
+          </TabsContent>
+           <TabsContent value="gifts">
+            <Card>
+              <CardContent className="p-6">
+                  {mockGifts.length > 0 ? (
+                      <div className="space-y-8">
+                          <div>
+                              <h3 className="text-lg font-semibold font-headline flex items-center mb-4"><Gem className="mr-2 h-5 w-5 text-primary"/> Legendary Gifts</h3>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  {mockGifts.filter(g => g.rarity === 'Legendary').map(gift => (
+                                       <div key={gift.id} className="bg-muted/50 rounded-lg p-4 flex items-center gap-4">
+                                           <Image src={gift.imageUrl} alt={gift.name} width={80} height={80} className="drop-shadow-lg" />
+                                           <div className="flex-1">
+                                               <h4 className="font-bold text-lg">{gift.name}</h4>
+                                               <p className="text-sm text-muted-foreground">{gift.description}</p>
+                                               <p className="text-xs text-muted-foreground mt-2">Top Gifter: <span className="font-semibold text-primary">{gift.topGifter}</span></p>
+                                           </div>
+                                           <Badge variant="destructive" className="self-start">x{gift.count}</Badge>
+                                       </div>
+                                  ))}
+                              </div>
+                          </div>
+                           <div>
+                              <h3 className="text-lg font-semibold font-headline flex items-center mb-4"><Gift className="mr-2 h-5 w-5 text-secondary-foreground"/> Epic & Rare Gifts</h3>
+                              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                                  {mockGifts.filter(g => g.rarity !== 'Legendary').map(gift => (
+                                       <div key={gift.id} className="bg-muted/50 rounded-lg p-3 flex flex-col items-center text-center">
+                                           <Image src={gift.imageUrl} alt={gift.name} width={64} height={64} className="drop-shadow-md" />
+                                           <h4 className="font-bold text-sm mt-2">{gift.name}</h4>
+                                           <p className="text-xs text-muted-foreground">x{gift.count}</p>
+                                       </div>
+                                  ))}
+                              </div>
+                          </div>
+                      </div>
+                  ) : (
+                      <div className="text-center py-12 text-muted-foreground">
+                          <p>No gifts received yet.</p>
+                          <p className="text-sm">Support this creator during their next live stream!</p>
+                      </div>
+                  )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+          <TabsContent value="activity">
+            <Card>
+              <CardContent className="p-6 space-y-6">
+                {mockActivity.map(activity => (
+                  <div key={activity.id} className="flex items-start gap-4">
+                    <div className="bg-secondary p-3 rounded-full flex-shrink-0">
+                      <MessageSquare className="h-5 w-5 text-secondary-foreground" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm text-muted-foreground">
+                        Commented on <Link href={`/broadcast/${activity.broadcastId}`} className="font-semibold text-foreground hover:underline">{activity.broadcastTitle}</Link>
+                      </p>
+                      <p className="p-3 bg-muted/50 rounded-lg mt-1 italic">"{activity.message}"</p>
+                       <p className="text-xs text-muted-foreground mt-1.5">{activity.timestamp}</p>
+                    </div>
+                  </div>
+                ))}
+                {mockActivity.length === 0 && (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <p>No recent activity.</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </>
   );
 }
 
@@ -382,6 +385,8 @@ function ProfileSkeleton() {
     </div>
   );
 }
+
+    
 
     
 
