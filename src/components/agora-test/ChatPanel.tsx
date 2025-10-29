@@ -89,9 +89,12 @@ export default function ChatPanel({
                         placeholder="Add a comment..."
                         value={newMessage}
                         onChange={(e) => onNewMessageChange(e.target.value)}
-                        className="bg-black/50 border-white/20 text-white placeholder:text-gray-400 pr-20"
+                        className="bg-black/50 border-white/20 text-white placeholder:text-gray-400 pr-28"
                     />
                     <div className="absolute inset-y-0 right-0 flex items-center">
+                        <Button variant="ghost" size="icon" onClick={onReaction} type="button" className="text-white rounded-full h-9 w-9">
+                            <Smile className="h-5 w-5" />
+                        </Button>
                         <Popover open={isGifPickerOpen} onOpenChange={onGifPickerOpenChange}>
                             <PopoverTrigger asChild>
                                 <Button size="icon" type="button" variant="ghost" className="rounded-full h-9 w-9 text-white">
@@ -107,9 +110,6 @@ export default function ChatPanel({
                         </Button>
                     </div>
                 </div>
-                <Button variant="ghost" size="icon" onClick={onReaction} className="text-white bg-black/50 rounded-full h-10 w-10">
-                    <Smile className="h-5 w-5" />
-                </Button>
                 <Button variant="ghost" size="icon" onClick={onToggleVisibility} className="text-white bg-black/50 rounded-full h-10 w-10">
                     <MessageCircleOff className="h-5 w-5" />
                 </Button>
