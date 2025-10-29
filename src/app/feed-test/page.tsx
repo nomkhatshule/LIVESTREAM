@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { Suspense, useEffect, useRef, useState, useMemo } from 'react';
@@ -44,7 +45,7 @@ function FeedPageContent() {
     const setActiveBroadcastId = useStreamStore((state) => state.setActiveBroadcastId);
     const disconnect = useStreamStore((state) => state.disconnect);
     const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
-    const [isInboxOpen, setIsInboxOpen] = useState(false);
+    const [isMessagesOpen, setIsMessagesOpen] = useState(false);
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
     
     // Live broadcasts query
@@ -115,19 +116,19 @@ function FeedPageContent() {
                     <DropdownMenuContent className="w-56 p-0" align="end">
                         <UserSearch>
                             <DropdownMenuSeparator />
-                             <Sheet open={isInboxOpen} onOpenChange={setIsInboxOpen}>
+                             <Sheet open={isMessagesOpen} onOpenChange={setIsMessagesOpen}>
                                 <SheetTrigger asChild>
                                     <DropdownMenuItem onSelect={e => e.preventDefault()}>
                                         <MailCheck className="mr-2 h-4 w-4" />
-                                        <span>Inbox</span>
+                                        <span>Messages</span>
                                         {/* DM unread count will be managed by Stream SDK */}
                                     </DropdownMenuItem>
                                 </SheetTrigger>
                                 <SheetContent className="w-full sm:max-w-md">
                                     <SheetHeader>
-                                        <SheetTitle>Inbox</SheetTitle>
+                                        <SheetTitle>Messages</SheetTitle>
                                         <SheetDescription>
-                                            Recent notifications and direct messages.
+                                            Recent direct messages.
                                         </SheetDescription>
                                     </SheetHeader>
                                     <div className="h-[calc(100%-4rem)] py-4">
@@ -213,3 +214,5 @@ export default function FeedTestPage() {
         </Suspense>
     )
 }
+
+    
