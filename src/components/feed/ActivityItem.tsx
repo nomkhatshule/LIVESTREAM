@@ -1,19 +1,12 @@
+
 'use client';
 
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { UserPlus, Heart, MessageSquare } from 'lucide-react';
-
-export type Activity = {
-    type: 'follow' | 'like' | 'comment';
-    actorName: string;
-    actorAvatar: string;
-    entityInfo?: string;
-    commentText?: string;
-    timestamp: string;
-    actorId: string;
-};
+import type { Notification } from '@/lib/data';
+import { formatDistanceToNow } from 'date-fns';
 
 const iconMap = {
     follow: {
@@ -30,8 +23,9 @@ const iconMap = {
     },
 };
 
-export default function ActivityItem({ activity }: { activity: Activity }) {
+export default function ActivityItem({ activity }: { activity: Notification }) {
     const { Icon, bgColor } = iconMap[activity.type];
+    const timestamp = activity.timestamp ? formatDistanceToNow(activity.timestamp.toDate(), { addSuffix: true }) : 'just now';
 
     const getActionText = () => {
         switch (activity.type) {
@@ -40,11 +34,17 @@ export default function ActivityItem({ activity }: { activity: Activity }) {
             case 'like':
                 return 'liked your stream:';
             case 'comment':
-                return 'commented on your stream:';
+                return 'commented:';
             default:
                 return '';
         }
     };
+    
+    // Extract the quoted comment from the entityInfo
+    const commentMatch = activity.entityInfo?.match(/commented: "([^"]*)"/);
+    const commentText = commentMatch ? commentMatch[1] : '';
+    const entityText = activity.type === 'like' ? activity.entityInfo?.replace('liked your stream: ', '') : null;
+
 
     return (
         <div className="flex items-start gap-3 p-3 transition-colors hover:bg-zinc-900/50 rounded-lg">
@@ -63,16 +63,16 @@ export default function ActivityItem({ activity }: { activity: Activity }) {
                         {activity.actorName}
                     </Link>
                     {' '}{getActionText()}{' '}
-                    {activity.entityInfo && (
-                        <span className="font-semibold text-zinc-400 italic">"{activity.entityInfo}"</span>
+                    {entityText && (
+                        <span className="font-semibold text-zinc-400 italic">{entityText}</span>
                     )}
                 </p>
-                {activity.type === 'comment' && activity.commentText && (
-                    <blockquote className="mt-1 border-l-2 border-zinc-700 pl-2 text-zinc-400">
-                        {activity.commentText}
+                {activity.type === 'comment' && commentText && (
+                    <blockquote className="mt-1 border-l-2 border-zinc-700 pl-2 text-zinc-400 italic">
+                        "{commentText}"
                     </blockquote>
                 )}
-                <p className="mt-1 text-xs text-zinc-500">{activity.timestamp}</p>
+                <p className="mt-1 text-xs text-zinc-500">{timestamp}</p>
             </div>
         </div>
     );

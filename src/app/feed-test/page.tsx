@@ -117,7 +117,7 @@ function FeedPageContent() {
                             <DropdownMenuSeparator />
                              <Sheet open={isInboxOpen} onOpenChange={setIsInboxOpen}>
                                 <SheetTrigger asChild>
-                                    <DropdownMenuItem>
+                                    <DropdownMenuItem onSelect={e => e.preventDefault()}>
                                         <Bell className="mr-2 h-4 w-4" />
                                         <span>Inbox</span>
                                         {/* DM unread count will be managed by Stream SDK */}
@@ -138,14 +138,14 @@ function FeedPageContent() {
                             <DropdownMenuSeparator />
                              <Sheet open={isActivityOpen} onOpenChange={setIsActivityOpen}>
                                 <SheetTrigger asChild>
-                                    <DropdownMenuItem onSelect={handleOpenActivity}>
+                                    <DropdownMenuItem onSelect={(e) => { e.preventDefault(); handleOpenActivity(); }}>
                                         <ActivityIcon className="mr-2 h-4 w-4" />
                                         <span>Activity</span>
                                         {unreadCount > 0 && <span className="ml-auto bg-primary text-primary-foreground text-xs font-bold px-2 py-0.5 rounded-full">{unreadCount}</span>}
                                     </DropdownMenuItem>
                                 </SheetTrigger>
                                 <SheetContent className="w-full sm:max-w-md">
-                                    <ActivityPanel />
+                                    <ActivityPanel notifications={notifications || []} isLoading={areNotificationsLoading} />
                                 </SheetContent>
                             </Sheet>
                             <DropdownMenuSeparator />
