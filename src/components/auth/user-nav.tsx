@@ -82,10 +82,6 @@ export default function UserNav() {
               <CreditCard className="mr-2 h-4 w-4" />
               <span>Billing</span>
             </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Settings className="mr-2 h-4 w-4" />
-              <span>Settings</span>
-            </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <Link href={getStreamLink()}>
                 <PlusCircle className="mr-2 h-4 w-4" />
