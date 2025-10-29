@@ -35,7 +35,7 @@ import UploadHighlightForm from '@/components/feed/UploadHighlightForm';
 import InboxPanel from '@/components/feed/InboxPanel';
 import { Film, User as UserIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import ActivityPanel from '@/components/feed/ActivityPanel';
+import NotificationsPanel from '@/components/feed/NotificationsPanel';
 
 function FeedPageContent() {
     const router = useRouter();
@@ -45,7 +45,7 @@ function FeedPageContent() {
     const disconnect = useStreamStore((state) => state.disconnect);
     const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
     const [isInboxOpen, setIsInboxOpen] = useState(false);
-    const [isActivityOpen, setIsActivityOpen] = useState(false);
+    const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
     
     // Live broadcasts query
     const liveBroadcastsQuery = useMemoFirebase(() => {
@@ -73,7 +73,7 @@ function FeedPageContent() {
         }
     }, [disconnect]);
 
-    const handleOpenActivity = async () => {
+    const handleOpenNotifications = async () => {
         if (!user || !firestore || !notifications || unreadCount === 0) return;
 
         const batch = writeBatch(firestore);
@@ -136,16 +136,16 @@ function FeedPageContent() {
                                 </SheetContent>
                             </Sheet>
                             <DropdownMenuSeparator />
-                             <Sheet open={isActivityOpen} onOpenChange={setIsActivityOpen}>
+                             <Sheet open={isNotificationsOpen} onOpenChange={setIsNotificationsOpen}>
                                 <SheetTrigger asChild>
-                                    <DropdownMenuItem onSelect={(e) => { e.preventDefault(); handleOpenActivity(); }}>
+                                    <DropdownMenuItem onSelect={(e) => { e.preventDefault(); handleOpenNotifications(); }}>
                                         <MessageCircleHeart className="mr-2 h-4 w-4" />
-                                        <span>Activity</span>
+                                        <span>Notifications</span>
                                         {unreadCount > 0 && <span className="ml-auto bg-primary text-primary-foreground text-xs font-bold px-2 py-0.5 rounded-full">{unreadCount}</span>}
                                     </DropdownMenuItem>
                                 </SheetTrigger>
                                 <SheetContent className="w-full sm:max-w-md">
-                                    <ActivityPanel notifications={notifications || []} isLoading={areNotificationsLoading} />
+                                    <NotificationsPanel notifications={notifications || []} isLoading={areNotificationsLoading} />
                                 </SheetContent>
                             </Sheet>
                             <DropdownMenuSeparator />
