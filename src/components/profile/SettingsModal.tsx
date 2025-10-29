@@ -40,12 +40,13 @@ export default function SettingsModal({ open, onOpenChange, onEditProfileClick, 
             Manage your profile, account, and preferences.
           </DialogDescription>
         </DialogHeader>
-        <div className="py-2 flex flex-col gap-1">
-           <Button variant="ghost" className="w-full justify-start text-base py-6" onClick={onEditProfileClick}>
+        <div className="py-2 flex flex-col">
+           <Button variant="ghost" className="w-full justify-start text-base py-6 rounded-none" onClick={onEditProfileClick}>
              <User className="mr-3 h-5 w-5" />
              Edit Profile
            </Button>
-           <Button variant="ghost" className="w-full justify-start text-base py-6" onClick={onAccountClick}>
+           <Separator />
+           <Button variant="ghost" className="w-full justify-start text-base py-6 rounded-none" onClick={onAccountClick}>
              <Mail className="mr-3 h-5 w-5" />
              Account
            </Button>
