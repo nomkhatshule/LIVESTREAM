@@ -6,14 +6,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { categories } from '@/lib/data';
 import { useUser, useFirestore, useUserDocument } from '@/firebase';
 import { serverTimestamp, collection, addDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
@@ -32,18 +24,10 @@ function CreateBroadcastPageComponent() {
   const durationParam = searchParams.get('duration');
 
   const [title, setTitle] = useState('');
-  const [category, setCategory] = useState(challengeParam ? 'Games' : '');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    // If a challenge is passed, set the category, but not the title
-    if (challengeParam) {
-      setCategory('Games');
-    }
-  }, [challengeParam]);
 
   useEffect(() => {
     const getCameraPermission = async () => {
@@ -76,11 +60,11 @@ function CreateBroadcastPageComponent() {
         });
         return;
     }
-    if (!title || !category) {
+    if (!title) {
       toast({
         variant: 'destructive',
         title: 'Missing Information',
-        description: 'Please provide a title and category for your broadcast.',
+        description: 'Please provide a title for your broadcast.',
       });
       return;
     }
@@ -102,9 +86,9 @@ function CreateBroadcastPageComponent() {
     }
 
     const broadcastsCollection = collection(firestore, 'broadcasts');
-    const broadcastData = {
+    const broadcastData: any = {
       title: title,
-      category: category,
+      category: challengeParam ? 'Games' : 'General',
       challenge: challengeParam || null,
       activeChallenge: challengeParam || null,
       activeChallengeType: challengeTypeParam || null,
@@ -182,26 +166,11 @@ function CreateBroadcastPageComponent() {
                 className="bg-background/80"
                 />
             </div>
-            <div className="grid w-full items-center gap-1.5">
-                <Label className="text-foreground">Category</Label>
-                <Select onValueChange={setCategory} value={category}>
-                <SelectTrigger className="w-full bg-background/80" disabled={!!challengeParam}>
-                    <SelectValue placeholder="Select a category" />
-                </SelectTrigger>
-                <SelectContent>
-                    {categories.map((cat) => (
-                    <SelectItem key={cat.name} value={cat.name}>
-                        {cat.name}
-                    </SelectItem>
-                    ))}
-                </SelectContent>
-                </Select>
-            </div>
             </div>
             <Button
             size="lg"
             onClick={handleGoLive}
-            disabled={isSubmitting || !title || !category || isLoading || hasCameraPermission === false}
+            disabled={isSubmitting || !title || isLoading || hasCameraPermission === false}
             className="w-full"
             >
             {isSubmitting ? (
