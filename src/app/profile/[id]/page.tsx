@@ -10,14 +10,13 @@ import { Button } from '@/components/ui/button';
 import { doc, writeBatch, serverTimestamp, where, query, orderBy, limit, collection, addDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { useMemo, useState } from 'react';
-import { UserPlus, UserCheck, MessageSquare, Heart, Pencil, Eye, Gem, Gift, Video, Settings } from 'lucide-react';
+import { UserPlus, UserCheck, MessageSquare, Heart, Eye, Gem, Gift, Video, Settings } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Link from 'next/link';
 import Image from 'next/image';
 import { mockGifts, type Highlight } from '@/lib/data';
 import { Badge } from '@/components/ui/badge';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import EditProfileModal from '@/components/profile/EditProfileModal';
 import SettingsModal from '@/components/profile/SettingsModal';
 
 
@@ -35,7 +34,6 @@ export default function UserProfilePage() {
   const { userDocument: currentUserDocument } = useUserDocument();
   const firestore = useFirestore();
   const { toast } = useToast();
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   
   const { userDocument, isDocLoading } = useUserDocumentById(profileUserId);
@@ -149,7 +147,6 @@ export default function UserProfilePage() {
   
   return (
     <>
-      <EditProfileModal open={isEditModalOpen} onOpenChange={setIsEditModalOpen} />
       <SettingsModal open={isSettingsModalOpen} onOpenChange={setIsSettingsModalOpen} />
       <div className="container mx-auto max-w-4xl py-8 px-4">
         <Tabs defaultValue="highlights" className="w-full">
@@ -176,15 +173,9 @@ export default function UserProfilePage() {
                       <div className="h-full w-full bg-muted" />
                   )}
                 {isOwnProfile && (
-                  <div className="absolute top-3 right-3 flex gap-2">
-                    <Button size="icon" variant="secondary" onClick={() => setIsSettingsModalOpen(true)}>
-                        <Settings className="h-4 w-4" />
-                    </Button>
-                    <Button size="sm" onClick={() => setIsEditModalOpen(true)}>
-                        <Pencil className="mr-2 h-4 w-4" />
-                        Edit Profile
-                    </Button>
-                  </div>
+                  <Button size="icon" variant="secondary" className="absolute top-3 right-3" onClick={() => setIsSettingsModalOpen(true)}>
+                      <Settings className="h-4 w-4" />
+                  </Button>
                 )}
               </div>
               <div className="flex flex-col items-center p-6 pt-0 -mt-24">
@@ -393,9 +384,3 @@ function ProfileSkeleton() {
     </div>
   );
 }
-
-    
-
-    
-
-    
