@@ -379,7 +379,7 @@ export function BroadcastPreview({ broadcast, onVisible }: BroadcastPreviewProps
             timestamp: serverTimestamp(),
             attachment: attachment || null,
         };
-        const mentionMatch = message.match(/^@(\w+)\s/);
+        const mentionMatch = message.match(/^@\w+\s/);
         if (mentionMatch) {
             newComment.replyingTo = mentionMatch[1];
         }
