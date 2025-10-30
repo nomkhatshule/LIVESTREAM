@@ -57,5 +57,3 @@ export default function StreamControls({ onToggleVideo, onToggleMic, onFlipCamer
         </div>
     );
 };
-
-    
