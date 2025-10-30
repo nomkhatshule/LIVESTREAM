@@ -22,6 +22,7 @@ interface ChallengeCardManagerProps {
     onTouchMove: (e: React.TouchEvent) => void;
     onTouchEnd: () => void;
     onResizeStop: (e: any, direction: any, ref: any, d: any) => void;
+    onSetCardSize: (size: { width: number, height: number }) => void;
     onGenerateNextChallenge: (gameType: 'truth' | 'dare' | 'challenge') => void;
     broadcastDocRef: DocumentReference | null;
 }
@@ -38,6 +39,7 @@ export default function ChallengeCardManager({
     onTouchMove,
     onTouchEnd,
     onResizeStop,
+    onSetCardSize,
     onGenerateNextChallenge,
     broadcastDocRef,
 }: ChallengeCardManagerProps) {
@@ -67,6 +69,14 @@ export default function ChallengeCardManager({
             <Resizable
                 size={cardSize}
                 onResizeStop={onResizeStop}
+                onResize={(e, direction, ref, d) => {
+                    if (typeof cardSize.width === 'number' && typeof cardSize.height === 'number') {
+                        onSetCardSize({
+                            width: cardSize.width + d.width,
+                            height: cardSize.height + d.height,
+                        });
+                    }
+                }}
                 minWidth={300}
                 minHeight={400}
                 lockAspectRatio
@@ -117,3 +127,5 @@ export default function ChallengeCardManager({
         </div>
     );
 }
+
+    

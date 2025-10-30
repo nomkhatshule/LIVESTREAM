@@ -68,7 +68,7 @@ function AgoraTestPageUI() {
 
   // Custom Hooks for Logic
   const { isVideoEnabled, isMicEnabled, isScreenSharing, handleToggleVideo, handleToggleMic, handleFlipCamera, handleToggleScreenShare, handleEndStream, handleInviteGuest } = useStreamControls(call, broadcastDocRef);
-  const { cardPosition, cardSize, isDragging, handleMouseDown, handleTouchStart, handleTouchMove, handleTouchEnd, handleResizeStop } = useChallengeCard(broadcastDocRef, broadcastData?.challengeCardPosition, broadcastData?.challengeCardSize);
+  const { cardPosition, cardSize, isDragging, handleMouseDown, handleTouchStart, handleTouchMove, handleTouchEnd, handleResizeStop, setCardSize } = useChallengeCard(broadcastDocRef, broadcastData?.challengeCardPosition, broadcastData?.challengeCardSize);
   const { stagedChallenge, showChallengeCoverCard, isChallengeVisible, isTimerFinished, handleChallengeSelect, handleStartStagedChallenge, handleCancelStagedChallenge, handleGenerateNextChallenge, setIsChallengeVisible } = useGameFlow(broadcastDocRef, broadcastData);
 
   // High-quality camera effect
@@ -126,6 +126,7 @@ function AgoraTestPageUI() {
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
             onResizeStop={handleResizeStop}
+            onSetCardSize={setCardSize}
             onGenerateNextChallenge={handleGenerateNextChallenge}
             broadcastDocRef={broadcastDocRef}
         />
@@ -314,3 +315,5 @@ export default function AgoraTestPage() {
         </Suspense>
     )
 }
+
+    

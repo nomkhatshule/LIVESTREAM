@@ -10,7 +10,7 @@ export function useChallengeCard(
     initialSize?: { width: number, height: number }
 ) {
     const [cardPosition, setCardPosition] = useState(initialPosition || { x: 0, y: 0 });
-    const [cardSize, setCardSize] = useState(initialSize || { width: 320, height: 460 });
+    const [cardSize, setCardSize] = useState<{width: number | string, height: number | string}>(initialSize || { width: 320, height: 460 });
     const [isDragging, setIsDragging] = useState(false);
     const [isPinching, setIsPinching] = useState(false);
     const dragOffsetRef = useRef({ x: 0, y: 0 });
@@ -74,7 +74,7 @@ export function useChallengeCard(
             e.preventDefault();
             setIsPinching(true);
             initialPinchDistanceRef.current = getDistance(e.touches);
-            initialCardSizeRef.current = cardSize;
+            initialCardSizeRef.current = initialCardSizeRef.current; //
         } else if (e.touches.length === 1) {
             setIsDragging(true);
             dragOffsetRef.current = {
@@ -108,13 +108,15 @@ export function useChallengeCard(
     };
 
     const handleResizeStop = (e: any, direction: any, ref: any, d: any) => {
-        const newSize = {
-            width: cardSize.width + d.width,
-            height: cardSize.height + d.height
-        };
-        setCardSize(newSize);
-        if (broadcastDocRef) {
-            updateDoc(broadcastDocRef, { challengeCardSize: newSize });
+        if (typeof cardSize.width === 'number' && typeof cardSize.height === 'number') {
+            const newSize = {
+                width: cardSize.width + d.width,
+                height: cardSize.height + d.height
+            };
+            setCardSize(newSize);
+            if (broadcastDocRef) {
+                updateDoc(broadcastDocRef, { challengeCardSize: newSize });
+            }
         }
     };
 
@@ -126,6 +128,9 @@ export function useChallengeCard(
         handleTouchStart,
         handleTouchMove,
         handleTouchEnd,
-        handleResizeStop
+        handleResizeStop,
+        setCardSize
     };
 }
+
+    

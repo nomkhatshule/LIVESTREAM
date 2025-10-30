@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,6 +37,7 @@ export default function ChatPanel({
     const [newMessage, setNewMessage] = useState('');
     const [isGifPickerOpen, setIsGifPickerOpen] = useState(false);
     const [selectedGif, setSelectedGif] = useState<GiphyResult | null>(null);
+    const chatInputRef = useRef<HTMLInputElement>(null);
 
     const reactions = [
         { id: 'heart', emoji: <Heart key="heart" className="text-red-500 fill-red-500" /> },
@@ -46,11 +47,11 @@ export default function ChatPanel({
         { id: 'party', emoji: '🎉' },
     ];
     
-    const handleSendMessage = (e: React.FormEvent) => {
+    const onSendMessage = (e: React.FormEvent) => {
         e.preventDefault();
         if ((newMessage.trim() === '' && !selectedGif) || !user || !broadcastId || !userDocument) return;
 
-        let newComment: Omit<Comment, 'id' | 'timestamp'> & { timestamp: any; attachment?: any; replyingTo?: string } = {
+        let newComment: Omit<Comment, 'id'|'timestamp'> & {timestamp: any, attachment?: any, replyingTo?: string} = {
             userId: user.uid,
             username: userDocument.username || 'Anonymous',
             userAvatar: userDocument.profilePicture || '',
@@ -83,9 +84,9 @@ export default function ChatPanel({
         setIsGifPickerOpen(false);
     };
     
-    const handleReply = (username: string) => {
+    const onReply = (username: string) => {
         setNewMessage(`@${username} `);
-        // Consider focusing the input here
+        chatInputRef.current?.focus();
     };
 
     if (!isVisible) {
@@ -122,7 +123,7 @@ export default function ChatPanel({
                                         <p className="break-words inline">{comment.message.replace(/^@\w+\s/, '')}</p>
                                     )}
                                 </div>
-                                <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 pointer-events-auto" onClick={() => handleReply(comment.username)}>
+                                <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 pointer-events-auto" onClick={() => onReply(comment.username)}>
                                     <CornerUpLeft className="h-4 w-4" />
                                 </Button>
                             </div>
@@ -138,9 +139,10 @@ export default function ChatPanel({
                     </Button>
                 </div>
             )}
-            <form onSubmit={handleSendMessage} className="relative mt-2 flex items-center gap-2 pointer-events-auto">
+            <form onSubmit={onSendMessage} className="relative mt-2 flex items-center gap-2 pointer-events-auto">
                 <div className="relative flex-1">
                     <Input
+                        ref={chatInputRef}
                         placeholder="Add a comment..."
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
@@ -185,3 +187,5 @@ export default function ChatPanel({
         </div>
     );
 };
+
+    
