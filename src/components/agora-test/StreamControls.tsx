@@ -35,7 +35,7 @@ export default function StreamControls({ onToggleVideo, onToggleMic, onFlipCamer
                 {isVideoEnabled ? <Video className="h-5 w-5 md:h-6 md:w-6"/> : <VideoOff className="h-5 w-5 md:h-6 md:w-6"/>}
             </Button>
             <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onToggleMic} disabled={!isCallJoined}>
-                {isMicEnabled ? <Mic className={cn("h-5 w-5 md:h-6 md:w-6", isMicEnabled && "text-red-500")}/> : <MicOff className="h-5 w-5 md:h-6 md:w-6"/>}
+                {isMicEnabled ? <Mic className="h-5 w-5 md:h-6 md:w-6 text-red-500"/> : <MicOff className="h-5 w-5 md:h-6 md:w-6"/>}
             </Button>
             <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onFlipCamera} disabled={!isCallJoined}>
                 <SwitchCamera className="h-5 w-5 md:h-6 md:w-6"/>
