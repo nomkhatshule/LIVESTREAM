@@ -3,7 +3,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Users, X, Send, Smile, MessageCircle, Video, Mic, UserPlus, ScreenShare, VideoOff, MicOff, ArrowUp, MessageCircleOff, MonitorUp, Heart, ThumbsUp, Loader2, Dice6, Trophy, Check, Minus, Swords, Undo2, CornerUpLeft, SwitchCamera } from 'lucide-react';
+import { Users, X, Send, Smile, MessageCircle, Video, Mic, UserPlus, ScreenShare, VideoOff, MicOff, ArrowUp, MessageCircleOff, MonitorUp, Heart, ThumbsUp, Loader2, Dice6, Trophy, Check, Minus, Swords, Undo2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Suspense, forwardRef, useEffect, useMemo, useRef, useState } from 'react';
@@ -69,11 +69,10 @@ function AgoraTestPageUI() {
   const initialCardSizeRef = useRef({ width: 320, height: 460 });
   const [isGifPickerOpen, setIsGifPickerOpen] = useState(false);
   const [selectedGif, setSelectedGif] = useState<GiphyResult | null>(null);
-  const chatInputRef = useRef<HTMLInputElement>(null);
 
   // Stream SDK Hooks
   const { useCameraState, useMicrophoneState, useScreenShareState, useParticipants, useCallCallingState } = useCallStateHooks();
-  const { camera, flipCamera } = useCameraState();
+  const { camera } = useCameraState();
   const { microphone } = useMicrophoneState();
   const { isScreenSharing, screenShare } = useScreenShareState();
   const participants = useParticipants();
@@ -205,7 +204,7 @@ function AgoraTestPageUI() {
         window.removeEventListener('mousemove', handleMouseMove);
         window.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isDragging, cardPosition]);
+  }, [isDragging]);
 
   const getDistance = (touches: React.TouchList) => {
     const [touch1, touch2] = [touches[0], touches[1]];
@@ -284,12 +283,6 @@ function AgoraTestPageUI() {
       await call.microphone.toggle();
     }
   }
-  
-  const handleFlipCamera = () => {
-      if (flipCamera) {
-          flipCamera();
-      }
-  }
 
   const handleToggleScreenShare = async () => {
     const nextIsScreenSharing = !isScreenSharing;
@@ -326,10 +319,8 @@ function AgoraTestPageUI() {
             thumbUrl: selectedGif.images.fixed_width.url,
         }
     }
-    
-    const mentionMatch = newMessage.match(/^@(\w+)\s/);
-    
-    const newComment: Omit<Comment, 'id'> & { timestamp: any, attachment?: any, replyingTo?: string } = {
+
+    const newComment: Omit<Comment, 'id'> & { timestamp: any, attachment?: any } = {
         userId: user.uid,
         username: userDocument.username || 'Anonymous',
         userAvatar: userDocument.profilePicture || '',
@@ -337,10 +328,6 @@ function AgoraTestPageUI() {
         timestamp: serverTimestamp(),
         attachment: attachment || null,
     };
-
-    if (mentionMatch) {
-      newComment.replyingTo = mentionMatch[1];
-    }
     
     const messagesCollectionRef = collection(firestore, 'broadcasts', broadcastId, 'messages');
     addDocumentNonBlocking(messagesCollectionRef, newComment);
@@ -377,11 +364,6 @@ function AgoraTestPageUI() {
     }, 5000);
   }
 
-  const handleReply = (username: string) => {
-    setNewMessage(`@${username} `);
-    chatInputRef.current?.focus();
-  };
-
   const handleChallengeSelect = (challenge: string, type: 'truth' | 'dare' | 'challenge', duration: number) => {
     setStagedChallenge({ text: challenge, type, duration });
     setShowChallengeCoverCard(true); // Show the cover card first
@@ -410,7 +392,7 @@ function AgoraTestPageUI() {
        if (broadcastDocRef) {
          try {
             const result = await generateGamePrompts({
-                gameType: gameType,
+                gameType: gameType === 'ai' ? 'challenge' : gameType,
                 category: 'Live Stream Audience',
                 count: 1,
             });
@@ -561,7 +543,6 @@ function AgoraTestPageUI() {
         <StreamControls 
             onToggleVideo={handleToggleVideo}
             onToggleMic={handleToggleMic}
-            onFlipCamera={handleFlipCamera}
             onToggleScreenShare={handleToggleScreenShare}
             onInviteGuest={handleInviteGuest}
             onToggleChallengeVisibility={() => setIsChallengeVisible(prev => !prev)}
@@ -592,8 +573,6 @@ function AgoraTestPageUI() {
             onGifSelect={handleGifSelect}
             selectedGif={selectedGif}
             onClearSelectedGif={() => setSelectedGif(null)}
-            onReply={handleReply}
-            chatInputRef={chatInputRef}
         />
     </div>
   );
@@ -671,7 +650,7 @@ function AgoraTestWrapper() {
             try {
                 const response = await fetch('/api/stream/token', {
                   method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
+                  headers: { 'Content-Type': 'json' },
                   body: JSON.stringify({ userId: user.uid }),
                 });
                 if (!response.ok) throw new Error('Failed to fetch stream token');
@@ -751,5 +730,6 @@ export default function AgoraTestPage() {
         </Suspense>
     )
 }
+
 
     
