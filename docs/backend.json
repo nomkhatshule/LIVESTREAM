@@ -299,6 +299,61 @@
         "userId",
         "timestamp"
       ]
+    },
+    "Notification": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Notification",
+      "type": "object",
+      "description": "Represents an in-app notification for a user.",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The ID of the user who receives the notification."
+        },
+        "type": {
+          "type": "string",
+          "enum": ["follow", "like", "comment"],
+          "description": "The type of notification."
+        },
+        "actorId": {
+          "type": "string",
+          "description": "The ID of the user who triggered the notification."
+        },
+        "actorName": {
+          "type": "string",
+          "description": "The denormalized username of the actor for display."
+        },
+        "actorAvatar": {
+          "type": "string",
+          "description": "The denormalized avatar URL of the actor for display.",
+          "format": "uri"
+        },
+        "entityId": {
+          "type": "string",
+          "description": "The ID of the related entity (e.g., a broadcastId)."
+        },
+        "entityInfo": {
+          "type": "string",
+          "description": "A short descriptive string about the entity (e.g., a broadcast title or comment snippet)."
+        },
+        "isRead": {
+          "type": "boolean",
+          "description": "Whether the user has read the notification."
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The server timestamp when the notification was created."
+        }
+      },
+      "required": [
+        "userId",
+        "type",
+        "actorId",
+        "actorName",
+        "isRead",
+        "timestamp"
+      ]
     }
   },
   "auth": {
@@ -388,6 +443,16 @@
             "$ref": "#/entities/Follow"
           },
           "description": "Sub-collection where each document represents a user that is following {userId}. The document ID is the UID of the follower."
+        }
+      },
+       {
+        "path": "/users/{userId}/notifications/{notificationId}",
+        "definition": {
+          "entityName": "Notification",
+          "schema": {
+            "$ref": "#/entities/Notification"
+          },
+          "description": "Sub-collection storing notifications for a specific user."
         }
       }
     ],
