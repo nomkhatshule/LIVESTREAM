@@ -170,7 +170,7 @@ export default function UserProfilePage() {
       
       {/* Highlight Video Modal */}
       <Dialog open={!!selectedHighlight} onOpenChange={(open) => !open && setSelectedHighlight(null)}>
-        <DialogContent className="bg-transparent border-none shadow-none max-w-screen max-h-screen p-0 m-0 w-full h-full flex items-center justify-center">
+        <DialogContent className="bg-black border-none shadow-none max-w-screen max-h-screen p-0 m-0 w-full h-full flex items-center justify-center">
             {selectedHighlight && (
                 <div className="relative w-full h-full max-w-[45vh] max-h-[80vh] aspect-[9/16]">
                     <video
