@@ -106,6 +106,23 @@ export default function BroadcastPage() {
         timestamp: serverTimestamp(),
     };
     addDocumentNonBlocking(messagesCollection, newComment);
+
+     // Create a notification for the host
+    if (user.uid !== broadcast.hostId) {
+        const hostNotificationsRef = collection(firestore, `users/${broadcast.hostId}/notifications`);
+        addDocumentNonBlocking(hostNotificationsRef, {
+            userId: broadcast.hostId,
+            type: 'comment',
+            actorId: user.uid,
+            actorName: userDocument.username || 'Someone',
+            actorAvatar: userDocument.profilePicture || '',
+            entityId: broadcast.id,
+            entityInfo: `commented: "${newMessage.substring(0, 50)}${newMessage.length > 50 ? '...' : ''}"`,
+            isRead: false,
+            timestamp: serverTimestamp(),
+        });
+    }
+
     setNewMessage('');
   }
 
@@ -320,3 +337,5 @@ function BroadcastSkeleton() {
     </div>
   );
 }
+
+    
