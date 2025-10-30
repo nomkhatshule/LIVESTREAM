@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { doc, writeBatch, serverTimestamp, where, query, orderBy, limit, collection, addDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { useMemo, useState } from 'react';
-import { UserPlus, UserCheck, MessageSquare, Heart, Eye, Gem, Gift, Video, Settings } from 'lucide-react';
+import { UserPlus, UserCheck, MessageSquare, Heart, Eye, Gem, Gift, Video, Settings, X } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -20,6 +20,7 @@ import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import SettingsModal from '@/components/profile/SettingsModal';
 import EditProfileModal from '@/components/profile/EditProfileModal';
 import AccountModal from '@/components/profile/AccountModal';
+import { Dialog, DialogContent, DialogClose } from '@/components/ui/dialog';
 
 
 // Mock data for recent activity - in a real app this would be a Firestore query
@@ -39,6 +40,7 @@ export default function UserProfilePage() {
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
+  const [selectedHighlight, setSelectedHighlight] = useState<Highlight | null>(null);
   
   const { userDocument, isDocLoading } = useUserDocumentById(profileUserId);
 
@@ -165,6 +167,34 @@ export default function UserProfilePage() {
        />
       <EditProfileModal open={isEditProfileModalOpen} onOpenChange={setIsEditProfileModalOpen} />
       <AccountModal open={isAccountModalOpen} onOpenChange={setIsAccountModalOpen} />
+      
+      {/* Highlight Video Modal */}
+      <Dialog open={!!selectedHighlight} onOpenChange={(open) => !open && setSelectedHighlight(null)}>
+        <DialogContent className="bg-transparent border-none shadow-none max-w-screen max-h-screen p-0 m-0 w-full h-full flex items-center justify-center">
+            {selectedHighlight && (
+                <div className="relative w-full h-full max-w-[45vh] max-h-[80vh] aspect-[9/16]">
+                    <video
+                        src={selectedHighlight.videoUrl}
+                        controls
+                        autoPlay
+                        loop
+                        playsInline
+                        className="w-full h-full object-contain"
+                    />
+                    <DialogClose asChild>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="absolute top-2 right-2 text-white bg-black/50 rounded-full"
+                        >
+                            <X className="h-6 w-6" />
+                        </Button>
+                    </DialogClose>
+                </div>
+            )}
+        </DialogContent>
+      </Dialog>
+
 
       <div className="container mx-auto max-w-4xl py-8 px-4">
         <Tabs defaultValue="highlights" className="w-full">
@@ -248,9 +278,13 @@ export default function UserProfilePage() {
                   {[...Array(6)].map((_, i) => <Skeleton key={i} className="aspect-[9/16]"/>)}
               </div>
             ) : highlights && highlights.length > 0 ? (
-              <div className="grid grid-cols-3 gap-1">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1">
                 {highlights.map((highlight) => (
-                    <div key={highlight.id} className="relative group aspect-[9/16] overflow-hidden rounded-md bg-muted">
+                    <div 
+                        key={highlight.id} 
+                        className="relative group aspect-[9/16] overflow-hidden rounded-md bg-muted cursor-pointer"
+                        onClick={() => setSelectedHighlight(highlight)}
+                    >
                         <video
                             src={highlight.videoUrl}
                             loop
@@ -370,5 +404,3 @@ function ProfileSkeleton() {
     </div>
   );
 }
-
-    
