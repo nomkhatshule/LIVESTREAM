@@ -3,7 +3,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Users, X, Send, Smile, MessageCircle, Video, Mic, UserPlus, ScreenShare, VideoOff, MicOff, ArrowUp, MessageCircleOff, MonitorUp, Heart, ThumbsUp, Loader2, Dice6, Trophy, Check, Minus, Swords, Undo2, CornerUpLeft } from 'lucide-react';
+import { Users, X, Send, Smile, MessageCircle, Video, Mic, UserPlus, ScreenShare, VideoOff, MicOff, ArrowUp, MessageCircleOff, MonitorUp, Heart, ThumbsUp, Loader2, Dice6, Trophy, Check, Minus, Swords, Undo2, CornerUpLeft, SwitchCamera } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Suspense, forwardRef, useEffect, useMemo, useRef, useState } from 'react';
@@ -73,7 +73,7 @@ function AgoraTestPageUI() {
 
   // Stream SDK Hooks
   const { useCameraState, useMicrophoneState, useScreenShareState, useParticipants, useCallCallingState } = useCallStateHooks();
-  const { camera } = useCameraState();
+  const { camera, flipCamera } = useCameraState();
   const { microphone } = useMicrophoneState();
   const { isScreenSharing, screenShare } = useScreenShareState();
   const participants = useParticipants();
@@ -205,7 +205,7 @@ function AgoraTestPageUI() {
         window.removeEventListener('mousemove', handleMouseMove);
         window.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isDragging]);
+  }, [isDragging, cardPosition]);
 
   const getDistance = (touches: React.TouchList) => {
     const [touch1, touch2] = [touches[0], touches[1]];
@@ -284,6 +284,12 @@ function AgoraTestPageUI() {
       await call.microphone.toggle();
     }
   }
+  
+  const handleFlipCamera = () => {
+      if (flipCamera) {
+          flipCamera();
+      }
+  }
 
   const handleToggleScreenShare = async () => {
     const nextIsScreenSharing = !isScreenSharing;
@@ -322,17 +328,19 @@ function AgoraTestPageUI() {
     }
     
     const mentionMatch = newMessage.match(/^@(\w+)\s/);
-    const replyingTo = mentionMatch ? mentionMatch[1] : undefined;
-
-    const newComment: Omit<Comment, 'id'> & { timestamp: any, attachment?: any } = {
+    
+    const newComment: Omit<Comment, 'id'> & { timestamp: any, attachment?: any, replyingTo?: string } = {
         userId: user.uid,
         username: userDocument.username || 'Anonymous',
         userAvatar: userDocument.profilePicture || '',
         message: newMessage,
         timestamp: serverTimestamp(),
         attachment: attachment || null,
-        replyingTo: replyingTo,
     };
+
+    if (mentionMatch) {
+      newComment.replyingTo = mentionMatch[1];
+    }
     
     const messagesCollectionRef = collection(firestore, 'broadcasts', broadcastId, 'messages');
     addDocumentNonBlocking(messagesCollectionRef, newComment);
@@ -402,7 +410,7 @@ function AgoraTestPageUI() {
        if (broadcastDocRef) {
          try {
             const result = await generateGamePrompts({
-                gameType: gameType === 'ai' ? 'challenge' : gameType,
+                gameType: gameType,
                 category: 'Live Stream Audience',
                 count: 1,
             });
@@ -553,6 +561,7 @@ function AgoraTestPageUI() {
         <StreamControls 
             onToggleVideo={handleToggleVideo}
             onToggleMic={handleToggleMic}
+            onFlipCamera={handleFlipCamera}
             onToggleScreenShare={handleToggleScreenShare}
             onInviteGuest={handleInviteGuest}
             onToggleChallengeVisibility={() => setIsChallengeVisible(prev => !prev)}
@@ -662,7 +671,7 @@ function AgoraTestWrapper() {
             try {
                 const response = await fetch('/api/stream/token', {
                   method: 'POST',
-                  headers: { 'Content-Type': 'json' },
+                  headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ userId: user.uid }),
                 });
                 if (!response.ok) throw new Error('Failed to fetch stream token');
@@ -742,7 +751,3 @@ export default function AgoraTestPage() {
         </Suspense>
     )
 }
-
-
-    
-    

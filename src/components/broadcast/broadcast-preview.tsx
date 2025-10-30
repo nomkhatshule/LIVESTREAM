@@ -59,7 +59,7 @@ function BroadcastPreviewUIManager({
     isConnected,
 }: BroadcastPreviewUIManagerProps) {
     const [newMessage, setNewMessage] = useState('');
-    const [isChatVisible, setIsChatVisible] = useState(false);
+    const [isChatVisible, setIsChatVisible] = useState(true);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const [isChallengeVisible, setIsChallengeVisible] = useState(false);
     const [isGifPickerOpen, setIsGifPickerOpen] = useState(false);
@@ -218,11 +218,11 @@ function BroadcastPreviewUIManager({
              {isChatVisible && (
                 <div className="bg-gradient-to-t from-black/70 to-transparent -m-4 p-4 flex flex-col justify-end gap-4">
                     <div className="w-full sm:max-w-sm md:max-w-md">
-                            <>
-                            <ScrollArea className="h-48 w-full pr-4 pointer-events-auto">
-                                <div className="flex flex-col-reverse gap-y-3">
+                        <div className="h-80 w-full rounded-xl bg-black/40 p-3 backdrop-blur-sm pointer-events-auto">
+                            <ScrollArea className="h-full pr-2">
+                                <div className="flex flex-col-reverse gap-y-1">
                                     {comments.map((comment) => (
-                                        <div key={comment.id} className="group flex items-start gap-2 text-sm bg-black/25 p-2 rounded-lg">
+                                        <div key={comment.id} className="group flex items-start gap-2 text-sm py-1.5 border-b border-white/10">
                                             <Link href={`/profile/${comment.userId}`} className="pointer-events-auto">
                                                 <Avatar className="h-6 w-6 border-secondary">
                                                     <AvatarImage src={comment.userAvatar} alt={comment.username} />
@@ -251,47 +251,47 @@ function BroadcastPreviewUIManager({
                                     ))}
                                 </div>
                             </ScrollArea>
-                            {selectedGif && (
-                                <div className="relative w-32 h-24 mt-2 pointer-events-auto">
-                                    <Image src={selectedGif.images.fixed_width.url} alt={selectedGif.title} fill className="object-cover rounded-md" />
-                                     <Button variant="destructive" size="icon" className="absolute -top-2 -right-2 h-6 w-6 rounded-full" onClick={() => setSelectedGif(null)}>
-                                        <X className="h-4 w-4" />
+                        </div>
+                        {selectedGif && (
+                            <div className="relative w-32 h-24 mt-2 pointer-events-auto">
+                                <Image src={selectedGif.images.fixed_width.url} alt={selectedGif.title} fill className="object-cover rounded-md" />
+                                 <Button variant="destructive" size="icon" className="absolute -top-2 -right-2 h-6 w-6 rounded-full" onClick={() => setSelectedGif(null)}>
+                                    <X className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        )}
+                        <form onSubmit={handleFormSubmit} className="relative flex w-full pointer-events-auto items-center gap-2 mt-2">
+                            <div className="relative flex-1">
+                                <Textarea
+                                    ref={textareaRef}
+                                    placeholder="Add a comment..."
+                                    value={newMessage}
+                                    onChange={(e) => setNewMessage(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && !e.shiftKey) {
+                                            e.preventDefault();
+                                            handleFormSubmit(e);
+                                        }
+                                    }}
+                                    className="bg-black/50 border-white/20 placeholder:text-gray-400 w-full min-h-[40px] h-10 resize-none rounded-full py-2 pr-20 pl-4"
+                                />
+                                <div className="absolute top-1/2 -translate-y-1/2 right-1 flex items-center">
+                                    <Popover open={isGifPickerOpen} onOpenChange={setIsGifPickerOpen}>
+                                        <PopoverTrigger asChild>
+                                            <Button size="icon" type="button" variant="ghost" className="rounded-full h-9 w-9 text-white">
+                                                <b className="text-xs">GIF</b>
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-screen sm:w-96 h-96 p-0 border-zinc-700 bg-zinc-900" side="top" align="end">
+                                        <GifPicker onSendGif={handleGifSelect} />
+                                        </PopoverContent>
+                                    </Popover>
+                                    <Button variant="ghost" size="icon" type="submit" className="text-white hover:bg-transparent hover:text-white h-9 w-9">
+                                        <ArrowUp className="h-5 w-5" />
                                     </Button>
                                 </div>
-                            )}
-                            <form onSubmit={handleFormSubmit} className="relative flex w-full pointer-events-auto items-center gap-2 mt-2">
-                                <div className="relative flex-1">
-                                    <Textarea
-                                        ref={textareaRef}
-                                        placeholder="Add a comment..."
-                                        value={newMessage}
-                                        onChange={(e) => setNewMessage(e.target.value)}
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter' && !e.shiftKey) {
-                                                e.preventDefault();
-                                                handleFormSubmit(e);
-                                            }
-                                        }}
-                                        className="bg-black/50 border-white/20 placeholder:text-gray-400 w-full min-h-[40px] h-10 resize-none rounded-full py-2 pr-20 pl-4"
-                                    />
-                                    <div className="absolute top-1/2 -translate-y-1/2 right-1 flex items-center">
-                                        <Popover open={isGifPickerOpen} onOpenChange={setIsGifPickerOpen}>
-                                            <PopoverTrigger asChild>
-                                                <Button size="icon" type="button" variant="ghost" className="rounded-full h-9 w-9 text-white">
-                                                    <b className="text-xs">GIF</b>
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-screen sm:w-96 h-96 p-0 border-zinc-700 bg-zinc-900" side="top" align="end">
-                                            <GifPicker onSendGif={handleGifSelect} />
-                                            </PopoverContent>
-                                        </Popover>
-                                        <Button variant="ghost" size="icon" type="submit" className="text-white hover:bg-transparent hover:text-white h-9 w-9">
-                                            <ArrowUp className="h-5 w-5" />
-                                        </Button>
-                                    </div>
-                                </div>
-                            </form>
-                            </>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}
@@ -371,6 +371,7 @@ export function BroadcastPreview({ broadcast, onVisible }: BroadcastPreviewProps
     const handleSendMessage = (message: string, attachment?: any) => {
         if (!user || !userDocument) return;
         const messagesCollectionRef = collection(firestore, 'broadcasts', broadcast.id, 'messages');
+        
         const newComment: Omit<ChatMessage, 'id'|'timestamp'> & {timestamp: any, replyingTo?: string, attachment?: any} = {
             userId: user.uid,
             username: userDocument.username || "Anonymous",
@@ -379,10 +380,12 @@ export function BroadcastPreview({ broadcast, onVisible }: BroadcastPreviewProps
             timestamp: serverTimestamp(),
             attachment: attachment || null,
         };
-        const mentionMatch = message.match(/^@\w+\s/);
+        
+        const mentionMatch = message.match(/^@(\w+)\s/);
         if (mentionMatch) {
             newComment.replyingTo = mentionMatch[1];
         }
+
         addDocumentNonBlocking(messagesCollectionRef, newComment);
     };
 

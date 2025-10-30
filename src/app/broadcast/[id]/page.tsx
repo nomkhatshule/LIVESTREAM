@@ -5,12 +5,12 @@ import { notFound, useParams } from 'next/navigation';
 import VideoPlayer from '@/components/broadcast/video-player';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Heart, UserSearch, MoreVertical, PlusCircle, Users, ArrowUp, MessageSquareMore, Share2, Clapperboard, User as UserIcon, Trophy, Check } from 'lucide-react';
+import { Heart, UserSearch, MoreVertical, PlusCircle, Users, ArrowUp, MessageSquareMore, Share2, Clapperboard, User as UserIcon, Trophy, Check, CornerUpLeft } from 'lucide-react';
 import { useUser, useMemoFirebase, useUserDocument } from '@/firebase';
 import type { Broadcast, ChatMessage } from '@/lib/data';
 import { useDoc, useFirestore, useCollection } from '@/firebase';
 import { doc, collection, query, orderBy, limit, serverTimestamp, setDoc, deleteDoc } from 'firebase/firestore';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useRef } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
@@ -28,6 +28,7 @@ import { useCallStateHooks } from '@stream-io/video-react-sdk';
 import { Badge } from '@/components/ui/badge';
 import ChallengeDisplayCard from '@/components/broadcast/ChallengeDisplayCard';
 import CountdownTimer from '@/components/broadcast/CountdownTimer';
+import { Textarea } from '@/components/ui/textarea';
 
 
 export default function BroadcastPage() {
@@ -37,7 +38,7 @@ export default function BroadcastPage() {
   const { userDocument } = useUserDocument();
   const firestore = useFirestore();
   const { toast } = useToast();
-
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [newMessage, setNewMessage] = useState('');
   const [isChatVisible, setIsChatVisible] = useState(true);
 
@@ -49,7 +50,7 @@ export default function BroadcastPage() {
 
   const messagesQuery = useMemoFirebase(() => {
     if (!id || !firestore) return undefined;
-    return query(collection(firestore, `broadcasts/${id}/messages`), orderBy('timestamp', 'asc'), limit(100));
+    return query(collection(firestore, `broadcasts/${id}/messages`), orderBy('timestamp', 'desc'), limit(100));
   }, [id, firestore]);
   const { data: comments } = useCollection<ChatMessage>(messagesQuery);
   
@@ -98,13 +99,19 @@ export default function BroadcastPage() {
     if (newMessage.trim() === '' || !user || !broadcast || !userDocument) return;
 
     const messagesCollection = collection(firestore, `broadcasts/${broadcast.id}/messages`);
-    const newComment = {
+    const newComment: Omit<ChatMessage, 'id' | 'timestamp'> & {timestamp: any; replyingTo?: string;} = {
         userId: user.uid,
         username: userDocument.username || 'Anonymous',
         userAvatar: userDocument.profilePicture || '',
         message: newMessage,
         timestamp: serverTimestamp(),
     };
+    
+    const mentionMatch = newMessage.match(/^@(\w+)\s/);
+    if (mentionMatch) {
+      newComment.replyingTo = mentionMatch[1];
+    }
+    
     addDocumentNonBlocking(messagesCollection, newComment);
 
      // Create a notification for the host
@@ -164,6 +171,11 @@ export default function BroadcastPage() {
       }
     }
   };
+  
+  const handleReplyClick = (username: string) => {
+    setNewMessage(`@${username} `);
+    textareaRef.current?.focus();
+}
 
   if (isBroadcastLoading) {
     return <BroadcastSkeleton />;
@@ -224,44 +236,59 @@ export default function BroadcastPage() {
       </div>
 
       {/* Overlay for information and actions */}
-      <div className="absolute bottom-0 left-0 right-0 p-4 pb-8 bg-gradient-to-t from-black/70 to-transparent text-white">
+      <div className="absolute bottom-0 left-0 right-0 p-4 pb-8 bg-gradient-to-t from-black/70 to-transparent text-white pointer-events-none">
         <div className="flex items-end justify-between gap-4">
-          <div className="flex-1 w-full">
+          <div className="flex-1 w-full max-w-md">
             {isChatVisible && (
-                <div className="w-full">
-                    <ScrollArea className="h-48 w-full pr-4">
-                    <div className="flex flex-col gap-3">
+              <div className="pointer-events-auto">
+                <div className="h-80 w-full rounded-xl bg-black/40 p-3 backdrop-blur-sm">
+                  <ScrollArea className="h-full pr-2">
+                    <div className="flex flex-col-reverse gap-y-1">
                         {comments && comments.map((comment) => (
-                        <div key={comment.id} className="flex items-start gap-3 text-sm text-white bg-black/20 p-2 rounded-lg">
-                            <Avatar className="h-6 w-6 border border-secondary">
+                        <div key={comment.id} className="group flex items-start gap-2 text-sm py-1.5 border-b border-white/10">
+                            <Avatar className="h-6 w-6 border-secondary">
                             <AvatarImage src={comment.userAvatar} alt={comment.username} />
                             <AvatarFallback>{comment.username.charAt(0)}</AvatarFallback>
                             </Avatar>
                             <div className="flex-1">
-                            <span className="font-bold font-headline text-primary mr-1.5">{comment.username}:</span>
-                            <p className="break-words inline">{comment.message}</p>
+                              <Link href={`/profile/${comment.userId}`} className="pointer-events-auto">
+                                <span className="font-bold font-headline text-primary mr-1.5 hover:underline">{comment.username}:</span>
+                              </Link>
+                              {comment.replyingTo && <Link href={`/profile/${comment.replyingTo}`} className="text-accent font-semibold mr-1.5 hover:underline pointer-events-auto">@{comment.replyingTo}</Link>}
+                              <p className="break-words inline">{comment.message.replace(/^@\w+\s/, '')}</p>
                             </div>
+                            <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 pointer-events-auto" onClick={() => handleReplyClick(comment.username)}>
+                                <CornerUpLeft className="h-4 w-4" />
+                            </Button>
                         </div>
                         ))}
                     </div>
-                    </ScrollArea>
-                    <form onSubmit={handleSendMessage} className="relative flex-1 mt-3 w-full">
-                        <Input
-                            placeholder="Add a comment..."
-                            value={newMessage}
-                            onChange={(e) => setNewMessage(e.target.value)}
-                            className="bg-black/50 border-white/20 text-white placeholder:text-gray-400 pr-10 h-10"
-                        />
-                        <Button variant="ghost" size="icon" type="submit" className="absolute inset-y-0 right-0 text-white">
-                            <ArrowUp className="h-5 w-5" />
-                        </Button>
-                    </form>
+                  </ScrollArea>
                 </div>
+                 <form onSubmit={handleSendMessage} className="relative w-full pointer-events-auto items-center gap-2 mt-2">
+                      <Textarea
+                          ref={textareaRef}
+                          placeholder="Add a comment..."
+                          value={newMessage}
+                          onChange={(e) => setNewMessage(e.target.value)}
+                           onKeyDown={(e) => {
+                              if (e.key === 'Enter' && !e.shiftKey) {
+                                  e.preventDefault();
+                                  handleSendMessage(e);
+                              }
+                          }}
+                          className="bg-black/50 border-white/20 placeholder:text-gray-400 w-full min-h-[40px] h-10 resize-none rounded-full py-2 pr-12 pl-4"
+                      />
+                      <Button variant="ghost" size="icon" type="submit" className="absolute top-1/2 -translate-y-1/2 right-1 text-white h-9 w-9">
+                          <ArrowUp className="h-5 w-5" />
+                      </Button>
+                  </form>
+              </div>
             )}
           </div>
           
           {/* Right side: Action Buttons */}
-          <div className="flex flex-col items-center space-y-5">
+          <div className="flex flex-col items-center space-y-5 pointer-events-auto">
             <Button variant="ghost" size="icon" className="h-15 w-15 rounded-full text-white flex-col justify-center items-center drop-shadow-md hover:bg-transparent hover:text-white">
                 <PlusCircle className="h-16 w-16"/>
             </Button>
@@ -337,5 +364,3 @@ function BroadcastSkeleton() {
     </div>
   );
 }
-
-    
