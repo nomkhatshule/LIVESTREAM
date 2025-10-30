@@ -20,7 +20,8 @@ import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import SettingsModal from '@/components/profile/SettingsModal';
 import EditProfileModal from '@/components/profile/EditProfileModal';
 import AccountModal from '@/components/profile/AccountModal';
-import { Dialog, DialogContent, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogClose, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 
 
 // Mock data for recent activity - in a real app this would be a Firestore query
@@ -172,25 +173,31 @@ export default function UserProfilePage() {
       <Dialog open={!!selectedHighlight} onOpenChange={(open) => !open && setSelectedHighlight(null)}>
         <DialogContent className="bg-black border-none shadow-none max-w-screen max-h-screen p-0 m-0 w-full h-full flex items-center justify-center">
             {selectedHighlight && (
-                <div className="relative w-full h-full max-w-[45vh] max-h-[80vh] aspect-[9/16]">
-                    <video
-                        src={selectedHighlight.videoUrl}
-                        controls
-                        autoPlay
-                        loop
-                        playsInline
-                        className="w-full h-full object-contain"
-                    />
-                    <DialogClose asChild>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="absolute top-2 right-2 text-white bg-black/50 rounded-full"
-                        >
-                            <X className="h-6 w-6" />
-                        </Button>
-                    </DialogClose>
-                </div>
+                <>
+                  <VisuallyHidden>
+                    <DialogTitle>{`Highlight video: ${selectedHighlight.title}`}</DialogTitle>
+                    <DialogDescription>A full-screen video player for the highlight titled "{selectedHighlight.title}".</DialogDescription>
+                  </VisuallyHidden>
+                  <div className="relative w-full h-full max-w-[45vh] max-h-[80vh] aspect-[9/16]">
+                      <video
+                          src={selectedHighlight.videoUrl}
+                          controls
+                          autoPlay
+                          loop
+                          playsInline
+                          className="w-full h-full object-contain"
+                      />
+                      <DialogClose asChild>
+                          <Button
+                              variant="ghost"
+                              size="icon"
+                              className="absolute top-2 right-2 text-white bg-black/50 rounded-full"
+                          >
+                              <X className="h-6 w-6" />
+                          </Button>
+                      </DialogClose>
+                  </div>
+                </>
             )}
         </DialogContent>
       </Dialog>
@@ -404,3 +411,6 @@ function ProfileSkeleton() {
     </div>
   );
 }
+
+
+    
