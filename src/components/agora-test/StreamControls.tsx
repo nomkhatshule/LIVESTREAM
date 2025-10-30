@@ -13,7 +13,6 @@ interface StreamControlsProps {
     onFlipCamera: () => void;
     onToggleScreenShare: () => void;
     onInviteGuest: () => void;
-    onSelectChallenge: (challenge: string, type: 'truth' | 'dare' | 'challenge', duration: number) => void;
     onToggleChallengeVisibility: () => void;
     onOpenGames: () => void;
     isVideoEnabled: boolean;
@@ -24,7 +23,7 @@ interface StreamControlsProps {
 }
 
 
-export default function StreamControls({ onToggleVideo, onToggleMic, onFlipCamera, onToggleScreenShare, onInviteGuest, isVideoEnabled, isMicEnabled, isScreenSharing, isCallJoined, onSelectChallenge, onToggleChallengeVisibility, isChallengeActive, onOpenGames }: StreamControlsProps) {
+export default function StreamControls({ onToggleVideo, onToggleMic, onFlipCamera, onToggleScreenShare, onInviteGuest, isVideoEnabled, isMicEnabled, isScreenSharing, isCallJoined, onToggleChallengeVisibility, isChallengeActive, onOpenGames }: StreamControlsProps) {
     const { useParticipants } = useCallStateHooks();
     const participants = useParticipants();
     const viewerCount = Math.max(0, participants.length -1);

@@ -1,49 +1,42 @@
 
 'use client';
 
+import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Comment, GiphyResult } from '@/lib/types';
+import type { Comment, GiphyResult } from '@/lib/types';
 import { ArrowUp, MessageCircle, MessageCircleOff, Smile, X, Heart, ThumbsUp, CornerUpLeft } from 'lucide-react';
 import Image from 'next/image';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import GifPicker from '../inbox/GifPicker';
+import { useUser, useUserDocument } from '@/firebase';
+import { collection, serverTimestamp } from 'firebase/firestore';
+import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { useFirestore } from '@/firebase';
 
 interface ChatPanelProps {
+    broadcastId: string | null;
     isVisible: boolean;
     comments: Comment[] | null;
-    newMessage: string;
-    onNewMessageChange: (message: string) => void;
-    onSendMessage: (e: React.FormEvent, attachment?: any) => void;
     onReaction: (emoji: React.ReactNode) => void;
     onToggleVisibility: () => void;
-    isGifPickerOpen: boolean;
-    onGifPickerOpenChange: (open: boolean) => void;
-    onGifSelect: (gif: GiphyResult) => void;
-    selectedGif: GiphyResult | null;
-    onClearSelectedGif: () => void;
-    onReply: (username: string) => void;
-    chatInputRef: React.RefObject<HTMLInputElement>;
 }
 
 export default function ChatPanel({ 
+    broadcastId,
     isVisible, 
     comments, 
-    newMessage, 
-    onNewMessageChange, 
-    onSendMessage, 
     onReaction, 
-    onToggleVisibility,
-    isGifPickerOpen,
-    onGifPickerOpenChange,
-    onGifSelect,
-    selectedGif,
-    onClearSelectedGif,
-    onReply,
-    chatInputRef
+    onToggleVisibility
 }: ChatPanelProps) {
+    const firestore = useFirestore();
+    const { user } = useUser();
+    const { userDocument } = useUserDocument();
+    const [newMessage, setNewMessage] = useState('');
+    const [isGifPickerOpen, setIsGifPickerOpen] = useState(false);
+    const [selectedGif, setSelectedGif] = useState<GiphyResult | null>(null);
 
     const reactions = [
         { id: 'heart', emoji: <Heart key="heart" className="text-red-500 fill-red-500" /> },
@@ -52,6 +45,48 @@ export default function ChatPanel({
         { id: 'fire', emoji: '🔥' },
         { id: 'party', emoji: '🎉' },
     ];
+    
+    const handleSendMessage = (e: React.FormEvent) => {
+        e.preventDefault();
+        if ((newMessage.trim() === '' && !selectedGif) || !user || !broadcastId || !userDocument) return;
+
+        let newComment: Omit<Comment, 'id' | 'timestamp'> & { timestamp: any; attachment?: any; replyingTo?: string } = {
+            userId: user.uid,
+            username: userDocument.username || 'Anonymous',
+            userAvatar: userDocument.profilePicture || '',
+            message: newMessage,
+            timestamp: serverTimestamp(),
+        };
+
+        if (selectedGif) {
+            newComment.attachment = {
+                type: 'giphy',
+                title: selectedGif.title,
+                imageUrl: selectedGif.images.original.url,
+                thumbUrl: selectedGif.images.fixed_width.url,
+            };
+        }
+        
+        const mentionMatch = newMessage.match(/^@(\w+)\s/);
+        if (mentionMatch) {
+          newComment.replyingTo = mentionMatch[1];
+        }
+
+        const messagesCollectionRef = collection(firestore, 'broadcasts', broadcastId, 'messages');
+        addDocumentNonBlocking(messagesCollectionRef, newComment);
+        setNewMessage('');
+        setSelectedGif(null);
+    };
+    
+    const handleGifSelect = (gif: GiphyResult) => {
+        setSelectedGif(gif);
+        setIsGifPickerOpen(false);
+    };
+    
+    const handleReply = (username: string) => {
+        setNewMessage(`@${username} `);
+        // Consider focusing the input here
+    };
 
     if (!isVisible) {
         return (
@@ -87,7 +122,7 @@ export default function ChatPanel({
                                         <p className="break-words inline">{comment.message.replace(/^@\w+\s/, '')}</p>
                                     )}
                                 </div>
-                                <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 pointer-events-auto" onClick={() => onReply(comment.username)}>
+                                <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 pointer-events-auto" onClick={() => handleReply(comment.username)}>
                                     <CornerUpLeft className="h-4 w-4" />
                                 </Button>
                             </div>
@@ -98,18 +133,17 @@ export default function ChatPanel({
              {selectedGif && (
                 <div className="relative w-32 h-24 mt-2 pointer-events-auto">
                     <Image src={selectedGif.images.fixed_width.url} alt={selectedGif.title} fill className="object-cover rounded-md" />
-                     <Button variant="destructive" size="icon" className="absolute -top-2 -right-2 h-6 w-6 rounded-full" onClick={onClearSelectedGif}>
+                     <Button variant="destructive" size="icon" className="absolute -top-2 -right-2 h-6 w-6 rounded-full" onClick={() => setSelectedGif(null)}>
                         <X className="h-4 w-4" />
                     </Button>
                 </div>
             )}
-            <form onSubmit={onSendMessage} className="relative mt-2 flex items-center gap-2 pointer-events-auto">
+            <form onSubmit={handleSendMessage} className="relative mt-2 flex items-center gap-2 pointer-events-auto">
                 <div className="relative flex-1">
                     <Input
-                        ref={chatInputRef}
                         placeholder="Add a comment..."
                         value={newMessage}
-                        onChange={(e) => onNewMessageChange(e.target.value)}
+                        onChange={(e) => setNewMessage(e.target.value)}
                         className="bg-black/50 border-white/20 text-white placeholder:text-gray-400 pr-28"
                     />
                     <div className="absolute inset-y-0 right-0 flex items-center">
@@ -129,14 +163,14 @@ export default function ChatPanel({
                                 </div>
                             </PopoverContent>
                         </Popover>
-                        <Popover open={isGifPickerOpen} onOpenChange={onGifPickerOpenChange}>
+                        <Popover open={isGifPickerOpen} onOpenChange={setIsGifPickerOpen}>
                             <PopoverTrigger asChild>
                                 <Button size="icon" type="button" variant="ghost" className="rounded-full h-9 w-9 text-white">
                                     <b className="text-xs">GIF</b>
                                 </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-screen sm:w-96 h-96 p-0 border-zinc-700 bg-zinc-900" side="top" align="end">
-                               <GifPicker onSendGif={onGifSelect} />
+                               <GifPicker onSendGif={handleGifSelect} />
                             </PopoverContent>
                         </Popover>
                         <Button variant="ghost" size="icon" type="submit" className="text-white">
@@ -151,5 +185,3 @@ export default function ChatPanel({
         </div>
     );
 };
-
-    
