@@ -60,30 +60,33 @@ export default function ChatPanel({
     }
 
     return (
-        <div className="absolute bottom-0 left-0 right-0 z-10 p-4 flex flex-col justify-end bg-gradient-to-t from-black/70 via-black/40 to-transparent h-[40%] pointer-events-none">
-            <ScrollArea className="h-full pr-4 pointer-events-auto">
-                <div className="flex flex-col gap-3">
-                    {comments && comments.map((comment: Comment) => (
-                        <div key={comment.id} className="flex items-start gap-3 text-sm text-white bg-black/20 p-2 rounded-lg max-w-xs sm:max-w-sm">
-                            <Avatar className="h-6 w-6 border-2 border-secondary">
-                                <AvatarImage src={comment.userAvatar} alt={comment.username} />
-                                <AvatarFallback>{comment.username.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1">
-                                <span className="font-bold font-headline text-primary mr-1.5">{comment.username}:</span>
-                                {comment.attachment?.type === 'giphy' ? (
-                                    <div className="mt-1">
-                                        <Image src={comment.attachment.imageUrl} width={150} height={100} alt={comment.attachment.title || 'gif'} className="rounded-md" />
-                                        {comment.message && <p className="break-words inline mt-1">{comment.message}</p>}
-                                    </div>
-                                ) : (
-                                    <p className="break-words inline">{comment.message}</p>
-                                )}
+        <div className="absolute bottom-0 left-0 right-0 z-10 p-4 flex flex-col justify-end bg-gradient-to-t from-black/70 via-black/40 to-transparent h-[50%] pointer-events-none">
+            <div className="h-full relative">
+                <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-transparent to-black/0 via-black/0 z-10 pointer-events-none" style={{ maskImage: 'linear-gradient(to bottom, transparent, black 100%)', WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 100%)' }} />
+                <ScrollArea className="h-full pr-4 pointer-events-auto">
+                    <div className="flex flex-col gap-3">
+                        {comments && comments.map((comment: Comment) => (
+                            <div key={comment.id} className="flex items-start gap-3 text-sm text-white bg-black/20 p-2 rounded-lg max-w-xs sm:max-w-sm">
+                                <Avatar className="h-6 w-6 border-2 border-secondary">
+                                    <AvatarImage src={comment.userAvatar} alt={comment.username} />
+                                    <AvatarFallback>{comment.username.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1">
+                                    <span className="font-bold font-headline text-primary mr-1.5">{comment.username}:</span>
+                                    {comment.attachment?.type === 'giphy' ? (
+                                        <div className="mt-1">
+                                            <Image src={comment.attachment.imageUrl} width={150} height={100} alt={comment.attachment.title || 'gif'} className="rounded-md" />
+                                            {comment.message && <p className="break-words inline mt-1">{comment.message}</p>}
+                                        </div>
+                                    ) : (
+                                        <p className="break-words inline">{comment.message}</p>
+                                    )}
+                                </div>
                             </div>
-                        </div>
-                    ))}
-                </div>
-            </ScrollArea>
+                        ))}
+                    </div>
+                </ScrollArea>
+             </div>
              {selectedGif && (
                 <div className="relative w-32 h-24 mt-2 pointer-events-auto">
                     <Image src={selectedGif.images.fixed_width.url} alt={selectedGif.title} fill className="object-cover rounded-md" />
@@ -139,5 +142,3 @@ export default function ChatPanel({
         </div>
     );
 };
-
-    
