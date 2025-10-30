@@ -60,7 +60,7 @@ export default function ChatPanel({
     }
 
     return (
-        <div className="absolute bottom-0 left-0 right-0 z-10 p-4 flex flex-col justify-end bg-gradient-to-t from-black/70 via-black/40 to-transparent h-[70%] pointer-events-none">
+        <div className="absolute bottom-0 left-0 right-0 z-10 p-4 flex flex-col justify-end bg-gradient-to-t from-black/70 via-black/40 to-transparent h-[80%] pointer-events-none">
             <div className="h-full relative">
                 <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-transparent to-black/0 via-black/0 z-10 pointer-events-none" style={{ maskImage: 'linear-gradient(to bottom, transparent, black 100%)', WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 100%)' }} />
                 <ScrollArea className="h-full pr-4 pointer-events-auto">
