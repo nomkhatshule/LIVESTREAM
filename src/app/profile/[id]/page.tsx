@@ -171,21 +171,25 @@ export default function UserProfilePage() {
       
       {/* Highlight Video Modal */}
       <Dialog open={!!selectedHighlight} onOpenChange={(open) => !open && setSelectedHighlight(null)}>
-        <DialogContent className="bg-black border-none shadow-none p-0">
+        <DialogContent className="bg-black border-none shadow-none p-0 max-w-full h-full">
             {selectedHighlight && (
                 <>
                   <VisuallyHidden>
                     <DialogTitle>{`Highlight video: ${selectedHighlight.title}`}</DialogTitle>
                     <DialogDescription>A full-screen video player for the highlight titled "{selectedHighlight.title}".</DialogDescription>
                   </VisuallyHidden>
-                  <div className="relative w-full h-[90vh]">
+                   <DialogClose className="absolute right-4 top-4 z-50 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+                    <X className="h-6 w-6 text-white" />
+                    <span className="sr-only">Close</span>
+                  </DialogClose>
+                  <div className="relative w-full h-full flex items-center justify-center">
                       <video
                           src={selectedHighlight.videoUrl}
                           controls
                           autoPlay
                           loop
                           playsInline
-                          className="w-full h-full object-contain"
+                          className="max-w-full max-h-full object-contain"
                       />
                   </div>
                 </>
@@ -225,7 +229,7 @@ export default function UserProfilePage() {
                 )}
               </div>
               <div className="flex flex-col items-center p-6 pt-0 -mt-24">
-                <Avatar className="w-28 h-28 border-4 border-background ring-4 ring-primary">
+                <Avatar className="w-28 h-28 border-4 border-background ring-4 ring-destructive">
                   <AvatarImage src={userDocument.profilePicture || "https://picsum.photos/seed/profile-placeholder/200"} alt={userDocument.username || ''} />
                   <AvatarFallback className="text-4xl">{userDocument.username?.charAt(0)}</AvatarFallback>
                 </Avatar>
