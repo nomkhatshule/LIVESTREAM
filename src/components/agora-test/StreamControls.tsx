@@ -3,12 +3,13 @@
 
 import { Button } from "@/components/ui/button";
 import { useCallStateHooks } from "@stream-io/video-react-sdk";
-import { Dice6, Mic, MicOff, Minus, MonitorUp, ScreenShare, UserPlus, Users, Video, VideoOff } from "lucide-react";
+import { Dice6, Mic, MicOff, Minus, MonitorUp, ScreenShare, UserPlus, Users, Video, VideoOff, SwitchCamera } from "lucide-react";
 import ParticipantsPanel from "./ParticipantsPanel";
 
 interface StreamControlsProps {
     onToggleVideo: () => void;
     onToggleMic: () => void;
+    onFlipCamera: () => void;
     onToggleScreenShare: () => void;
     onInviteGuest: () => void;
     onSelectChallenge: (challenge: string, type: 'truth' | 'dare' | 'challenge', duration: number) => void;
@@ -22,7 +23,7 @@ interface StreamControlsProps {
 }
 
 
-export default function StreamControls({ onToggleVideo, onToggleMic, onToggleScreenShare, onInviteGuest, isVideoEnabled, isMicEnabled, isScreenSharing, isCallJoined, onSelectChallenge, onToggleChallengeVisibility, isChallengeActive, onOpenGames }: StreamControlsProps) {
+export default function StreamControls({ onToggleVideo, onToggleMic, onFlipCamera, onToggleScreenShare, onInviteGuest, isVideoEnabled, isMicEnabled, isScreenSharing, isCallJoined, onSelectChallenge, onToggleChallengeVisibility, isChallengeActive, onOpenGames }: StreamControlsProps) {
     const { useParticipants } = useCallStateHooks();
     const participants = useParticipants();
     const viewerCount = Math.max(0, participants.length -1);
@@ -34,6 +35,9 @@ export default function StreamControls({ onToggleVideo, onToggleMic, onToggleScr
             </Button>
             <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onToggleMic} disabled={!isCallJoined}>
                 {isMicEnabled ? <Mic className="h-5 w-5 md:h-6 md:w-6"/> : <MicOff className="h-5 w-5 md:h-6 md:w-6"/>}
+            </Button>
+            <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onFlipCamera} disabled={!isCallJoined}>
+                <SwitchCamera className="h-5 w-5 md:h-6 md:w-6"/>
             </Button>
             <Button variant={isScreenSharing ? "primary" : "secondary"} size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onToggleScreenShare} disabled={!isCallJoined}>
                 {isScreenSharing ? <MonitorUp className="h-5 w-5 md:h-6 md:w-6"/> : <ScreenShare className="h-5 w-5 md:h-6 md:w-6"/>}
