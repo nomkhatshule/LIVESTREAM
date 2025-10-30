@@ -171,14 +171,14 @@ export default function UserProfilePage() {
       
       {/* Highlight Video Modal */}
       <Dialog open={!!selectedHighlight} onOpenChange={(open) => !open && setSelectedHighlight(null)}>
-        <DialogContent className="bg-black border-none shadow-none max-w-screen max-h-screen p-0 m-0 w-full h-full flex items-center justify-center">
+        <DialogContent className="bg-black border-none shadow-none p-0">
             {selectedHighlight && (
                 <>
                   <VisuallyHidden>
                     <DialogTitle>{`Highlight video: ${selectedHighlight.title}`}</DialogTitle>
                     <DialogDescription>A full-screen video player for the highlight titled "{selectedHighlight.title}".</DialogDescription>
                   </VisuallyHidden>
-                  <div className="relative w-full h-full max-w-[45vh] max-h-[80vh] aspect-[9/16]">
+                  <div className="relative w-full h-[90vh]">
                       <video
                           src={selectedHighlight.videoUrl}
                           controls
@@ -187,15 +187,6 @@ export default function UserProfilePage() {
                           playsInline
                           className="w-full h-full object-contain"
                       />
-                      <DialogClose asChild>
-                          <Button
-                              variant="ghost"
-                              size="icon"
-                              className="absolute top-2 right-2 text-white bg-black/50 rounded-full"
-                          >
-                              <X className="h-6 w-6" />
-                          </Button>
-                      </DialogClose>
                   </div>
                 </>
             )}
@@ -411,6 +402,3 @@ function ProfileSkeleton() {
     </div>
   );
 }
-
-
-    
