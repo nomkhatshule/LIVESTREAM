@@ -9,6 +9,7 @@ export interface Comment {
   userAvatar: string;
   message: string;
   timestamp: any;
+  replyingTo?: string;
   attachment?: {
     type: 'giphy';
     title: string;
@@ -60,3 +61,5 @@ export interface GiphyResult {
     };
     title: string;
 }
+
+    

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Comment, GiphyResult } from '@/lib/types';
-import { ArrowUp, MessageCircle, MessageCircleOff, Smile, X, Heart, ThumbsUp } from 'lucide-react';
+import { ArrowUp, MessageCircle, MessageCircleOff, Smile, X, Heart, ThumbsUp, CornerUpLeft } from 'lucide-react';
 import Image from 'next/image';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import GifPicker from '../inbox/GifPicker';
@@ -24,6 +24,8 @@ interface ChatPanelProps {
     onGifSelect: (gif: GiphyResult) => void;
     selectedGif: GiphyResult | null;
     onClearSelectedGif: () => void;
+    onReply: (username: string) => void;
+    chatInputRef: React.RefObject<HTMLInputElement>;
 }
 
 export default function ChatPanel({ 
@@ -38,7 +40,9 @@ export default function ChatPanel({
     onGifPickerOpenChange,
     onGifSelect,
     selectedGif,
-    onClearSelectedGif
+    onClearSelectedGif,
+    onReply,
+    chatInputRef
 }: ChatPanelProps) {
 
     const reactions = [
@@ -66,22 +70,26 @@ export default function ChatPanel({
                 <ScrollArea className="h-full pr-4 pointer-events-auto">
                     <div className="flex flex-col gap-3">
                         {comments && comments.map((comment: Comment) => (
-                            <div key={comment.id} className="flex items-start gap-3 text-sm text-white bg-black/20 p-2 rounded-lg max-w-xs sm:max-w-sm">
+                            <div key={comment.id} className="group flex items-start gap-3 text-sm text-white bg-black/20 p-2 rounded-lg max-w-xs sm:max-w-sm">
                                 <Avatar className="h-6 w-6 border-2 border-secondary">
                                     <AvatarImage src={comment.userAvatar} alt={comment.username} />
                                     <AvatarFallback>{comment.username.charAt(0)}</AvatarFallback>
                                 </Avatar>
                                 <div className="flex-1">
                                     <span className="font-bold font-headline text-primary mr-1.5">{comment.username}:</span>
+                                    {comment.replyingTo && <span className="font-semibold text-accent mr-1.5">@{comment.replyingTo}</span>}
                                     {comment.attachment?.type === 'giphy' ? (
                                         <div className="mt-1">
                                             <Image src={comment.attachment.imageUrl} width={150} height={100} alt={comment.attachment.title || 'gif'} className="rounded-md" />
-                                            {comment.message && <p className="break-words inline mt-1">{comment.message}</p>}
+                                            {comment.message && <p className="break-words inline mt-1">{comment.message.replace(/^@\w+\s/, '')}</p>}
                                         </div>
                                     ) : (
-                                        <p className="break-words inline">{comment.message}</p>
+                                        <p className="break-words inline">{comment.message.replace(/^@\w+\s/, '')}</p>
                                     )}
                                 </div>
+                                <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 pointer-events-auto" onClick={() => onReply(comment.username)}>
+                                    <CornerUpLeft className="h-4 w-4" />
+                                </Button>
                             </div>
                         ))}
                     </div>
@@ -98,6 +106,7 @@ export default function ChatPanel({
             <form onSubmit={onSendMessage} className="relative mt-2 flex items-center gap-2 pointer-events-auto">
                 <div className="relative flex-1">
                     <Input
+                        ref={chatInputRef}
                         placeholder="Add a comment..."
                         value={newMessage}
                         onChange={(e) => onNewMessageChange(e.target.value)}
@@ -142,3 +151,5 @@ export default function ChatPanel({
         </div>
     );
 };
+
+    
