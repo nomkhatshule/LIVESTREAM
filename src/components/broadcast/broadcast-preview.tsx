@@ -257,7 +257,7 @@ function BroadcastPreviewUIManager({
                                 </Button>
                             </div>
                         )}
-                        <div className="pb-4">
+                        <div>
                             <form onSubmit={handleFormSubmit} className="relative flex w-full pointer-events-auto items-center gap-2 mt-2">
                                 <div className="relative flex-1">
                                     <Textarea
