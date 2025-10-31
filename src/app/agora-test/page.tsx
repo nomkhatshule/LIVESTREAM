@@ -1,54 +1,35 @@
 
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Users, X, Send, Smile, MessageCircle, Video, Mic, UserPlus, ScreenShare, VideoOff, MicOff, ArrowUp, MessageCircleOff, MonitorUp, Heart, ThumbsUp, Loader2, Dice6, Trophy, Check, Minus, Swords, Undo2, SwitchCamera } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Suspense, forwardRef, useEffect, useMemo, useRef, useState } from 'react';
-import { useToast } from '@/hooks/use-toast';
-import { useUser, useDoc, useFirestore, useMemoFirebase, useUserDocument } from '@/firebase';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { doc, updateDoc, collection, query, orderBy, limit, serverTimestamp, Timestamp } from 'firebase/firestore';
-import { useCollection } from '@/firebase';
-import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import {
-  Call,
-  StreamCall,
-  StreamVideo,
-  StreamVideoClient,
-  useCall,
-  useCallStateHooks,
-  CallingState,
-  ParticipantView,
-} from '@stream-io/video-react-sdk';
-import '@stream-io/video-react-sdk/dist/css/styles.css';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import VideoPlayer from '@/components/broadcast/video-player';
-import { User } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
-import ChallengeDisplayCard from '@/components/broadcast/ChallengeDisplayCard';
-import CountdownTimer from '@/components/broadcast/CountdownTimer';
-import StreamHeader from '@/components/agora-test/StreamHeader';
-import FloatingReactions from '@/components/agora-test/FloatingReactions';
-import InStreamGamesPanel from '@/components/agora-test/InStreamGamesPanel';
-import StreamControls from '@/components/agora-test/StreamControls';
-import ChatPanel from '@/components/agora-test/ChatPanel';
-import type { Reaction, StagedChallenge, BroadcastData, Comment, GiphyResult } from '@/lib/types';
-import { generateGamePrompts } from '@/ai/flows/generate-game-prompts';
-import { Resizable } from 're-resizable';
+import { useCall, useCallStateHooks, CallingState, Call } from '@stream-io/video-react-sdk';
+import { doc } from 'firebase/firestore';
+
+import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { useStreamControls } from '@/hooks/useStreamControls';
 import { useGameFlow } from '@/hooks/useGameFlow';
 import { useChallengeCard } from '@/hooks/useChallengeCard';
+
+import type { Reaction, BroadcastData } from '@/lib/types';
+import { Loader2 } from 'lucide-react';
+import { StreamCall, StreamVideo, StreamVideoClient } from '@stream-io/video-react-sdk';
+import { useToast } from '@/hooks/use-toast';
+
+import VideoPlayer from '@/components/broadcast/video-player';
+import FloatingReactions from '@/components/agora-test/FloatingReactions';
+import StreamHeader from '@/components/agora-test/StreamHeader';
 import GameFlowManager from '@/components/agora-test/GameFlowManager';
 import ChallengeCardManager from '@/components/agora-test/ChallengeCardManager';
-
+import StreamControls from '@/components/agora-test/StreamControls';
+import ChatPanel from '@/components/agora-test/ChatPanel';
+import InStreamGamesPanel from '@/components/agora-test/InStreamGamesPanel';
+import { useCollection } from '@/firebase';
+import { query, collection, orderBy, limit } from 'firebase/firestore';
+import type { Comment } from '@/lib/types';
 
 // --- Main UI Component ---
 function AgoraTestPageUI() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const broadcastId = searchParams.get('id');
   const firestore = useFirestore();
@@ -163,7 +144,7 @@ function AgoraTestPageUI() {
         />
 
         {/* Right-side container for controls and chat */}
-        <div className="absolute right-0 top-0 h-full w-auto md:w-96 flex flex-col items-end justify-between p-2 md:p-4 z-20 pointer-events-none">
+        <div className="absolute right-0 top-0 h-full w-auto md:w-96 flex flex-col items-end justify-end p-2 md:p-4 z-20 pointer-events-none">
             {/* Spacer for desktop */}
             <div className="hidden md:block flex-grow" />
 
