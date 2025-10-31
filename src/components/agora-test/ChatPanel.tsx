@@ -133,7 +133,7 @@ export default function ChatPanel({
                     </Button>
                 </div>
             )}
-            <form onSubmit={onSendMessage} className="relative mt-2 flex items-center gap-2 pointer-events-auto mb-16">
+            <form onSubmit={onSendMessage} className="relative mt-2 flex items-center gap-2 pointer-events-auto mb-20">
                 <div className="relative flex-1">
                     <Input
                         ref={chatInputRef}
