@@ -473,9 +473,9 @@ function AgoraTestPageUI() {
         {/* Active Challenge Display Card */}
         {isChallengeVisible && broadcastData.activeChallenge && broadcastData.activeChallengeType && (
             <div 
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-20 md:transform-none"
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-20"
                 style={{
-                  transform: `translate(calc(-50% + ${cardPosition.x}px), calc(-50% + ${cardPosition.y}px)) scale(0.8)`,
+                  transform: `translate(calc(-50% + ${cardPosition.x}px), calc(-50% + ${cardPosition.y}px))`,
                 }}
             >
                 <Resizable
