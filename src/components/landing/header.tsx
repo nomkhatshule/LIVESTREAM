@@ -1,3 +1,4 @@
+
 'use client';
 
 import { AgoraLiveLogo } from '@/components/icons';
@@ -27,7 +28,7 @@ export default function LandingHeader() {
             <Button variant="ghost" className="text-white hover:bg-white/10 hover:text-white rounded-full" asChild>
                 <Link href="/login">Log in</Link>
             </Button>
-            <Button className="rounded-full bg-primary text-primary-foreground" asChild>
+            <Button className="rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 text-white shadow-xl transition-all duration-300 hover:scale-105 hover:bg-white/30 hover:shadow-2xl hover:shadow-blue-500/20 active:scale-95" asChild>
                 <Link href="/signup">Sign Up</Link>
             </Button>
         </div>
