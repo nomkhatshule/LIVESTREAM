@@ -156,44 +156,85 @@ function AgoraTestPageUI() {
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
-            onResizeStop={handleResizeStop}
+            onResizeStop={onResizeStop}
             onSetCardSize={setCardSize}
             onGenerateNextChallenge={handleGenerateNextChallenge}
             broadcastDocRef={broadcastDocRef}
         />
-       
-        <StreamControls 
-            onToggleVideo={handleToggleVideo}
-            onToggleMic={handleToggleMic}
-            onFlipCamera={handleFlipCamera}
-            onToggleScreenShare={handleToggleScreenShare}
-            onInviteGuest={handleInviteGuest}
-            onToggleChallengeVisibility={() => setIsChallengeVisible(prev => !prev)}
-            isChallengeActive={!!broadcastData.activeChallenge}
-            isVideoEnabled={isVideoEnabled}
-            isMicEnabled={isMicEnabled}
-            isScreenSharing={isScreenSharing}
-            isCallJoined={isCallJoined}
-            onOpenGames={() => setIsGamePanelOpen(true)}
-            isChatVisible={isChatVisible}
-            onToggleChatVisibility={() => setIsChatVisible(prev => !prev)}
-        />
+
+        {/* Right-side container for controls and chat */}
+        <div className="absolute right-0 top-0 h-full w-auto md:w-96 flex flex-col items-end justify-between p-2 md:p-4 z-20 pointer-events-none">
+            {/* Spacer for desktop */}
+            <div className="hidden md:block flex-grow" />
+
+             {/* Combined Controls and Chat for Mobile */}
+            <div className="md:hidden flex flex-col items-center gap-2 pointer-events-auto">
+                <StreamControls 
+                    onToggleVideo={handleToggleVideo}
+                    onToggleMic={handleToggleMic}
+                    onFlipCamera={handleFlipCamera}
+                    onToggleScreenShare={handleToggleScreenShare}
+                    onInviteGuest={handleInviteGuest}
+                    onToggleChallengeVisibility={() => setIsChallengeVisible(prev => !prev)}
+                    isChallengeActive={!!broadcastData.activeChallenge}
+                    isVideoEnabled={isVideoEnabled}
+                    isMicEnabled={isMicEnabled}
+                    isScreenSharing={isScreenSharing}
+                    isCallJoined={isCallJoined}
+                    onOpenGames={() => setIsGamePanelOpen(true)}
+                    isChatVisible={isChatVisible}
+                    onToggleChatVisibility={() => setIsChatVisible(prev => !prev)}
+                />
+                 <div className="w-64">
+                    <ChatPanel 
+                        broadcastId={broadcastId}
+                        isVisible={isChatVisible}
+                        comments={comments || []}
+                        onReaction={handleReaction}
+                        onToggleVisibility={() => setIsChatVisible(prev => !prev)}
+                    />
+                </div>
+            </div>
+
+            <div className="flex-grow flex flex-col justify-end w-full max-w-sm pointer-events-auto">
+                {/* Desktop Chat */}
+                <div className="hidden md:block">
+                     <ChatPanel 
+                        broadcastId={broadcastId}
+                        isVisible={isChatVisible}
+                        comments={comments || []}
+                        onReaction={handleReaction}
+                        onToggleVisibility={() => setIsChatVisible(prev => !prev)}
+                    />
+                </div>
+            </div>
+        </div>
+
+         {/* Desktop Controls */}
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 z-20 hidden md:flex">
+             <StreamControls 
+                onToggleVideo={handleToggleVideo}
+                onToggleMic={handleToggleMic}
+                onFlipCamera={handleFlipCamera}
+                onToggleScreenShare={handleToggleScreenShare}
+                onInviteGuest={handleInviteGuest}
+                onToggleChallengeVisibility={() => setIsChallengeVisible(prev => !prev)}
+                isChallengeActive={!!broadcastData.activeChallenge}
+                isVideoEnabled={isVideoEnabled}
+                isMicEnabled={isMicEnabled}
+                isScreenSharing={isScreenSharing}
+                isCallJoined={isCallJoined}
+                onOpenGames={() => setIsGamePanelOpen(true)}
+                isChatVisible={isChatVisible}
+                onToggleChatVisibility={() => setIsChatVisible(prev => !prev)}
+            />
+        </div>
         
         <InStreamGamesPanel 
             onSelectChallenge={handleChallengeSelect} 
             open={isGamePanelOpen} 
             onOpenChange={setIsGamePanelOpen} 
         />
-        
-        <div className="absolute bottom-0 left-0 right-0 z-10 pb-4">
-            <ChatPanel 
-                broadcastId={broadcastId}
-                isVisible={isChatVisible}
-                comments={comments || []}
-                onReaction={handleReaction}
-                onToggleVisibility={() => setIsChatVisible(prev => !prev)}
-            />
-        </div>
     </div>
   );
 }
