@@ -1,7 +1,5 @@
-
 'use client';
 
-import { AgoraLiveLogo } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
@@ -10,7 +8,6 @@ export default function LandingHeader() {
     <header className="fixed top-4 left-1/2 -translate-x-1/2 z-50">
       <nav className="flex items-center bg-white/10 backdrop-blur-md border border-white/30 rounded-full p-2 shadow-xl">
         <Link href="/" className="flex items-center gap-2 px-4">
-          <AgoraLiveLogo className="h-6 w-6" />
           <span className="font-bold font-cosmic text-white">LIVENET</span>
         </Link>
         <div className="flex items-center gap-1">
