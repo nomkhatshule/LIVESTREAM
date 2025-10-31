@@ -156,7 +156,7 @@ function AgoraTestPageUI() {
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
-            onResizeStop={onResizeStop}
+            onResizeStop={handleResizeStop}
             onSetCardSize={setCardSize}
             onGenerateNextChallenge={handleGenerateNextChallenge}
             broadcastDocRef={broadcastDocRef}
