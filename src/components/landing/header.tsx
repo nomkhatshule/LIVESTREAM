@@ -11,7 +11,7 @@ export default function LandingHeader() {
       <nav className="flex items-center bg-white/10 backdrop-blur-md border border-white/30 rounded-full p-2 shadow-xl">
         <Link href="/" className="flex items-center gap-2 px-4">
           <AgoraLiveLogo className="h-6 w-6" />
-          <span className="font-bold font-headline text-white">AgoraLive</span>
+          <span className="font-bold font-cosmic text-white">LIVENET</span>
         </Link>
         <div className="flex items-center gap-1">
           <button className="px-4 py-1.5 rounded-full text-sm tracking-tight transition-all duration-300 hover:scale-105 active:scale-95 bg-white/20 backdrop-blur-md text-white shadow-lg">
