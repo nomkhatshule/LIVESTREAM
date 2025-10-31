@@ -140,7 +140,7 @@ export default function ChatPanel({
                         placeholder="Add a comment..."
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
-                        className="bg-black/50 border-white/20 text-white placeholder:text-gray-400 pr-28"
+                        className="bg-black/50 border-white/20 text-white placeholder:text-gray-400 pr-28 rounded-full"
                     />
                     <div className="absolute inset-y-0 right-0 flex items-center">
                         <Popover>
