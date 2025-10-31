@@ -112,8 +112,8 @@ function HomePageContent() {
 
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="absolute top-4 right-4 z-40 text-white transition-transform hover:bg-black/20 hover:scale-110 pointer-events-auto focus-visible:ring-0 rounded-full h-9 w-9 bg-black/20">
-                            <ChevronDownCircle className="h-6 w-6" />
+                         <Button variant="ghost" size="icon" className="absolute top-4 right-4 z-40 text-white transition-transform hover:bg-black/20 hover:scale-110 pointer-events-auto focus-visible:ring-0 rounded-full h-10 w-10 bg-black/20">
+                            <ChevronDownCircle className="h-7 w-7" />
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="w-56 p-0" align="end">
@@ -222,5 +222,3 @@ export default function HomePage() {
         </Suspense>
     )
 }
-
-    

@@ -110,11 +110,11 @@ function BroadcastPreviewUIManager({
                         className="group flex flex-col items-center justify-center text-white transition-transform hover:scale-110 disabled:opacity-50"
                     >
                         {isConnecting ? (
-                            <Loader2 className="h-24 w-24 animate-spin" />
+                            <Loader2 className="h-20 w-20 md:h-24 md:w-24 animate-spin" />
                         ) : (
-                            <Play className="h-24 w-24 fill-white/80 drop-shadow-2xl" />
+                            <Play className="h-20 w-20 md:h-24 md:w-24 fill-white/80 drop-shadow-2xl" />
                         )}
-                        <span className="mt-2 text-lg font-semibold drop-shadow-lg">
+                        <span className="mt-2 text-base md:text-lg font-semibold drop-shadow-lg">
                             {isConnecting ? 'Joining...' : 'Watch Live'}
                         </span>
                     </button>
@@ -132,11 +132,11 @@ function BroadcastPreviewUIManager({
             )}
             
             {/* Top Info */}
-            <div className="bg-gradient-to-b from-black/50 to-transparent -m-4 p-4">
+            <div className="bg-gradient-to-b from-black/50 to-transparent -m-3 md:-m-4 p-3 md:p-4">
                 <div className="flex items-start justify-between">
                     <div className="flex items-start gap-3">
                         <Link href={`/profile/${broadcast.hostId}`} className="pointer-events-auto">
-                            <Avatar className={cn("h-12 w-12 border-4 border-destructive", broadcast.isLive && "animate-breathing-prominent")}>
+                            <Avatar className={cn("h-10 w-10 md:h-12 md:w-12 border-4 border-destructive", broadcast.isLive && "animate-breathing-prominent")}>
                                 <AvatarImage src={broadcast.hostAvatar} alt={broadcast.hostName} />
                                 <AvatarFallback>{broadcast.hostName?.charAt(0) || 'A'}</AvatarFallback>
                             </Avatar>
@@ -165,12 +165,11 @@ function BroadcastPreviewUIManager({
             </div>
             
             {/* Right Side Vertical Action Bar */}
-             <div className="absolute top-1/2 right-4 -translate-y-1/2 z-40 flex flex-col items-center gap-y-4 md:gap-y-6 pointer-events-auto text-white">
-
+             <div className="absolute top-1/2 right-0 -translate-y-1/2 z-40 flex flex-col items-center gap-y-4 md:gap-y-6 pointer-events-auto text-white p-2 md:p-4">
                 {/* Like Action Item */}
                  <div className="flex flex-col items-center group">
                     <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform" onClick={onLike}>
-                      <Heart className={cn("h-6 w-6 drop-shadow-md", hasLiked && "fill-red-500 text-red-500")} strokeWidth={1.5} />
+                      <Heart className={cn("h-7 w-7 drop-shadow-md", hasLiked && "fill-red-500 text-red-500")} strokeWidth={1.5} />
                     </button>
                     <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">{likes?.length || 0}</span>
                 </div>
@@ -178,24 +177,24 @@ function BroadcastPreviewUIManager({
                 {/* Comment Action Item */}
                 <div className="flex flex-col items-center group">
                     <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform" onClick={() => setIsChatVisible(!isChatVisible)}>
-                       <MessageSquareMore className="h-6 w-6 drop-shadow-md" strokeWidth={1.5} />
+                       <MessageSquareMore className="h-7 w-7 drop-shadow-md" strokeWidth={1.5} />
                     </button>
                     <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">{comments?.length || 0}</span>
                 </div>
                 
-                {/* Games/Dares Action Item */}
+                {/* Games/Gifts Action Item */}
                 <Link href="/cards" className="flex flex-col items-center group pointer-events-auto">
                     <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform">
-                       <Gift className="h-6 w-6 drop-shadow-md" strokeWidth={1.5} />
+                       <Gift className="h-7 w-7 drop-shadow-md" strokeWidth={1.5} />
                     </button>
-                    <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">Games</span>
+                    <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">Gifts</span>
                 </Link>
 
                  {/* AI Search Action Item */}
                 <AIChat userAvatar={currentUserAvatar} broadcastContext={broadcastContext}>
                     <div className="flex flex-col items-center group">
                         <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform">
-                           <Search className="h-6 w-6 drop-shadow-md" strokeWidth={1.5} />
+                           <Search className="h-7 w-7 drop-shadow-md" strokeWidth={1.5} />
                         </button>
                          <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">AI</span>
                     </div>
@@ -205,42 +204,41 @@ function BroadcastPreviewUIManager({
                 {broadcast.activeChallenge && (
                      <div className="flex flex-col items-center group">
                         <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform" onClick={() => setIsChallengeVisible(true)}>
-                           <Swords className="h-6 w-6 drop-shadow-md text-yellow-400" strokeWidth={1.5} />
+                           <Swords className="h-7 w-7 drop-shadow-md text-yellow-400" strokeWidth={1.5} />
                         </button>
                         <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">Challenge</span>
                     </div>
                 )}
             </div>
 
-
             {/* Bottom Chat Area */}
              {isChatVisible && (
-                <div className="bg-gradient-to-t from-black/70 to-transparent -m-4 p-4 flex flex-col justify-end gap-4">
+                <div className="bg-gradient-to-t from-black/70 to-transparent -m-3 md:-m-4 p-3 md:p-4 flex flex-col justify-end gap-4">
                     <div className="w-full sm:max-w-sm md:max-w-md">
-                        <div className="h-80 w-full rounded-xl p-3 pointer-events-auto">
+                        <div className="h-64 md:h-80 w-full pointer-events-auto">
                             <ScrollArea className="h-full pr-2">
-                                <div className="flex flex-col gap-3">
+                                <div className="flex flex-col-reverse gap-3">
                                     {comments.map((comment) => (
-                                        <div key={comment.id} className="group flex items-start gap-3 text-sm text-white bg-black/20 p-2 rounded-lg max-w-xs sm:max-w-sm">
-                                            <Link href={`/profile/${comment.userId}`} className="pointer-events-auto">
+                                        <div key={comment.id} className="group flex items-start gap-2 text-sm text-white">
+                                            <Link href={`/profile/${comment.userId}`} className="pointer-events-auto flex-shrink-0">
                                                 <Avatar className="h-6 w-6 border-2 border-secondary">
                                                     <AvatarImage src={comment.userAvatar} alt={comment.username} />
                                                     <AvatarFallback>{comment.username.charAt(0)}</AvatarFallback>
                                                 </Avatar>
                                             </Link>
-                                            <div className="flex-1">
+                                            <div className="flex-1 bg-black/20 p-2 rounded-lg">
                                                 <Link href={`/profile/${comment.userId}`} className="pointer-events-auto">
-                                                    <span className="font-bold font-headline text-primary mr-1.5 hover:underline">{comment.username}:</span>
+                                                    <span className="font-bold font-headline text-primary mr-1.5 hover:underline text-xs">{comment.username}</span>
                                                 </Link>
-                                                {comment.replyingTo && <Link href={`/profile/${comment.replyingTo}`} className="text-accent font-semibold mr-1.5 hover:underline pointer-events-auto">@{comment.replyingTo}</Link>}
+                                                {comment.replyingTo && <Link href={`/profile/${comment.replyingTo}`} className="text-accent font-semibold mr-1.5 hover:underline pointer-events-auto text-xs">@{comment.replyingTo}</Link>}
                                                 
                                                 {comment.attachment?.type === 'giphy' ? (
                                                     <div className='mt-1'>
                                                         <Image src={comment.attachment.imageUrl} width={150} height={100} alt={comment.attachment.title || 'gif'} className="rounded-md" />
-                                                        {comment.message && <p className="break-words mt-1">{comment.message.replace(/^@\w+\s/, '')}</p>}
+                                                        {comment.message && <p className="break-words mt-1 text-sm">{comment.message.replace(/^@\w+\s/, '')}</p>}
                                                     </div>
                                                 ) : (
-                                                    <span className="break-words">{comment.message.replace(/^@\w+\s/, '')}</span>
+                                                    <span className="break-words text-sm">{comment.message.replace(/^@\w+\s/, '')}</span>
                                                 )}
                                             </div>
                                             <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 pointer-events-auto" onClick={() => handleReplyClick(comment.username)}>
@@ -337,7 +335,7 @@ export function BroadcastPreview({ broadcast, onVisible }: BroadcastPreviewProps
         if (!broadcast.id || !firestore) return null;
         return query(
             collection(firestore, `broadcasts/${broadcast.id}/messages`),
-            orderBy('timestamp', 'desc'),
+            orderBy('timestamp', 'asc'),
             limit(50)
         );
     }, [broadcast.id, firestore]);
@@ -463,12 +461,14 @@ export function BroadcastPreview({ broadcast, onVisible }: BroadcastPreviewProps
     const isConnecting = isCurrentActiveStream && status === 'connecting';
     const isConnected = isCurrentActiveStream && status === 'connected' && isIntentionalConnect;
 
+    const reversedComments = useMemo(() => (comments || []).slice().reverse(), [comments]);
+
 
     return (
         <div ref={ref} className="h-full w-full snap-start relative bg-cover bg-center" style={{backgroundImage: `url(${broadcast.thumbnailUrl})`}}>
            <BroadcastPreviewUIManager
                 broadcast={broadcast}
-                comments={comments || []}
+                comments={reversedComments}
                 likes={likes || []}
                 hasLiked={hasLiked}
                 isFollowing={isFollowing}
@@ -485,5 +485,3 @@ export function BroadcastPreview({ broadcast, onVisible }: BroadcastPreviewProps
         </div>
     );
 };
-
-    
