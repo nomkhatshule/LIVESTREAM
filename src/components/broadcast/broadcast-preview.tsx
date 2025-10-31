@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useMemo, useState, useRef, useEffect } from 'react';
@@ -218,13 +217,13 @@ function BroadcastPreviewUIManager({
              {isChatVisible && (
                 <div className="bg-gradient-to-t from-black/70 to-transparent -m-4 p-4 flex flex-col justify-end gap-4">
                     <div className="w-full sm:max-w-sm md:max-w-md">
-                        <div className="h-80 w-full rounded-xl bg-black/40 p-3 backdrop-blur-sm pointer-events-auto">
+                        <div className="h-80 w-full rounded-xl p-3 pointer-events-auto">
                             <ScrollArea className="h-full pr-2">
-                                <div className="flex flex-col-reverse gap-y-1">
+                                <div className="flex flex-col gap-3">
                                     {comments.map((comment) => (
-                                        <div key={comment.id} className="group flex items-start gap-2 text-sm py-1.5 border-b border-white/10">
+                                        <div key={comment.id} className="group flex items-start gap-3 text-sm text-white bg-black/20 p-2 rounded-lg max-w-xs sm:max-w-sm">
                                             <Link href={`/profile/${comment.userId}`} className="pointer-events-auto">
-                                                <Avatar className="h-6 w-6 border-secondary">
+                                                <Avatar className="h-6 w-6 border-2 border-secondary">
                                                     <AvatarImage src={comment.userAvatar} alt={comment.username} />
                                                     <AvatarFallback>{comment.username.charAt(0)}</AvatarFallback>
                                                 </Avatar>
@@ -486,3 +485,5 @@ export function BroadcastPreview({ broadcast, onVisible }: BroadcastPreviewProps
         </div>
     );
 };
+
+    
