@@ -61,12 +61,12 @@ function AgoraTestPageUI() {
   const [showChallengeCoverCard, setShowChallengeCoverCard] = useState(false);
   const [stagedChallenge, setStagedChallenge] = useState<StagedChallenge | null>(null);
   const [cardPosition, setCardPosition] = useState({ x: 0, y: 0 });
-  const [cardSize, setCardSize] = useState({ width: 320, height: 460 });
+  const [cardSize, setCardSize] = useState({ width: 200, height: 280 });
   const [isDragging, setIsDragging] = useState(false);
   const dragOffsetRef = useRef({ x: 0, y: 0 });
   const [isPinching, setIsPinching] = useState(false);
   const initialPinchDistanceRef = useRef(0);
-  const initialCardSizeRef = useRef({ width: 320, height: 460 });
+  const initialCardSizeRef = useRef({ width: 200, height: 280 });
   const [isGifPickerOpen, setIsGifPickerOpen] = useState(false);
   const [selectedGif, setSelectedGif] = useState<GiphyResult | null>(null);
 
@@ -236,7 +236,7 @@ function AgoraTestPageUI() {
         // Pinch to resize
         const newDist = getDistance(e.touches);
         const scale = newDist / initialPinchDistanceRef.current;
-        const newWidth = Math.max(300, initialCardSizeRef.current.width * scale);
+        const newWidth = Math.max(200, initialCardSizeRef.current.width * scale);
         const aspectRatio = initialCardSizeRef.current.width / initialCardSizeRef.current.height;
         setCardSize({ width: newWidth, height: newWidth / aspectRatio });
     } else if (e.touches.length === 1 && isDragging) {
@@ -279,8 +279,8 @@ function AgoraTestPageUI() {
   }
 
   const handleToggleMic = async () => {
-    if (call && call.microphone) {
-      await call.microphone.toggle();
+    if (call && microphone) {
+      await microphone.toggle();
     }
   }
 
@@ -316,24 +316,27 @@ function AgoraTestPageUI() {
     e.preventDefault();
     if ((newMessage.trim() === '' && !selectedGif) || !user || !broadcastId || !userDocument) return;
 
-    let attachment;
-    if (selectedGif) {
-        attachment = {
-            type: 'giphy',
-            title: selectedGif.title,
-            imageUrl: selectedGif.images.original.url,
-            thumbUrl: selectedGif.images.fixed_width.url,
-        }
-    }
-
-    const newComment: Omit<Comment, 'id'> & { timestamp: any, attachment?: any } = {
+    const newComment: Omit<Comment, 'id'> & { timestamp: any, attachment?: any, replyingTo?: string } = {
         userId: user.uid,
         username: userDocument.username || 'Anonymous',
         userAvatar: userDocument.profilePicture || '',
         message: newMessage,
         timestamp: serverTimestamp(),
-        attachment: attachment || null,
     };
+    
+    if (selectedGif) {
+        newComment.attachment = {
+            type: 'giphy',
+            title: selectedGif.title,
+            imageUrl: selectedGif.images.original.url,
+            thumbUrl: selectedGif.images.fixed_width.url,
+        };
+    }
+    
+    const mentionMatch = newMessage.match(/^@(\w+)\s/);
+    if (mentionMatch) {
+      newComment.replyingTo = mentionMatch[1];
+    }
     
     const messagesCollectionRef = collection(firestore, 'broadcasts', broadcastId, 'messages');
     addDocumentNonBlocking(messagesCollectionRef, newComment);
@@ -473,7 +476,7 @@ function AgoraTestPageUI() {
         {/* Active Challenge Display Card */}
         {isChallengeVisible && broadcastData.activeChallenge && broadcastData.activeChallengeType && (
             <div 
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-20"
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-20 max-w-[80vw]"
                 style={{
                   transform: `translate(calc(-50% + ${cardPosition.x}px), calc(-50% + ${cardPosition.y}px))`,
                 }}
@@ -487,8 +490,8 @@ function AgoraTestPageUI() {
                             height: cardSize.height + d.height,
                         });
                     }}
-                    minWidth={300}
-                    minHeight={400}
+                    minWidth={200}
+                    minHeight={280}
                     lockAspectRatio
                     className="relative"
                 >
@@ -738,5 +741,7 @@ export default function AgoraTestPage() {
     )
 }
 
+
+    
 
     
