@@ -162,9 +162,9 @@ function AgoraTestPageUI() {
             </div>
         </div>
 
-        {/* Combined Controls and Chat for Mobile */}
-        <div className="absolute bottom-4 right-2 z-20 flex items-end gap-2 md:hidden">
-            <div className="w-64">
+        {/* Chat Panel for Mobile */}
+        <div className="absolute bottom-4 left-4 right-4 z-20 flex items-end gap-2 md:hidden">
+            <div className="w-full">
                 <ChatPanel 
                     broadcastId={broadcastId}
                     isVisible={isChatVisible}
@@ -173,26 +173,10 @@ function AgoraTestPageUI() {
                     onToggleVisibility={() => setIsChatVisible(prev => !prev)}
                 />
             </div>
-            <StreamControls 
-                onToggleVideo={handleToggleVideo}
-                onToggleMic={handleToggleMic}
-                onFlipCamera={handleFlipCamera}
-                onToggleScreenShare={handleToggleScreenShare}
-                onInviteGuest={handleInviteGuest}
-                onToggleChallengeVisibility={() => setIsChallengeVisible(prev => !prev)}
-                isChallengeActive={!!broadcastData.activeChallenge}
-                isVideoEnabled={isVideoEnabled}
-                isMicEnabled={isMicEnabled}
-                isScreenSharing={isScreenSharing}
-                isCallJoined={isCallJoined}
-                onOpenGames={() => setIsGamePanelOpen(true)}
-                isChatVisible={isChatVisible}
-                onToggleChatVisibility={() => setIsChatVisible(prev => !prev)}
-            />
         </div>
 
-         {/* Desktop Controls */}
-        <div className="absolute right-4 top-1/2 -translate-y-1/2 z-20 hidden md:flex">
+        {/* Unified Controls for All Screens */}
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 z-20 flex">
              <StreamControls 
                 onToggleVideo={handleToggleVideo}
                 onToggleMic={handleToggleMic}
