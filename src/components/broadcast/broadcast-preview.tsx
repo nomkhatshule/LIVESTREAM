@@ -100,7 +100,7 @@ function BroadcastPreviewUIManager({
     const showPlayButton = isCurrentActiveStream && !isConnected;
 
     return (
-        <div className="absolute inset-0 flex flex-col justify-between p-3 md:p-4 text-white z-30 pointer-events-none">
+        <div className="absolute inset-0 flex flex-col justify-between p-3 md:p-4 pb-4 text-white z-30 pointer-events-none">
              {/* Dimmer and Play Button Overlay */}
             {showPlayButton && (
                 <div className="absolute inset-0 bg-black/40 z-20 flex items-center justify-center pointer-events-auto">
@@ -378,7 +378,7 @@ export function BroadcastPreview({ broadcast, onVisible }: BroadcastPreviewProps
             attachment: attachment || null,
         };
         
-        const mentionMatch = message.match(/^@(\w+)\s/);
+        const mentionMatch = message.match(/^@\w+\s/);
         if (mentionMatch) {
             newComment.replyingTo = mentionMatch[1];
         }
