@@ -90,13 +90,7 @@ export default function ChatPanel({
     };
 
     if (!isVisible) {
-        return (
-            <div className="absolute bottom-4 right-4 z-10 pointer-events-auto">
-                <Button variant="ghost" size="icon" onClick={onToggleVisibility} className="text-white bg-black/50 rounded-full h-10 w-10">
-                    <MessageCircle className="h-5 w-5" />
-                </Button>
-            </div>
-        );
+        return null;
     }
 
     return (
@@ -180,9 +174,7 @@ export default function ChatPanel({
                         </Button>
                     </div>
                 </div>
-                <Button variant="ghost" size="icon" onClick={onToggleVisibility} className="text-white bg-black/50 rounded-full h-10 w-10">
-                    <MessageCircleOff className="h-5 w-5" />
-                </Button>
+                
             </form>
         </div>
     );

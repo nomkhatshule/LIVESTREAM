@@ -175,6 +175,8 @@ function AgoraTestPageUI() {
             isScreenSharing={isScreenSharing}
             isCallJoined={isCallJoined}
             onOpenGames={() => setIsGamePanelOpen(true)}
+            isChatVisible={isChatVisible}
+            onToggleChatVisibility={() => setIsChatVisible(prev => !prev)}
         />
         
         <InStreamGamesPanel 
