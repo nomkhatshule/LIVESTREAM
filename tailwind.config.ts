@@ -13,6 +13,7 @@ export default {
         body: ['ui-sans-serif', 'system-ui', 'sans-serif', "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"],
         headline: ['Poppins', 'sans-serif'],
         cosmic: ['Orbitron', 'sans-serif'],
+        logo: ['blippo-mn', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {
