@@ -18,14 +18,14 @@ const aboutCards = [
     title: 'Go Live, Instantly.',
     description:
       "Forget complicated setups. With LIVENET, you're just a click away from sharing your world. Whether you're a gamer, artist, or just want to chat, your stage is always ready.",
-    imageUrl: 'https://cdn.pixabay.com/photo/2020/09/04/06/27/conference-5543034_1280.png',
+    imageUrl: 'https://cdn.pixabay.com/photo/2021/12/07/10/54/video-conference-6852994_1280.jpg',
     imageHint: 'live streaming setup',
   },
   {
     icon: Swords,
     title: 'Shape the Show with Interactive Games.',
     description:
-      "Turn passive viewing into active co-creation with our in-stream games and challenges like 'Truth or Dare' or AI-generated tasks displayed right on your stream.",
+      "Turn passive viewing into active co-creation with our in-stream games. Display an interactive challenge card on your stream for 'Truth or Dare' or AI-generated tasks, making your audience part of the fun.",
   },
   {
     icon: Users,
@@ -63,7 +63,7 @@ export default function AboutSection() {
                             src={card.imageUrl}
                             alt={card.title}
                             fill
-                            className="object-cover transform -scale-y-100"
+                            className="object-cover"
                             data-ai-hint={card.imageHint}
                           />
                         )}
