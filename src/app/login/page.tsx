@@ -10,11 +10,20 @@ import {
 } from '@/components/ui/card';
 import { AgoraLiveLogo } from '@/components/icons';
 import AuthForm from '@/components/auth/auth-form';
+import Image from 'next/image';
 
 export default function AuthPage() {
   return (
-    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center p-4">
-      <Card className="mx-auto max-w-sm w-full">
+    <div className="relative flex min-h-[calc(100vh-4rem)] items-center justify-center p-4">
+       <Image
+        src="https://cdn.pixabay.com/photo/2021/07/19/10/52/boat-6477856_1280.png"
+        alt="Background"
+        fill
+        className="object-cover -z-10"
+        data-ai-hint="futuristic boat"
+      />
+      <div className="absolute inset-0 bg-black/50 -z-10" />
+      <Card className="mx-auto max-w-sm w-full bg-card/80 backdrop-blur-lg border-white/20">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <AgoraLiveLogo className="h-10 w-10" />
