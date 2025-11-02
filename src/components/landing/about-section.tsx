@@ -33,15 +33,17 @@ const aboutCards = [
     icon: Users,
     title: 'Real-Time Connections.',
     description:
-      'Engage with viewers through live chat, reactions, and GIFs. Connect one-on-one with direct messaging, and build your community by following your favorite creators.',
+      "Engage with viewers through live chat, reactions, and GIFs. Connect one-on-one with direct messaging, and build your community by following your favorite creators.",
     imageUrl: 'https://cdn.pixabay.com/photo/2025/01/22/21/06/webinar-9353158_1280.jpg',
     imageHint: 'people connecting online',
   },
   {
-    icon: Globe,
-    title: 'Your Profile, Your Story.',
+    icon: Users,
+    title: 'Stream with Your Squad.',
     description:
-      'Show off your personality with a custom bio and video cover banner. Upload short highlight clips from your streams to give new followers a taste of your content.',
+      'Why stream alone? Invite multiple friends to join your broadcast for collaborative streams, group chats, and podcasts. Share the spotlight and create moments together.',
+    imageUrl: 'https://cdn.pixabay.com/photo/2021/08/29/20/33/video-conference-6584852_1280.jpg',
+    imageHint: 'friends video call',
   },
 ];
 
@@ -67,7 +69,7 @@ export default function AboutSection() {
                             src={card.imageUrl}
                             alt={card.title}
                             fill
-                            className="object-cover"
+                            className="object-contain"
                             data-ai-hint={card.imageHint}
                           />
                         )}
