@@ -5,6 +5,7 @@ import { Clapperboard } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import LandingHeader from '@/components/landing/header';
+import AboutSection from '@/components/landing/about-section';
 
 export default function LandingPage() {
   return (
@@ -34,6 +35,7 @@ export default function LandingPage() {
           </Button>
         </div>
       </div>
+      <AboutSection />
     </>
   );
 }
