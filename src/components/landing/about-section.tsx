@@ -13,9 +13,9 @@ import { Clapperboard, Globe, Swords, Users } from 'lucide-react';
 
 const aboutCards = [
   {
-    title: 'Welcome to the Real Internet.',
+    title: 'Go Live, Instantly.',
     description:
-      'In a world of AI slop and soulless content, AgoraLive is a stand for authenticity. We are a platform for real people, real moments, and real connections, shared as they happen.',
+      "Forget complicated setups. With LIVENET, you're just a click away from sharing your world. Whether you're a gamer, an artist, or just want to chat, your stage is always ready.",
   },
   {
     title: 'Your Stage, Your Rules.',
