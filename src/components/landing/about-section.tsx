@@ -25,7 +25,7 @@ const aboutCards = [
     icon: Swords,
     title: 'Shape the Show with Interactive Games.',
     description:
-      "Turn passive viewing into active co-creation with our in-stream games and challenges. Use the AI Game Master to generate endless 'Truth,' 'Dare,' or unique tasks to keep your content fresh and spontaneous.",
+      "Turn passive viewing into active co-creation with our in-stream games. Use the AI Game Master to generate endless 'Truth,' 'Dare,' or unique tasks to keep your content fresh.",
     imageUrl: 'https://cdn.pixabay.com/photo/2020/04/15/15/00/gamer-5046924_1280.jpg',
     imageHint: 'gamer controller',
   },
@@ -42,7 +42,7 @@ const aboutCards = [
     title: 'Stream with Your Squad.',
     description:
       'Why stream alone? Invite multiple friends to join your broadcast for collaborative streams, group chats, and podcasts. Share the spotlight and create moments together.',
-    imageUrl: 'https://cdn.pixabay.com/photo/2021/08/29/20/33/video-conference-6584852_1280.jpg',
+    imageUrl: 'https://media.istockphoto.com/id/1302440408/de/vektor/videokonferenzbildschirm.jpg?s=612x612&w=0&k=20&c=vtKcv91xvlf4IW3IIuoX3XRup5pi7znFEwpx0xW2ifI=',
     imageHint: 'friends video call',
   },
 ];
