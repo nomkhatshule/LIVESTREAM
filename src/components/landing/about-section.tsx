@@ -20,12 +20,12 @@ const aboutCards = [
   {
     title: 'Shape the Show with Interactive Games.',
     description:
-      "This is where the magic happens. Turn passive viewing into active co-creation with live challenges like 'Truth or Dare' or AI-generated tasks displayed right on your stream.",
+      "Turn passive viewing into active co-creation with live challenges like 'Truth or Dare' or AI-generated tasks displayed right on your stream.",
   },
   {
-    title: 'Shape the Show.',
+    title: 'Real-Time Connections.',
     description:
-      "Turn passive viewers into active co-creators. With interactive games, live challenges, and real-time reactions, your audience doesn't just watch the show—they become part of it.",
+      "Every stream is a community. Viewers can engage with live chat, reactions, and GIFs. Connect one-on-one with direct messaging, and build your crew by following your favorite creators.",
   },
   {
     title: 'Find Your People.',
