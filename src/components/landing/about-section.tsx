@@ -26,6 +26,8 @@ const aboutCards = [
     title: 'Shape the Show with Interactive Games.',
     description:
       "Turn passive viewing into active co-creation with our in-stream games and challenges. Use the AI Game Master to generate endless 'Truth,' 'Dare,' or unique tasks to keep your content fresh and spontaneous.",
+    imageUrl: 'https://cdn.pixabay.com/photo/2020/04/15/15/00/gamer-5046924_1280.jpg',
+    imageHint: 'gamer controller',
   },
   {
     icon: Users,
