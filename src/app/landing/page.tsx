@@ -60,7 +60,7 @@ export default function LandingPage() {
                   LIVENET was created to change that. We’re building a platform for real people, real moments, and real connections.
                 </p>
                  <p>
-                  No filters, no fakes—just live, human experiences shared as they happen. Welcome to LIVENET, where everything is live and real.
+                  No filters, no fakes, just live, human experiences shared as they happen. Welcome to LIVENET, where everything is live and real.
                 </p>
               </div>
             </div>
