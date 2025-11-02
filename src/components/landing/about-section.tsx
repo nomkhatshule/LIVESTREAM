@@ -25,12 +25,12 @@ const aboutCards = [
   {
     title: 'Real-Time Connections.',
     description:
-      "Every stream is a community. Viewers can engage with live chat, reactions, and GIFs. Connect one-on-one with direct messaging, and build your crew by following your favorite creators.",
+      "Engage with viewers through live chat, reactions, and GIFs. Connect one-on-one with direct messaging, and build your community by following your favorite creators.",
   },
   {
-    title: 'Find Your People.',
+    title: 'Your Profile, Your Story.',
     description:
-      'Discover and be discovered. Our personalized feed connects you with creators and communities that share your vibe. On AgoraLive, you’re not just another face in the crowd.',
+      'Show off your personality with a custom bio and video cover banner. Upload highlight clips from your streams to give new followers a taste of your content.',
   },
 ];
 
