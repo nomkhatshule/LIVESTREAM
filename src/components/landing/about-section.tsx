@@ -25,19 +25,21 @@ const aboutCards = [
     icon: Swords,
     title: 'Shape the Show with Interactive Games.',
     description:
-      "Turn passive viewing into active co-creation with our in-stream games. Display an interactive challenge card on your stream for 'Truth or Dare' or AI-generated tasks, making your audience part of the fun.",
+      "Turn passive viewing into active co-creation with our in-stream games and challenges. Use the AI Game Master to generate endless 'Truth,' 'Dare,' or unique tasks to keep your content fresh and spontaneous.",
   },
   {
     icon: Users,
     title: 'Real-Time Connections.',
     description:
       'Engage with viewers through live chat, reactions, and GIFs. Connect one-on-one with direct messaging, and build your community by following your favorite creators.',
+    imageUrl: 'https://cdn.pixabay.com/photo/2025/01/22/21/06/webinar-9353158_1280.jpg',
+    imageHint: 'people connecting online',
   },
   {
     icon: Globe,
     title: 'Your Profile, Your Story.',
     description:
-      'Show off your personality with a custom bio and video cover banner. Upload highlight clips from your streams to give new followers a taste of your content.',
+      'Show off your personality with a custom bio and video cover banner. Upload short highlight clips from your streams to give new followers a taste of your content.',
   },
 ];
 
@@ -51,9 +53,9 @@ export default function AboutSection() {
           }}
           className="w-full"
         >
-          <CarouselContent>
+          <CarouselContent className="-ml-2 md:-ml-4">
             {aboutCards.map((card, index) => (
-              <CarouselItem key={index} className="md:basis-1/2">
+              <CarouselItem key={index} className="pl-2 md:pl-4 md:basis-1/2">
                 <div className="p-4 h-[35rem]">
                   <Card className="h-full rounded-3xl overflow-hidden">
                     <CardContent className="flex flex-col p-0 h-full">
