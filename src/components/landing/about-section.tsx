@@ -63,7 +63,7 @@ export default function AboutSection() {
                             src={card.imageUrl}
                             alt={card.title}
                             fill
-                            className="object-cover"
+                            className="object-contain"
                             data-ai-hint={card.imageHint}
                           />
                         )}
