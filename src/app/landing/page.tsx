@@ -51,10 +51,18 @@ export default function LandingPage() {
                 NO AI SLOP
               </h2>
             </div>
-            <div className="bg-white/10 backdrop-blur-md border border-white/30 rounded-2xl p-6 shadow-xl">
-              <p className="text-base leading-relaxed text-white text-center">
-                We live in a digital world where nothing feels real anymore flooded with AI slop, AI-generated videos, fake photos, and soulless content. LIVENET was created to change that. We’re building a platform for real people, real moments, and real connections. No filters, no fakes just live, human experiences shared as they happen. Welcome to LIVENET where everything is live and real.
-              </p>
+            <div className="bg-white/10 backdrop-blur-md border border-white/30 rounded-2xl p-6 shadow-xl max-w-xl">
+              <div className="text-base leading-relaxed text-white text-center space-y-4">
+                <p>
+                  We live in a digital world where nothing feels real anymore, flooded with AI slop, AI-generated videos, fake photos, and soulless content.
+                </p>
+                <p>
+                  LIVENET was created to change that. We’re building a platform for real people, real moments, and real connections.
+                </p>
+                 <p>
+                  No filters, no fakes—just live, human experiences shared as they happen. Welcome to LIVENET, where everything is live and real.
+                </p>
+              </div>
             </div>
         </div>
       </section>
