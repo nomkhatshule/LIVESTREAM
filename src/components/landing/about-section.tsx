@@ -53,7 +53,7 @@ export default function AboutSection() {
           <CarouselContent>
             {aboutCards.map((card, index) => (
               <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
-                <div className="p-4 h-[26rem]">
+                <div className="p-4 h-[35rem]">
                   <Card className="h-full rounded-3xl">
                     <CardContent className="flex flex-col items-center justify-center text-center p-6 h-full">
                       <div className="mb-4">{card.icon}</div>
