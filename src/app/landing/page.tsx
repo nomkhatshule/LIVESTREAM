@@ -35,7 +35,7 @@ export default function LandingPage() {
           </Button>
         </div>
       </div>
-      <section className="relative h-screen w-full bg-black">
+      <section className="relative h-screen w-full bg-black flex items-center justify-center p-8">
         <Image
           src="https://cdn.pixabay.com/photo/2022/05/18/16/22/pixel-art-7205889_1280.png"
           alt="Pixel art background"
@@ -43,7 +43,15 @@ export default function LandingPage() {
           className="object-cover"
           data-ai-hint="pixel art landscape"
         />
-        <div className="absolute inset-0 bg-black/50" />
+        <div className="absolute inset-0 bg-black/70" />
+        <div className="relative z-10 text-center text-white max-w-4xl">
+          <h2 className="text-4xl md:text-6xl font-bold font-logo uppercase tracking-widest text-accent mb-6">
+            NO AI SLOP
+          </h2>
+          <p className="text-lg md:text-xl leading-relaxed">
+            We live in a digital world where nothing feels real anymore flooded with AI slop, AI-generated videos, fake photos, and soulless content. LIVENET was created to change that. We’re building a platform for real people, real moments, and real connections. No filters, no fakes just live, human experiences shared as they happen. Welcome to LIVENET where everything is live and real.
+          </p>
+        </div>
       </section>
       <AboutSection />
     </>
