@@ -77,10 +77,10 @@ export default function AboutSection() {
                        </div>
                        <Separator className="bg-black/20" />
                        <div className="p-6 flex-grow flex flex-col">
-                          <h3 className="text-2xl font-bold font-headline mb-2 text-black">
+                          <h3 className="text-xl font-bold font-headline mb-2 text-black">
                             {card.title}
                           </h3>
-                          <p className="text-zinc-600">
+                          <p className="text-zinc-600 text-sm">
                             {card.description}
                           </p>
                        </div>
