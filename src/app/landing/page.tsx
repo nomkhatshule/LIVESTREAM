@@ -37,7 +37,7 @@ export default function LandingPage() {
       </div>
       <section className="relative h-screen w-full bg-black flex items-center justify-center p-8">
         <Image
-          src="https://cdn.pixabay.com/photo/2022/05/18/16/22/pixel-art-7205889_1280.png"
+          src="https://cdn.pixabay.com/photo/2022/06/23/16/54/pixel-art-7280230_1280.png"
           alt="Pixel art background"
           fill
           className="object-cover"
