@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -44,9 +45,9 @@ export default function LandingPage() {
           data-ai-hint="pixel art landscape"
         />
         <div className="absolute inset-0 bg-black/50" />
-        <div className="relative z-10 w-full max-w-4xl flex flex-col items-center gap-6">
-            <div className="bg-white/10 backdrop-blur-md border border-white/30 rounded-2xl p-6 shadow-xl">
-              <h2 className="text-3xl font-bold font-logo uppercase tracking-widest text-accent text-center">
+        <div className="relative z-10 w-full max-w-4xl flex flex-col items-center gap-4">
+            <div className="bg-white/10 backdrop-blur-md border border-white/30 rounded-full py-2 px-6 shadow-xl">
+              <h2 className="text-lg font-bold font-logo uppercase tracking-widest text-accent text-center">
                 NO AI SLOP
               </h2>
             </div>
