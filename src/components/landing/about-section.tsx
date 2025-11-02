@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/carousel';
 import { Clapperboard, Globe, Swords, Users } from 'lucide-react';
 import Image from 'next/image';
+import { Separator } from '../ui/separator';
 
 const aboutCards = [
   {
@@ -74,6 +75,7 @@ export default function AboutSection() {
                           />
                         )}
                        </div>
+                       <Separator className="bg-black/20" />
                        <div className="p-6 flex-grow flex flex-col">
                           <h3 className="text-2xl font-bold font-headline mb-2 text-black">
                             {card.title}
