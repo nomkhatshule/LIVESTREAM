@@ -17,7 +17,7 @@ const aboutCards = [
     icon: Clapperboard,
     title: 'Go Live, Instantly.',
     description:
-      "Forget complicated setups. With LIVENET, you're just a click away from sharing your world. Whether you're a gamer, an artist, or just want to chat, your stage is always ready.",
+      "Forget complicated setups. With LIVENET, you're just a click away from sharing your world. Whether you're a gamer, artist, or just want to chat, your stage is always ready.",
     imageUrl: 'https://cdn.pixabay.com/photo/2020/09/04/06/27/conference-5543034_1280.png',
     imageHint: 'live streaming setup',
   },
@@ -63,7 +63,7 @@ export default function AboutSection() {
                             src={card.imageUrl}
                             alt={card.title}
                             fill
-                            className="object-contain"
+                            className="object-cover transform -scale-y-100"
                             data-ai-hint={card.imageHint}
                           />
                         )}
