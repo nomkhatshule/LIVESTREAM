@@ -55,6 +55,7 @@ export default function AboutSection() {
         <Carousel
           opts={{
             align: 'start',
+            loop: true,
           }}
           className="w-full"
         >
