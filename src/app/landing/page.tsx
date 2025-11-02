@@ -44,15 +44,17 @@ export default function LandingPage() {
           data-ai-hint="pixel art landscape"
         />
         <div className="absolute inset-0 bg-black/50" />
-        <div className="relative z-10 w-full max-w-4xl">
-          <div className="bg-black/40 backdrop-blur-md rounded-2xl border border-white/20 p-8 md:p-12 shadow-2xl">
-            <h2 className="text-4xl md:text-6xl font-bold font-logo uppercase tracking-widest text-accent mb-6 text-center">
-              NO AI SLOP
-            </h2>
-            <p className="text-lg md:text-xl leading-relaxed text-white text-center">
-              We live in a digital world where nothing feels real anymore flooded with AI slop, AI-generated videos, fake photos, and soulless content. LIVENET was created to change that. We’re building a platform for real people, real moments, and real connections. No filters, no fakes just live, human experiences shared as they happen. Welcome to LIVENET where everything is live and real.
-            </p>
-          </div>
+        <div className="relative z-10 w-full max-w-4xl flex flex-col items-center gap-6">
+            <div className="bg-black/40 backdrop-blur-md rounded-2xl border border-white/20 p-6 shadow-2xl">
+              <h2 className="text-4xl md:text-6xl font-bold font-logo uppercase tracking-widest text-accent text-center">
+                NO AI SLOP
+              </h2>
+            </div>
+            <div className="bg-black/40 backdrop-blur-md rounded-2xl border border-white/20 p-8 md:p-12 shadow-2xl">
+              <p className="text-lg md:text-xl leading-relaxed text-white text-center">
+                We live in a digital world where nothing feels real anymore flooded with AI slop, AI-generated videos, fake photos, and soulless content. LIVENET was created to change that. We’re building a platform for real people, real moments, and real connections. No filters, no fakes just live, human experiences shared as they happen. Welcome to LIVENET where everything is live and real.
+              </p>
+            </div>
         </div>
       </section>
       <AboutSection />
