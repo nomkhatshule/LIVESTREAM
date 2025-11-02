@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -16,11 +17,11 @@ export default function AuthPage() {
   return (
     <div className="relative flex min-h-[calc(100vh-4rem)] items-center justify-center p-4">
        <Image
-        src="https://cdn.pixabay.com/photo/2021/07/19/10/52/boat-6477856_1280.png"
+        src="https://cdn.pixabay.com/photo/2025/06/26/04/23/colloseum-9681139_1280.png"
         alt="Background"
         fill
         className="object-cover -z-10"
-        data-ai-hint="futuristic boat"
+        data-ai-hint="colosseum italy"
       />
       <div className="absolute inset-0 bg-black/50 -z-10" />
       <Card className="mx-auto max-w-sm w-full bg-card/80 backdrop-blur-lg border-white/20">
