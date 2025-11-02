@@ -12,11 +12,11 @@ export default function LandingPage() {
       <LandingHeader />
       <div className="relative h-screen w-full overflow-hidden flex items-center justify-center text-center p-8">
         <Image
-          src="https://picsum.photos/seed/action-cam/1920/1080"
+          src="https://cdn.pixabay.com/photo/2024/12/16/06/42/camera-9270111_1280.png"
           alt="Hero Background"
           fill
           className="object-cover -z-10"
-          data-ai-hint="action camera"
+          data-ai-hint="action camera parachute"
         />
         <div className="absolute inset-0 bg-black/60" />
         <div className="relative z-10 flex flex-col items-center">

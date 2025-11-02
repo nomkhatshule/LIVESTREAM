@@ -62,6 +62,11 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'media4.giphy.com',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdn.pixabay.com',
+        pathname: '/**',
       }
     ]
   },
