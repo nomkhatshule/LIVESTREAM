@@ -18,9 +18,9 @@ const aboutCards = [
       "Forget complicated setups. With LIVENET, you're just a click away from sharing your world. Whether you're a gamer, an artist, or just want to chat, your stage is always ready.",
   },
   {
-    title: 'Your Stage, Your Rules.',
+    title: 'Shape the Show with Interactive Games.',
     description:
-      'Go live in seconds. Whether you are a gamer, artist, musician, or just have a story to tell, our platform gives you the tools to share your passion with a global audience.',
+      "This is where the magic happens. Turn passive viewing into active co-creation with live challenges like 'Truth or Dare' or AI-generated tasks displayed right on your stream.",
   },
   {
     title: 'Shape the Show.',
