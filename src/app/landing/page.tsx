@@ -35,6 +35,16 @@ export default function LandingPage() {
           </Button>
         </div>
       </div>
+      <section className="relative h-screen w-full bg-black">
+        <Image
+          src="https://cdn.pixabay.com/photo/2022/05/18/16/22/pixel-art-7205889_1280.png"
+          alt="Pixel art background"
+          fill
+          className="object-cover"
+          data-ai-hint="pixel art landscape"
+        />
+        <div className="absolute inset-0 bg-black/50" />
+      </section>
       <AboutSection />
     </>
   );
