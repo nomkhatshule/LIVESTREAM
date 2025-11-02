@@ -24,6 +24,8 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
       {
+        protocol: 'https',"hostname":"media.istockphoto.com","port":"","pathname":"/**"},
+      {
         protocol: 'https',
         hostname: 'picsum.photos',
         pathname: '/**',
@@ -39,10 +41,7 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
       {
-        protocol: 'https',
-        hostname: 'media0.giphy.com',
-        pathname: '/**',
-      },
+        protocol: 'https',"hostname":"media0.giphy.com","pathname":"/**"},
       {
         protocol: 'https',
         hostname: 'media1.giphy.com',
