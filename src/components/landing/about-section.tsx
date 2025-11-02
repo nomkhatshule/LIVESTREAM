@@ -61,7 +61,7 @@ export default function AboutSection() {
             {aboutCards.map((card, index) => (
               <CarouselItem key={index} className="pl-2 md:pl-4 md:basis-1/2">
                 <div className="p-4 h-[35rem]">
-                  <Card className="h-full rounded-3xl overflow-hidden">
+                  <Card className="h-full rounded-3xl overflow-hidden bg-white border-black">
                     <CardContent className="flex flex-col p-0 h-full">
                        <div className="w-full h-3/5 bg-muted flex-shrink-0 relative">
                         {card.imageUrl && (
@@ -75,10 +75,10 @@ export default function AboutSection() {
                         )}
                        </div>
                        <div className="p-6 flex-grow flex flex-col">
-                          <h3 className="text-2xl font-bold font-headline mb-2 text-card-foreground">
+                          <h3 className="text-2xl font-bold font-headline mb-2 text-black">
                             {card.title}
                           </h3>
-                          <p className="text-muted-foreground">
+                          <p className="text-zinc-600">
                             {card.description}
                           </p>
                        </div>
