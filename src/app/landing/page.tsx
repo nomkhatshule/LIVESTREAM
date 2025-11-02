@@ -35,7 +35,7 @@ export default function LandingPage() {
           </Button>
         </div>
       </div>
-      <section className="relative h-screen w-full bg-black flex items-center justify-center p-8">
+      <section className="relative h-screen w-full bg-black flex flex-col items-center justify-center p-8">
         <Image
           src="https://cdn.pixabay.com/photo/2022/06/23/16/54/pixel-art-7280230_1280.png"
           alt="Pixel art background"
@@ -46,7 +46,7 @@ export default function LandingPage() {
         <div className="absolute inset-0 bg-black/50" />
         <div className="relative z-10 w-full max-w-4xl flex flex-col items-center gap-6">
             <div className="bg-white/10 backdrop-blur-md border border-white/30 rounded-2xl p-6 shadow-xl">
-              <h2 className="text-4xl md:text-6xl font-bold font-logo uppercase tracking-widest text-accent text-center">
+              <h2 className="text-4xl md:text-5xl font-bold font-logo uppercase tracking-widest text-accent text-center">
                 NO AI SLOP
               </h2>
             </div>
