@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -9,7 +8,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { AgoraLiveLogo } from '@/components/icons';
 import AuthForm from '@/components/auth/auth-form';
 import Image from 'next/image';
 
@@ -27,7 +25,7 @@ export default function AuthPage() {
       <Card className="mx-auto max-w-sm w-full bg-card/80 backdrop-blur-lg border-white/20">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <AgoraLiveLogo className="h-10 w-10" />
+            <span className="font-logo font-black text-white text-4xl">LIVENET</span>
           </div>
           <CardTitle className="text-2xl font-headline">Welcome</CardTitle>
           <CardDescription>
