@@ -18,7 +18,7 @@ const aboutCards = [
     title: 'Go Live, Instantly.',
     description:
       "Forget complicated setups. With LIVENET, you're just a click away from sharing your world. Whether you're a gamer, artist, or just want to chat, your stage is always ready.",
-    imageUrl: 'https://cdn.pixabay.com/photo/2020/09/28/12/32/video-conference-5609681_1280.png',
+    imageUrl: 'https://media.istockphoto.com/id/1000032126/vector/video-chat-application-concept-male-hand-holding-smart-phone-with-young-woman-on-display.jpg?s=612x612&w=0&k=20&c=v2gHq6nDoi7C7JxTLgSFApchXCULzUOePdg3wTCWnLk=',
     imageHint: 'live streaming setup',
   },
   {
