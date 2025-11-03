@@ -203,7 +203,6 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
         <div ref={ref} className="h-full w-full snap-start relative bg-cover bg-center" style={{backgroundImage: `url(${broadcast.thumbnailUrl})`}}>
             <div className="absolute inset-0 bg-black/20" />
             
-            {/* The player will now render only when the status is 'connected' and playbackId is valid */}
             {isActive && status === 'connected' && playbackId && <BroadcastPlayer />}
 
             {isActive && (status === 'idle' || status === 'disconnected' || status === 'error') && (
@@ -578,3 +577,5 @@ export default function HomePage() {
         </Suspense>
     )
 }
+
+    
