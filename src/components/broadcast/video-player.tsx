@@ -26,7 +26,7 @@ export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerPr
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!user || !broadcast.id) return;
+    if (!user || !broadcast?.id) return;
 
     const apiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY;
     if (!apiKey) {
@@ -89,9 +89,9 @@ export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerPr
       setClient(null);
       setCall(null);
     };
-  }, [user, broadcast.id, isHost, toast]);
+  }, [user, broadcast?.id, isHost, toast]);
 
-  if (!client || !call) {
+  if (!client || !call || !broadcast?.hostId) {
     return (
       <div className="absolute inset-0 flex items-center justify-center bg-black">
         <Loader2 className="h-8 w-8 animate-spin text-white" />
