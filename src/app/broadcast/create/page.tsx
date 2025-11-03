@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useUser, useFirestore, useUserDocument } from '@/firebase';
-import { serverTimestamp, collection, addDoc, doc } from 'firebase/firestore';
+import { serverTimestamp, collection, addDoc, doc, setDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Video, Loader, CameraOff } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
