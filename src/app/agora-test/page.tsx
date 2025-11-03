@@ -3,7 +3,7 @@
 
 import { Suspense, useEffect, useRef, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { useUser, useFirestore, useMemoFirebase, useUserDocument } from '@/firebase';
+import { useUser, useFirestore, useMemoFirebase, useUserDocument, useDoc } from '@/firebase';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { doc, updateDoc, collection, query, orderBy, limit, serverTimestamp } from 'firebase/firestore';
 import { useCollection } from '@/firebase';
@@ -582,7 +582,7 @@ function AgoraTestWrapper() {
         );
     }
     
-    return <AgoraTestPageUI />;
+    return <AgoraTestPageUI />);
 }
 
 // --- Default Export with Suspense ---
@@ -597,3 +597,5 @@ export default function AgoraTestPage() {
         </Suspense>
     )
 }
+
+    
