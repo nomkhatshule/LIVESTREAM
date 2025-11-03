@@ -201,7 +201,7 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
     
     return (
         <div ref={ref} className="h-full w-full snap-start relative bg-black">
-             {/* Background Thumbnail */}
+            {/* Background Thumbnail */}
             {broadcast.thumbnailUrl && !shouldShowPlayer && (
                 <Image
                     src={broadcast.thumbnailUrl}
@@ -213,7 +213,7 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
             )}
             <div className={cn("absolute inset-0 bg-black/20 z-10", shouldShowPlayer ? 'hidden' : 'block')} />
             
-            {shouldShowPlayer && (
+            {shouldShowPlayer && broadcast && (
                 <VideoPlayer broadcast={broadcast} />
             )}
 
@@ -227,15 +227,7 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
             )}
             
             {!shouldShowPlayer && isActive && (status === 'idle' || status === 'disconnected' || status === 'error') && (
-                <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-auto">
-                    <button
-                        onClick={handlePlay}
-                        className="group flex flex-col items-center justify-center text-white p-8 rounded-full bg-black/20 backdrop-blur-sm transition-all hover:bg-black/40 hover:scale-105"
-                    >
-                        <Play className="h-20 w-20 md:h-24 md:w-24 fill-white/80 drop-shadow-2xl" />
-                        <span className="mt-2 text-base md:text-lg font-semibold drop-shadow-lg">Watch Live</span>
-                    </button>
-                </div>
+                 <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-auto" />
             )}
 
             <div className="absolute inset-0 flex flex-col justify-between p-3 md:p-4 text-white z-40 pointer-events-none">
@@ -255,7 +247,7 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
                         <div className="flex items-start gap-3">
                             <Link href={`/profile/${broadcast.hostId}`} className="pointer-events-auto">
                                 <Avatar className={cn("h-10 w-10 md:h-12 md:w-12 border-4 border-destructive", broadcast.isLive && "animate-breathing-prominent")}>
-                                    <AvatarImage src={broadcast.hostAvatar} alt={broadcast.hostName} />
+                                    <AvatarImage src={broadcast.hostAvatar || 'https://picsum.photos/seed/placeholder-avatar/200'} alt={broadcast.hostName} />
                                     <AvatarFallback>{broadcast.hostName?.charAt(0) || 'A'}</AvatarFallback>
                                 </Avatar>
                             </Link>
@@ -284,6 +276,12 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
                 
                 {/* Right Side Vertical Action Bar */}
                  <div className="absolute top-1/2 right-0 -translate-y-1/2 z-40 flex flex-col items-center gap-y-4 md:gap-y-6 pointer-events-auto text-white p-2 md:p-4">
+                    <button
+                        onClick={handlePlay}
+                        className="group flex flex-col items-center justify-center text-white p-2 rounded-full bg-black/20 backdrop-blur-sm transition-all hover:bg-black/40 hover:scale-105"
+                    >
+                        <Play className="h-8 w-8 fill-white/80 drop-shadow-2xl" />
+                    </button>
                     <div className="flex flex-col items-center group">
                         <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform" onClick={handleLike}>
                           <Heart className={cn("h-7 w-7 drop-shadow-md", hasLiked && "fill-red-500 text-red-500")} strokeWidth={1.5} />
