@@ -31,7 +31,7 @@ import { GiphyResult } from '@/lib/types';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import GifPicker from '@/components/inbox/GifPicker';
 import Image from 'next/image';
-import MuxPlayer from '@mux/mux-player-react';
+import VideoPlayer from '@/components/broadcast/video-player';
 
 function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broadcast, onVisible: () => void, isActive: boolean }) {
     const { ref, inView } = useInView({ threshold: 0.7 });
@@ -202,27 +202,19 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
     return (
         <div ref={ref} className="h-full w-full snap-start relative bg-black">
              {/* Background Thumbnail */}
-            {broadcast.thumbnailUrl && (
+            {broadcast.thumbnailUrl && !shouldShowPlayer && (
                 <Image
                     src={broadcast.thumbnailUrl}
                     alt={broadcast.title}
                     fill
-                    className={cn("object-cover z-0", shouldShowPlayer ? 'opacity-0' : 'opacity-100')}
+                    className="object-cover z-0"
                     priority
                 />
             )}
             <div className={cn("absolute inset-0 bg-black/20 z-10", shouldShowPlayer ? 'hidden' : 'block')} />
             
             {shouldShowPlayer && (
-                 <div className="absolute inset-0 z-20">
-                    <MuxPlayer
-                        playbackId={playbackId}
-                        streamType="live"
-                        autoPlay
-                        muted
-                        className="w-full h-full"
-                    />
-                </div>
+                <VideoPlayer broadcast={broadcast} />
             )}
 
             {isActive && status === 'connecting' && (
@@ -595,5 +587,3 @@ export default function HomePage() {
         </Suspense>
     )
 }
-
-    
