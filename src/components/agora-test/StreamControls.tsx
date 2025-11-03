@@ -2,14 +2,12 @@
 'use client';
 
 import { Button } from "@/components/ui/button";
-import { Dice6, Mic, MicOff, Minus, MonitorUp, ScreenShare, UserPlus, Users, Video, VideoOff, SwitchCamera, MessageCircle, MessageCircleOff } from "lucide-react";
+import { Dice6, Mic, MicOff, Minus, MonitorUp, ScreenShare, UserPlus, Video, VideoOff, MessageCircleOff, MessageCircle } from "lucide-react";
 import ParticipantsPanel from "./ParticipantsPanel";
-import { cn } from "@/lib/utils";
 
 interface StreamControlsProps {
     onToggleVideo: () => void;
     onToggleMic: () => void;
-    onFlipCamera: () => void;
     onToggleScreenShare: () => void;
     onInviteGuest: () => void;
     onToggleChallengeVisibility: () => void;
@@ -17,27 +15,30 @@ interface StreamControlsProps {
     isVideoEnabled: boolean;
     isMicEnabled: boolean;
     isScreenSharing: boolean;
-    isCallJoined: boolean;
     isChallengeActive: boolean;
-    isChatVisible: boolean;
-    onToggleChatVisibility: () => void;
-    viewerCount: number;
 }
 
-
-export default function StreamControls({ onToggleVideo, onToggleMic, onFlipCamera, onToggleScreenShare, onInviteGuest, isVideoEnabled, isMicEnabled, isScreenSharing, isCallJoined, onToggleChallengeVisibility, isChallengeActive, onOpenGames, isChatVisible, onToggleChatVisibility, viewerCount }: StreamControlsProps) {
+export default function StreamControls({ 
+    onToggleVideo, 
+    onToggleMic, 
+    onToggleScreenShare, 
+    onInviteGuest, 
+    isVideoEnabled, 
+    isMicEnabled, 
+    isScreenSharing, 
+    onToggleChallengeVisibility, 
+    isChallengeActive, 
+    onOpenGames 
+}: StreamControlsProps) {
     return (
-        <div className="flex flex-col items-center gap-2 md:gap-4 p-2 bg-black/40 rounded-full backdrop-blur-sm">
-            <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onToggleVideo} disabled={!isCallJoined}>
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 z-30 flex flex-col items-center gap-2 md:gap-4 p-2 bg-black/40 rounded-full backdrop-blur-sm pointer-events-auto">
+            <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onToggleVideo}>
                 {isVideoEnabled ? <Video className="h-5 w-5 md:h-6 md:w-6"/> : <VideoOff className="h-5 w-5 md:h-6 md:w-6"/>}
             </Button>
-            <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onToggleMic} disabled={!isCallJoined}>
+            <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onToggleMic}>
                 {isMicEnabled ? <Mic className="h-5 w-5 md:h-6 md:w-6"/> : <MicOff className="h-5 w-5 md:h-6 md:w-6 text-red-500"/>}
             </Button>
-            <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onFlipCamera} disabled={!isCallJoined || isScreenSharing}>
-                <SwitchCamera className="h-5 w-5 md:h-6 md:w-6"/>
-            </Button>
-            <Button variant={isScreenSharing ? "primary" : "secondary"} size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onToggleScreenShare} disabled={!isCallJoined}>
+            <Button variant={isScreenSharing ? "primary" : "secondary"} size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onToggleScreenShare}>
                 {isScreenSharing ? <MonitorUp className="h-5 w-5 md:h-6 md:w-6"/> : <ScreenShare className="h-5 w-5 md:h-6 md:w-6"/>}
             </Button>
             <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onInviteGuest}>
@@ -48,10 +49,7 @@ export default function StreamControls({ onToggleVideo, onToggleMic, onFlipCamer
                   <Minus className="h-5 w-5 md:h-6 md:w-6"/>
               </Button>
             )}
-             <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onToggleChatVisibility}>
-                {isChatVisible ? <MessageCircleOff className="h-5 w-5 md:h-6 md:w-6"/> : <MessageCircle className="h-5 w-5 md:h-6 md:w-6"/>}
-            </Button>
-            <ParticipantsPanel viewerCount={viewerCount} />
+            <ParticipantsPanel viewerCount={0} />
             <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onOpenGames}>
                 <Dice6 className="h-5 w-5 md:h-6 md:w-6"/>
             </Button>

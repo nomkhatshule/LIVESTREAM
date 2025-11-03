@@ -20,23 +20,34 @@ interface ChatPanelProps {
     broadcastId: string | null;
     isVisible: boolean;
     comments: Comment[] | null;
+    newMessage: string;
+    onNewMessageChange: (message: string) => void;
     onReaction: (emoji: React.ReactNode) => void;
     onToggleVisibility: () => void;
+    isGifPickerOpen: boolean;
+    onGifPickerOpenChange: (isOpen: boolean) => void;
+    onGifSelect: (gif: GiphyResult) => void;
+    selectedGif: GiphyResult | null;
+    onClearSelectedGif: () => void;
 }
 
 export default function ChatPanel({ 
     broadcastId,
     isVisible, 
-    comments, 
+    comments,
+    newMessage,
+    onNewMessageChange,
     onReaction, 
-    onToggleVisibility
+    onToggleVisibility,
+    isGifPickerOpen,
+    onGifPickerOpenChange,
+    onGifSelect,
+    selectedGif,
+    onClearSelectedGif
 }: ChatPanelProps) {
     const firestore = useFirestore();
     const { user } = useUser();
     const { userDocument } = useUserDocument();
-    const [newMessage, setNewMessage] = useState('');
-    const [isGifPickerOpen, setIsGifPickerOpen] = useState(false);
-    const [selectedGif, setSelectedGif] = useState<GiphyResult | null>(null);
     const chatInputRef = useRef<HTMLInputElement>(null);
 
     const reactions = [
@@ -75,17 +86,12 @@ export default function ChatPanel({
 
         const messagesCollectionRef = collection(firestore, 'broadcasts', broadcastId, 'messages');
         addDocumentNonBlocking(messagesCollectionRef, newComment);
-        setNewMessage('');
-        setSelectedGif(null);
-    };
-    
-    const handleGifSelect = (gif: GiphyResult) => {
-        setSelectedGif(gif);
-        setIsGifPickerOpen(false);
+        onNewMessageChange('');
+        onClearSelectedGif();
     };
     
     const onReply = (username: string) => {
-        setNewMessage(`@${username} `);
+        onNewMessageChange(`@${username} `);
         chatInputRef.current?.focus();
     };
 
@@ -94,7 +100,7 @@ export default function ChatPanel({
     }
 
     return (
-        <div className="w-full h-full flex flex-col justify-end bg-gradient-to-t from-black/70 via-black/40 to-transparent max-h-[80%] pointer-events-none">
+        <div className="absolute bottom-0 left-0 p-4 w-full md:w-96 flex flex-col justify-end bg-gradient-to-t from-black/70 via-black/40 to-transparent max-h-[50%] pointer-events-none">
             <div className="h-full relative">
                 <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-transparent to-black/0 via-black/0 z-10 pointer-events-none" style={{ maskImage: 'linear-gradient(to bottom, transparent, black 100%)', WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 100%)' }} />
                 <ScrollArea className="h-full pr-4 pointer-events-auto">
@@ -128,18 +134,18 @@ export default function ChatPanel({
              {selectedGif && (
                 <div className="relative w-32 h-24 mt-2 pointer-events-auto">
                     <Image src={selectedGif.images.fixed_width.url} alt={selectedGif.title} fill className="object-cover rounded-md" />
-                     <Button variant="destructive" size="icon" className="absolute -top-2 -right-2 h-6 w-6 rounded-full" onClick={() => setSelectedGif(null)}>
+                     <Button variant="destructive" size="icon" className="absolute -top-2 -right-2 h-6 w-6 rounded-full" onClick={onClearSelectedGif}>
                         <X className="h-4 w-4" />
                     </Button>
                 </div>
             )}
-            <form onSubmit={onSendMessage} className="relative mt-2 flex items-center gap-2 pointer-events-auto mb-20">
+            <form onSubmit={onSendMessage} className="relative mt-2 flex items-center gap-2 pointer-events-auto">
                 <div className="relative flex-1">
                     <Input
                         ref={chatInputRef}
                         placeholder="Add a comment..."
                         value={newMessage}
-                        onChange={(e) => setNewMessage(e.target.value)}
+                        onChange={(e) => onNewMessageChange(e.target.value)}
                         className="bg-black/50 border-white/20 text-white placeholder:text-gray-400 pr-28 rounded-full"
                     />
                     <div className="absolute inset-y-0 right-0 flex items-center">
@@ -159,14 +165,14 @@ export default function ChatPanel({
                                 </div>
                             </PopoverContent>
                         </Popover>
-                        <Popover open={isGifPickerOpen} onOpenChange={setIsGifPickerOpen}>
+                        <Popover open={isGifPickerOpen} onOpenChange={onGifPickerOpenChange}>
                             <PopoverTrigger asChild>
                                 <Button size="icon" type="button" variant="ghost" className="rounded-full h-9 w-9 text-white">
                                     <b className="text-xs">GIF</b>
                                 </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-screen sm:w-96 h-96 p-0 border-zinc-700 bg-zinc-900" side="top" align="end">
-                               <GifPicker onSendGif={handleGifSelect} />
+                               <GifPicker onSendGif={onGifSelect} />
                             </PopoverContent>
                         </Popover>
                         <Button variant="ghost" size="icon" type="submit" className="text-white">
@@ -174,7 +180,9 @@ export default function ChatPanel({
                         </Button>
                     </div>
                 </div>
-                
+                <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 pointer-events-auto" onClick={onToggleVisibility}>
+                    <MessageCircleOff className="h-5 w-5" />
+                </Button>
             </form>
         </div>
     );
