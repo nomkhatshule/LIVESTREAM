@@ -2,10 +2,14 @@
 import Mux from '@mux/mux-node';
 import {NextResponse} from 'next/server';
 
-const {video} = new Mux(
+// Correctly initialize the Mux client
+const muxClient = new Mux(
   process.env.MUX_TOKEN_ID,
   process.env.MUX_TOKEN_SECRET,
 );
+
+// Access the video API from the initialized client
+const { video } = muxClient;
 
 export async function POST() {
   try {
