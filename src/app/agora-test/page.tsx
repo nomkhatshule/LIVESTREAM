@@ -19,7 +19,7 @@ import { Resizable } from 're-resizable';
 import { cn } from '@/lib/utils';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { generateGamePrompts } from '@/ai/flows/generate-game-prompts';
-import VideoPlayer from '@/components/broadcast/video-player';
+import { Button } from '@/components/ui/button';
 
 
 // --- Main UI Component ---
@@ -30,8 +30,6 @@ function AgoraTestPageUI() {
   const firestore = useFirestore();
   const { toast } = useToast();
   
-  const [newMessage, setNewMessage] = useState('');
-  const [isChatVisible, setIsChatVisible] = useState(true);
   const { user } = useUser();
   const { userDocument } = useUserDocument();
   const [reactions, setReactions] = useState<Reaction[]>([]);
@@ -47,9 +45,8 @@ function AgoraTestPageUI() {
   const [isPinching, setIsPinching] = useState(false);
   const initialPinchDistanceRef = useRef(0);
   const initialCardSizeRef = useRef({ width: 320, height: 460 });
-  const [isGifPickerOpen, setIsGifPickerOpen] = useState(false);
-  const [selectedGif, setSelectedGif] = useState<GiphyResult | null>(null);
-
+  const [isChatVisible, setIsChatVisible] = useState(true);
+  
   const videoRef = useRef<HTMLVideoElement>(null);
   const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
   const [isMicEnabled, setIsMicEnabled] = useState(true);
@@ -274,35 +271,6 @@ function AgoraTestPageUI() {
      toast({ variant: 'destructive', title: 'Coming Soon!', description: 'Camera flipping is not yet implemented.' });
     // Placeholder for camera flip logic
   }
-
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    if ((newMessage.trim() === '' && !selectedGif) || !user || !broadcastId || !userDocument) return;
-
-    let attachment;
-    if (selectedGif) {
-        attachment = {
-            type: 'giphy',
-            title: selectedGif.title,
-            imageUrl: selectedGif.images.original.url,
-            thumbUrl: selectedGif.images.fixed_width.url,
-        }
-    }
-
-    const newComment: Omit<Comment, 'id'> & { timestamp: any, attachment?: any } = {
-        userId: user.uid,
-        username: userDocument.username || 'Anonymous',
-        userAvatar: userDocument.profilePicture || '',
-        message: newMessage,
-        timestamp: serverTimestamp(),
-        attachment: attachment || null,
-    };
-    
-    const messagesCollectionRef = collection(firestore, 'broadcasts', broadcastId, 'messages');
-    addDocumentNonBlocking(messagesCollectionRef, newComment);
-    setNewMessage('');
-    setSelectedGif(null);
-  }
   
   const handleEndStream = async () => {
     mediaStream?.getTracks().forEach(track => track.stop());
@@ -380,12 +348,6 @@ function AgoraTestPageUI() {
          }
        }
   };
-  
-    const handleGifSelect = (gif: GiphyResult) => {
-        setSelectedGif(gif);
-        setIsGifPickerOpen(false);
-    };
-
 
   if (isBroadcastLoading || !broadcastData) {
       return (
@@ -398,12 +360,7 @@ function AgoraTestPageUI() {
   return (
     <div className="relative h-screen w-full bg-black text-white overflow-hidden">
         
-        {/* We use a video tag for local preview, MuxPlayer for playback */}
-        {broadcastData.isLive ? (
-            <VideoPlayer broadcast={broadcastData} />
-        ) : (
-            <video ref={videoRef} autoPlay muted className="w-full h-full object-cover" />
-        )}
+        <video ref={videoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
 
         <FloatingReactions reactions={reactions} />
 
@@ -487,7 +444,7 @@ function AgoraTestPageUI() {
             </div>
         )}
         
-        <div className="absolute right-4 top-1/3 -translate-y-1/3 z-30">
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 z-30">
             <StreamControls 
                 onToggleVideo={handleToggleVideo}
                 onToggleMic={handleToggleMic}
@@ -600,3 +557,5 @@ export default function AgoraTestPage() {
         </Suspense>
     )
 }
+
+    
