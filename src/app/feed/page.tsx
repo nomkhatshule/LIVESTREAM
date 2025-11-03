@@ -202,7 +202,7 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
     return (
         <div ref={ref} className="h-full w-full snap-start relative bg-black">
              {/* Background Thumbnail */}
-             {broadcast.thumbnailUrl && (
+            {broadcast.thumbnailUrl && (
                 <Image
                     src={broadcast.thumbnailUrl}
                     alt={broadcast.title}
@@ -213,8 +213,8 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
             )}
             <div className={cn("absolute inset-0 bg-black/20 z-10", shouldShowPlayer ? 'hidden' : 'block')} />
             
-            {shouldShowPlayer && playbackId && (
-                <div className="absolute inset-0 z-20">
+            {shouldShowPlayer && (
+                 <div className="absolute inset-0 z-20">
                     <MuxPlayer
                         playbackId={playbackId}
                         streamType="live"
@@ -595,3 +595,5 @@ export default function HomePage() {
         </Suspense>
     )
 }
+
+    
