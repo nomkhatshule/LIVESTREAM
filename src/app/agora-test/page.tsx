@@ -420,6 +420,8 @@ function AgoraTestPageUI() {
     };
 
 
+  // This is the new, consolidated loading gate.
+  // It ensures the UI doesn't render until all data is ready.
   if (isBroadcastLoading || !broadcastData) {
       return (
           <div className="flex h-screen w-full items-center justify-center bg-gray-900">
@@ -724,3 +726,5 @@ export default function AgoraTestPage() {
         </Suspense>
     )
 }
+
+    
