@@ -8,7 +8,6 @@ import { collection, query, where, writeBatch, doc, orderBy, serverTimestamp, li
 import type { Broadcast, ChatMessage } from '@/lib/data';
 import { Clapperboard, Loader2, Mail, ChevronDownCircle, MessageCircleHeart, Film, Heart, MessageSquareMore, Gift, Search, Swords, Users, CornerUpLeft, ArrowUp, Play } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import BroadcastPlayer from '@/components/broadcast/broadcast-player';
 import { useStreamStore } from '@/lib/stream-store';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
@@ -32,6 +31,7 @@ import { GiphyResult } from '@/lib/types';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import GifPicker from '@/components/inbox/GifPicker';
 import Image from 'next/image';
+import MuxPlayer from '@mux/mux-player-react';
 
 function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broadcast, onVisible: () => void, isActive: boolean }) {
     const { ref, inView } = useInView({ threshold: 0.7 });
@@ -39,7 +39,7 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
     const { userDocument } = useUserDocument();
     const firestore = useFirestore();
     const { toast } = useToast();
-    const { status, connect, playbackId } = useStreamStore(); // Get playbackId from store
+    const { status, connect, playbackId, activeBroadcast } = useStreamStore();
 
     useEffect(() => {
         if (inView) {
@@ -198,15 +198,34 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
     };
 
     const broadcastContext = `The streamer is ${broadcast.hostName}. The stream is titled "${broadcast.title}" under the category "${broadcast.category}".`;
+    const shouldShowPlayer = isActive && status === 'connected' && playbackId && activeBroadcast?.id === broadcast.id;
 
     return (
-        <div ref={ref} className="h-full w-full snap-start relative bg-cover bg-center" style={{backgroundImage: `url(${broadcast.thumbnailUrl})`}}>
-            <div className="absolute inset-0 bg-black/20" />
+        <div ref={ref} className="h-full w-full snap-start relative bg-black">
+             {/* Background Thumbnail */}
+             <Image
+                src={broadcast.thumbnailUrl}
+                alt={broadcast.title}
+                fill
+                className={cn("object-cover z-0", shouldShowPlayer ? 'opacity-0' : 'opacity-100')}
+                priority
+            />
+            <div className={cn("absolute inset-0 bg-black/20 z-10", shouldShowPlayer ? 'hidden' : 'block')} />
             
-            {isActive && status === 'connected' && playbackId && <BroadcastPlayer />}
+            {shouldShowPlayer && (
+                <div className="absolute inset-0 z-20">
+                     <MuxPlayer
+                        playbackId={playbackId}
+                        streamType="live"
+                        autoPlay
+                        muted
+                        className="w-full h-full"
+                    />
+                </div>
+            )}
 
-            {isActive && (status === 'idle' || status === 'disconnected' || status === 'error') && (
-                 <div className="absolute inset-0 bg-black/40 z-20 flex items-center justify-center pointer-events-auto">
+            {!shouldShowPlayer && isActive && (status === 'idle' || status === 'disconnected' || status === 'error') && (
+                 <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-auto">
                     <button
                         onClick={handlePlay}
                         className="group flex flex-col items-center justify-center text-white transition-transform hover:scale-110"
@@ -218,7 +237,7 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
             )}
             
             {isActive && status === 'connecting' && (
-                 <div className="absolute inset-0 bg-black/40 z-20 flex items-center justify-center pointer-events-auto">
+                 <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-auto bg-black/40">
                     <div className="group flex flex-col items-center justify-center text-white">
                         <Loader2 className="h-20 w-20 md:h-24 md:w-24 animate-spin" />
                         <span className="mt-2 text-base md:text-lg font-semibold drop-shadow-lg">Connecting...</span>
@@ -226,7 +245,7 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
                 </div>
             )}
 
-            <div className="absolute inset-0 flex flex-col justify-between p-3 md:p-4 text-white z-30 pointer-events-none">
+            <div className="absolute inset-0 flex flex-col justify-between p-3 md:p-4 text-white z-40 pointer-events-none">
                  {isChallengeVisible && broadcast.activeChallenge && broadcast.activeChallengeType && (
                     <ChallengeCard
                         text={broadcast.activeChallenge}
@@ -464,11 +483,9 @@ function HomePageContent() {
     return (
         <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
             <div className="h-[calc(100vh-4rem)] relative bg-black">
-                {/* Remove BroadcastPlayer from here */}
-
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                         <Button variant="ghost" size="icon" className="absolute top-4 right-4 z-40 text-white transition-transform hover:bg-black/20 hover:scale-110 pointer-events-auto focus-visible:ring-0 rounded-full h-10 w-10 bg-black/20">
+                         <Button variant="ghost" size="icon" className="absolute top-4 right-4 z-50 text-white transition-transform hover:bg-black/20 hover:scale-110 pointer-events-auto focus-visible:ring-0 rounded-full h-10 w-10 bg-black/20">
                             <ChevronDownCircle className="h-7 w-7" />
                         </Button>
                     </DropdownMenuTrigger>
