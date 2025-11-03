@@ -2,7 +2,6 @@
 'use client';
 
 import { Button } from "@/components/ui/button";
-import { useCallStateHooks } from "@stream-io/video-react-sdk";
 import { Dice6, Mic, MicOff, Minus, MonitorUp, ScreenShare, UserPlus, Users, Video, VideoOff, SwitchCamera, MessageCircle, MessageCircleOff } from "lucide-react";
 import ParticipantsPanel from "./ParticipantsPanel";
 import { cn } from "@/lib/utils";
@@ -22,14 +21,11 @@ interface StreamControlsProps {
     isChallengeActive: boolean;
     isChatVisible: boolean;
     onToggleChatVisibility: () => void;
+    viewerCount: number;
 }
 
 
-export default function StreamControls({ onToggleVideo, onToggleMic, onFlipCamera, onToggleScreenShare, onInviteGuest, isVideoEnabled, isMicEnabled, isScreenSharing, isCallJoined, onToggleChallengeVisibility, isChallengeActive, onOpenGames, isChatVisible, onToggleChatVisibility }: StreamControlsProps) {
-    const { useParticipants } = useCallStateHooks();
-    const participants = useParticipants();
-    const viewerCount = Math.max(0, participants.length -1);
-
+export default function StreamControls({ onToggleVideo, onToggleMic, onFlipCamera, onToggleScreenShare, onInviteGuest, isVideoEnabled, isMicEnabled, isScreenSharing, isCallJoined, onToggleChallengeVisibility, isChallengeActive, onOpenGames, isChatVisible, onToggleChatVisibility, viewerCount }: StreamControlsProps) {
     return (
         <div className="flex flex-col items-center gap-2 md:gap-4 p-2 bg-black/40 rounded-full backdrop-blur-sm">
             <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onToggleVideo} disabled={!isCallJoined}>
@@ -55,7 +51,7 @@ export default function StreamControls({ onToggleVideo, onToggleMic, onFlipCamer
              <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onToggleChatVisibility}>
                 {isChatVisible ? <MessageCircleOff className="h-5 w-5 md:h-6 md:w-6"/> : <MessageCircle className="h-5 w-5 md:h-6 md:w-6"/>}
             </Button>
-            <ParticipantsPanel viewerCount={viewerCount} participants={participants} />
+            <ParticipantsPanel viewerCount={viewerCount} />
             <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onOpenGames}>
                 <Dice6 className="h-5 w-5 md:h-6 md:w-6"/>
             </Button>
