@@ -17,6 +17,7 @@ interface StreamControlsProps {
     isMicEnabled: boolean;
     isScreenSharing: boolean;
     isChallengeActive: boolean;
+    viewerCount: number;
 }
 
 export default function StreamControls({ 
@@ -30,7 +31,8 @@ export default function StreamControls({
     isScreenSharing, 
     onToggleChallengeVisibility, 
     isChallengeActive, 
-    onOpenGames 
+    onOpenGames,
+    viewerCount
 }: StreamControlsProps) {
     return (
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 md:gap-4 p-2 bg-black/40 rounded-full backdrop-blur-sm pointer-events-auto">
@@ -54,7 +56,7 @@ export default function StreamControls({
                   <Minus className="h-5 w-5 md:h-6 md:w-6"/>
               </Button>
             )}
-            <ParticipantsPanel viewerCount={0} />
+            <ParticipantsPanel viewerCount={viewerCount} />
             <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onOpenGames}>
                 <Dice6 className="h-5 w-5 md:h-6 md:w-6"/>
             </Button>

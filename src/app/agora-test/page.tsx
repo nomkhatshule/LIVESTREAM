@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { Suspense, useEffect, useMemo, useState } from 'react';
@@ -167,6 +168,7 @@ function AgoraTestPageUI() {
             isMicEnabled={isMicEnabled}
             isScreenSharing={isScreenSharing}
             onOpenGames={() => setIsGamePanelOpen(true)}
+            viewerCount={viewerCount}
         />
         
         <InStreamGamesPanel 
