@@ -64,7 +64,7 @@ function AuthFormComponent() {
       const { email, password } = data as z.infer<typeof loginSchema>;
       initiateEmailSignIn(auth, email, password);
     }
-    router.push('/');
+    router.push('/feed');
   };
 
   return (
