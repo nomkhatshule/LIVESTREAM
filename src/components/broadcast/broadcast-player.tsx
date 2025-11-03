@@ -8,16 +8,16 @@ import { useUser } from '@/firebase';
 
 export default function BroadcastPlayer() {
     const { user } = useUser();
-    const { activeBroadcastId, playbackId, status, connect } = useStreamStore();
+    const { activeBroadcast, status, connect } = useStreamStore();
 
     const handlePlay = () => {
-        if (user && activeBroadcastId) {
-            connect(user, activeBroadcastId);
+        if (user && activeBroadcast) {
+            connect(user, activeBroadcast);
         }
     };
     
     // Show a loading or play button if this is the active stream but we're not connected
-    if (status !== 'connected' && activeBroadcastId) {
+    if (status !== 'connected' && activeBroadcast) {
         return (
             <div className="absolute inset-0 bg-black/40 z-20 flex items-center justify-center pointer-events-auto">
                 <button
@@ -41,14 +41,14 @@ export default function BroadcastPlayer() {
         )
     }
 
-    if (status !== 'connected' || !playbackId) {
+    if (status !== 'connected' || !activeBroadcast?.playbackId) {
         return null; // Don't render anything if not connected or no playback ID
     }
     
     return (
         <div className="absolute inset-0 z-10">
             <MuxPlayer
-                playbackId={playbackId}
+                playbackId={activeBroadcast.playbackId}
                 streamType="live"
                 autoPlay
                 muted

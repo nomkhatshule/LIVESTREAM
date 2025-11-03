@@ -3,8 +3,7 @@
 
 import { create } from 'zustand';
 import type { User } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
-import { useFirestore } from '@/firebase'; // This is a hook, can't be used here.
+import type { Broadcast } from './data';
 import { initializeFirebase } from '@/firebase';
 
 const { firestore } = initializeFirebase();
@@ -13,49 +12,40 @@ type ConnectionStatus = 'idle' | 'connecting' | 'connected' | 'error' | 'disconn
 
 interface StreamState {
   status: ConnectionStatus;
-  activeBroadcastId: string | null;
-  playbackId: string | null;
-  connect: (user: User, broadcastId: string) => Promise<void>;
+  activeBroadcast: Broadcast | null;
+  connect: (user: User, broadcast: Broadcast) => Promise<void>;
   disconnect: () => void;
-  setActiveBroadcastId: (broadcastId: string | null) => void;
+  setActiveBroadcast: (broadcast: Broadcast | null) => void;
 }
 
 export const useStreamStore = create<StreamState>((set, get) => ({
   status: 'idle',
-  activeBroadcastId: null,
-  playbackId: null,
+  activeBroadcast: null,
   
-  setActiveBroadcastId: (broadcastId) => {
-    const currentId = get().activeBroadcastId;
-    if (currentId !== broadcastId) {
-      get().disconnect(); // Disconnect when scrolling to a new stream
-      set({ activeBroadcastId: broadcastId });
+  setActiveBroadcast: (broadcast) => {
+    const currentBroadcast = get().activeBroadcast;
+    if (currentBroadcast?.id !== broadcast?.id) {
+      get().disconnect(); 
+      set({ activeBroadcast: broadcast });
     }
   },
 
-  connect: async (user, broadcastId) => {
+  connect: async (user, broadcast) => {
     if (get().status === 'connecting' || get().status === 'connected') {
       return;
     }
 
-    // Explicitly clear playbackId at the start of connection attempt
-    set({ status: 'connecting', activeBroadcastId: broadcastId, playbackId: null });
+    set({ status: 'connecting', activeBroadcast: broadcast });
 
     try {
-      // 1. Fetch the broadcast document to get the playbackId
-      const broadcastDocRef = doc(firestore, 'broadcasts', broadcastId);
-      const broadcastDoc = await getDoc(broadcastDocRef);
-
-      if (!broadcastDoc.exists() || !broadcastDoc.data().playbackId) {
+      if (!broadcast.playbackId) {
         throw new Error('Playback ID not found for this broadcast.');
       }
       
-      const playbackId = broadcastDoc.data().playbackId;
-
-      // 2. Set state for Mux Player
       // In a real Mux integration, we don't need to manage a client/call object for viewers.
       // The MuxPlayer handles the connection using just the playbackId.
-      set({ status: 'connected', playbackId });
+      // We just need to signal that we are "connected" so the UI can render the player.
+      set({ status: 'connected' });
 
     } catch (error) {
       console.error('Mux connection failed:', error);
@@ -67,6 +57,6 @@ export const useStreamStore = create<StreamState>((set, get) => ({
   disconnect: () => {
     // With Mux Player, there's no persistent client connection to manage for viewers.
     // We just reset the state.
-    set({ status: 'disconnected', playbackId: null });
+    set({ status: 'disconnected' });
   },
 }));
