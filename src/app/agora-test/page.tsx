@@ -424,7 +424,7 @@ function AgoraTestPageUI() {
       return (
           <div className="flex h-screen w-full items-center justify-center bg-gray-900">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <p className="ml-2">Loading broadcast...</p>
+              <p className="ml-2">Preparing your studio...</p>
           </div>
       )
   }
@@ -692,20 +692,13 @@ function AgoraTestWrapper() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [broadcastId, user, client]);
 
-    if (isUserLoading || isBroadcastLoading || !broadcastId) {
+    // --- MASTER LOADING GATE ---
+    // This gate prevents rendering until all necessary data is loaded.
+    if (isUserLoading || isBroadcastLoading || !broadcastData || !client || !call) {
         return (
             <div className="flex h-screen w-full items-center justify-center bg-background">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="ml-2">Loading your studio...</p>
-            </div>
-        );
-    }
-    
-    if (!client || !call) {
-         return (
-            <div className="flex h-screen w-full items-center justify-center bg-background">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="ml-2">Connecting to broadcast channel...</p>
+                <p className="ml-2">Loading Your Studio...</p>
             </div>
         );
     }
@@ -731,6 +724,5 @@ export default function AgoraTestPage() {
         </Suspense>
     )
 }
-
 
     
