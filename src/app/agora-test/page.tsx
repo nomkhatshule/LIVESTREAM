@@ -392,7 +392,7 @@ function AgoraTestPageUI() {
        if (broadcastDocRef) {
          try {
             const result = await generateGamePrompts({
-                gameType: gameType === 'ai' ? 'challenge' : gameType,
+                gameType: gameType,
                 category: 'Live Stream Audience',
                 count: 1,
             });

@@ -91,7 +91,7 @@ export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerPr
     };
   }, [user, broadcast?.id, isHost, toast, client, call]);
 
-  if (!client || !call || !broadcast?.hostId) {
+  if (!broadcast || !client || !call) {
     return (
       <div className="absolute inset-0 flex items-center justify-center bg-black">
         <Loader2 className="h-8 w-8 animate-spin text-white" />
@@ -109,3 +109,5 @@ export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerPr
     </StreamVideo>
   );
 }
+
+    
