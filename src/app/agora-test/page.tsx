@@ -7,8 +7,6 @@ import { useUser, useFirestore, useMemoFirebase, useUserDocument, useDoc } from 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { doc, updateDoc, collection, query, orderBy, limit, serverTimestamp } from 'firebase/firestore';
 import { useCollection } from '@/firebase';
-import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import VideoPlayer from '@/components/broadcast/video-player';
 import { cn } from '@/lib/utils';
 import ChallengeDisplayCard from '@/components/broadcast/ChallengeDisplayCard';
 import CountdownTimer from '@/components/broadcast/CountdownTimer';
