@@ -3,6 +3,7 @@ import Mux from '@mux/mux-node';
 import {NextResponse} from 'next/server';
 
 // Initialize the Mux client with credentials from environment variables
+// This happens once when the module is loaded.
 const muxClient = new Mux(
   process.env.MUX_TOKEN_ID,
   process.env.MUX_TOKEN_SECRET,
