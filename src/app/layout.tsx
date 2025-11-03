@@ -1,10 +1,12 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { cn } from '@/lib/utils';
 import Header from '@/components/layout/header';
 import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase';
-import { ChatProvider } from '@/components/chat/ChatProvider';
+// ChatProvider is removed as Stream is no longer used
+// import { ChatProvider } from '@/components/chat/ChatProvider';
 
 export const metadata: Metadata = {
   title: 'AgoraLive',
@@ -23,13 +25,13 @@ export default function RootLayout({
       </head>
       <body className={cn('min-h-screen bg-background font-body antialiased')}>
         <FirebaseClientProvider>
-          <ChatProvider>
+          {/* <ChatProvider> */}
             <div className="relative flex min-h-screen flex-col">
               <Header />
               <main className="flex-1">{children}</main>
             </div>
             <Toaster />
-          </ChatProvider>
+          {/* </ChatProvider> */}
         </FirebaseClientProvider>
       </body>
     </html>

@@ -1,22 +1,18 @@
 
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useState, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useCall, useCallStateHooks, CallingState, Call } from '@stream-io/video-react-sdk';
 import { doc } from 'firebase/firestore';
 
 import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
-import { useStreamControls } from '@/hooks/useStreamControls';
 import { useGameFlow } from '@/hooks/useGameFlow';
 import { useChallengeCard } from '@/hooks/useChallengeCard';
 
 import type { Reaction, BroadcastData } from '@/lib/types';
-import { Loader2 } from 'lucide-react';
-import { StreamCall, StreamVideo, StreamVideoClient } from '@stream-io/video-react-sdk';
+import { Loader2, Video, Mic, ScreenShare, MicOff, VideoOff, MonitorUp } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-import VideoPlayer from '@/components/broadcast/video-player';
 import FloatingReactions from '@/components/agora-test/FloatingReactions';
 import StreamHeader from '@/components/agora-test/StreamHeader';
 import GameFlowManager from '@/components/agora-test/GameFlowManager';
@@ -25,7 +21,7 @@ import StreamControls from '@/components/agora-test/StreamControls';
 import ChatPanel from '@/components/agora-test/ChatPanel';
 import InStreamGamesPanel from '@/components/agora-test/InStreamGamesPanel';
 import { useCollection } from '@/firebase';
-import { query, collection, orderBy, limit } from 'firebase/firestore';
+import { query, collection, orderBy, limit, updateDoc } from 'firebase/firestore';
 import type { Comment } from '@/lib/types';
 
 // --- Main UI Component ---
@@ -33,19 +29,16 @@ function AgoraTestPageUI() {
   const searchParams = useSearchParams();
   const broadcastId = searchParams.get('id');
   const firestore = useFirestore();
-  const call = useCall();
 
   const [reactions, setReactions] = useState<Reaction[]>([]);
   const [isGamePanelOpen, setIsGamePanelOpen] = useState(false);
   const [isChatVisible, setIsChatVisible] = useState(true);
 
-  // Stream SDK Hooks
-  const { useParticipants, useCallCallingState } = useCallStateHooks();
-  const participants = useParticipants();
-  const callingState = useCallCallingState();
-  
-  const viewerCount = Math.max(0, participants.length -1); // Exclude the host
-  const isCallJoined = callingState === CallingState.JOINED;
+  // --- New state for local media ---
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
+  const [isMicEnabled, setIsMicEnabled] = useState(true);
+  const [isVideoEnabled, setIsVideoEnabled] = useState(true);
 
   // Real-time broadcast document
   const broadcastDocRef = useMemoFirebase(() => {
@@ -56,7 +49,6 @@ function AgoraTestPageUI() {
   const { data: broadcastData, isLoading: isBroadcastLoading } = useDoc<BroadcastData>(broadcastDocRef);
   
   // Custom Hooks for Logic
-  const { isVideoEnabled, isMicEnabled, isScreenSharing, handleToggleVideo, handleToggleMic, handleFlipCamera, handleToggleScreenShare, handleEndStream, handleInviteGuest } = useStreamControls(call, broadcastDocRef);
   const { showChallengeCoverCard, isChallengeVisible, isTimerFinished, handleChallengeSelect, handleStartStagedChallenge, handleCancelStagedChallenge, handleGenerateNextChallenge, setIsChallengeVisible } = useGameFlow(broadcastDocRef, broadcastData);
   const { cardPosition, cardSize, isDragging, handleMouseDown, handleTouchStart, handleTouchMove, handleTouchEnd, handleResizeStop, setCardSize } = useChallengeCard(broadcastDocRef, broadcastData?.challengeCardPosition, broadcastData?.challengeCardSize);
 
@@ -70,19 +62,53 @@ function AgoraTestPageUI() {
     );
   }, [broadcastId, firestore]);
   const { data: comments } = useCollection<Comment>(messagesQuery);
-
-  // This effect automatically enables the camera once the call is joined with high-quality settings.
-  useEffect(() => {
-    if (callingState === CallingState.JOINED && call && call.camera) {
-      const highQualityConstraints = {
-        width: { ideal: 1920 },
-        height: { ideal: 1080 },
-        frameRate: { ideal: 30 },
-      };
-      call.camera.enable(highQualityConstraints);
-    }
-  }, [callingState, call]);
   
+  // --- Start camera and mic ---
+  useEffect(() => {
+    async function setupMedia() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: true,
+        });
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+        setMediaStream(stream);
+      } catch (err) {
+        console.error("Error accessing media devices.", err);
+      }
+    }
+    setupMedia();
+
+    // Cleanup: stop tracks when component unmounts
+    return () => {
+        mediaStream?.getTracks().forEach(track => track.stop());
+    }
+  }, []); // Run only once
+
+  const handleToggleVideo = () => {
+    mediaStream?.getVideoTracks().forEach(track => {
+        track.enabled = !track.enabled;
+        setIsVideoEnabled(track.enabled);
+    });
+  };
+
+  const handleToggleMic = () => {
+      mediaStream?.getAudioTracks().forEach(track => {
+          track.enabled = !track.enabled;
+          setIsMicEnabled(track.enabled);
+      });
+  };
+
+  const handleEndStream = async () => {
+    mediaStream?.getTracks().forEach(track => track.stop());
+    if (broadcastDocRef) {
+      await updateDoc(broadcastDocRef, { isLive: false });
+    }
+    router.push('/');
+  };
+
   const handleReaction = (emoji: React.ReactNode) => {
     const newReaction: Reaction = {
         id: Date.now() + Math.random(),
@@ -95,6 +121,9 @@ function AgoraTestPageUI() {
     }, 5000);
   }
 
+  // Placeholder for router - in a real app this would come from next/navigation
+  const router = { push: (path: string) => console.log(`Navigating to ${path}`) };
+
 
   if (isBroadcastLoading || !broadcastData) {
       return (
@@ -106,17 +135,14 @@ function AgoraTestPageUI() {
 
   return (
     <div className="relative h-screen w-full bg-black text-white overflow-hidden">
-        
-        <VideoPlayer 
-            broadcast={broadcastData} 
-            isHost={true} 
-        />
+        {/* Local Video Preview */}
+        <video ref={videoRef} autoPlay muted className="w-full h-full object-cover" />
 
         <FloatingReactions reactions={reactions} />
 
         <StreamHeader
             broadcastData={broadcastData}
-            viewerCount={viewerCount}
+            viewerCount={0} // Viewer count would come from a different source now
             onEndStream={handleEndStream}
         />
         
@@ -135,7 +161,7 @@ function AgoraTestPageUI() {
             isDragging={isDragging}
             onMouseDown={handleMouseDown}
             onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
+            onTouchMove={onTouchMove}
             onTouchEnd={handleTouchEnd}
             onResizeStop={handleResizeStop}
             onSetCardSize={setCardSize}
@@ -143,13 +169,9 @@ function AgoraTestPageUI() {
             broadcastDocRef={broadcastDocRef}
         />
 
-        {/* Right-side container for chat on desktop */}
         <div className="absolute right-0 top-0 h-full w-auto md:w-96 flex flex-col items-end justify-end p-2 md:p-4 z-20 pointer-events-none">
-            {/* Spacer for desktop */}
             <div className="hidden md:block flex-grow" />
-
             <div className="flex-grow flex flex-col justify-end w-full max-w-sm pointer-events-auto">
-                {/* Desktop Chat */}
                 <div className="hidden md:block">
                      <ChatPanel 
                         broadcastId={broadcastId}
@@ -162,7 +184,6 @@ function AgoraTestPageUI() {
             </div>
         </div>
 
-        {/* Chat Panel for Mobile */}
         <div className="absolute bottom-4 left-4 right-4 z-20 flex items-end gap-2 md:hidden">
             <div className="w-full">
                 <ChatPanel 
@@ -175,20 +196,19 @@ function AgoraTestPageUI() {
             </div>
         </div>
 
-        {/* Unified Controls for All Screens */}
         <div className="absolute right-4 top-1/3 -translate-y-1/3 z-20 flex">
              <StreamControls 
                 onToggleVideo={handleToggleVideo}
                 onToggleMic={handleToggleMic}
-                onFlipCamera={handleFlipCamera}
-                onToggleScreenShare={handleToggleScreenShare}
-                onInviteGuest={handleInviteGuest}
+                onFlipCamera={() => {}} // Flipping camera needs more complex logic with MediaDevices
+                onToggleScreenShare={() => {}} // Screenshare to be implemented
+                onInviteGuest={() => {}}
                 onToggleChallengeVisibility={() => setIsChallengeVisible(prev => !prev)}
                 isChallengeActive={!!broadcastData.activeChallenge}
                 isVideoEnabled={isVideoEnabled}
                 isMicEnabled={isMicEnabled}
-                isScreenSharing={isScreenSharing}
-                isCallJoined={isCallJoined}
+                isScreenSharing={false} // Placeholder
+                isCallJoined={!!mediaStream} // Consider stream as "joined"
                 onOpenGames={() => setIsGamePanelOpen(true)}
                 isChatVisible={isChatVisible}
                 onToggleChatVisibility={() => setIsChatVisible(prev => !prev)}
@@ -208,14 +228,11 @@ function AgoraTestPageUI() {
 function AgoraTestWrapper() {
     const searchParams = useSearchParams();
     const broadcastId = searchParams.get('id');
+    const streamKey = searchParams.get('streamKey');
     const { user, isUserLoading } = useUser();
     const { toast } = useToast();
     const router = useRouter();
 
-    const [client, setClient] = useState<StreamVideoClient | null>(null);
-    const [call, setCall] = useState<Call | null>(null);
-    
-    // Authorization check
     const firestore = useFirestore();
     const broadcastDocRef = useMemoFirebase(() => {
         if (!broadcastId || !firestore) return null;
@@ -223,30 +240,21 @@ function AgoraTestWrapper() {
     }, [broadcastId, firestore]);
     const { data: broadcastData, isLoading: isBroadcastLoading } = useDoc<BroadcastData>(broadcastDocRef);
 
-    // Camera permission check
-    useEffect(() => {
-        const getCameraPermission = async () => {
-          try {
-            await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-          } catch (error) {
-            console.error('Error accessing media devices:', error);
-            toast({
-              variant: 'destructive',
-              title: 'Media Access Denied',
-              description: 'Please enable camera and microphone permissions in your browser settings to go live.',
-            });
-          }
-        };
-        getCameraPermission();
-      }, [toast]);
-
-    // Auth check
     useEffect(() => {
         if (isUserLoading || isBroadcastLoading) return;
         
         if (!user) {
             router.push('/login');
             return;
+        }
+
+        if (!streamKey) {
+            toast({
+                title: 'Missing Stream Key',
+                description: "Cannot start the broadcast without a stream key.",
+                variant: 'destructive',
+            });
+            router.push('/');
         }
 
         if (broadcastData && broadcastData.hostId !== user.uid) {
@@ -258,64 +266,8 @@ function AgoraTestWrapper() {
             router.push('/');
         }
 
-    }, [user, isUserLoading, broadcastData, isBroadcastLoading, router, toast]);
+    }, [user, isUserLoading, broadcastData, isBroadcastLoading, router, toast, streamKey]);
 
-    // Stream Client initialization
-    useEffect(() => {
-        if (!user || !broadcastId || client) return;
-
-        let videoClient: StreamVideoClient;
-        const apiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY || '';
-
-        const initStream = async () => {
-            if (!apiKey) {
-                toast({ variant: 'destructive', title: 'Stream API Key is missing.' });
-                return;
-            }
-
-            try {
-                const response = await fetch('/api/stream/token', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ userId: user.uid }),
-                });
-                if (!response.ok) throw new Error('Failed to fetch stream token');
-                
-                const { token } = await response.json();
-                
-                videoClient = new StreamVideoClient({
-                    apiKey,
-                    user: {
-                        id: user.uid,
-                        name: user.displayName || 'Anonymous',
-                        image: user.photoURL || undefined,
-                    },
-                    token,
-                });
-
-                setClient(videoClient);
-                const callInstance = videoClient.call('livestream', broadcastId);
-                await callInstance.join({ create: true });
-                setCall(callInstance);
-
-            } catch (error: any) {
-                console.error("Stream initialization failed:", error);
-                toast({ variant: 'destructive', title: 'Connection Failed', description: error.message || 'Could not connect to the broadcast.'});
-            }
-        };
-        
-        initStream();
-
-        return () => {
-            if (call) {
-                call.leave().catch(err => console.error("Failed to leave call on cleanup", err));
-            }
-            if (client) {
-                client.disconnectUser().catch(err => console.error("Failed to disconnect user on cleanup", err));
-            }
-        };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [broadcastId, user, client]);
 
     if (isUserLoading || isBroadcastLoading || !broadcastId) {
         return (
@@ -326,22 +278,7 @@ function AgoraTestWrapper() {
         );
     }
     
-    if (!client || !call) {
-         return (
-            <div className="flex h-screen w-full items-center justify-center bg-background">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="ml-2">Connecting to broadcast channel...</p>
-            </div>
-        );
-    }
-
-    return (
-        <StreamVideo client={client}>
-            <StreamCall call={call}>
-                <AgoraTestPageUI />
-            </StreamCall>
-        </StreamVideo>
-    )
+    return <AgoraTestPageUI />;
 }
 
 // --- Default Export with Suspense ---

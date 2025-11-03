@@ -24,7 +24,6 @@ import Link from 'next/link';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { useCallStateHooks } from '@stream-io/video-react-sdk';
 import { Badge } from '@/components/ui/badge';
 import ChallengeDisplayCard from '@/components/broadcast/ChallengeDisplayCard';
 import CountdownTimer from '@/components/broadcast/CountdownTimer';
@@ -64,10 +63,6 @@ export default function BroadcastPage() {
     if (!user || !likes) return false;
     return likes.some(like => like.id === user.uid);
   }, [user, likes]);
-
-  const { useParticipants } = useCallStateHooks();
-  const participants = useParticipants(); // Remote participants
-  const viewerCount = participants.length;
   
   const broadcast: Broadcast | undefined = useMemo(() => {
     if (!broadcastData) return undefined;
@@ -78,13 +73,14 @@ export default function BroadcastPage() {
       user: hostUser,
       thumbnailUrl: '', // Not needed on live view
       thumbnailHint: '',
-      viewers: broadcastData.viewerCount || 0, // This is a fallback, real count is from participants
+      viewers: broadcastData.viewerCount || 0, // This is a fallback
       category: broadcastData.category,
       isLive: broadcastData.isLive,
       tags: broadcastData.tags || [],
       hostId: broadcastData.hostId,
       hostName: broadcastData.hostName,
       hostAvatar: broadcastData.hostAvatar,
+      playbackId: broadcastData.playbackId,
       activeChallenge: broadcastData.activeChallenge,
       activeChallengeType: broadcastData.activeChallengeType,
       challengeStartTime: broadcastData.challengeStartTime,
@@ -114,7 +110,6 @@ export default function BroadcastPage() {
     
     addDocumentNonBlocking(messagesCollection, newComment);
 
-     // Create a notification for the host
     if (user.uid !== broadcast.hostId) {
         const hostNotificationsRef = collection(firestore, `users/${broadcast.hostId}/notifications`);
         addDocumentNonBlocking(hostNotificationsRef, {
@@ -154,7 +149,6 @@ export default function BroadcastPage() {
         timestamp: serverTimestamp() 
       });
 
-      // Don't create a notification if the user likes their own stream
       if (user.uid !== broadcast.hostId) {
           const hostNotificationsRef = collection(firestore, `users/${broadcast.hostId}/notifications`);
           addDocumentNonBlocking(hostNotificationsRef, {
@@ -190,7 +184,7 @@ export default function BroadcastPage() {
 
   return (
     <div className="relative h-[calc(100vh-4rem)] w-full bg-black snap-start">
-      <VideoPlayer broadcast={broadcast} isHost={false} />
+      <VideoPlayer broadcast={broadcast} />
       
       {broadcast.activeChallenge && broadcast.activeChallengeType && (
             <div 
@@ -228,14 +222,14 @@ export default function BroadcastPage() {
               <div className="flex items-center gap-3 mt-1">
                  <span className="inline-flex items-center text-xs font-medium gap-1">
                       <Users className="h-3 w-3" />
-                      {viewerCount.toLocaleString()}
+                      {/* Viewer count will come from Mux Data in a real integration */}
+                      0
                   </span>
               </div>
             </div>
           </div>
       </div>
 
-      {/* Overlay for information and actions */}
       <div className="absolute bottom-0 left-0 right-0 p-4 pb-8 bg-gradient-to-t from-black/70 to-transparent text-white pointer-events-none">
         <div className="flex items-end justify-between gap-4">
           <div className="flex-1 w-full max-w-md">
@@ -287,7 +281,6 @@ export default function BroadcastPage() {
             )}
           </div>
           
-          {/* Right side: Action Buttons */}
           <div className="flex flex-col items-center space-y-5 pointer-events-auto">
             <Button variant="ghost" size="icon" className="h-15 w-15 rounded-full text-white flex-col justify-center items-center drop-shadow-md hover:bg-transparent hover:text-white">
                 <PlusCircle className="h-16 w-16"/>
@@ -342,7 +335,6 @@ export default function BroadcastPage() {
 function BroadcastSkeleton() {
   return (
     <div className="relative h-[calc(100vh-4rem)] w-full bg-black">
-      {/* Top left skeleton */}
       <div className="absolute top-0 left-0 p-4">
         <div className="flex items-center gap-3">
           <Skeleton className="h-12 w-12 rounded-full" />
@@ -352,8 +344,6 @@ function BroadcastSkeleton() {
           </div>
         </div>
       </div>
-
-      {/* Bottom right skeleton */}
       <div className="absolute bottom-0 right-0 p-4 pb-8">
         <div className="flex flex-col items-center space-y-5">
           <Skeleton className="h-12 w-12 rounded-full" />

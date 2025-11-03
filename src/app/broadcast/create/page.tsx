@@ -33,7 +33,7 @@ function CreateBroadcastPageComponent() {
     const getCameraPermission = async () => {
       if (hasCameraPermission !== null) return;
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         setHasCameraPermission(true);
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
@@ -80,36 +80,48 @@ function CreateBroadcastPageComponent() {
     }
     setIsSubmitting(true);
     
+    // Stop camera tracks before navigating
     if (videoRef.current && videoRef.current.srcObject) {
         const stream = videoRef.current.srcObject as MediaStream;
         stream.getTracks().forEach(track => track.stop());
     }
 
-    const broadcastsCollection = collection(firestore, 'broadcasts');
-    const broadcastData: any = {
-      title: title,
-      category: challengeParam ? 'Games' : 'General',
-      challenge: challengeParam || null,
-      activeChallenge: challengeParam || null,
-      activeChallengeType: challengeTypeParam || null,
-      challengeStartTime: challengeParam ? serverTimestamp() : null,
-      challengeDurationSeconds: durationParam ? parseInt(durationParam, 10) : null,
-      hostId: user.uid,
-      hostName: userDocument.username || user.displayName || 'Anonymous',
-      hostAvatar: userDocument.profilePicture || user.photoURL || '',
-      isLive: true,
-      viewers: 0,
-      createdAt: serverTimestamp(),
-      tags: challengeParam ? ['Challenge', 'Games', 'Live'] : ['New', 'Live'],
-      streamDetails: {
-        isScreenSharing: false,
-      },
-    };
-
     try {
+        // 1. Create a Mux Live Stream
+        const muxResponse = await fetch('/api/mux', { method: 'POST' });
+        if (!muxResponse.ok) {
+            throw new Error('Failed to create Mux live stream.');
+        }
+        const { streamKey, playbackId } = await muxResponse.json();
+
+        if (!streamKey || !playbackId) {
+            throw new Error('Mux stream key or playback ID missing.');
+        }
+        
+        // 2. Create the broadcast document in Firestore
+        const broadcastsCollection = collection(firestore, 'broadcasts');
+        const broadcastData: any = {
+          title: title,
+          category: challengeParam ? 'Games' : 'General',
+          challenge: challengeParam || null,
+          activeChallenge: challengeParam || null,
+          activeChallengeType: challengeTypeParam || null,
+          challengeStartTime: challengeParam ? serverTimestamp() : null,
+          challengeDurationSeconds: durationParam ? parseInt(durationParam, 10) : null,
+          hostId: user.uid,
+          hostName: userDocument.username || user.displayName || 'Anonymous',
+          hostAvatar: userDocument.profilePicture || user.photoURL || '',
+          isLive: true,
+          viewers: 0,
+          createdAt: serverTimestamp(),
+          tags: challengeParam ? ['Challenge', 'Games', 'Live'] : ['New', 'Live'],
+          playbackId: playbackId, // Save Mux Playback ID
+        };
         const newBroadcastDoc = await addDoc(broadcastsCollection, broadcastData);
-        // Redirect to the agora-test page with the new broadcast ID
-        await router.push(`/agora-test?id=${newBroadcastDoc.id}`);
+        
+        // 3. Redirect to the live studio with the Mux stream key
+        await router.push(`/agora-test?id=${newBroadcastDoc.id}&streamKey=${encodeURIComponent(streamKey)}`);
+        
     } catch (error) {
         console.error("Error starting broadcast:", error);
         toast({

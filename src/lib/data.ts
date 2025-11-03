@@ -25,6 +25,7 @@ export type Broadcast = {
   hostId: string;
   hostName: string;
   hostAvatar: string;
+  playbackId?: string; // Mux Playback ID
   activeChallenge?: string;
   activeChallengeType?: 'truth' | 'dare' | 'challenge';
   challengeStartTime?: Timestamp;
@@ -154,33 +155,33 @@ export const mockGifts = [
         rarity: 'Rare',
         count: 58,
     },
-    {
-        id: 5,
-        name: 'Magic Potion',
-        imageUrl: '/gifts/magic-potion.png',
-        rarity: 'Rare',
-        count: 103,
-    },
+    { id: 5, name: 'Magic Potion', imageUrl: '/gifts/magic-potion.png', rarity: 'Rare', count: 103 },
 ];
 
 export const truthQuestions = [
-    "What's the most embarrassing thing you've ever done on a date?",
-    "What's a secret you've never told anyone?",
-    "What's your biggest fear?",
-    "Who is your secret crush?",
-    "What's the most childish thing you still do?",
-    "What's the worst lie you've ever told?",
-    "What's a weird food combination you love?",
-    "What's the silliest thing you've cried about?",
+  "What's the most embarrassing thing you've ever done on a date?",
+  "What's a secret you've never told anyone?",
+  "What's your biggest fear?",
+  "Who is your secret crush?",
+  "What's the most childish thing you still do?",
+  "What's the worst lie you've ever told?",
+  "What's a weird food combination you love?",
+  "What's the silliest thing you've cried about?",
 ];
 
 export const dareChallenges = [
-    { text: "Sing everything you say for the next 5 minutes.", duration: 300 },
-    { text: "Do your best impersonation of a celebrity.", duration: 60 },
-    { text: "Talk in a funny accent for the next round (3 minutes).", duration: 180 },
-    { text: "Let someone else post a silly status on your social media.", duration: 90 },
-    { text: "Do 10 push-ups.", duration: 30 },
-    { text: "Wear a sock on your hand for the rest of the game.", duration: 120 },
-    { text: "Speak only in questions for the next 3 minutes.", duration: 180 },
-    { text: "Try to lick your elbow.", duration: 30 },
+  { text: 'Sing everything you say for the next 5 minutes.', duration: 300 },
+  { text: 'Do your best impersonation of a celebrity.', duration: 60 },
+  {
+    text: 'Talk in a funny accent for the next round (3 minutes).',
+    duration: 180,
+  },
+  {
+    text: 'Let someone else post a silly status on your social media.',
+    duration: 90,
+  },
+  { text: 'Do 10 push-ups.', duration: 30 },
+  { text: 'Wear a sock on your hand for the rest of the game.', duration: 120 },
+  { text: 'Speak only in questions for the next 3 minutes.', duration: 180 },
+  { text: 'Try to lick your elbow.', duration: 30 },
 ];

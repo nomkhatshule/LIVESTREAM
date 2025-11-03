@@ -1,66 +1,56 @@
+
 'use client';
 
-import { useEffect } from 'react';
+import MuxPlayer from '@mux/mux-player-react';
+import { Loader2, Play } from 'lucide-react';
 import { useStreamStore } from '@/lib/stream-store';
-import { StreamVideo, StreamCall } from '@stream-io/video-react-sdk';
-import VideoPlayer from './video-player';
-import { Loader2 } from 'lucide-react';
-import type { User } from 'firebase/auth';
+import { useUser } from '@/firebase';
 
-interface BroadcastPlayerProps {
-    user: User;
-}
+export default function BroadcastPlayer() {
+    const { user } = useUser();
+    const { activeBroadcastId, playbackId, status, connect } = useStreamStore();
 
-export default function BroadcastPlayer({ user }: BroadcastPlayerProps) {
-    const { 
-        client, 
-        call, 
-        status, 
-        activeBroadcastId,
-        isIntentionalConnect, 
-        connect 
-    } = useStreamStore();
-
-    useEffect(() => {
-        // Only connect if the user has explicitly requested it via the play button
-        if (activeBroadcastId && user && isIntentionalConnect && status !== 'connected' && status !== 'connecting') {
+    const handlePlay = () => {
+        if (user && activeBroadcastId) {
             connect(user, activeBroadcastId);
         }
-    }, [activeBroadcastId, user, isIntentionalConnect, connect, status]);
-
-    if (status === 'connecting') {
+    };
+    
+    // Show a loading or play button if this is the active stream but we're not connected
+    if (status !== 'connected' && activeBroadcastId) {
         return (
-            <div className="absolute inset-0 bg-black flex flex-col items-center justify-center text-white z-20">
-                <Loader2 className="h-12 w-12 animate-spin mb-4" />
-                <p>Joining Stream...</p>
+            <div className="absolute inset-0 bg-black/40 z-20 flex items-center justify-center pointer-events-auto">
+                <button
+                    onClick={handlePlay}
+                    disabled={status === 'connecting'}
+                    className="group flex flex-col items-center justify-center text-white transition-transform hover:scale-110 disabled:opacity-50"
+                >
+                    {status === 'connecting' ? (
+                        <Loader2 className="h-20 w-20 md:h-24 md:w-24 animate-spin" />
+                    ) : (
+                        <Play className="h-20 w-20 md:h-24 md:w-24 fill-white/80 drop-shadow-2xl" />
+                    )}
+                    <span className="mt-2 text-base md:text-lg font-semibold drop-shadow-lg">
+                        {status === 'connecting' ? 'Joining...' : 'Watch Live'}
+                    </span>
+                </button>
             </div>
         )
     }
 
-    // If we aren't intentionally connected, we shouldn't show a player
-    if (!isIntentionalConnect || !client || !call || status !== 'connected') {
-        return null; // Don't render anything if not intentionally connected
+    if (status !== 'connected' || !playbackId) {
+        return null; // Don't render anything if not connected
     }
-
-    // Since we can't pass the full broadcast object easily, we construct a minimal one.
-    // The UI part (BroadcastPreview) will display the rich data. This is just for the player.
-    const minimalBroadcast = {
-        id: call.id,
-        isLive: true,
-        user: {
-            id: call.state.createdBy?.id || '',
-            // other user properties can be added if available from `call` object
-        },
-    };
     
     return (
         <div className="absolute inset-0 z-10">
-            <StreamVideo client={client}>
-                <StreamCall call={call}>
-                    {/* @ts-ignore */}
-                    <VideoPlayer broadcast={minimalBroadcast} isHost={false} isMuted={false} />
-                </StreamCall>
-            </StreamVideo>
+            <MuxPlayer
+                playbackId={playbackId}
+                streamType="live"
+                autoPlay
+                muted
+                className="w-full h-full"
+            />
         </div>
     )
 }

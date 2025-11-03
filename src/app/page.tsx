@@ -1,12 +1,12 @@
 
 'use client';
 
-import { Suspense, useEffect, useRef, useState, useMemo } from 'react';
-import { useUser, useFirestore, useMemoFirebase, useStorage, useUserDocument } from '@/firebase';
+import { Suspense, useEffect, useState, useMemo } from 'react';
+import { useUser, useFirestore, useMemoFirebase, useUserDocument } from '@/firebase';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { collection, query, where, writeBatch, doc, orderBy } from 'firebase/firestore';
 import type { Broadcast, Notification } from '@/lib/data';
-import { Clapperboard, Loader2, Mail, ChevronDownCircle, MessageCircleHeart } from 'lucide-react';
+import { Clapperboard, Loader2, Mail, ChevronDownCircle, MessageCircleHeart, Film } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import BroadcastPlayer from '@/components/broadcast/broadcast-player';
 import { useStreamStore } from '@/lib/stream-store';
@@ -14,27 +14,11 @@ import { BroadcastPreview } from '@/components/broadcast/broadcast-preview';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { UserSearch } from '@/components/search/user-search';
 import UploadHighlightForm from '@/components/feed/UploadHighlightForm';
 import InboxPanel from '@/components/feed/InboxPanel';
-import { Film } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import NotificationsPanel from '@/components/feed/NotificationsPanel';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
@@ -68,7 +52,6 @@ function HomePageContent() {
         return notifications.filter(n => !n.isRead).length;
     }, [notifications]);
 
-    // This effect ensures we disconnect when the user navigates away from the feed.
     useEffect(() => {
         return () => {
             disconnect();
@@ -107,8 +90,7 @@ function HomePageContent() {
     return (
         <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
             <div className="h-[calc(100vh-4rem)] relative bg-black">
-                {/* The single, centralized player */}
-                <BroadcastPlayer user={user} />
+                <BroadcastPlayer />
 
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -124,7 +106,6 @@ function HomePageContent() {
                                     <DropdownMenuItem onSelect={e => e.preventDefault()}>
                                         <Mail className="mr-2 h-4 w-4" />
                                         <span>Messages</span>
-                                        {/* DM unread count will be managed by Stream SDK */}
                                     </DropdownMenuItem>
                                 </SheetTrigger>
                                 <SheetContent className="w-full sm:max-w-md">
@@ -182,7 +163,6 @@ function HomePageContent() {
                     </DropdownMenuContent>
                 </DropdownMenu>
                 
-                {/* The scrollable list of previews */}
                 <div className="h-full overflow-y-scroll snap-y snap-mandatory">
                     {liveBroadcasts && liveBroadcasts.map(broadcast => (
                         <BroadcastPreview

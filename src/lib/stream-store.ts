@@ -1,96 +1,71 @@
+
 'use client';
 
 import { create } from 'zustand';
-import { StreamVideoClient, Call } from '@stream-io/video-react-sdk';
 import type { User } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import { useFirestore } from '@/firebase'; // This is a hook, can't be used here.
+import { initializeFirebase } from '@/firebase';
 
-const apiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY || '';
+const { firestore } = initializeFirebase();
 
 type ConnectionStatus = 'idle' | 'connecting' | 'connected' | 'error' | 'disconnected';
 
 interface StreamState {
-  client: StreamVideoClient | null;
-  call: Call | null;
   status: ConnectionStatus;
   activeBroadcastId: string | null;
-  isIntentionalConnect: boolean; // Flag to track if connection was user-initiated
+  playbackId: string | null;
   connect: (user: User, broadcastId: string) => Promise<void>;
-  disconnect: () => Promise<void>;
+  disconnect: () => void;
   setActiveBroadcastId: (broadcastId: string | null) => void;
-  setIsIntentionalConnect: (isIntentional: boolean) => void;
 }
 
 export const useStreamStore = create<StreamState>((set, get) => ({
-  client: null,
-  call: null,
   status: 'idle',
   activeBroadcastId: null,
-  isIntentionalConnect: false, // Default to false
+  playbackId: null,
+  
   setActiveBroadcastId: (broadcastId) => {
     const currentId = get().activeBroadcastId;
     if (currentId !== broadcastId) {
-       // When the active broadcast changes (i.e., user scrolls), reset the intentional connect flag
-      set({ activeBroadcastId: broadcastId, isIntentionalConnect: false });
+      get().disconnect(); // Disconnect when scrolling to a new stream
+      set({ activeBroadcastId: broadcastId });
     }
   },
-  setIsIntentionalConnect: (isIntentional) => {
-    set({ isIntentionalConnect: isIntentional });
-  },
-  connect: async (user, broadcastId) => {
-    if (get().status === 'connected' && get().call?.id === broadcastId) {
-      return; // Already connected to this call
-    }
-    
-    // Disconnect from any existing call before joining a new one
-    await get().disconnect();
 
-    set({ status: 'connecting' });
+  connect: async (user, broadcastId) => {
+    if (get().status === 'connecting' || get().status === 'connected') {
+      return;
+    }
+
+    set({ status: 'connecting', activeBroadcastId: broadcastId });
 
     try {
-      // --- Get User Token ---
-      const response = await fetch('/api/stream/token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.uid }),
-      });
-      if (!response.ok) throw new Error('Failed to fetch stream token');
-      const { token } = await response.json();
+      // 1. Fetch the broadcast document to get the playbackId
+      const broadcastDocRef = doc(firestore, 'broadcasts', broadcastId);
+      const broadcastDoc = await getDoc(broadcastDocRef);
 
-      // --- Initialize Client ---
-      const client = new StreamVideoClient({
-        apiKey,
-        user: {
-          id: user.uid,
-          name: user.displayName || 'Anonymous',
-          image: user.photoURL || undefined,
-        },
-        token,
-      });
+      if (!broadcastDoc.exists() || !broadcastDoc.data().playbackId) {
+        throw new Error('Playback ID not found for this broadcast.');
+      }
+      
+      const playbackId = broadcastDoc.data().playbackId;
 
-      // --- Join Call ---
-      const call = client.call('livestream', broadcastId);
-      await call.join();
-
-      set({ client, call, status: 'connected', activeBroadcastId: broadcastId });
+      // 2. Set state for Mux Player
+      // In a real Mux integration, we don't need to manage a client/call object for viewers.
+      // The MuxPlayer handles the connection using just the playbackId.
+      set({ status: 'connected', playbackId });
 
     } catch (error) {
-      console.error('Stream connection failed:', error);
+      console.error('Mux connection failed:', error);
       set({ status: 'error' });
-      // Cleanup on failure
-      await get().disconnect();
+      get().disconnect();
     }
   },
 
-  disconnect: async () => {
-    const { call, client, status } = get();
-    if (status === 'idle' || status === 'disconnected') return;
-    
-    if (call) {
-      await call.leave().catch(err => console.error("Failed to leave call on cleanup", err));
-    }
-    if (client) {
-      await client.disconnectUser().catch(err => console.error("Failed to disconnect user on cleanup", err));
-    }
-    set({ client: null, call: null, status: 'disconnected' });
+  disconnect: () => {
+    // With Mux Player, there's no persistent client connection to manage for viewers.
+    // We just reset the state.
+    set({ status: 'disconnected', playbackId: null });
   },
 }));
