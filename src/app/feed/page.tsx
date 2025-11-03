@@ -31,7 +31,6 @@ import { GiphyResult } from '@/lib/types';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import GifPicker from '@/components/inbox/GifPicker';
 import Image from 'next/image';
-import MuxPlayer from '@mux/mux-player-react';
 
 function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broadcast, onVisible: () => void, isActive: boolean }) {
     const { ref, inView } = useInView({ threshold: 0.7 });
@@ -198,6 +197,7 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
 
     const broadcastContext = `The streamer is ${broadcast.hostName}. The stream is titled "${broadcast.title}" under the category "${broadcast.category}".`;
     const shouldShowPlayer = isActive && status === 'connected' && playbackId && activeBroadcast?.id === broadcast.id;
+    const videoSrc = shouldShowPlayer ? `https://stream.mux.com/${playbackId}.m3u8` : '';
 
     return (
         <div ref={ref} className="h-full w-full snap-start relative bg-black">
@@ -215,12 +215,12 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
             
             {shouldShowPlayer && (
                 <div className="absolute inset-0 z-20">
-                     <MuxPlayer
-                        playbackId={playbackId}
-                        streamType="live"
+                     <video
+                        src={videoSrc}
                         autoPlay
                         muted
-                        className="w-full h-full"
+                        playsInline
+                        className="w-full h-full object-cover"
                     />
                 </div>
             )}
@@ -595,3 +595,5 @@ export default function HomePage() {
         </Suspense>
     )
 }
+
+    
