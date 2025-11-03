@@ -5,20 +5,19 @@ import MuxPlayer from '@mux/mux-player-react';
 import { useStreamStore } from '@/lib/stream-store';
 
 export default function BroadcastPlayer() {
-    const { activeBroadcast } = useStreamStore();
+    // Read the playbackId directly from the store
+    const { playbackId } = useStreamStore();
 
-    // This component now only renders if the status is 'connected' and playbackId is valid.
-    // The parent component (`BroadcastFeedItem`) handles the loading/play button states.
-    if (!activeBroadcast?.playbackId) {
-        // This should theoretically not be reached if the parent component logic is correct,
-        // but it's a safe fallback.
+    if (!playbackId) {
+        // This component will now only render if there's a valid playbackId,
+        // but this check provides an extra layer of safety.
         return null;
     }
     
     return (
         <div className="absolute inset-0 z-10">
             <MuxPlayer
-                playbackId={activeBroadcast.playbackId}
+                playbackId={playbackId}
                 streamType="live"
                 autoPlay
                 muted

@@ -13,6 +13,7 @@ type ConnectionStatus = 'idle' | 'connecting' | 'connected' | 'error' | 'disconn
 interface StreamState {
   status: ConnectionStatus;
   activeBroadcast: Broadcast | null;
+  playbackId: string | null; // Added playbackId to the store
   connect: (user: User, broadcast: Broadcast) => Promise<void>;
   disconnect: () => void;
   setActiveBroadcast: (broadcast: Broadcast | null) => void;
@@ -21,6 +22,7 @@ interface StreamState {
 export const useStreamStore = create<StreamState>((set, get) => ({
   status: 'idle',
   activeBroadcast: null,
+  playbackId: null, // Initialize as null
   
   setActiveBroadcast: (broadcast) => {
     const currentBroadcast = get().activeBroadcast;
@@ -35,17 +37,15 @@ export const useStreamStore = create<StreamState>((set, get) => ({
       return;
     }
 
-    set({ status: 'connecting', activeBroadcast: broadcast });
+    set({ status: 'connecting', activeBroadcast: broadcast, playbackId: null });
 
     try {
       if (!broadcast.playbackId) {
         throw new Error('Playback ID not found for this broadcast.');
       }
       
-      // In a real Mux integration, we don't need to manage a client/call object for viewers.
-      // The MuxPlayer handles the connection using just the playbackId.
-      // We just need to signal that we are "connected" so the UI can render the player.
-      set({ status: 'connected' });
+      // Save the playbackId and set status to connected
+      set({ playbackId: broadcast.playbackId, status: 'connected' });
 
     } catch (error) {
       console.error('Mux connection failed:', error);
@@ -55,8 +55,6 @@ export const useStreamStore = create<StreamState>((set, get) => ({
   },
 
   disconnect: () => {
-    // With Mux Player, there's no persistent client connection to manage for viewers.
-    // We just reset the state.
-    set({ status: 'disconnected' });
+    set({ status: 'disconnected', playbackId: null });
   },
 }));

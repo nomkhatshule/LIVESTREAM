@@ -39,7 +39,7 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
     const { userDocument } = useUserDocument();
     const firestore = useFirestore();
     const { toast } = useToast();
-    const { status, connect } = useStreamStore();
+    const { status, connect, playbackId } = useStreamStore(); // Get playbackId from store
 
     useEffect(() => {
         if (inView) {
@@ -203,7 +203,8 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
         <div ref={ref} className="h-full w-full snap-start relative bg-cover bg-center" style={{backgroundImage: `url(${broadcast.thumbnailUrl})`}}>
             <div className="absolute inset-0 bg-black/20" />
             
-            {isActive && status === 'connected' && <BroadcastPlayer />}
+            {/* The player will now render only when the status is 'connected' and playbackId is valid */}
+            {isActive && status === 'connected' && playbackId && <BroadcastPlayer />}
 
             {isActive && (status === 'idle' || status === 'disconnected' || status === 'error') && (
                  <div className="absolute inset-0 bg-black/40 z-20 flex items-center justify-center pointer-events-auto">
