@@ -197,15 +197,7 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
             {isActive ? (
                 <VideoPlayer broadcast={broadcast} />
             ) : (
-                broadcast.thumbnailUrl && (
-                    <Image
-                        src={broadcast.thumbnailUrl}
-                        alt={broadcast.title}
-                        fill
-                        className="object-cover z-0"
-                        priority
-                    />
-                )
+                <div className="absolute inset-0 z-0 bg-black" />
             )}
             <div className={cn("absolute inset-0 bg-black/20 z-10", isActive && 'hidden')} />
             
@@ -558,3 +550,5 @@ export default function HomePage() {
         </Suspense>
     )
 }
+
+    
