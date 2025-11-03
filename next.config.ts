@@ -41,11 +41,6 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
       {
-        protocol: 'https',
-        hostname: 'image.mux.com',
-        pathname: '/**',
-      },
-      {
         protocol: 'https',"hostname":"media0.giphy.com","pathname":"/**"},
       {
         protocol: 'https',
