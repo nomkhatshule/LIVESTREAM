@@ -31,6 +31,7 @@ import { GiphyResult } from '@/lib/types';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import GifPicker from '@/components/inbox/GifPicker';
 import Image from 'next/image';
+import MuxPlayer from '@mux/mux-player-react';
 
 function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broadcast, onVisible: () => void, isActive: boolean }) {
     const { ref, inView } = useInView({ threshold: 0.7 });
@@ -197,8 +198,7 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
 
     const broadcastContext = `The streamer is ${broadcast.hostName}. The stream is titled "${broadcast.title}" under the category "${broadcast.category}".`;
     const shouldShowPlayer = isActive && status === 'connected' && playbackId && activeBroadcast?.id === broadcast.id;
-    const videoSrc = shouldShowPlayer ? `https://stream.mux.com/${playbackId}.m3u8` : '';
-
+    
     return (
         <div ref={ref} className="h-full w-full snap-start relative bg-black">
              {/* Background Thumbnail */}
@@ -215,26 +215,26 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
             
             {shouldShowPlayer && (
                 <div className="absolute inset-0 z-20">
-                     <video
-                        src={videoSrc}
+                    <MuxPlayer
+                        playbackId={playbackId}
+                        streamType="live"
                         autoPlay
                         muted
-                        playsInline
-                        className="w-full h-full object-cover"
+                        className="w-full h-full"
                     />
                 </div>
             )}
 
             {!shouldShowPlayer && isActive && (status === 'idle' || status === 'disconnected' || status === 'error') && (
-                 <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-auto">
-                    <button
-                        onClick={handlePlay}
-                        className="group flex flex-col items-center justify-center text-white transition-transform hover:scale-110"
-                    >
+                 <button
+                    onClick={handlePlay}
+                    className="absolute inset-0 z-30 flex items-center justify-center pointer-events-auto w-full h-full"
+                >
+                    <div className="group flex flex-col items-center justify-center text-white transition-transform hover:scale-110">
                         <Play className="h-20 w-20 md:h-24 md:w-24 fill-white/80 drop-shadow-2xl" />
                         <span className="mt-2 text-base md:text-lg font-semibold drop-shadow-lg">Watch Live</span>
-                    </button>
-                </div>
+                    </div>
+                </button>
             )}
             
             {isActive && status === 'connecting' && (
@@ -370,7 +370,7 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
                                 <div className="relative w-32 h-24 mt-2 pointer-events-auto">
                                     <Image src={selectedGif.images.fixed_width.url} alt={selectedGif.title} fill className="object-cover rounded-md" />
                                      <Button variant="destructive" size="icon" className="absolute -top-2 -right-2 h-6 w-6 rounded-full" onClick={() => setSelectedGif(null)}>
-                                        <i data-lucide="x" />
+                                        <X className="h-4 w-4" />
                                     </Button>
                                 </div>
                             )}
