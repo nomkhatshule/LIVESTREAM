@@ -26,7 +26,7 @@ export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerPr
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!user || !broadcast?.id) return;
+    if (!user || !broadcast?.id || client) return;
 
     const apiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY;
     if (!apiKey) {
@@ -89,7 +89,7 @@ export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerPr
       setClient(null);
       setCall(null);
     };
-  }, [user, broadcast?.id, isHost, toast]);
+  }, [user, broadcast?.id, isHost, toast, client, call]);
 
   if (!client || !call || !broadcast?.hostId) {
     return (
