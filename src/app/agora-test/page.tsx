@@ -187,7 +187,6 @@ function AgoraTestPageUI() {
 
 // --- Wrapper Component for Initialization and Auth ---
 function AgoraTestWrapper() {
-    console.log("AgoraTestWrapper: Component mounting.");
     const searchParams = useSearchParams();
     const broadcastId = searchParams.get('id');
     const { user, isUserLoading } = useUser();
@@ -223,26 +222,16 @@ function AgoraTestWrapper() {
 
     // Auth check
     useEffect(() => {
-        console.log("AuthCheck useEffect: Running auth check.");
-        console.log(`AuthCheck useEffect: isUserLoading=${isUserLoading}, isBroadcastLoading=${isBroadcastLoading}`);
-
         if (isUserLoading || isBroadcastLoading) {
-            console.log("AuthCheck useEffect: Waiting for user or broadcast data to load.");
             return;
         }
         
-        console.log("AuthCheck useEffect: User and broadcast loading finished.");
-        console.log("AuthCheck useEffect: User object:", user);
-        console.log("AuthCheck useEffect: Broadcast data:", broadcastData);
-        
         if (!user) {
-            console.error("AuthCheck useEffect: No user found, redirecting to /login.");
             router.push('/login');
             return;
         }
 
         if (broadcastData && broadcastData.hostId !== user.uid) {
-            console.error("AuthCheck useEffect: User is not the host, redirecting to /.");
             toast({
                 title: 'Unauthorized',
                 description: "You are not the host of this stream.",
@@ -255,11 +244,7 @@ function AgoraTestWrapper() {
 
     // Stream Client initialization
     useEffect(() => {
-        console.log("StreamInit useEffect: Running Stream initialization.");
-        console.log(`StreamInit useEffect: User=${!!user}, BroadcastID=${broadcastId}, Client exists=${!!client}`);
-
         if (!user || !broadcastId || client) {
-            console.log("StreamInit useEffect: Bailing out (missing user/broadcastId, or client already initialized).");
             return;
         };
 
@@ -267,15 +252,12 @@ function AgoraTestWrapper() {
         const apiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY || '';
 
         const initStream = async () => {
-            console.log("StreamInit initStream: Starting stream setup.");
             if (!apiKey) {
-                console.error("StreamInit initStream: Stream API Key is missing.");
                 toast({ variant: 'destructive', title: 'Stream API Key is missing.' });
                 return;
             }
 
             try {
-                console.log("StreamInit initStream: Fetching stream token for user:", user.uid);
                 const response = await fetch('/api/stream/token', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
@@ -284,7 +266,6 @@ function AgoraTestWrapper() {
                 if (!response.ok) throw new Error('Failed to fetch stream token');
                 
                 const { token } = await response.json();
-                console.log("StreamInit initStream: Token fetched successfully.");
                 
                 videoClient = new StreamVideoClient({
                     apiKey,
@@ -295,20 +276,16 @@ function AgoraTestWrapper() {
                     },
                     token,
                 });
-                console.log("StreamInit initStream: StreamVideoClient created.");
 
                 setClient(videoClient);
                 // Call object is already created, we just join it.
                 const callInstance = videoClient.call('livestream', broadcastId);
-                console.log("StreamInit initStream: Joining call:", broadcastId);
                 await callInstance.join();
-                console.log("StreamInit initStream: Call joined successfully.");
                 setCall(callInstance);
 
                  // Update the isLive status now that the host has successfully joined
                 if (broadcastDocRef) {
                     await updateDoc(broadcastDocRef, { isLive: true });
-                    console.log("StreamInit initStream: Firestore 'isLive' status updated to true.");
                 }
 
 
@@ -327,19 +304,11 @@ function AgoraTestWrapper() {
             if (client) {
                 client.disconnectUser().catch(err => console.error("Cleanup: Failed to disconnect user", err));
             }
-             console.log("StreamInit useEffect: Cleanup function ran.");
         };
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [broadcastId, user, client]);
 
     // --- MASTER LOADING GATE ---
-    console.log("MasterLoadingGate: Evaluating conditions...");
-    console.log(`MasterLoadingGate: isUserLoading=${isUserLoading}`);
-    console.log(`MasterLoadingGate: isBroadcastLoading=${isBroadcastLoading}`);
-    console.log(`MasterLoadingGate: !broadcastData=${!broadcastData}`);
-    console.log(`MasterLoadingGate: !client=${!client}`);
-    console.log(`MasterLoadingGate: !call=${!call}`);
-
     // This gate ensures all necessary data is loaded before rendering the UI.
     if (isUserLoading || isBroadcastLoading || !broadcastData || !client || !call) {
         return (
@@ -350,7 +319,6 @@ function AgoraTestWrapper() {
         );
     }
 
-    console.log("MasterLoadingGate: All conditions passed. Rendering UI.");
     return (
         <StreamVideo client={client}>
             <StreamCall call={call}>
