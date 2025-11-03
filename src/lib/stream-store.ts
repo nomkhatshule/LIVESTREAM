@@ -38,7 +38,8 @@ export const useStreamStore = create<StreamState>((set, get) => ({
       return;
     }
 
-    set({ status: 'connecting', activeBroadcastId: broadcastId });
+    // Explicitly clear playbackId at the start of connection attempt
+    set({ status: 'connecting', activeBroadcastId: broadcastId, playbackId: null });
 
     try {
       // 1. Fetch the broadcast document to get the playbackId
