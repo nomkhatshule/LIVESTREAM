@@ -1,12 +1,11 @@
 
-
 'use client';
 
 import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, useMemoFirebase, useDoc, useCollection } from '@/firebase';
-import { doc, collection, query, orderBy, limit } from 'firebase/firestore';
+import { doc, collection, query, orderBy, limit, updateDoc } from 'firebase/firestore';
 import {
   Call,
   StreamCall,
@@ -18,7 +17,7 @@ import {
 } from '@stream-io/video-react-sdk';
 import '@stream-io/video-react-sdk/dist/css/styles.css';
 import VideoPlayer from '@/components/broadcast/video-player';
-import { Loader2 } from 'lucide-react';
+import { Loader2, RefreshCw } from 'lucide-react';
 import type { Reaction, BroadcastData, Comment } from '@/lib/types';
 import StreamHeader from '@/components/agora-test/StreamHeader';
 import FloatingReactions from '@/components/agora-test/FloatingReactions';
@@ -275,9 +274,16 @@ function AgoraTestWrapper() {
                 });
 
                 setClient(videoClient);
+                // Call object is already created, we just join it.
                 const callInstance = videoClient.call('livestream', broadcastId);
-                await callInstance.join({ create: true });
+                await callInstance.join();
                 setCall(callInstance);
+
+                 // Update the isLive status now that the host has successfully joined
+                if (broadcastDocRef) {
+                    await updateDoc(broadcastDocRef, { isLive: true });
+                }
+
 
             } catch (error: any) {
                 console.error("Stream initialization failed:", error);
@@ -330,5 +336,3 @@ export default function AgoraTestPage() {
         </Suspense>
     )
 }
-
-    

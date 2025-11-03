@@ -7,10 +7,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useUser, useFirestore, useUserDocument } from '@/firebase';
-import { serverTimestamp, collection, addDoc, doc, setDoc } from 'firebase/firestore';
+import { serverTimestamp, doc, setDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Video, Loader, CameraOff } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
+import { StreamVideoClient } from '@stream-io/video-react-sdk';
 
 
 function CreateBroadcastPageComponent() {
@@ -91,8 +92,30 @@ function CreateBroadcastPageComponent() {
     try {
         // 1. Generate a unique ID for the broadcast (which will also be the Stream call ID)
         const broadcastId = uuidv4();
+        const apiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY;
+        if (!apiKey) throw new Error("Stream API Key is missing.");
+
+        // 2. Get a Stream token for the user
+        const tokenResponse = await fetch('/api/stream/token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: user.uid }),
+        });
+        if (!tokenResponse.ok) throw new Error('Failed to fetch stream token');
+        const { token } = await tokenResponse.json();
+
+        // 3. Initialize a temporary Stream client to create the call
+        const tempClient = new StreamVideoClient({
+            apiKey,
+            user: { id: user.uid, name: userDocument.username || user.displayName || 'Host' },
+            token,
+        });
+
+        // 4. Create the call object on Stream's servers
+        const call = tempClient.call('livestream', broadcastId);
+        await call.getOrCreate(); // This creates the call on the server
         
-        // 2. Create the broadcast document in Firestore with the generated ID
+        // 5. Create the broadcast document in Firestore with the generated ID
         const broadcastDocRef = doc(firestore, 'broadcasts', broadcastId);
         const broadcastData: any = {
           title: title,
@@ -105,22 +128,25 @@ function CreateBroadcastPageComponent() {
           hostId: user.uid,
           hostName: userDocument.username || user.displayName || 'Anonymous',
           hostAvatar: userDocument.profilePicture || user.photoURL || '',
-          isLive: true,
+          isLive: false, // Set to false initially, will be set to true when host joins in the studio
           viewers: 0,
           createdAt: serverTimestamp(),
           tags: challengeParam ? ['Challenge', 'Games', 'Live'] : ['New', 'Live'],
         };
         await setDoc(broadcastDocRef, broadcastData);
+
+        // Disconnect the temporary client
+        await tempClient.disconnectUser();
         
-        // 3. Redirect to the live studio, which will create/join the Stream call
-        await router.push(`/agora-test?id=${broadcastId}`);
+        // 6. Redirect to the live studio, which will join the now-existing Stream call
+        router.push(`/agora-test?id=${broadcastId}`);
         
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error starting broadcast:", error);
         toast({
             variant: 'destructive',
             title: 'Error Starting Stream',
-            description: 'An unexpected error occurred. Please try again.',
+            description: error.message || 'An unexpected error occurred. Please try again.',
         });
         setIsSubmitting(false);
     }
