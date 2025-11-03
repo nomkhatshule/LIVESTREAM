@@ -296,6 +296,8 @@ function AgoraTestWrapper() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [broadcastId, user, client]);
 
+    // --- MASTER LOADING GATE ---
+    // This gate ensures all necessary data is loaded before rendering the UI.
     if (isUserLoading || isBroadcastLoading || !broadcastData || !client || !call) {
         return (
             <div className="flex h-screen w-full items-center justify-center bg-background">
