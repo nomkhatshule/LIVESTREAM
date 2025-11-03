@@ -67,7 +67,7 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
 
     const likesCollectionRef = useMemoFirebase(() => {
         if (!broadcast.id || !firestore) return null;
-        return collection(firestore, `broadcasts/${broadcast.id}/likes`);
+        return collection(firestore, 'broadcasts', broadcast.id, 'likes');
     }, [broadcast.id, firestore]);
     const { data: likes } = useCollection(likesCollectionRef);
 
@@ -203,13 +203,15 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
     return (
         <div ref={ref} className="h-full w-full snap-start relative bg-black">
              {/* Background Thumbnail */}
-             <Image
-                src={broadcast.thumbnailUrl}
-                alt={broadcast.title}
-                fill
-                className={cn("object-cover z-0", shouldShowPlayer ? 'opacity-0' : 'opacity-100')}
-                priority
-            />
+             {broadcast.thumbnailUrl && (
+                <Image
+                    src={broadcast.thumbnailUrl}
+                    alt={broadcast.title}
+                    fill
+                    className={cn("object-cover z-0", shouldShowPlayer ? 'opacity-0' : 'opacity-100')}
+                    priority
+                />
+            )}
             <div className={cn("absolute inset-0 bg-black/20 z-10", shouldShowPlayer ? 'hidden' : 'block')} />
             
             {shouldShowPlayer && (
@@ -594,3 +596,5 @@ export default function HomePage() {
         </Suspense>
     )
 }
+
+    
