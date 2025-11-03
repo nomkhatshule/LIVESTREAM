@@ -6,7 +6,7 @@ import { useUser, useFirestore, useMemoFirebase, useUserDocument } from '@/fireb
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { collection, query, where, writeBatch, doc, orderBy, serverTimestamp, limit } from 'firebase/firestore';
 import type { Broadcast, ChatMessage } from '@/lib/data';
-import { Clapperboard, Loader2, Mail, ChevronDownCircle, MessageCircleHeart, Film, Heart, MessageSquareMore, Gift, Search, Swords, Users, CornerUpLeft, ArrowUp } from 'lucide-react';
+import { Clapperboard, Loader2, Mail, ChevronDownCircle, MessageCircleHeart, Film, Heart, MessageSquareMore, Gift, Search, Swords, Users, CornerUpLeft, ArrowUp, Play } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import BroadcastPlayer from '@/components/broadcast/broadcast-player';
 import { useStreamStore } from '@/lib/stream-store';
@@ -33,12 +33,13 @@ import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover
 import GifPicker from '@/components/inbox/GifPicker';
 import Image from 'next/image';
 
-function BroadcastFeedItem({ broadcast, onVisible }: { broadcast: Broadcast, onVisible: () => void }) {
+function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broadcast, onVisible: () => void, isActive: boolean }) {
     const { ref, inView } = useInView({ threshold: 0.7 });
     const { user } = useUser();
     const { userDocument } = useUserDocument();
     const firestore = useFirestore();
     const { toast } = useToast();
+    const { status, connect } = useStreamStore();
 
     useEffect(() => {
         if (inView) {
@@ -189,12 +190,42 @@ function BroadcastFeedItem({ broadcast, onVisible }: { broadcast: Broadcast, onV
         setSelectedGif(gif);
         setIsGifPickerOpen(false);
     }
+    
+    const handlePlay = () => {
+        if (user && broadcast) {
+            connect(user, broadcast);
+        }
+    };
 
     const broadcastContext = `The streamer is ${broadcast.hostName}. The stream is titled "${broadcast.title}" under the category "${broadcast.category}".`;
 
     return (
         <div ref={ref} className="h-full w-full snap-start relative bg-cover bg-center" style={{backgroundImage: `url(${broadcast.thumbnailUrl})`}}>
             <div className="absolute inset-0 bg-black/20" />
+            
+            {isActive && status === 'connected' && <BroadcastPlayer />}
+
+            {isActive && (status === 'idle' || status === 'disconnected' || status === 'error') && (
+                 <div className="absolute inset-0 bg-black/40 z-20 flex items-center justify-center pointer-events-auto">
+                    <button
+                        onClick={handlePlay}
+                        className="group flex flex-col items-center justify-center text-white transition-transform hover:scale-110"
+                    >
+                        <Play className="h-20 w-20 md:h-24 md:w-24 fill-white/80 drop-shadow-2xl" />
+                        <span className="mt-2 text-base md:text-lg font-semibold drop-shadow-lg">Watch Live</span>
+                    </button>
+                </div>
+            )}
+            
+            {isActive && status === 'connecting' && (
+                 <div className="absolute inset-0 bg-black/40 z-20 flex items-center justify-center pointer-events-auto">
+                    <div className="group flex flex-col items-center justify-center text-white">
+                        <Loader2 className="h-20 w-20 md:h-24 md:w-24 animate-spin" />
+                        <span className="mt-2 text-base md:text-lg font-semibold drop-shadow-lg">Connecting...</span>
+                    </div>
+                </div>
+            )}
+
             <div className="absolute inset-0 flex flex-col justify-between p-3 md:p-4 text-white z-30 pointer-events-none">
                  {isChallengeVisible && broadcast.activeChallenge && broadcast.activeChallengeType && (
                     <ChallengeCard
@@ -371,7 +402,7 @@ function HomePageContent() {
     const { user, isUserLoading } = useUser();
     const { userDocument, isDocLoading: isUserDocLoading } = useUserDocument();
     const firestore = useFirestore();
-    const { setActiveBroadcast, disconnect } = useStreamStore();
+    const { activeBroadcast, setActiveBroadcast } = useStreamStore();
     const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
     const [isMessagesOpen, setIsMessagesOpen] = useState(false);
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
@@ -394,10 +425,12 @@ function HomePageContent() {
     }, [notifications]);
 
     useEffect(() => {
-        return () => {
-            disconnect();
+        // Set the initial active broadcast if it's not already set
+        if (!activeBroadcast && liveBroadcasts && liveBroadcasts.length > 0) {
+            setActiveBroadcast(liveBroadcasts[0]);
         }
-    }, [disconnect]);
+    }, [liveBroadcasts, activeBroadcast, setActiveBroadcast]);
+
 
     const handleOpenNotifications = async () => {
         if (!user || !firestore || !notifications || unreadCount === 0) return;
@@ -431,7 +464,7 @@ function HomePageContent() {
     return (
         <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
             <div className="h-[calc(100vh-4rem)] relative bg-black">
-                <BroadcastPlayer />
+                {/* Remove BroadcastPlayer from here */}
 
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -510,6 +543,7 @@ function HomePageContent() {
                             key={broadcast.id}
                             broadcast={broadcast}
                             onVisible={() => setActiveBroadcast(broadcast)}
+                            isActive={activeBroadcast?.id === broadcast.id}
                         />
                     ))}
                     {(!liveBroadcasts || liveBroadcasts.length === 0) && (
@@ -543,5 +577,3 @@ export default function HomePage() {
         </Suspense>
     )
 }
-
-    
