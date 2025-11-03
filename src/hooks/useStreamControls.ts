@@ -11,12 +11,12 @@ export function useStreamControls(call: ReturnType<typeof useCall>, broadcastDoc
   const { toast } = useToast();
   
   const { useCameraState, useMicrophoneState, useScreenShareState } = useCallStateHooks();
-  const { camera, isMute: isCameraMute } = useCameraState();
-  const { microphone, isMute: isMicMute } = useMicrophoneState();
+  const { camera } = useCameraState();
+  const { microphone } = useMicrophoneState();
   const { isScreenSharing, screenShare } = useScreenShareState();
 
-  const isVideoEnabled = !isCameraMute;
-  const isMicEnabled = !isMicMute;
+  const isVideoEnabled = camera ? !camera.isMute : false;
+  const isMicEnabled = microphone ? !microphone.isMute : false;
 
   const handleToggleVideo = async () => {
     if (call && call.camera) {

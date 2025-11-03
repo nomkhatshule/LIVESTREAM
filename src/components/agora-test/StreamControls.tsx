@@ -2,7 +2,7 @@
 'use client';
 
 import { Button } from "@/components/ui/button";
-import { Dice6, Mic, MicOff, Minus, MonitorUp, ScreenShare, UserPlus, Video, VideoOff, Camera, CameraOff, RefreshCw } from "lucide-react";
+import { Dice6, Mic, MicOff, Minus, MonitorUp, ScreenShare, UserPlus, Video, VideoOff, RefreshCw } from "lucide-react";
 import ParticipantsPanel from "./ParticipantsPanel";
 
 interface StreamControlsProps {
@@ -61,5 +61,3 @@ export default function StreamControls({
         </div>
     );
 };
-
-    

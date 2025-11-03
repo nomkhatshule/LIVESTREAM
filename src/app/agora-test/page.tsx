@@ -1,18 +1,11 @@
 
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Users, X, Send, Smile, MessageCircle, Video, Mic, UserPlus, ScreenShare, VideoOff, MicOff, ArrowUp, MessageCircleOff, MonitorUp, Heart, ThumbsUp, Loader2, Dice6, Trophy, Check, Minus, Swords, Undo2 } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Suspense, forwardRef, useEffect, useMemo, useRef, useState } from 'react';
-import { useToast } from '@/hooks/use-toast';
-import { useUser, useDoc, useFirestore, useMemoFirebase, useUserDocument } from '@/firebase';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { doc, updateDoc, collection, query, orderBy, limit, serverTimestamp, Timestamp } from 'firebase/firestore';
-import { useCollection } from '@/firebase';
-import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { useToast } from '@/hooks/use-toast';
+import { useUser, useFirestore, useMemoFirebase, useDoc, useCollection } from '@/firebase';
+import { doc, collection, query, orderBy, limit } from 'firebase/firestore';
 import {
   Call,
   StreamCall,
@@ -21,67 +14,39 @@ import {
   useCall,
   useCallStateHooks,
   CallingState,
-  ParticipantView,
 } from '@stream-io/video-react-sdk';
 import '@stream-io/video-react-sdk/dist/css/styles.css';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import VideoPlayer from '@/components/broadcast/video-player';
-import { User } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
-import ChallengeDisplayCard from '@/components/broadcast/ChallengeDisplayCard';
-import CountdownTimer from '@/components/broadcast/CountdownTimer';
+import { Loader2 } from 'lucide-react';
+import type { Reaction, BroadcastData, Comment } from '@/lib/types';
 import StreamHeader from '@/components/agora-test/StreamHeader';
 import FloatingReactions from '@/components/agora-test/FloatingReactions';
-import InStreamGamesPanel from '@/components/agora-test/InStreamGamesPanel';
 import StreamControls from '@/components/agora-test/StreamControls';
 import ChatPanel from '@/components/agora-test/ChatPanel';
-import type { Reaction, StagedChallenge, BroadcastData, Comment, GiphyResult } from '@/lib/types';
-import { generateGamePrompts } from '@/ai/flows/generate-game-prompts';
-import { Resizable } from 're-resizable';
+import InStreamGamesPanel from '@/components/agora-test/InStreamGamesPanel';
+import GameFlowManager from '@/components/agora-test/GameFlowManager';
+import ChallengeCardManager from '@/components/agora-test/ChallengeCardManager';
+import { useStreamControls } from '@/hooks/useStreamControls';
+import { useGameFlow } from '@/hooks/useGameFlow';
+import { useChallengeCard } from '@/hooks/useChallengeCard';
 
 
 // --- Main UI Component ---
 function AgoraTestPageUI() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const broadcastId = searchParams.get('id');
   const firestore = useFirestore();
   const call = useCall();
-  const { toast } = useToast();
   
-  const [newMessage, setNewMessage] = useState('');
-  const [isChatVisible, setIsChatVisible] = useState(true);
-  const { user } = useUser();
-  const { userDocument } = useUserDocument();
   const [reactions, setReactions] = useState<Reaction[]>([]);
-  const [isChallengeVisible, setIsChallengeVisible] = useState(true);
-  const [isTimerFinished, setIsTimerFinished] = useState(false);
   const [isGamePanelOpen, setIsGamePanelOpen] = useState(false);
-  const [showChallengeCoverCard, setShowChallengeCoverCard] = useState(false);
-  const [stagedChallenge, setStagedChallenge] = useState<StagedChallenge | null>(null);
-  const [cardPosition, setCardPosition] = useState({ x: 0, y: 0 });
-  const [cardSize, setCardSize] = useState({ width: 320, height: 460 });
-  const [isDragging, setIsDragging] = useState(false);
-  const dragOffsetRef = useRef({ x: 0, y: 0 });
-  const [isPinching, setIsPinching] = useState(false);
-  const initialPinchDistanceRef = useRef(0);
-  const initialCardSizeRef = useRef({ width: 320, height: 460 });
-  const [isGifPickerOpen, setIsGifPickerOpen] = useState(false);
-  const [selectedGif, setSelectedGif] = useState<GiphyResult | null>(null);
-
+  
   // Stream SDK Hooks
-  const { useCameraState, useMicrophoneState, useScreenShareState, useParticipants, useCallCallingState } = useCallStateHooks();
-  const { camera } = useCameraState();
-  const { microphone } = useMicrophoneState();
-  const { isScreenSharing, screenShare } = useScreenShareState();
+  const { useParticipants, useCallCallingState } = useCallStateHooks();
   const participants = useParticipants();
   const callingState = useCallCallingState();
-  
-  const viewerCount = Math.max(0, participants.length -1); // Exclude the host
   const isCallJoined = callingState === CallingState.JOINED;
-  const isVideoEnabled = camera && !camera.isMute;
-  const isMicEnabled = microphone && !microphone.isMute;
+  const viewerCount = Math.max(0, participants.length - 1);
 
   // Real-time broadcast document
   const broadcastDocRef = useMemoFirebase(() => {
@@ -89,7 +54,7 @@ function AgoraTestPageUI() {
     return doc(firestore, 'broadcasts', broadcastId);
   }, [broadcastId, firestore]);
   
-  const { data: broadcastData, isLoading: isBroadcastLoading } = useDoc<BroadcastData>(broadcastDocRef);
+  const { data: broadcastData } = useDoc<BroadcastData>(broadcastDocRef);
 
   // Real-time chat messages
    const messagesQuery = useMemoFirebase(() => {
@@ -101,6 +66,23 @@ function AgoraTestPageUI() {
     );
   }, [broadcastId, firestore]);
   const { data: comments } = useCollection<Comment>(messagesQuery);
+
+  // --- Custom Hooks for Logic Encapsulation ---
+  const { 
+    isVideoEnabled, isMicEnabled, isScreenSharing, handleToggleVideo, 
+    handleToggleMic, handleFlipCamera, handleToggleScreenShare, handleEndStream, handleInviteGuest 
+  } = useStreamControls(call, broadcastDocRef);
+
+  const {
+    stagedChallenge, showChallengeCoverCard, isChallengeVisible, isTimerFinished,
+    handleChallengeSelect, handleStartStagedChallenge, handleCancelStagedChallenge,
+    handleGenerateNextChallenge, setIsChallengeVisible
+  } = useGameFlow(broadcastDocRef, broadcastData);
+
+  const {
+    cardPosition, cardSize, isDragging, handleMouseDown, handleTouchStart, 
+    handleTouchMove, handleTouchEnd, handleResizeStop, setCardSize
+  } = useChallengeCard(broadcastDocRef, broadcastData?.challengeCardPosition, broadcastData?.challengeCardSize);
 
   // This effect automatically enables the camera once the call is joined with high-quality settings.
   useEffect(() => {
@@ -114,244 +96,6 @@ function AgoraTestPageUI() {
     }
   }, [callingState, call]);
 
-  useEffect(() => {
-    if (broadcastData?.activeChallenge) {
-        setIsChallengeVisible(true);
-    }
-    if (broadcastData?.challengeCardPosition) {
-        setCardPosition(broadcastData.challengeCardPosition);
-    }
-    if (broadcastData?.challengeCardSize) {
-        setCardSize(broadcastData.challengeCardSize);
-    }
-  }, [broadcastData?.activeChallenge, broadcastData?.challengeCardPosition, broadcastData?.challengeCardSize]);
-
-
-  // Effect to manage timer state
-  useEffect(() => {
-    setIsTimerFinished(false); // Reset on challenge change
-
-    if (broadcastData?.challengeStartTime && broadcastData?.challengeDurationSeconds) {
-      const { challengeStartTime, challengeDurationSeconds } = broadcastData;
-      
-      const checkTimer = () => {
-        const now = new Date();
-        const start = challengeStartTime.toDate();
-        const elapsedSeconds = Math.floor((now.getTime() - start.getTime()) / 1000);
-        
-        if (elapsedSeconds >= challengeDurationSeconds) {
-          setIsTimerFinished(true);
-          return true; // Timer is done
-        }
-        return false; // Timer is still running
-      };
-
-      if (!checkTimer()) { // If not already finished
-        const interval = setInterval(() => {
-          if (checkTimer()) {
-            clearInterval(interval);
-          }
-        }, 1000);
-        return () => clearInterval(interval);
-      }
-    } else {
-        // If there's no timer, the "continue" button can be shown immediately
-        if (broadcastData?.activeChallenge) {
-             setIsTimerFinished(true);
-        }
-    }
-  }, [broadcastData?.challengeStartTime, broadcastData?.challengeDurationSeconds, broadcastData?.activeChallenge]);
-
-    // Drag and Drop Handlers
-  const handleMouseDown = (e: React.MouseEvent) => {
-    // Prevent drag from starting if the click is on a resize handle
-    const target = e.target as HTMLElement;
-    if (target.className.includes('handle')) {
-        return;
-    }
-    setIsDragging(true);
-    dragOffsetRef.current = {
-      x: e.clientX - cardPosition.x,
-      y: e.clientY - cardPosition.y,
-    };
-  };
-
-  const handleMouseMove = (e: MouseEvent) => {
-    if (isDragging) {
-      const newX = e.clientX - dragOffsetRef.current.x;
-      const newY = e.clientY - dragOffsetRef.current.y;
-      setCardPosition({ x: newX, y: newY });
-    }
-  };
-
-  const handleMouseUp = () => {
-    if (isDragging && broadcastDocRef) {
-        updateDoc(broadcastDocRef, { challengeCardPosition: cardPosition });
-    }
-    setIsDragging(false);
-  };
-  
-  useEffect(() => {
-    if (isDragging) {
-        window.addEventListener('mousemove', handleMouseMove);
-        window.addEventListener('mouseup', handleMouseUp);
-    } else {
-        window.removeEventListener('mousemove', handleMouseMove);
-        window.removeEventListener('mouseup', handleMouseUp);
-    }
-
-    return () => {
-        window.removeEventListener('mousemove', handleMouseMove);
-        window.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [isDragging, cardPosition]);
-
-  const getDistance = (touches: React.TouchList) => {
-    const [touch1, touch2] = [touches[0], touches[1]];
-    return Math.sqrt(
-        Math.pow(touch2.clientX - touch1.clientX, 2) +
-        Math.pow(touch2.clientY - touch1.clientY, 2)
-    );
-  };
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-     if (e.touches.length === 2) {
-        // Pinch gesture
-        e.preventDefault(); // prevent page scroll
-        setIsPinching(true);
-        initialPinchDistanceRef.current = getDistance(e.touches);
-        initialCardSizeRef.current = cardSize;
-    } else if (e.touches.length === 1) {
-        // Drag gesture
-        setIsDragging(true);
-        dragOffsetRef.current = {
-            x: e.touches[0].clientX - cardPosition.x,
-            y: e.touches[0].clientY - cardPosition.y,
-        };
-    }
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-     if (e.touches.length === 2 && isPinching) {
-        // Pinch to resize
-        const newDist = getDistance(e.touches);
-        const scale = newDist / initialPinchDistanceRef.current;
-        const newWidth = Math.max(300, initialCardSizeRef.current.width * scale);
-        const aspectRatio = initialCardSizeRef.current.width / initialCardSizeRef.current.height;
-        setCardSize({ width: newWidth, height: newWidth / aspectRatio });
-    } else if (e.touches.length === 1 && isDragging) {
-        // Drag to move
-        const newX = e.touches[0].clientX - dragOffsetRef.current.x;
-        const newY = e.touches[0].clientY - dragOffsetRef.current.y;
-        setCardPosition({ x: newX, y: newY });
-    }
-  };
-  
-  const handleTouchEnd = () => {
-    if (broadcastDocRef) {
-        if (isDragging) {
-            updateDoc(broadcastDocRef, { challengeCardPosition: cardPosition });
-        }
-        if (isPinching) {
-            updateDoc(broadcastDocRef, { challengeCardSize: cardSize });
-        }
-    }
-    setIsDragging(false);
-    setIsPinching(false);
-  };
-  
-  const handleResizeStop = (e: any, direction: any, ref: any, d: any) => {
-    const newSize = {
-        width: cardSize.width + d.width,
-        height: cardSize.height + d.height
-    };
-    setCardSize(newSize);
-    if (broadcastDocRef) {
-        updateDoc(broadcastDocRef, { challengeCardSize: newSize });
-    }
-  };
-
-
-  const handleToggleVideo = async () => {
-    if (call && call.camera) {
-      await call.camera.toggle();
-    }
-  }
-
-  const handleToggleMic = async () => {
-    if (call && call.microphone) {
-      await call.microphone.toggle();
-    }
-  }
-
-  const handleToggleScreenShare = async () => {
-    const nextIsScreenSharing = !isScreenSharing;
-    try {
-        if(call && call.screenShare) {
-            await call.screenShare.toggle();
-            if (broadcastDocRef) {
-                updateDoc(broadcastDocRef, { 'streamDetails.isScreenSharing': nextIsScreenSharing });
-            }
-        }
-    } catch (error) {
-        console.error('Error toggling screen share:', error);
-        toast({
-            variant: 'destructive',
-            title: 'Screen Share Failed',
-            description: 'Could not change screen sharing state.',
-        });
-        if (broadcastDocRef) {
-            updateDoc(broadcastDocRef, { 'streamDetails.isScreenSharing': isScreenSharing });
-        }
-    }
-  }
-
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    if ((newMessage.trim() === '' && !selectedGif) || !user || !broadcastId || !userDocument) return;
-
-    let attachment;
-    if (selectedGif) {
-        attachment = {
-            type: 'giphy',
-            title: selectedGif.title,
-            imageUrl: selectedGif.images.original.url,
-            thumbUrl: selectedGif.images.fixed_width.url,
-        }
-    }
-
-    const newComment: Omit<Comment, 'id'> & { timestamp: any, attachment?: any } = {
-        userId: user.uid,
-        username: userDocument.username || 'Anonymous',
-        userAvatar: userDocument.profilePicture || '',
-        message: newMessage,
-        timestamp: serverTimestamp(),
-        attachment: attachment || null,
-    };
-    
-    const messagesCollectionRef = collection(firestore, 'broadcasts', broadcastId, 'messages');
-    addDocumentNonBlocking(messagesCollectionRef, newComment);
-    setNewMessage('');
-    setSelectedGif(null);
-  }
-  
-  const handleEndStream = async () => {
-    if (call) {
-        await call.leave();
-    }
-    if (broadcastDocRef) {
-        await updateDoc(broadcastDocRef, { isLive: false, activeChallenge: null, activeChallengeType: null });
-    }
-    router.push('/');
-  }
-
-  const handleInviteGuest = () => {
-    toast({
-        title: "Guest Link Copied!",
-        description: "A unique invite link has been copied to your clipboard.",
-    });
-  }
-
   const handleReaction = (emoji: React.ReactNode) => {
     const newReaction: Reaction = {
         id: Date.now() + Math.random(),
@@ -362,71 +106,13 @@ function AgoraTestPageUI() {
     setTimeout(() => {
         setReactions(prev => prev.filter(r => r.id !== newReaction.id));
     }, 5000);
-  }
-
-  const handleChallengeSelect = (challenge: string, type: 'truth' | 'dare' | 'challenge', duration: number) => {
-    setStagedChallenge({ text: challenge, type, duration });
-    setShowChallengeCoverCard(true); // Show the cover card first
-  };
-
-  const handleStartStagedChallenge = async () => {
-    if (broadcastDocRef && stagedChallenge) {
-        await updateDoc(broadcastDocRef, { 
-            activeChallenge: stagedChallenge.text, 
-            activeChallengeType: stagedChallenge.type,
-            challengeDurationSeconds: stagedChallenge.duration,
-            challengeStartTime: serverTimestamp(),
-        });
-        toast({ title: 'New Challenge Started!', description: stagedChallenge.text });
-        setStagedChallenge(null);
-        setShowChallengeCoverCard(false);
-    }
-  };
-
-  const handleCancelStagedChallenge = () => {
-    setShowChallengeCoverCard(false);
-    setStagedChallenge(null);
-  };
-
-  const handleGenerateNextChallenge = async (gameType: 'truth' | 'dare' | 'challenge') => {
-       if (broadcastDocRef) {
-         try {
-            const result = await generateGamePrompts({
-                gameType: gameType,
-                category: 'Live Stream Audience',
-                count: 1,
-            });
-
-            if (result.prompts && result.prompts.length > 0) {
-                 await updateDoc(broadcastDocRef, {
-                    activeChallenge: result.prompts[0],
-                    activeChallengeType: gameType,
-                    challengeDurationSeconds: result.durationsInSeconds[0] || 120,
-                    challengeStartTime: serverTimestamp(),
-                });
-            } else {
-                 throw new Error('AI could not generate a challenge.');
-            }
-         } catch(e) {
-            console.error(e);
-            toast({ variant: 'destructive', title: 'Error', description: 'Could not generate next challenge.' });
-         }
-       }
   };
   
-    const handleGifSelect = (gif: GiphyResult) => {
-        setSelectedGif(gif);
-        setIsGifPickerOpen(false);
-    };
-
-
-  // This component will only render when broadcastData is available, so this check is a safeguard.
-  if (isBroadcastLoading || !broadcastData) {
-      return (
-          <div className="flex h-screen w-full items-center justify-center bg-gray-900">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <p className="ml-2">Preparing your studio...</p>
-          </div>
+  if (!broadcastData) {
+     return (
+        <div className="flex h-screen w-full items-center justify-center bg-gray-900">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
       )
   }
 
@@ -446,105 +132,33 @@ function AgoraTestPageUI() {
             onEndStream={handleEndStream}
         />
         
-        {/* "Ready for a Challenge?" Cover Card */}
-        {showChallengeCoverCard && (
-             <div className="absolute inset-0 bg-black/60 z-20 flex items-center justify-center p-4 pointer-events-auto">
-                 <div className="relative h-[550px] w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl flex flex-col items-center justify-center text-center">
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="absolute top-2 right-2 h-10 w-10 text-muted-foreground rounded-full hover:bg-black/10"
-                        onClick={handleCancelStagedChallenge}
-                    >
-                        <X className="h-6 w-6" />
-                    </Button>
-                    <h2 className="text-3xl font-bold text-black font-headline mb-8">Ready for a Challenge?</h2>
-                    <Button size="lg" className="w-full" onClick={handleStartStagedChallenge}>
-                      Start
-                    </Button>
-                </div>
-            </div>
-        )}
-
-        {/* Active Challenge Display Card */}
-        {isChallengeVisible && broadcastData.activeChallenge && broadcastData.activeChallengeType && (
-            <div 
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-20"
-                style={{
-                  transform: `translate(calc(-50% + ${cardPosition.x}px), calc(-50% + ${cardPosition.y}px))`,
-                }}
-            >
-                <Resizable
-                    size={{ width: cardSize.width, height: cardSize.height }}
-                    onResizeStop={handleResizeStop}
-                    onResize={(e, direction, ref, d) => {
-                        setCardSize({
-                            width: cardSize.width + d.width,
-                            height: cardSize.height + d.height,
-                        });
-                    }}
-                    minWidth={300}
-                    minHeight={400}
-                    lockAspectRatio
-                    className="relative"
-                >
-                    <div 
-                      className={cn("pointer-events-auto h-full w-full", isDragging ? 'cursor-grabbing' : 'cursor-grab')}
-                      onMouseDown={handleMouseDown}
-                      onTouchStart={handleTouchStart}
-                      onTouchMove={handleTouchMove}
-                      onTouchEnd={handleTouchEnd}
-                    >
-                        <ChallengeDisplayCard 
-                            text={broadcastData.activeChallenge}
-                            type={broadcastData.activeChallengeType}
-                            onClose={() => {
-                                if (broadcastDocRef) {
-                                  updateDoc(broadcastDocRef, {
-                                    activeChallenge: null,
-                                    activeChallengeType: null,
-                                    challengeStartTime: null,
-                                    challengeDurationSeconds: null,
-                                  });
-                                }
-                            }}
-                            timer={broadcastData.challengeStartTime && broadcastData.challengeDurationSeconds ? (
-                                <CountdownTimer 
-                                    startTime={broadcastData.challengeStartTime} 
-                                    durationSeconds={broadcastData.challengeDurationSeconds} 
-                                />
-                            ) : null}
-                        >
-                            <div className="flex w-full gap-2">
-                                <Button 
-                                    size="lg" 
-                                    variant="outline" 
-                                    className="w-full bg-black/80 text-white" 
-                                    onClick={() => handleGenerateNextChallenge(broadcastData.activeChallengeType!)}
-                                >
-                                    <Undo2 className="mr-2 h-5 w-5" />
-                                    Skip
-                                </Button>
-                                {isTimerFinished && (
-                                   <Button 
-                                        size="lg" 
-                                        className="w-full"
-                                        onClick={() => handleGenerateNextChallenge(broadcastData.activeChallengeType!)}
-                                    >
-                                        <Check className="mr-2 h-5 w-5" />
-                                        Continue
-                                    </Button>
-                                )}
-                            </div>
-                        </ChallengeDisplayCard>
-                    </div>
-                </Resizable>
-            </div>
-        )}
+        <GameFlowManager
+            showCoverCard={showChallengeCoverCard}
+            onStart={handleStartStagedChallenge}
+            onCancel={handleCancelStagedChallenge}
+        />
+        
+        <ChallengeCardManager
+            isVisible={isChallengeVisible}
+            broadcastData={broadcastData}
+            isTimerFinished={isTimerFinished}
+            cardPosition={cardPosition}
+            cardSize={cardSize}
+            isDragging={isDragging}
+            onMouseDown={handleMouseDown}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            onResizeStop={handleResizeStop}
+            onSetCardSize={setCardSize}
+            onGenerateNextChallenge={handleGenerateNextChallenge}
+            broadcastDocRef={broadcastDocRef}
+        />
 
         <StreamControls 
             onToggleVideo={handleToggleVideo}
             onToggleMic={handleToggleMic}
+            onFlipCamera={handleFlipCamera}
             onToggleScreenShare={handleToggleScreenShare}
             onInviteGuest={handleInviteGuest}
             onToggleChallengeVisibility={() => setIsChallengeVisible(prev => !prev)}
@@ -563,17 +177,8 @@ function AgoraTestPageUI() {
 
         <ChatPanel 
             broadcastId={broadcastId}
-            isVisible={isChatVisible}
             comments={comments}
-            newMessage={newMessage}
-            onNewMessageChange={setNewMessage}
             onReaction={handleReaction}
-            onToggleVisibility={() => setIsChatVisible(prev => !prev)}
-            isGifPickerOpen={isGifPickerOpen}
-            onGifPickerOpenChange={setIsGifPickerOpen}
-            onGifSelect={handleGifSelect}
-            selectedGif={selectedGif}
-            onClearSelectedGif={() => setSelectedGif(null)}
         />
     </div>
   );
@@ -590,7 +195,6 @@ function AgoraTestWrapper() {
     const [client, setClient] = useState<StreamVideoClient | null>(null);
     const [call, setCall] = useState<Call | null>(null);
     
-    // Authorization check
     const firestore = useFirestore();
     const broadcastDocRef = useMemoFirebase(() => {
         if (!broadcastId || !firestore) return null;
@@ -692,8 +296,6 @@ function AgoraTestWrapper() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [broadcastId, user, client]);
 
-    // --- MASTER LOADING GATE ---
-    // This gate prevents rendering until all necessary data is loaded.
     if (isUserLoading || isBroadcastLoading || !broadcastData || !client || !call) {
         return (
             <div className="flex h-screen w-full items-center justify-center bg-background">
@@ -724,7 +326,3 @@ export default function AgoraTestPage() {
         </Suspense>
     )
 }
-
-    
-
-    

@@ -59,6 +59,7 @@ export function useChallengeCard(
             window.removeEventListener('mousemove', handleMouseMove);
             window.removeEventListener('mouseup', handleMouseUp);
         };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isDragging, cardPosition]);
 
     const getDistance = (touches: React.TouchList) => {
@@ -74,7 +75,9 @@ export function useChallengeCard(
             e.preventDefault();
             setIsPinching(true);
             initialPinchDistanceRef.current = getDistance(e.touches);
-            initialCardSizeRef.current = initialCardSizeRef.current; //
+            if (typeof cardSize.width === 'number' && typeof cardSize.height === 'number') {
+                initialCardSizeRef.current = { width: cardSize.width, height: cardSize.height };
+            }
         } else if (e.touches.length === 1) {
             setIsDragging(true);
             dragOffsetRef.current = {
@@ -132,5 +135,3 @@ export function useChallengeCard(
         setCardSize
     };
 }
-
-    

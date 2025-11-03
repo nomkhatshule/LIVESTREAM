@@ -18,37 +18,24 @@ import { useFirestore } from '@/firebase';
 
 interface ChatPanelProps {
     broadcastId: string | null;
-    isVisible: boolean;
     comments: Comment[] | null;
-    newMessage: string;
-    onNewMessageChange: (message: string) => void;
     onReaction: (emoji: React.ReactNode) => void;
-    onToggleVisibility: () => void;
-    isGifPickerOpen: boolean;
-    onGifPickerOpenChange: (isOpen: boolean) => void;
-    onGifSelect: (gif: GiphyResult) => void;
-    selectedGif: GiphyResult | null;
-    onClearSelectedGif: () => void;
 }
 
 export default function ChatPanel({ 
     broadcastId,
-    isVisible, 
     comments,
-    newMessage,
-    onNewMessageChange,
     onReaction, 
-    onToggleVisibility,
-    isGifPickerOpen,
-    onGifPickerOpenChange,
-    onGifSelect,
-    selectedGif,
-    onClearSelectedGif
 }: ChatPanelProps) {
     const firestore = useFirestore();
     const { user } = useUser();
     const { userDocument } = useUserDocument();
     const chatInputRef = useRef<HTMLInputElement>(null);
+    
+    const [newMessage, setNewMessage] = useState('');
+    const [isChatVisible, setIsChatVisible] = useState(true);
+    const [isGifPickerOpen, setIsGifPickerOpen] = useState(false);
+    const [selectedGif, setSelectedGif] = useState<GiphyResult | null>(null);
 
     const reactions = [
         { id: 'heart', emoji: <Heart key="heart" className="text-red-500 fill-red-500" /> },
@@ -86,21 +73,26 @@ export default function ChatPanel({
 
         const messagesCollectionRef = collection(firestore, 'broadcasts', broadcastId, 'messages');
         addDocumentNonBlocking(messagesCollectionRef, newComment);
-        onNewMessageChange('');
-        onClearSelectedGif();
+        setNewMessage('');
+        setSelectedGif(null);
     };
     
     const onReply = (username: string) => {
-        onNewMessageChange(`@${username} `);
+        setNewMessage(`@${username} `);
         chatInputRef.current?.focus();
+    };
+
+    const handleGifSelect = (gif: GiphyResult) => {
+        setSelectedGif(gif);
+        setIsGifPickerOpen(false);
     };
 
     return (
         <div className="absolute bottom-0 left-0 p-4 w-full md:w-96 flex flex-col justify-end bg-gradient-to-t from-black/70 via-black/40 to-transparent max-h-[50%] pointer-events-none">
-            <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 pointer-events-auto absolute right-4 bottom-4 mb-14" onClick={onToggleVisibility}>
-                {isVisible ? <MessageCircleOff className="h-5 w-5" /> : <MessageCircle className="h-5 w-5" />}
+            <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 pointer-events-auto absolute right-4 bottom-4 mb-14" onClick={() => setIsChatVisible(prev => !prev)}>
+                {isChatVisible ? <MessageCircleOff className="h-5 w-5" /> : <MessageCircle className="h-5 w-5" />}
             </Button>
-            {isVisible && (
+            {isChatVisible && (
                 <>
                     <div className="h-80 relative">
                         <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-transparent to-black/0 via-black/0 z-10 pointer-events-none" style={{ maskImage: 'linear-gradient(to bottom, transparent, black 100%)', WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 100%)' }} />
@@ -135,7 +127,7 @@ export default function ChatPanel({
                     {selectedGif && (
                         <div className="relative w-32 h-24 mt-2 pointer-events-auto">
                             <Image src={selectedGif.images.fixed_width.url} alt={selectedGif.title} fill className="object-cover rounded-md" />
-                            <Button variant="destructive" size="icon" className="absolute -top-2 -right-2 h-6 w-6 rounded-full" onClick={onClearSelectedGif}>
+                            <Button variant="destructive" size="icon" className="absolute -top-2 -right-2 h-6 w-6 rounded-full" onClick={() => setSelectedGif(null)}>
                                 <X className="h-4 w-4" />
                             </Button>
                         </div>
@@ -146,7 +138,7 @@ export default function ChatPanel({
                                 ref={chatInputRef}
                                 placeholder="Add a comment..."
                                 value={newMessage}
-                                onChange={(e) => onNewMessageChange(e.target.value)}
+                                onChange={(e) => setNewMessage(e.target.value)}
                                 className="bg-black/50 border-white/20 text-white placeholder:text-gray-400 pr-28 rounded-full"
                             />
                             <div className="absolute inset-y-0 right-0 flex items-center">
@@ -166,14 +158,14 @@ export default function ChatPanel({
                                         </div>
                                     </PopoverContent>
                                 </Popover>
-                                <Popover open={isGifPickerOpen} onOpenChange={onGifPickerOpenChange}>
+                                <Popover open={isGifPickerOpen} onOpenChange={setIsGifPickerOpen}>
                                     <PopoverTrigger asChild>
                                         <Button size="icon" type="button" variant="ghost" className="rounded-full h-9 w-9 text-white">
                                             <b className="text-xs">GIF</b>
                                         </Button>
                                     </PopoverTrigger>
                                     <PopoverContent className="w-screen sm:w-96 h-96 p-0 border-zinc-700 bg-zinc-900" side="top" align="end">
-                                    <GifPicker onSendGif={onGifSelect} />
+                                    <GifPicker onSendGif={handleGifSelect} />
                                     </PopoverContent>
                                 </Popover>
                                 <Button variant="ghost" size="icon" type="submit" className="text-white">
@@ -187,5 +179,3 @@ export default function ChatPanel({
         </div>
     );
 };
-
-    
