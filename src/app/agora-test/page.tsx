@@ -20,7 +20,7 @@ import ChatPanel from '@/components/agora-test/ChatPanel';
 import type { Reaction, StagedChallenge, BroadcastData, Comment, GiphyResult } from '@/lib/types';
 import { generateGamePrompts } from '@/ai/flows/generate-game-prompts';
 import { Resizable } from 're-resizable';
-import { Loader2, CameraOff } from 'lucide-react';
+import { Loader2, CameraOff, Undo2, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
 
@@ -480,7 +480,7 @@ function AgoraTestPageUI() {
                                     className="w-full bg-black/80 text-white" 
                                     onClick={() => handleGenerateNextChallenge(broadcastData.activeChallengeType!)}
                                 >
-                                    <i data-lucide="undo-2" className="mr-2 h-5 w-5" />
+                                    <Undo2 className="mr-2 h-5 w-5" />
                                     Skip
                                 </Button>
                                 {isTimerFinished && (
@@ -489,7 +489,7 @@ function AgoraTestPageUI() {
                                         className="w-full"
                                         onClick={() => handleGenerateNextChallenge(broadcastData.activeChallengeType!)}
                                     >
-                                        <i data-lucide="check" className="mr-2 h-5 w-5" />
+                                        <Check className="mr-2 h-5 w-5" />
                                         Continue
                                     </Button>
                                 )}
@@ -582,7 +582,7 @@ function AgoraTestWrapper() {
         );
     }
     
-    return <AgoraTestPageUI />);
+    return <AgoraTestPageUI />;
 }
 
 // --- Default Export with Suspense ---
@@ -597,5 +597,3 @@ export default function AgoraTestPage() {
         </Suspense>
     )
 }
-
-    
