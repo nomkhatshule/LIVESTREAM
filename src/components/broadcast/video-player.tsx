@@ -6,9 +6,10 @@ import type { Broadcast } from '@/lib/data';
 
 interface VideoPlayerProps {
   broadcast: Broadcast;
+  isHost?: boolean;
 }
 
-export default function VideoPlayer({ broadcast }: VideoPlayerProps) {
+export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerProps) {
   if (!broadcast.playbackId) {
     return (
       <div className="absolute inset-0 flex items-center justify-center bg-black">
@@ -23,7 +24,7 @@ export default function VideoPlayer({ broadcast }: VideoPlayerProps) {
         playbackId={broadcast.playbackId}
         streamType="live"
         autoPlay
-        muted
+        muted={isHost}
         className="w-full h-full"
       />
     </div>

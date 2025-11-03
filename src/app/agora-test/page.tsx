@@ -1,11 +1,11 @@
 
 'use client';
 
-import { Suspense, useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { useUser, useFirestore, useMemoFirebase, useUserDocument, useDoc } from '@/firebase';
+import { useUser, useDoc, useFirestore, useMemoFirebase, useUserDocument } from '@/firebase';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { doc, updateDoc, collection, query, orderBy, limit, serverTimestamp } from 'firebase/firestore';
+import { doc, updateDoc, collection, query, orderBy, limit, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { useCollection } from '@/firebase';
 import { cn } from '@/lib/utils';
 import ChallengeDisplayCard from '@/components/broadcast/ChallengeDisplayCard';
@@ -18,9 +18,9 @@ import ChatPanel from '@/components/agora-test/ChatPanel';
 import type { Reaction, StagedChallenge, BroadcastData, Comment, GiphyResult } from '@/lib/types';
 import { generateGamePrompts } from '@/ai/flows/generate-game-prompts';
 import { Resizable } from 're-resizable';
-import { Loader2, CameraOff, Undo2, Check } from 'lucide-react';
+import { Loader2, CameraOff, Undo2, Check, X, Mic, MicOff, Video, VideoOff, ScreenShare, MonitorUp, UserPlus, Minus, Dice6 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { X } from 'lucide-react';
+import VideoPlayer from '@/components/broadcast/video-player';
 
 
 // --- Main UI Component ---
@@ -383,16 +383,11 @@ function AgoraTestPageUI() {
 
   return (
     <div className="relative h-screen w-full bg-black text-white overflow-hidden">
-        <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
-        {hasCameraPermission === false && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 text-white z-10">
-                <CameraOff className="h-16 w-16 mb-4" />
-                <h2 className="text-2xl font-bold">Camera Access Required</h2>
-                <p className="text-muted-foreground max-w-sm text-center mt-2">
-                    Please allow camera access in your browser to use the live studio.
-                </p>
-            </div>
-        )}
+        
+        <VideoPlayer 
+            broadcast={broadcastData} 
+            isHost={true} 
+        />
 
         <FloatingReactions reactions={reactions} />
 
