@@ -9,13 +9,13 @@ import {
   ParticipantView,
 } from '@stream-io/video-react-sdk';
 import { useUser } from '@/firebase';
-import type { Broadcast } from '@/lib/data';
+import type { BroadcastData } from '@/lib/types';
 import { useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 
 interface VideoPlayerProps {
-  broadcast: Broadcast;
+  broadcast: BroadcastData;
   isHost?: boolean;
 }
 
