@@ -225,18 +225,6 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
                 </div>
             )}
 
-            {!shouldShowPlayer && isActive && (status === 'idle' || status === 'disconnected' || status === 'error') && (
-                 <button
-                    onClick={handlePlay}
-                    className="absolute inset-0 z-30 flex items-center justify-center pointer-events-auto w-full h-full"
-                >
-                    <div className="group flex flex-col items-center justify-center text-white transition-transform hover:scale-110">
-                        <Play className="h-20 w-20 md:h-24 md:w-24 fill-white/80 drop-shadow-2xl" />
-                        <span className="mt-2 text-base md:text-lg font-semibold drop-shadow-lg">Watch Live</span>
-                    </div>
-                </button>
-            )}
-            
             {isActive && status === 'connecting' && (
                  <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-auto bg-black/40">
                     <div className="group flex flex-col items-center justify-center text-white">
@@ -292,6 +280,17 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
                 
                 {/* Right Side Vertical Action Bar */}
                  <div className="absolute top-1/2 right-0 -translate-y-1/2 z-40 flex flex-col items-center gap-y-4 md:gap-y-6 pointer-events-auto text-white p-2 md:p-4">
+                    {!shouldShowPlayer && isActive && (status === 'idle' || status === 'disconnected' || status === 'error') && (
+                        <div className="flex flex-col items-center group">
+                            <button
+                                onClick={handlePlay}
+                                className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform"
+                            >
+                                <Play className="h-7 w-7 drop-shadow-md fill-white" strokeWidth={1.5} />
+                            </button>
+                            <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">Play</span>
+                        </div>
+                    )}
                     <div className="flex flex-col items-center group">
                         <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform" onClick={handleLike}>
                           <Heart className={cn("h-7 w-7 drop-shadow-md", hasLiked && "fill-red-500 text-red-500")} strokeWidth={1.5} />
