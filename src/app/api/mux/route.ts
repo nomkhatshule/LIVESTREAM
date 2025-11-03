@@ -2,18 +2,16 @@
 import Mux from '@mux/mux-node';
 import {NextResponse} from 'next/server';
 
-// Correctly initialize the Mux client
+// Initialize the Mux client with credentials from environment variables
 const muxClient = new Mux(
   process.env.MUX_TOKEN_ID,
   process.env.MUX_TOKEN_SECRET,
 );
 
-// Access the video API from the initialized client
-const { video } = muxClient;
-
 export async function POST() {
   try {
-    const liveStream = await video.liveStreams.create({
+    // Correctly call the API on the initialized client instance
+    const liveStream = await muxClient.video.liveStreams.create({
       playback_policy: ['public'],
       new_asset_settings: {playback_policy: ['public']},
     });
