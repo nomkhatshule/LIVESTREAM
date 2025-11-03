@@ -204,7 +204,7 @@ function AgoraTestPageUI() {
         window.removeEventListener('mousemove', handleMouseMove);
         window.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isDragging]);
+  }, [isDragging, cardPosition]);
 
   const getDistance = (touches: React.TouchList) => {
     const [touch1, touch2] = [touches[0], touches[1]];
@@ -420,8 +420,7 @@ function AgoraTestPageUI() {
     };
 
 
-  // This is the new, consolidated loading gate.
-  // It ensures the UI doesn't render until all data is ready.
+  // This component will only render when broadcastData is available, so this check is a safeguard.
   if (isBroadcastLoading || !broadcastData) {
       return (
           <div className="flex h-screen w-full items-center justify-center bg-gray-900">
@@ -553,7 +552,6 @@ function AgoraTestPageUI() {
             isVideoEnabled={isVideoEnabled}
             isMicEnabled={isMicEnabled}
             isScreenSharing={isScreenSharing}
-            isCallJoined={isCallJoined}
             onOpenGames={() => setIsGamePanelOpen(true)}
         />
         
@@ -564,11 +562,11 @@ function AgoraTestPageUI() {
         />
 
         <ChatPanel 
+            broadcastId={broadcastId}
             isVisible={isChatVisible}
             comments={comments}
             newMessage={newMessage}
             onNewMessageChange={setNewMessage}
-            onSendMessage={handleSendMessage}
             onReaction={handleReaction}
             onToggleVisibility={() => setIsChatVisible(prev => !prev)}
             isGifPickerOpen={isGifPickerOpen}
@@ -653,7 +651,7 @@ function AgoraTestWrapper() {
             try {
                 const response = await fetch('/api/stream/token', {
                   method: 'POST',
-                  headers: { 'Content-Type': 'json' },
+                  headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ userId: user.uid }),
                 });
                 if (!response.ok) throw new Error('Failed to fetch stream token');
@@ -726,5 +724,7 @@ export default function AgoraTestPage() {
         </Suspense>
     )
 }
+
+    
 
     

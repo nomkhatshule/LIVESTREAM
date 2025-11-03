@@ -2,12 +2,13 @@
 'use client';
 
 import { Button } from "@/components/ui/button";
-import { Dice6, Mic, MicOff, Minus, MonitorUp, ScreenShare, UserPlus, Video, VideoOff, MessageCircleOff, MessageCircle } from "lucide-react";
+import { Dice6, Mic, MicOff, Minus, MonitorUp, ScreenShare, UserPlus, Video, VideoOff, Camera, CameraOff, RefreshCw } from "lucide-react";
 import ParticipantsPanel from "./ParticipantsPanel";
 
 interface StreamControlsProps {
     onToggleVideo: () => void;
     onToggleMic: () => void;
+    onFlipCamera: () => void;
     onToggleScreenShare: () => void;
     onInviteGuest: () => void;
     onToggleChallengeVisibility: () => void;
@@ -20,7 +21,8 @@ interface StreamControlsProps {
 
 export default function StreamControls({ 
     onToggleVideo, 
-    onToggleMic, 
+    onToggleMic,
+    onFlipCamera,
     onToggleScreenShare, 
     onInviteGuest, 
     isVideoEnabled, 
@@ -31,12 +33,15 @@ export default function StreamControls({
     onOpenGames 
 }: StreamControlsProps) {
     return (
-        <div className="absolute right-4 top-1/2 -translate-y-1/2 z-30 flex flex-col items-center gap-2 md:gap-4 p-2 bg-black/40 rounded-full backdrop-blur-sm pointer-events-auto">
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 md:gap-4 p-2 bg-black/40 rounded-full backdrop-blur-sm pointer-events-auto">
             <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onToggleVideo}>
-                {isVideoEnabled ? <Video className="h-5 w-5 md:h-6 md:w-6"/> : <VideoOff className="h-5 w-5 md:h-6 md:w-6"/>}
+                {isVideoEnabled ? <Video className="h-5 w-5 md:h-6 md:w-6"/> : <VideoOff className="h-5 w-5 md:h-6 md:w-6 text-red-500"/>}
             </Button>
             <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onToggleMic}>
                 {isMicEnabled ? <Mic className="h-5 w-5 md:h-6 md:w-6"/> : <MicOff className="h-5 w-5 md:h-6 md:w-6 text-red-500"/>}
+            </Button>
+             <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onFlipCamera}>
+                <RefreshCw className="h-5 w-5 md:h-6 md:w-6"/>
             </Button>
             <Button variant={isScreenSharing ? "primary" : "secondary"} size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onToggleScreenShare}>
                 {isScreenSharing ? <MonitorUp className="h-5 w-5 md:h-6 md:w-6"/> : <ScreenShare className="h-5 w-5 md:h-6 md:w-6"/>}
@@ -56,3 +61,5 @@ export default function StreamControls({
         </div>
     );
 };
+
+    
