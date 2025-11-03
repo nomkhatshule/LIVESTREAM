@@ -4,7 +4,7 @@
 import { Suspense, useEffect, useState, useMemo, useRef } from 'react';
 import { useUser, useFirestore, useMemoFirebase, useUserDocument } from '@/firebase';
 import { useCollection } from '@/firebase/firestore/use-collection';
-import { collection, query, where, writeBatch, doc, orderBy, serverTimestamp, limit } from 'firebase/firestore';
+import { collection, query, where, writeBatch, doc, orderBy, serverTimestamp } from 'firebase/firestore';
 import type { Broadcast, ChatMessage } from '@/lib/data';
 import { Clapperboard, Loader2, Mail, ChevronDownCircle, MessageCircleHeart, Film, Heart, MessageSquareMore, Gift, Search, Swords, Users, CornerUpLeft, ArrowUp, Play } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -59,7 +59,6 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
         return query(
             collection(firestore, `broadcasts/${broadcast.id}/messages`),
             orderBy('timestamp', 'asc'),
-            limit(50)
         );
     }, [broadcast.id, firestore]);
     const { data: comments } = useCollection<ChatMessage>(messagesQuery);
@@ -596,5 +595,3 @@ export default function HomePage() {
         </Suspense>
     )
 }
-
-    
