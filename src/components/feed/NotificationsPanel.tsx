@@ -57,5 +57,3 @@ export default function NotificationsPanel({ notifications, isLoading }: Notific
         </>
     );
 }
-
-    
