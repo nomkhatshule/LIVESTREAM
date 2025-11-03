@@ -1,8 +1,18 @@
 
 'use client';
 
-import MuxPlayer from '@mux/mux-player-react';
+import {
+  Call,
+  StreamCall,
+  StreamVideo,
+  StreamVideoClient,
+  ParticipantView,
+} from '@stream-io/video-react-sdk';
+import { useUser } from '@/firebase';
 import type { Broadcast } from '@/lib/data';
+import { useEffect, useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
 
 interface VideoPlayerProps {
   broadcast: Broadcast;
@@ -10,23 +20,92 @@ interface VideoPlayerProps {
 }
 
 export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerProps) {
-  if (!broadcast.playbackId) {
+  const { user } = useUser();
+  const [client, setClient] = useState<StreamVideoClient | null>(null);
+  const [call, setCall] = useState<Call | null>(null);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (!user || !broadcast.id) return;
+
+    const apiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY;
+    if (!apiKey) {
+      console.error('Stream API key is missing.');
+      return;
+    }
+
+    let videoClient: StreamVideoClient;
+
+    const initClient = async () => {
+      try {
+        const response = await fetch('/api/stream/token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: user.uid }),
+        });
+        if (!response.ok) throw new Error('Failed to get stream token');
+
+        const { token } = await response.json();
+
+        videoClient = new StreamVideoClient({
+          apiKey,
+          user: {
+            id: user.uid,
+            name: user.displayName || 'Viewer',
+            image: user.photoURL || undefined,
+          },
+          token,
+        });
+        setClient(videoClient);
+        
+        const callInstance = videoClient.call('livestream', broadcast.id);
+        
+        // For viewers, we join. For hosts, join is handled in the studio page.
+        if (!isHost) {
+          await callInstance.join();
+        }
+
+        setCall(callInstance);
+
+      } catch (error) {
+        console.error('Failed to init Stream client', error);
+        toast({
+          title: 'Connection Error',
+          description: 'Could not connect to the video service.',
+          variant: 'destructive',
+        });
+      }
+    };
+
+    initClient();
+
+    return () => {
+      if (call) {
+        call.leave().catch(err => console.error("Failed to leave call on cleanup", err));
+      }
+      if (client) {
+        client.disconnectUser().catch(err => console.error("Failed to disconnect user on cleanup", err));
+      }
+      setClient(null);
+      setCall(null);
+    };
+  }, [user, broadcast.id, isHost, toast]);
+
+  if (!client || !call) {
     return (
       <div className="absolute inset-0 flex items-center justify-center bg-black">
-        <p className="text-white">Stream is not available.</p>
+        <Loader2 className="h-8 w-8 animate-spin text-white" />
       </div>
     );
   }
 
   return (
-    <div className="absolute inset-0 w-full h-full bg-black">
-      <MuxPlayer
-        playbackId={broadcast.playbackId}
-        streamType="live"
-        autoPlay
-        muted={isHost}
-        className="w-full h-full"
-      />
-    </div>
+    <StreamVideo client={client}>
+      <StreamCall call={call}>
+         <div className="absolute inset-0 w-full h-full bg-black">
+            <ParticipantView participant={broadcast.hostId} />
+         </div>
+      </StreamCall>
+    </StreamVideo>
   );
 }

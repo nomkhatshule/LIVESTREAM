@@ -1,13 +1,34 @@
 
 'use client';
 
-import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Users, X, Send, Smile, MessageCircle, Video, Mic, UserPlus, ScreenShare, VideoOff, MicOff, ArrowUp, MessageCircleOff, MonitorUp, Heart, ThumbsUp, Loader2, Dice6, Trophy, Check, Minus, Swords, Undo2 } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Suspense, forwardRef, useEffect, useMemo, useRef, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useDoc, useFirestore, useMemoFirebase, useUserDocument } from '@/firebase';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { doc, updateDoc, collection, query, orderBy, limit, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { useCollection } from '@/firebase';
+import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import {
+  Call,
+  StreamCall,
+  StreamVideo,
+  StreamVideoClient,
+  useCall,
+  useCallStateHooks,
+  CallingState,
+  ParticipantView,
+} from '@stream-io/video-react-sdk';
+import '@stream-io/video-react-sdk/dist/css/styles.css';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import VideoPlayer from '@/components/broadcast/video-player';
+import { User } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 import ChallengeDisplayCard from '@/components/broadcast/ChallengeDisplayCard';
 import CountdownTimer from '@/components/broadcast/CountdownTimer';
 import StreamHeader from '@/components/agora-test/StreamHeader';
@@ -18,9 +39,6 @@ import ChatPanel from '@/components/agora-test/ChatPanel';
 import type { Reaction, StagedChallenge, BroadcastData, Comment, GiphyResult } from '@/lib/types';
 import { generateGamePrompts } from '@/ai/flows/generate-game-prompts';
 import { Resizable } from 're-resizable';
-import { Loader2, CameraOff, Undo2, Check, X, Mic, MicOff, Video, VideoOff, ScreenShare, MonitorUp, UserPlus, Minus, Dice6 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import VideoPlayer from '@/components/broadcast/video-player';
 
 
 // --- Main UI Component ---
@@ -29,6 +47,7 @@ function AgoraTestPageUI() {
   const searchParams = useSearchParams();
   const broadcastId = searchParams.get('id');
   const firestore = useFirestore();
+  const call = useCall();
   const { toast } = useToast();
   
   const [newMessage, setNewMessage] = useState('');
@@ -51,14 +70,18 @@ function AgoraTestPageUI() {
   const [isGifPickerOpen, setIsGifPickerOpen] = useState(false);
   const [selectedGif, setSelectedGif] = useState<GiphyResult | null>(null);
 
-  // Local Media State
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
-  const [isVideoEnabled, setIsVideoEnabled] = useState(true);
-  const [isMicEnabled, setIsMicEnabled] = useState(true);
-  const [isScreenSharing, setIsScreenSharing] = useState(false); // Placeholder
-
-  const viewerCount = 0; // Placeholder
+  // Stream SDK Hooks
+  const { useCameraState, useMicrophoneState, useScreenShareState, useParticipants, useCallCallingState } = useCallStateHooks();
+  const { camera } = useCameraState();
+  const { microphone } = useMicrophoneState();
+  const { isScreenSharing, screenShare } = useScreenShareState();
+  const participants = useParticipants();
+  const callingState = useCallCallingState();
+  
+  const viewerCount = Math.max(0, participants.length -1); // Exclude the host
+  const isCallJoined = callingState === CallingState.JOINED;
+  const isVideoEnabled = camera && !camera.isMute;
+  const isMicEnabled = microphone && !microphone.isMute;
 
   // Real-time broadcast document
   const broadcastDocRef = useMemoFirebase(() => {
@@ -78,31 +101,18 @@ function AgoraTestPageUI() {
     );
   }, [broadcastId, firestore]);
   const { data: comments } = useCollection<Comment>(messagesQuery);
-  
-  // Get Camera Permissions
+
+  // This effect automatically enables the camera once the call is joined with high-quality settings.
   useEffect(() => {
-    const getCameraPermission = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        setHasCameraPermission(true);
-
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-      } catch (error) {
-        console.error('Error accessing camera:', error);
-        setHasCameraPermission(false);
-        toast({
-          variant: 'destructive',
-          title: 'Camera Access Denied',
-          description: 'Please enable camera permissions in your browser settings to use this app.',
-        });
-      }
-    };
-
-    getCameraPermission();
-  }, [toast]);
-
+    if (callingState === CallingState.JOINED && call && call.camera) {
+      const highQualityConstraints = {
+        width: { ideal: 1920 },
+        height: { ideal: 1080 },
+        frameRate: { ideal: 30 },
+      };
+      call.camera.enable(highQualityConstraints);
+    }
+  }, [callingState, call]);
 
   useEffect(() => {
     if (broadcastData?.activeChallenge) {
@@ -194,7 +204,7 @@ function AgoraTestPageUI() {
         window.removeEventListener('mousemove', handleMouseMove);
         window.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isDragging, cardPosition, broadcastDocRef]);
+  }, [isDragging]);
 
   const getDistance = (touches: React.TouchList) => {
     const [touch1, touch2] = [touches[0], touches[1]];
@@ -261,41 +271,78 @@ function AgoraTestPageUI() {
     }
   };
 
-  const handleToggleVideo = () => {
-    if (!videoRef.current?.srcObject) return;
-    const stream = videoRef.current.srcObject as MediaStream;
-    stream.getVideoTracks().forEach(track => {
-      track.enabled = !isVideoEnabled;
-    });
-    setIsVideoEnabled(!isVideoEnabled);
+
+  const handleToggleVideo = async () => {
+    if (call && call.camera) {
+      await call.camera.toggle();
+    }
   }
 
-  const handleToggleMic = () => {
-    if (!videoRef.current?.srcObject) return;
-    const stream = videoRef.current.srcObject as MediaStream;
-    stream.getAudioTracks().forEach(track => {
-      track.enabled = !isMicEnabled;
-    });
-    setIsMicEnabled(!isMicEnabled);
+  const handleToggleMic = async () => {
+    if (call && call.microphone) {
+      await call.microphone.toggle();
+    }
   }
 
   const handleToggleScreenShare = async () => {
-    // Placeholder - screen share requires more complex logic
-    toast({
-        title: 'Coming Soon!',
-        description: 'Screen sharing functionality is under development.',
-    });
+    const nextIsScreenSharing = !isScreenSharing;
+    try {
+        if(call && call.screenShare) {
+            await call.screenShare.toggle();
+            if (broadcastDocRef) {
+                updateDoc(broadcastDocRef, { 'streamDetails.isScreenSharing': nextIsScreenSharing });
+            }
+        }
+    } catch (error) {
+        console.error('Error toggling screen share:', error);
+        toast({
+            variant: 'destructive',
+            title: 'Screen Share Failed',
+            description: 'Could not change screen sharing state.',
+        });
+        if (broadcastDocRef) {
+            updateDoc(broadcastDocRef, { 'streamDetails.isScreenSharing': isScreenSharing });
+        }
+    }
   }
 
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if ((newMessage.trim() === '' && !selectedGif) || !user || !broadcastId || !userDocument) return;
+
+    let attachment;
+    if (selectedGif) {
+        attachment = {
+            type: 'giphy',
+            title: selectedGif.title,
+            imageUrl: selectedGif.images.original.url,
+            thumbUrl: selectedGif.images.fixed_width.url,
+        }
+    }
+
+    const newComment: Omit<Comment, 'id'> & { timestamp: any, attachment?: any } = {
+        userId: user.uid,
+        username: userDocument.username || 'Anonymous',
+        userAvatar: userDocument.profilePicture || '',
+        message: newMessage,
+        timestamp: serverTimestamp(),
+        attachment: attachment || null,
+    };
+    
+    const messagesCollectionRef = collection(firestore, 'broadcasts', broadcastId, 'messages');
+    addDocumentNonBlocking(messagesCollectionRef, newComment);
+    setNewMessage('');
+    setSelectedGif(null);
+  }
+  
   const handleEndStream = async () => {
+    if (call) {
+        await call.leave();
+    }
     if (broadcastDocRef) {
         await updateDoc(broadcastDocRef, { isLive: false, activeChallenge: null, activeChallengeType: null });
     }
-    if (videoRef.current && videoRef.current.srcObject) {
-      const stream = videoRef.current.srcObject as MediaStream;
-      stream.getTracks().forEach(track => track.stop());
-    }
-    router.push('/feed');
+    router.push('/');
   }
 
   const handleInviteGuest = () => {
@@ -345,7 +392,7 @@ function AgoraTestPageUI() {
        if (broadcastDocRef) {
          try {
             const result = await generateGamePrompts({
-                gameType: gameType,
+                gameType: gameType === 'ai' ? 'challenge' : gameType,
                 category: 'Live Stream Audience',
                 count: 1,
             });
@@ -503,6 +550,7 @@ function AgoraTestPageUI() {
             isVideoEnabled={isVideoEnabled}
             isMicEnabled={isMicEnabled}
             isScreenSharing={isScreenSharing}
+            isCallJoined={isCallJoined}
             onOpenGames={() => setIsGamePanelOpen(true)}
         />
         
@@ -517,6 +565,7 @@ function AgoraTestPageUI() {
             comments={comments}
             newMessage={newMessage}
             onNewMessageChange={setNewMessage}
+            onSendMessage={handleSendMessage}
             onReaction={handleReaction}
             onToggleVisibility={() => setIsChatVisible(prev => !prev)}
             isGifPickerOpen={isGifPickerOpen}
@@ -524,7 +573,6 @@ function AgoraTestPageUI() {
             onGifSelect={handleGifSelect}
             selectedGif={selectedGif}
             onClearSelectedGif={() => setSelectedGif(null)}
-            broadcastId={broadcastId}
         />
     </div>
   );
@@ -538,12 +586,33 @@ function AgoraTestWrapper() {
     const { toast } = useToast();
     const router = useRouter();
 
+    const [client, setClient] = useState<StreamVideoClient | null>(null);
+    const [call, setCall] = useState<Call | null>(null);
+    
+    // Authorization check
     const firestore = useFirestore();
     const broadcastDocRef = useMemoFirebase(() => {
         if (!broadcastId || !firestore) return null;
         return doc(firestore, 'broadcasts', broadcastId);
     }, [broadcastId, firestore]);
     const { data: broadcastData, isLoading: isBroadcastLoading } = useDoc<BroadcastData>(broadcastDocRef);
+
+    // Camera permission check
+    useEffect(() => {
+        const getCameraPermission = async () => {
+          try {
+            await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+          } catch (error) {
+            console.error('Error accessing media devices:', error);
+            toast({
+              variant: 'destructive',
+              title: 'Media Access Denied',
+              description: 'Please enable camera and microphone permissions in your browser settings to go live.',
+            });
+          }
+        };
+        getCameraPermission();
+      }, [toast]);
 
     // Auth check
     useEffect(() => {
@@ -565,6 +634,62 @@ function AgoraTestWrapper() {
 
     }, [user, isUserLoading, broadcastData, isBroadcastLoading, router, toast]);
 
+    // Stream Client initialization
+    useEffect(() => {
+        if (!user || !broadcastId || client) return;
+
+        let videoClient: StreamVideoClient;
+        const apiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY || '';
+
+        const initStream = async () => {
+            if (!apiKey) {
+                toast({ variant: 'destructive', title: 'Stream API Key is missing.' });
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/stream/token', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'json' },
+                  body: JSON.stringify({ userId: user.uid }),
+                });
+                if (!response.ok) throw new Error('Failed to fetch stream token');
+                
+                const { token } = await response.json();
+                
+                videoClient = new StreamVideoClient({
+                    apiKey,
+                    user: {
+                        id: user.uid,
+                        name: user.displayName || 'Anonymous',
+                        image: user.photoURL || undefined,
+                    },
+                    token,
+                });
+
+                setClient(videoClient);
+                const callInstance = videoClient.call('livestream', broadcastId);
+                await callInstance.join({ create: true });
+                setCall(callInstance);
+
+            } catch (error: any) {
+                console.error("Stream initialization failed:", error);
+                toast({ variant: 'destructive', title: 'Connection Failed', description: error.message || 'Could not connect to the broadcast.'});
+            }
+        };
+        
+        initStream();
+
+        return () => {
+            if (call) {
+                call.leave().catch(err => console.error("Failed to leave call on cleanup", err));
+            }
+            if (client) {
+                client.disconnectUser().catch(err => console.error("Failed to disconnect user on cleanup", err));
+            }
+        };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [broadcastId, user, client]);
 
     if (isUserLoading || isBroadcastLoading || !broadcastId) {
         return (
@@ -575,7 +700,22 @@ function AgoraTestWrapper() {
         );
     }
     
-    return <AgoraTestPageUI />;
+    if (!client || !call) {
+         return (
+            <div className="flex h-screen w-full items-center justify-center bg-background">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="ml-2">Connecting to broadcast channel...</p>
+            </div>
+        );
+    }
+
+    return (
+        <StreamVideo client={client}>
+            <StreamCall call={call}>
+                <AgoraTestPageUI />
+            </StreamCall>
+        </StreamVideo>
+    )
 }
 
 // --- Default Export with Suspense ---
@@ -590,3 +730,6 @@ export default function AgoraTestPage() {
         </Suspense>
     )
 }
+
+
+    

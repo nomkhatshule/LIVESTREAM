@@ -7,9 +7,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useUser, useFirestore, useUserDocument } from '@/firebase';
-import { serverTimestamp, collection, addDoc } from 'firebase/firestore';
+import { serverTimestamp, collection, addDoc, doc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Video, Loader, CameraOff } from 'lucide-react';
+import { v4 as uuidv4 } from 'uuid';
+
 
 function CreateBroadcastPageComponent() {
   const router = useRouter();
@@ -87,19 +89,11 @@ function CreateBroadcastPageComponent() {
     }
 
     try {
-        // 1. Create a Mux Live Stream
-        const muxResponse = await fetch('/api/mux', { method: 'POST' });
-        if (!muxResponse.ok) {
-            throw new Error('Failed to create Mux live stream.');
-        }
-        const { streamKey, playbackId } = await muxResponse.json();
-
-        if (!streamKey || !playbackId) {
-            throw new Error('Mux stream key or playback ID missing.');
-        }
+        // 1. Generate a unique ID for the broadcast (which will also be the Stream call ID)
+        const broadcastId = uuidv4();
         
-        // 2. Create the broadcast document in Firestore
-        const broadcastsCollection = collection(firestore, 'broadcasts');
+        // 2. Create the broadcast document in Firestore with the generated ID
+        const broadcastDocRef = doc(firestore, 'broadcasts', broadcastId);
         const broadcastData: any = {
           title: title,
           category: challengeParam ? 'Games' : 'General',
@@ -115,14 +109,11 @@ function CreateBroadcastPageComponent() {
           viewers: 0,
           createdAt: serverTimestamp(),
           tags: challengeParam ? ['Challenge', 'Games', 'Live'] : ['New', 'Live'],
-          playbackId: playbackId, // Save Mux Playback ID
-          thumbnailUrl: `https://image.mux.com/${playbackId}/thumbnail.jpg`,
-          thumbnailHint: 'live stream placeholder',
         };
-        const newBroadcastDoc = await addDoc(broadcastsCollection, broadcastData);
+        await setDoc(broadcastDocRef, broadcastData);
         
-        // 3. Redirect to the live studio with the Mux stream key
-        await router.push(`/agora-test?id=${newBroadcastDoc.id}&streamKey=${encodeURIComponent(streamKey)}`);
+        // 3. Redirect to the live studio, which will create/join the Stream call
+        await router.push(`/agora-test?id=${broadcastId}`);
         
     } catch (error) {
         console.error("Error starting broadcast:", error);
