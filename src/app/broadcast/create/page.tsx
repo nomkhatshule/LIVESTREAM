@@ -116,6 +116,8 @@ function CreateBroadcastPageComponent() {
           createdAt: serverTimestamp(),
           tags: challengeParam ? ['Challenge', 'Games', 'Live'] : ['New', 'Live'],
           playbackId: playbackId, // Save Mux Playback ID
+          thumbnailUrl: `https://image.mux.com/${playbackId}/thumbnail.jpg`,
+          thumbnailHint: 'live stream placeholder',
         };
         const newBroadcastDoc = await addDoc(broadcastsCollection, broadcastData);
         
