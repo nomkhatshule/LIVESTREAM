@@ -6,7 +6,7 @@ import { useUser, useFirestore, useMemoFirebase, useUserDocument } from '@/fireb
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { collection, query, where, writeBatch, doc, orderBy, serverTimestamp } from 'firebase/firestore';
 import type { Broadcast, ChatMessage } from '@/lib/data';
-import { Clapperboard, Loader2, Mail, ChevronDownCircle, MessageCircleHeart, Film, Heart, MessageSquareMore, Gift, Search, Swords, Users, CornerUpLeft, ArrowUp, Play } from 'lucide-react';
+import { Clapperboard, Loader2, Mail, ChevronDownCircle, MessageCircleHeart, Film, Heart, MessageSquareMore, Gift, Search, Swords, Users, CornerUpLeft, ArrowUp, Play, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useStreamStore } from '@/lib/stream-store';
 import { Button } from '@/components/ui/button';
