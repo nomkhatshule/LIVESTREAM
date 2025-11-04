@@ -2,24 +2,19 @@
 'use client';
 
 import { useState, useEffect, useRef, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useUser, useFirestore, useUserDocument } from '@/firebase';
-import { serverTimestamp, doc, setDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Video, Loader2, CameraOff } from 'lucide-react';
-import { v4 as uuidv4 } from 'uuid';
-import { StreamVideoClient } from '@stream-io/video-react-sdk';
 
 
 function CreateBroadcastPageComponent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
-  const { userDocument, isDocLoading } = useUserDocument();
+  const { isDocLoading } = useUserDocument();
   const { toast } = useToast();
 
   const [title, setTitle] = useState('');
@@ -50,8 +45,8 @@ function CreateBroadcastPageComponent() {
     getCameraPermission();
   }, [hasCameraPermission, toast]);
 
-  const handleGoLive = async () => {
-    if (!hasCameraPermission) {
+  const handleGoLive = () => {
+     if (!hasCameraPermission) {
         toast({
             variant: 'destructive',
             title: 'Camera Required',
@@ -67,85 +62,26 @@ function CreateBroadcastPageComponent() {
       });
       return;
     }
-    if (!user || !userDocument) {
+    if (!user) {
       toast({
         variant: 'destructive',
         title: 'Not Logged In',
-        description: 'You must be logged in with a complete profile to start a broadcast.',
+        description: 'You must be logged in to start a broadcast.',
       });
-      if (!user) router.push('/login');
-      else if (!userDocument) router.push('/profile');
+      router.push('/login');
       return;
     }
-
+    
     setIsSubmitting(true);
     
+    // Stop camera stream before navigating
     if (videoRef.current && videoRef.current.srcObject) {
         const stream = videoRef.current.srcObject as MediaStream;
         stream.getTracks().forEach(track => track.stop());
     }
 
-    try {
-        const broadcastId = uuidv4();
-        const apiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY;
-        if (!apiKey) throw new Error("Stream API Key is missing.");
-
-        const tokenResponse = await fetch('/api/stream/token', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: user.uid }),
-        });
-        if (!tokenResponse.ok) throw new Error('Failed to fetch stream token');
-        const { token } = await tokenResponse.json();
-
-        const tempClient = new StreamVideoClient({
-            apiKey,
-            user: { id: user.uid, name: userDocument.username || user.displayName || 'Host' },
-            token,
-        });
-
-        const call = tempClient.call('livestream', broadcastId);
-        await call.getOrCreate({
-          data: {
-            custom: {
-              title: title,
-              hostId: user.uid,
-            }
-          }
-        });
-        
-        const broadcastDocRef = doc(firestore, 'broadcasts', broadcastId);
-        const broadcastData = {
-          title: title,
-          category: 'General',
-          challenge: null,
-          activeChallenge: null,
-          activeChallengeType: null,
-          challengeStartTime: null,
-          challengeDurationSeconds: null,
-          hostId: user.uid,
-          hostName: userDocument.username || user.displayName || 'Anonymous',
-          hostAvatar: userDocument.profilePicture || user.photoURL || '',
-          isLive: false,
-          viewers: 0,
-          createdAt: serverTimestamp(),
-          tags: ['New', 'Live'],
-        };
-        await setDoc(broadcastDocRef, broadcastData);
-
-        await tempClient.disconnectUser();
-        
-        router.push('/livenet');
-        
-    } catch (error: any) {
-        console.error("Error starting broadcast:", error);
-        toast({
-            variant: 'destructive',
-            title: 'Error Starting Stream',
-            description: error.message || 'An unexpected error occurred. Please try again.',
-        });
-        setIsSubmitting(false);
-    }
+    // Redirect to livenet with the title to initiate stream creation there
+    router.push(`/livenet?title=${encodeURIComponent(title)}`);
   };
   
   const isLoading = isUserLoading || isDocLoading;
@@ -206,7 +142,7 @@ function CreateBroadcastPageComponent() {
             ) : (
                 <Video className="mr-2 h-5 w-5" />
             )}
-            {isSubmitting ? 'Setting up your stream...' : 'Go Live Now'}
+            {isSubmitting ? 'Proceeding to Studio...' : 'Go Live Now'}
             </Button>
         </div>
     </div>
