@@ -552,6 +552,7 @@ function AgoraTestPageUI() {
             isScreenSharing={isScreenSharing}
             isCallJoined={isCallJoined}
             onOpenGames={() => setIsGamePanelOpen(true)}
+            viewerCount={viewerCount}
         />
         
         <InStreamGamesPanel 
@@ -561,18 +562,9 @@ function AgoraTestPageUI() {
         />
 
         <ChatPanel 
-            isVisible={isChatVisible}
+            broadcastId={broadcastId}
             comments={comments}
-            newMessage={newMessage}
-            onNewMessageChange={setNewMessage}
-            onSendMessage={handleSendMessage}
             onReaction={handleReaction}
-            onToggleVisibility={() => setIsChatVisible(prev => !prev)}
-            isGifPickerOpen={isGifPickerOpen}
-            onGifPickerOpenChange={setIsGifPickerOpen}
-            onGifSelect={handleGifSelect}
-            selectedGif={selectedGif}
-            onClearSelectedGif={() => setSelectedGif(null)}
         />
     </div>
   );
