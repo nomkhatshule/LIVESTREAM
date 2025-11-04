@@ -22,10 +22,6 @@ function CreateBroadcastPageComponent() {
   const { userDocument, isDocLoading } = useUserDocument();
   const { toast } = useToast();
 
-  const challengeParam = searchParams.get('challenge');
-  const challengeTypeParam = searchParams.get('type') as 'truth' | 'dare' | 'challenge' | null;
-  const durationParam = searchParams.get('duration');
-
   const [title, setTitle] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -82,22 +78,18 @@ function CreateBroadcastPageComponent() {
       return;
     }
 
-    // Enter submitting state
     setIsSubmitting(true);
     
-    // Stop camera tracks before navigating
     if (videoRef.current && videoRef.current.srcObject) {
         const stream = videoRef.current.srcObject as MediaStream;
         stream.getTracks().forEach(track => track.stop());
     }
 
     try {
-        // 1. Generate a unique ID for the broadcast
         const broadcastId = uuidv4();
         const apiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY;
         if (!apiKey) throw new Error("Stream API Key is missing.");
 
-        // Step A: Get a Stream token for the user
         const tokenResponse = await fetch('/api/stream/token', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -106,14 +98,12 @@ function CreateBroadcastPageComponent() {
         if (!tokenResponse.ok) throw new Error('Failed to fetch stream token');
         const { token } = await tokenResponse.json();
 
-        // Step B: Initialize a temporary Stream client
         const tempClient = new StreamVideoClient({
             apiKey,
             user: { id: user.uid, name: userDocument.username || user.displayName || 'Host' },
             token,
         });
 
-        // Step C: Create the call object on Stream's servers
         const call = tempClient.call('livestream', broadcastId);
         await call.getOrCreate({
           data: {
@@ -124,30 +114,27 @@ function CreateBroadcastPageComponent() {
           }
         });
         
-        // Step D: Create the broadcast document in Firestore
         const broadcastDocRef = doc(firestore, 'broadcasts', broadcastId);
-        const broadcastData: any = {
+        const broadcastData = {
           title: title,
-          category: challengeParam ? 'Games' : 'General',
-          challenge: challengeParam || null,
-          activeChallenge: challengeParam || null,
-          activeChallengeType: challengeTypeParam || null,
-          challengeStartTime: challengeParam ? serverTimestamp() : null,
-          challengeDurationSeconds: durationParam ? parseInt(durationParam, 10) : null,
+          category: 'General',
+          challenge: null,
+          activeChallenge: null,
+          activeChallengeType: null,
+          challengeStartTime: null,
+          challengeDurationSeconds: null,
           hostId: user.uid,
           hostName: userDocument.username || user.displayName || 'Anonymous',
           hostAvatar: userDocument.profilePicture || user.photoURL || '',
-          isLive: false, // Set to false initially. The studio will set this to true.
+          isLive: false,
           viewers: 0,
           createdAt: serverTimestamp(),
-          tags: challengeParam ? ['Challenge', 'Games', 'Live'] : ['New', 'Live'],
+          tags: ['New', 'Live'],
         };
         await setDoc(broadcastDocRef, broadcastData);
 
-        // Disconnect the temporary client as its job is done
         await tempClient.disconnectUser();
         
-        // Final Trigger: Route to studio only on full success
         router.push(`/agora-test?id=${broadcastId}`);
         
     } catch (error: any) {
@@ -157,7 +144,6 @@ function CreateBroadcastPageComponent() {
             title: 'Error Starting Stream',
             description: error.message || 'An unexpected error occurred. Please try again.',
         });
-        // On failure, reset the UI
         setIsSubmitting(false);
     }
   };
@@ -192,7 +178,7 @@ function CreateBroadcastPageComponent() {
             <div className="text-center">
             <h1 className="text-3xl font-bold font-headline text-foreground">Go Live</h1>
             <p className="text-muted-foreground">
-                {challengeParam ? "You're about to tackle a challenge!" : "Set up the details for your new broadcast."}
+                Set up the details for your new broadcast.
             </p>
             </div>
             <div className="space-y-4">
