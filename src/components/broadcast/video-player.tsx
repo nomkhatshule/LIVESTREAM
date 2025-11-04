@@ -24,11 +24,11 @@ interface VideoPlayerProps {
 
 function HostVideoPlayer({ broadcast }: { broadcast: BroadcastData }) {
     const call = useCall();
-    const { useCameraState, useScreenShareState } = useCallStateHooks();
+    const { useCameraState, useScreenShareState, useIsSpeaking } = useCallStateHooks();
     
     const participant = call?.state.participants.find(p => p.userId === broadcast.hostId);
     
-    const { isSpeaking } = useCallStateHooks(call, participant);
+    const isSpeaking = useIsSpeaking(participant);
     const isCameraOn = participant?.isCameraEnabled;
 
     const { isScreenSharing } = useScreenShareState();
@@ -45,7 +45,7 @@ function HostVideoPlayer({ broadcast }: { broadcast: BroadcastData }) {
     if (isScreenSharing) {
         return (
             <div className="absolute inset-0 w-full h-full bg-black">
-                <ParticipantView participant={participant} trackType='screenShareTrack' />
+                <ParticipantView participant={participant} trackType='screenShareTrack' ParticipantDetails={null} />
             </div>
         );
     }
@@ -55,6 +55,7 @@ function HostVideoPlayer({ broadcast }: { broadcast: BroadcastData }) {
             <ParticipantView 
                 participant={participant} 
                 className={cn(isSpeaking && 'ring-4 ring-primary rounded-lg', !isCameraOn && 'hidden')}
+                ParticipantDetails={null}
             />
              {!isCameraOn && (
                 <div className="w-full h-full flex items-center justify-center bg-zinc-900">
@@ -146,7 +147,10 @@ function ViewerVideoPlayer({ broadcast }: { broadcast: BroadcastData }) {
     <StreamVideo client={client}>
       <StreamCall call={call}>
          <div className="absolute inset-0 w-full h-full bg-black">
-            <ParticipantView participant={broadcast.hostId} />
+            <ParticipantView 
+                participant={broadcast.hostId} 
+                ParticipantDetails={null}
+            />
          </div>
       </StreamCall>
     </StreamVideo>
