@@ -6,16 +6,16 @@ import {
   StreamCall,
   StreamVideo,
   StreamVideoClient,
-  ParticipantView,
   useCall,
   useCallStateHooks,
 } from '@stream-io/video-react-sdk';
 import { useUser } from '@/firebase';
 import type { BroadcastData } from '@/lib/types';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
 
 interface VideoPlayerProps {
   broadcast: BroadcastData;
@@ -24,14 +24,26 @@ interface VideoPlayerProps {
 
 function HostVideoPlayer({ broadcast }: { broadcast: BroadcastData }) {
     const call = useCall();
-    const { useCameraState, useScreenShareState, useIsSpeaking } = useCallStateHooks();
-    
-    const participant = call?.state.participants.find(p => p.userId === broadcast.hostId);
-    
-    const isSpeaking = useIsSpeaking(participant);
-    const { isCameraEnabled } = useCameraState(participant);
+    const { useParticipant, useScreenShareState, useIsSpeaking, useCameraState } = useCallStateHooks();
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const screenShareRef = useRef<HTMLVideoElement>(null);
 
-    const { isScreenSharing } = useScreenShareState();
+    const participant = call?.state.participants.find(p => p.userId === broadcast.hostId);
+    const { camera, isCameraEnabled } = useCameraState(participant);
+    const { screenShareStream, isScreenSharing } = useScreenShareState(participant);
+    const isSpeaking = useIsSpeaking(participant);
+
+    useEffect(() => {
+        if (camera.stream && videoRef.current) {
+            videoRef.current.srcObject = camera.stream;
+        }
+    }, [camera.stream]);
+
+    useEffect(() => {
+        if (screenShareStream && screenShareRef.current) {
+            screenShareRef.current.srcObject = screenShareStream;
+        }
+    }, [screenShareStream]);
 
     if (!participant) {
         return (
@@ -41,31 +53,39 @@ function HostVideoPlayer({ broadcast }: { broadcast: BroadcastData }) {
             </div>
         );
     }
-
-    if (isScreenSharing) {
-        return (
-            <div className="absolute inset-0 w-full h-full bg-black">
-                <ParticipantView participant={participant} trackType='screenShareTrack' ParticipantDetails={null} />
-            </div>
-        );
-    }
-
+    
     return (
         <div className="absolute inset-0 w-full h-full bg-black">
-            <ParticipantView 
-                participant={participant} 
-                className={cn(isSpeaking && 'ring-4 ring-primary rounded-lg', !isCameraEnabled && 'hidden')}
-                ParticipantDetails={null}
-            />
-             {!isCameraEnabled && (
-                <div className="w-full h-full flex items-center justify-center bg-zinc-900">
+             <video 
+                ref={screenShareRef}
+                autoPlay
+                muted
+                playsInline
+                className={cn("w-full h-full object-contain", !isScreenSharing && "hidden")}
+             />
+             <video 
+                ref={videoRef}
+                autoPlay
+                muted
+                playsInline
+                className={cn(
+                    "w-full h-full object-cover",
+                    isSpeaking && 'ring-4 ring-primary',
+                    isScreenSharing && 'hidden'
+                )}
+             />
+             {!isCameraEnabled && !isScreenSharing && (
+                <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-900 gap-4">
+                     <Avatar className="h-24 w-24">
+                        <AvatarImage src={broadcast.hostAvatar} />
+                        <AvatarFallback>{broadcast.hostName?.charAt(0) || 'H'}</AvatarFallback>
+                    </Avatar>
                     <p className="text-white text-lg">Camera is off</p>
                 </div>
             )}
         </div>
     )
 }
-
 
 function ViewerVideoPlayer({ broadcast }: { broadcast: BroadcastData }) {
   const { user } = useUser();
@@ -146,17 +166,11 @@ function ViewerVideoPlayer({ broadcast }: { broadcast: BroadcastData }) {
   return (
     <StreamVideo client={client}>
       <StreamCall call={call}>
-         <div className="absolute inset-0 w-full h-full bg-black">
-            <ParticipantView 
-                participant={broadcast.hostId} 
-                ParticipantDetails={null}
-            />
-         </div>
+        <HostVideoPlayer broadcast={broadcast} />
       </StreamCall>
     </StreamVideo>
   );
 }
-
 
 export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerProps) {
     if (isHost) {
