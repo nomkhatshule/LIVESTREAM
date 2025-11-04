@@ -196,7 +196,9 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
         <div ref={ref} className="h-full w-full snap-start relative bg-black">
             
             <div className="absolute inset-0 z-0 bg-black">
-                 <Image src={broadcast.thumbnailUrl} alt={broadcast.title} fill className="object-cover opacity-50" />
+                {broadcast.thumbnailUrl && (
+                    <Image src={broadcast.thumbnailUrl} alt={broadcast.title} fill className="object-cover opacity-50" />
+                )}
             </div>
 
             <Link href={`/broadcast/${broadcast.id}`} className="absolute inset-0 z-10 bg-black/50 flex items-center justify-center group cursor-pointer">
@@ -290,7 +292,7 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
 
                 {/* Bottom Chat Area */}
                  {isChatVisible && (
-                    <div className="p-3 md:p-4 pt-12 flex flex-col justify-end">
+                    <div className="p-3 md:p-4 flex flex-col justify-end">
                         <div className="w-full sm:max-w-sm md:max-w-md self-start flex-grow flex flex-col justify-end">
                             <div className="h-80 w-full pointer-events-auto">
                                 <ScrollArea className="h-full pr-2">
