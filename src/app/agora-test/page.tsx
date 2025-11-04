@@ -11,179 +11,11 @@ import {
   StreamCall,
   StreamVideo,
   StreamVideoClient,
-  useCall,
-  useCallStateHooks,
-  CallingState,
 } from '@stream-io/video-react-sdk';
 import '@stream-io/video-react-sdk/dist/css/styles.css';
-import VideoPlayer from '@/components/broadcast/video-player';
 import { Loader2 } from 'lucide-react';
-import type { Reaction, BroadcastData, Comment } from '@/lib/types';
-import StreamHeader from '@/components/agora-test/StreamHeader';
-import FloatingReactions from '@/components/agora-test/FloatingReactions';
-import StreamControls from '@/components/agora-test/StreamControls';
-import ChatPanel from '@/components/agora-test/ChatPanel';
-import InStreamGamesPanel from '@/components/agora-test/InStreamGamesPanel';
-import GameFlowManager from '@/components/agora-test/GameFlowManager';
-import ChallengeCardManager from '@/components/agora-test/ChallengeCardManager';
-import { useStreamControls } from '@/hooks/useStreamControls';
-import { useGameFlow } from '@/hooks/useGameFlow';
-import { useChallengeCard } from '@/hooks/useChallengeCard';
-
-
-// --- Main UI Component ---
-function AgoraTestPageUI() {
-  const searchParams = useSearchParams();
-  const broadcastId = searchParams.get('id');
-  const firestore = useFirestore();
-  const call = useCall();
-  
-  const [reactions, setReactions] = useState<Reaction[]>([]);
-  const [isGamePanelOpen, setIsGamePanelOpen] = useState(false);
-  
-  // Stream SDK Hooks
-  const { useParticipants, useCallCallingState } = useCallStateHooks();
-  const participants = useParticipants();
-  const callingState = useCallCallingState();
-  const isCallJoined = callingState === CallingState.JOINED;
-  const viewerCount = Math.max(0, participants.length - 1);
-
-  // Real-time broadcast document
-  const broadcastDocRef = useMemoFirebase(() => {
-    if (!broadcastId || !firestore) return null;
-    return doc(firestore, 'broadcasts', broadcastId);
-  }, [broadcastId, firestore]);
-  
-  const { data: broadcastData } = useDoc<BroadcastData>(broadcastDocRef);
-
-  // Real-time chat messages
-   const messagesQuery = useMemoFirebase(() => {
-    if (!broadcastId || !firestore) return null;
-    return query(
-        collection(firestore, `broadcasts/${broadcastId}/messages`),
-        orderBy('timestamp', 'asc'),
-        limit(100)
-    );
-  }, [broadcastId, firestore]);
-  const { data: comments } = useCollection<Comment>(messagesQuery);
-
-  // --- Custom Hooks for Logic Encapsulation ---
-  const { 
-    isVideoEnabled, isMicEnabled, isScreenSharing, handleToggleVideo, 
-    handleToggleMic, handleToggleScreenShare, handleEndStream, handleInviteGuest 
-  } = useStreamControls(call, broadcastDocRef);
-
-  const {
-    stagedChallenge, showChallengeCoverCard, isChallengeVisible, isTimerFinished,
-    handleChallengeSelect, handleStartStagedChallenge, handleCancelStagedChallenge,
-    handleGenerateNextChallenge, setIsChallengeVisible
-  } = useGameFlow(broadcastDocRef, broadcastData);
-
-  const {
-    cardPosition, cardSize, isDragging, handleMouseDown, handleTouchStart, 
-    handleTouchMove, handleTouchEnd, handleResizeStop, setCardSize
-  } = useChallengeCard(broadcastDocRef, broadcastData?.challengeCardPosition, broadcastData?.challengeCardSize);
-
-  // This effect automatically enables the camera once the call is joined with high-quality settings.
-  useEffect(() => {
-    if (callingState === CallingState.JOINED && call && call.camera) {
-      const highQualityConstraints = {
-        width: { ideal: 1920 },
-        height: { ideal: 1080 },
-        frameRate: { ideal: 30 },
-      };
-      call.camera.enable(highQualityConstraints);
-    }
-  }, [callingState, call]);
-
-  const handleReaction = (emoji: React.ReactNode) => {
-    const newReaction: Reaction = {
-        id: Date.now() + Math.random(),
-        emoji: emoji,
-        x: Math.random() * 80 + 10,
-    };
-    setReactions(prev => [...prev, newReaction]);
-    setTimeout(() => {
-        setReactions(prev => prev.filter(r => r.id !== newReaction.id));
-    }, 5000);
-  };
-  
-  if (!broadcastData) {
-     return (
-        <div className="flex h-screen w-full items-center justify-center bg-gray-900">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p className="ml-2">Loading Broadcast Data...</p>
-        </div>
-      )
-  }
-
-  return (
-    <div className="relative h-screen w-full bg-black text-white overflow-hidden">
-        
-        <VideoPlayer 
-            broadcast={broadcastData} 
-            isHost={true} 
-        />
-
-        <FloatingReactions reactions={reactions} />
-
-        <StreamHeader
-            broadcastData={broadcastData}
-            viewerCount={viewerCount}
-            onEndStream={handleEndStream}
-        />
-        
-        <GameFlowManager
-            showCoverCard={showChallengeCoverCard}
-            onStart={handleStartStagedChallenge}
-            onCancel={handleCancelStagedChallenge}
-        />
-        
-        <ChallengeCardManager
-            isVisible={isChallengeVisible}
-            broadcastData={broadcastData}
-            isTimerFinished={isTimerFinished}
-            cardPosition={cardPosition}
-            cardSize={cardSize}
-            isDragging={isDragging}
-            onMouseDown={handleMouseDown}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-            onResizeStop={handleResizeStop}
-            onSetCardSize={setCardSize}
-            onGenerateNextChallenge={handleGenerateNextChallenge}
-            broadcastDocRef={broadcastDocRef}
-        />
-
-        <StreamControls 
-            onToggleVideo={handleToggleVideo}
-            onToggleMic={handleToggleMic}
-            onToggleScreenShare={handleToggleScreenShare}
-            onInviteGuest={handleInviteGuest}
-            onToggleChallengeVisibility={() => setIsChallengeVisible(prev => !prev)}
-            isChallengeActive={!!broadcastData.activeChallenge}
-            isVideoEnabled={isVideoEnabled}
-            isMicEnabled={isMicEnabled}
-            isScreenSharing={isScreenSharing}
-            onOpenGames={() => setIsGamePanelOpen(true)}
-            viewerCount={viewerCount}
-        />
-        
-        <InStreamGamesPanel 
-            onSelectChallenge={handleChallengeSelect} 
-            open={isGamePanelOpen} 
-            onOpenChange={setIsGamePanelOpen} 
-        />
-
-        <ChatPanel 
-            broadcastId={broadcastId}
-            comments={comments}
-            onReaction={handleReaction}
-        />
-    </div>
-  );
-}
+import type { BroadcastData } from '@/lib/types';
+import AgoraTestPageUI from '@/components/agora-test/AgoraTestPageUI';
 
 // --- Wrapper Component for Initialization and Auth ---
 function AgoraTestWrapper() {
@@ -244,7 +76,7 @@ function AgoraTestWrapper() {
 
     // Stream Client initialization
     useEffect(() => {
-        if (!user || !broadcastId || client) {
+        if (!user || !broadcastId || client || !broadcastData) {
             return;
         };
 
@@ -306,15 +138,20 @@ function AgoraTestWrapper() {
             }
         };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [broadcastId, user, client]);
+    }, [broadcastId, user, client, broadcastData]);
 
     // --- MASTER LOADING GATE ---
     // This gate ensures all necessary data is loaded before rendering the UI.
     if (isUserLoading || isBroadcastLoading || !broadcastData || !client || !call) {
+        let message = 'Loading Your Studio...';
+        if (isUserLoading) message = 'Authenticating...';
+        else if (isBroadcastLoading || !broadcastData) message = 'Loading broadcast data...';
+        else if (!client || !call) message = 'Connecting to stream...';
+
         return (
             <div className="flex h-screen w-full items-center justify-center bg-background">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="ml-2">Loading Your Studio...</p>
+                <p className="ml-2">{message}</p>
             </div>
         );
     }
