@@ -17,7 +17,7 @@ import {
 } from '@stream-io/video-react-sdk';
 import '@stream-io/video-react-sdk/dist/css/styles.css';
 import VideoPlayer from '@/components/broadcast/video-player';
-import { Loader2, RefreshCw } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import type { Reaction, BroadcastData, Comment } from '@/lib/types';
 import StreamHeader from '@/components/agora-test/StreamHeader';
 import FloatingReactions from '@/components/agora-test/FloatingReactions';
@@ -70,7 +70,7 @@ function AgoraTestPageUI() {
   // --- Custom Hooks for Logic Encapsulation ---
   const { 
     isVideoEnabled, isMicEnabled, isScreenSharing, handleToggleVideo, 
-    handleToggleMic, handleFlipCamera, handleToggleScreenShare, handleEndStream, handleInviteGuest 
+    handleToggleMic, handleToggleScreenShare, handleEndStream, handleInviteGuest 
   } = useStreamControls(call, broadcastDocRef);
 
   const {
@@ -159,7 +159,6 @@ function AgoraTestPageUI() {
         <StreamControls 
             onToggleVideo={handleToggleVideo}
             onToggleMic={handleToggleMic}
-            onFlipCamera={handleFlipCamera}
             onToggleScreenShare={handleToggleScreenShare}
             onInviteGuest={handleInviteGuest}
             onToggleChallengeVisibility={() => setIsChallengeVisible(prev => !prev)}

@@ -29,21 +29,6 @@ export function useStreamControls(call: ReturnType<typeof useCall>, broadcastDoc
       await call.microphone.toggle();
     }
   };
-  
-  const handleFlipCamera = async () => {
-    if (call && call.camera) {
-      try {
-        await call.camera.flip();
-      } catch (error) {
-        console.error('Error flipping camera:', error);
-        toast({
-          variant: 'destructive',
-          title: 'Flip Camera Failed',
-          description: 'Could not switch camera.',
-        });
-      }
-    }
-  };
 
   const handleToggleScreenShare = async () => {
     if (!call || !call.screenShare) return;
@@ -89,7 +74,6 @@ export function useStreamControls(call: ReturnType<typeof useCall>, broadcastDoc
     isScreenSharing,
     handleToggleVideo,
     handleToggleMic,
-    handleFlipCamera,
     handleToggleScreenShare,
     handleEndStream,
     handleInviteGuest,

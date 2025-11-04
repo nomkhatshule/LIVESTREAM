@@ -2,13 +2,12 @@
 'use client';
 
 import { Button } from "@/components/ui/button";
-import { Dice6, Mic, MicOff, Minus, MonitorUp, ScreenShare, UserPlus, Video, VideoOff, RefreshCw } from "lucide-react";
+import { Dice6, Mic, MicOff, Minus, MonitorUp, ScreenShare, UserPlus, Video, VideoOff } from "lucide-react";
 import ParticipantsPanel from "./ParticipantsPanel";
 
 interface StreamControlsProps {
     onToggleVideo: () => void;
     onToggleMic: () => void;
-    onFlipCamera: () => void;
     onToggleScreenShare: () => void;
     onInviteGuest: () => void;
     onToggleChallengeVisibility: () => void;
@@ -22,8 +21,7 @@ interface StreamControlsProps {
 
 export default function StreamControls({ 
     onToggleVideo, 
-    onToggleMic,
-    onFlipCamera,
+    onToggleMic, 
     onToggleScreenShare, 
     onInviteGuest, 
     isVideoEnabled, 
@@ -41,9 +39,6 @@ export default function StreamControls({
             </Button>
             <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onToggleMic}>
                 {isMicEnabled ? <Mic className="h-5 w-5 md:h-6 md:w-6"/> : <MicOff className="h-5 w-5 md:h-6 md:w-6 text-red-500"/>}
-            </Button>
-             <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onFlipCamera}>
-                <RefreshCw className="h-5 w-5 md:h-6 md:w-6"/>
             </Button>
             <Button variant={isScreenSharing ? "primary" : "secondary"} size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onToggleScreenShare}>
                 {isScreenSharing ? <MonitorUp className="h-5 w-5 md:h-6 md:w-6"/> : <ScreenShare className="h-5 w-5 md:h-6 md:w-6"/>}
