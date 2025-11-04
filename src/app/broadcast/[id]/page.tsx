@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { notFound, useParams } from 'next/navigation';
@@ -210,14 +211,18 @@ export default function BroadcastPage() {
 
       <div className="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/50 to-transparent text-white">
          <div className="flex items-start gap-4">
-            <Avatar className={cn("h-14 w-14 border-4 border-destructive", broadcast.isLive && "animate-breathing")}>
-                <AvatarImage src={broadcast.user.avatarUrl} alt={broadcast.user.name} />
-                <AvatarFallback>{broadcast.user.name.charAt(0)}</AvatarFallback>
-            </Avatar>
+            <Link href={`/profile/${broadcast.user.id}`}>
+                <Avatar className={cn("h-14 w-14 border-4 border-destructive", broadcast.isLive && "animate-breathing")}>
+                    <AvatarImage src={broadcast.user.avatarUrl} alt={broadcast.user.name} />
+                    <AvatarFallback>{broadcast.user.name.charAt(0)}</AvatarFallback>
+                </Avatar>
+            </Link>
             <div>
-              <div className="flex items-center gap-2">
-                <p className="font-bold font-headline text-lg">{broadcast.user.name}</p>
-              </div>
+                <Link href={`/profile/${broadcast.user.id}`}>
+                  <div className="flex items-center gap-2">
+                    <p className="font-bold font-headline text-lg hover:underline">{broadcast.user.name}</p>
+                  </div>
+                </Link>
               <p className="text-base font-normal mt-1">{broadcast.title}</p>
               <div className="flex items-center gap-3 mt-1">
                  <span className="inline-flex items-center text-xs font-medium gap-1">

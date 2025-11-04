@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { Suspense, useEffect, useState, useMemo, useRef } from 'react';
@@ -194,17 +195,16 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
     return (
         <div ref={ref} className="h-full w-full snap-start relative bg-black">
             
-            {isActive && broadcast.playbackId ? (
-                <VideoPlayer broadcast={broadcast} />
-            ) : (
-                 <Link href={`/broadcast/${broadcast.id}`} className="absolute inset-0 z-10 bg-black/50 flex items-center justify-center group cursor-pointer">
-                    <div className="text-center text-white transition-transform group-hover:scale-110">
-                        <Play className="h-20 w-20 mx-auto text-white/80" />
-                        <p className="mt-2 text-lg font-semibold">Join Stream</p>
-                    </div>
-                </Link>
-            )}
-            <div className={cn("absolute inset-0 bg-black/20 z-10", isActive && 'hidden')} />
+            <div className="absolute inset-0 z-0 bg-black">
+                 <Image src={broadcast.thumbnailUrl} alt={broadcast.title} fill className="object-cover opacity-50" />
+            </div>
+
+            <Link href={`/broadcast/${broadcast.id}`} className="absolute inset-0 z-10 bg-black/50 flex items-center justify-center group cursor-pointer">
+                <div className="text-center text-white transition-transform group-hover:scale-110">
+                    <Play className="h-20 w-20 mx-auto text-white/80" />
+                    <p className="mt-2 text-lg font-semibold">Join Stream</p>
+                </div>
+            </Link>
             
             <div className="absolute inset-0 flex flex-col justify-between p-3 md:p-4 text-white z-40 pointer-events-none">
                  {isChallengeVisible && broadcast.activeChallenge && broadcast.activeChallengeType && (
