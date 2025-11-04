@@ -17,6 +17,7 @@ interface StreamControlsProps {
     isScreenSharing: boolean;
     isChallengeActive: boolean;
     viewerCount: number;
+    isCallJoined: boolean;
 }
 
 export default function StreamControls({ 
@@ -30,8 +31,13 @@ export default function StreamControls({
     onToggleChallengeVisibility, 
     isChallengeActive, 
     onOpenGames,
-    viewerCount
+    viewerCount,
+    isCallJoined,
 }: StreamControlsProps) {
+    if (!isCallJoined) {
+        return null;
+    }
+    
     return (
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 md:gap-4 p-2 bg-black/40 rounded-full backdrop-blur-sm pointer-events-auto">
             <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onToggleVideo}>
