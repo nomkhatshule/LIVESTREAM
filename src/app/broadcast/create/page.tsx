@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { useUser, useFirestore, useUserDocument } from '@/firebase';
 import { serverTimestamp, doc, setDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
-import { Video, Loader, CameraOff } from 'lucide-react';
+import { Video, Loader2, CameraOff } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { StreamVideoClient } from '@stream-io/video-react-sdk';
 
@@ -157,7 +157,7 @@ function CreateBroadcastPageComponent() {
   if (isLoading) {
     return (
         <div className="flex h-screen w-full items-center justify-center bg-background">
-            <Loader className="h-8 w-8 animate-spin text-primary" />
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
             <p className="ml-2">Loading...</p>
         </div>
     );
@@ -195,6 +195,7 @@ function CreateBroadcastPageComponent() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 className="bg-background/80"
+                disabled={isSubmitting}
                 />
             </div>
             </div>
@@ -205,11 +206,11 @@ function CreateBroadcastPageComponent() {
             className="w-full"
             >
             {isSubmitting ? (
-                <Loader className="mr-2 h-5 w-5 animate-spin" />
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
             ) : (
                 <Video className="mr-2 h-5 w-5" />
             )}
-            Go Live Now
+            {isSubmitting ? 'Setting up your stream...' : 'Go Live Now'}
             </Button>
         </div>
     </div>
@@ -221,7 +222,7 @@ export default function CreateBroadcastPage() {
     return (
         <Suspense fallback={
             <div className="flex h-screen w-full items-center justify-center bg-background">
-                <Loader className="h-8 w-8 animate-spin text-primary" />
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 <p className="ml-2">Loading Setup...</p>
             </div>
         }>
