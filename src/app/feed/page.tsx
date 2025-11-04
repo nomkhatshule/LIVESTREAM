@@ -197,13 +197,12 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
             {isActive && broadcast.playbackId ? (
                 <VideoPlayer broadcast={broadcast} />
             ) : (
-                <div className="absolute inset-0 z-0 bg-black flex items-center justify-center">
-                    {/* Placeholder for when stream is not active */}
-                    <div className="text-center text-white">
-                        <Play className="h-16 w-16 mx-auto text-gray-500" />
-                        <p className="mt-2 text-gray-500">Stream has ended or is loading.</p>
+                 <Link href={`/broadcast/${broadcast.id}`} className="absolute inset-0 z-10 bg-black/50 flex items-center justify-center group cursor-pointer">
+                    <div className="text-center text-white transition-transform group-hover:scale-110">
+                        <Play className="h-20 w-20 mx-auto text-white/80" />
+                        <p className="mt-2 text-lg font-semibold">Join Stream</p>
                     </div>
-                </div>
+                </Link>
             )}
             <div className={cn("absolute inset-0 bg-black/20 z-10", isActive && 'hidden')} />
             
@@ -556,3 +555,5 @@ export default function HomePage() {
         </Suspense>
     )
 }
+
+    
