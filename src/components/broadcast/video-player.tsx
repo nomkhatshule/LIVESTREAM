@@ -24,15 +24,14 @@ interface VideoPlayerProps {
 
 function HostVideoPlayer({ broadcast }: { broadcast: BroadcastData }) {
     const call = useCall();
-    const { useParticipant, useScreenShareState, useIsSpeaking, useCameraState } = useCallStateHooks();
+    const { useParticipant, useScreenShareState, useCameraState } = useCallStateHooks();
     const videoRef = useRef<HTMLVideoElement>(null);
     const screenShareRef = useRef<HTMLVideoElement>(null);
 
     const participant = call?.state.participants.find(p => p.userId === broadcast.hostId);
     const { camera, isCameraEnabled } = useCameraState(participant);
     const { screenShareStream, isScreenSharing } = useScreenShareState(participant);
-    const isSpeaking = useIsSpeaking(participant);
-
+    
     useEffect(() => {
         if (camera.stream && videoRef.current) {
             videoRef.current.srcObject = camera.stream;
@@ -70,7 +69,6 @@ function HostVideoPlayer({ broadcast }: { broadcast: BroadcastData }) {
                 playsInline
                 className={cn(
                     "w-full h-full object-cover",
-                    isSpeaking && 'ring-4 ring-primary',
                     isScreenSharing && 'hidden'
                 )}
              />
