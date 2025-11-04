@@ -5,9 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Loader2, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { useUser, useDoc, useFirestore, useMemoFirebase, useUserDocument } from '@/firebase';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { doc, query, orderBy, limit, collection } from 'firebase/firestore';
+import { doc, query, orderBy, limit, collection, serverTimestamp } from 'firebase/firestore';
 import { useCollection } from '@/firebase';
 import {
   useCall,
@@ -20,12 +20,13 @@ import FloatingReactions from '@/components/agora-test/FloatingReactions';
 import InStreamGamesPanel from '@/components/agora-test/InStreamGamesPanel';
 import StreamControls from '@/components/agora-test/StreamControls';
 import ChatPanel from '@/components/agora-test/ChatPanel';
-import type { Reaction, BroadcastData, Comment } from '@/lib/types';
+import type { Reaction, BroadcastData, Comment, GiphyResult } from '@/lib/types';
 import { useGameFlow } from '@/hooks/useGameFlow';
 import { useChallengeCard } from '@/hooks/useChallengeCard';
 import { useStreamControls } from '@/hooks/useStreamControls';
 import GameFlowManager from './GameFlowManager';
 import ChallengeCardManager from './ChallengeCardManager';
+import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 
 export default function AgoraTestPageUI() {
@@ -33,6 +34,8 @@ export default function AgoraTestPageUI() {
   const broadcastId = searchParams.get('id');
   const firestore = useFirestore();
   const call = useCall();
+  const { user } = useUser();
+  const { userDocument } = useUserDocument();
   
   const [reactions, setReactions] = useState<Reaction[]>([]);
   const [isGamePanelOpen, setIsGamePanelOpen] = useState(false);
@@ -94,6 +97,36 @@ export default function AgoraTestPageUI() {
         setReactions(prev => prev.filter(r => r.id !== newReaction.id));
     }, 5000);
   }
+
+  const handleSendMessage = (message: string, attachment: GiphyResult | null) => {
+    if ((message.trim() === '' && !attachment) || !user || !broadcastId || !userDocument) return;
+    
+    let newComment: any = {
+      userId: user.uid,
+      username: userDocument.username || 'Anonymous',
+      userAvatar: userDocument.profilePicture || '',
+      message: message,
+      timestamp: serverTimestamp(),
+    };
+
+    if (attachment) {
+      newComment.attachment = {
+        type: 'giphy',
+        title: attachment.title,
+        imageUrl: attachment.images.original.url,
+        thumbUrl: attachment.images.fixed_width.url,
+      };
+    }
+    
+    const mentionMatch = message.match(/^@(\w+)\s/);
+    if (mentionMatch) {
+      newComment.replyingTo = mentionMatch[1];
+    }
+
+    const messagesCollectionRef = collection(firestore, 'broadcasts', broadcastId, 'messages');
+    addDocumentNonBlocking(messagesCollectionRef, newComment);
+  };
+
 
   if (isBroadcastLoading || !broadcastData) {
       return (
@@ -157,8 +190,6 @@ export default function AgoraTestPageUI() {
             viewerCount={viewerCount}
             onToggleChat={() => setIsChatVisible(prev => !prev)}
             isChatVisible={isChatVisible}
-            broadcastId={broadcastId}
-            onReaction={handleReaction}
         />
         
         <InStreamGamesPanel 
@@ -170,6 +201,8 @@ export default function AgoraTestPageUI() {
         <ChatPanel 
             comments={comments}
             isVisible={isChatVisible}
+            onSendMessage={handleSendMessage}
+            onReaction={handleReaction}
         />
     </div>
   );
