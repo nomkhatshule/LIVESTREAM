@@ -6,18 +6,23 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useUser, useUserDocument } from '@/firebase';
+import { useUser, useUserDocument, useFirestore } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { Video, Loader2, CameraOff } from 'lucide-react';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { v4 as uuidv4 } from 'uuid';
+import { StreamVideoClient } from '@stream-io/video-react-sdk';
 
 function CreateBroadcastPageComponent() {
   const router = useRouter();
   const { user, isUserLoading } = useUser();
-  const { isDocLoading } = useUserDocument();
+  const { userDocument, isDocLoading } = useUserDocument();
+  const firestore = useFirestore();
   const { toast } = useToast();
 
   const [title, setTitle] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('');
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
@@ -42,50 +47,99 @@ function CreateBroadcastPageComponent() {
       }
     };
     getCameraPermission();
-  }, [hasCameraPermission, toast]);
-
-  const handleGoLive = () => {
-    if (!hasCameraPermission) {
-        toast({
-            variant: 'destructive',
-            title: 'Camera Required',
-            description: 'Camera access is required to start a broadcast.',
-        });
-        return;
-    }
-    if (!title) {
-      toast({
-        variant: 'destructive',
-        title: 'Missing Information',
-        description: 'Please provide a title for your broadcast.',
-      });
-      return;
-    }
-    if (!user) {
-      toast({
-        variant: 'destructive',
-        title: 'Not Logged In',
-        description: 'You must be logged in to start a broadcast.',
-      });
-      router.push('/login');
-      return;
-    }
     
-    setIsSubmitting(true);
-    
-    // Stop camera stream before navigating
-    if (videoRef.current && videoRef.current.srcObject) {
+    // Clean up camera stream on unmount
+    return () => {
+       if (videoRef.current && videoRef.current.srcObject) {
         const stream = videoRef.current.srcObject as MediaStream;
         stream.getTracks().forEach(track => track.stop());
+      }
+    }
+  }, [hasCameraPermission, toast]);
+
+  const handleGoLive = async () => {
+    if (!title.trim()) {
+      toast({ variant: 'destructive', title: 'Missing Title', description: 'Please enter a title for your broadcast.' });
+      return;
+    }
+    if (!user || !userDocument) {
+      toast({ variant: 'destructive', title: 'Authentication Error', description: 'You must be logged in to start a stream.' });
+      return;
+    }
+     if (!hasCameraPermission) {
+      toast({ variant: 'destructive', title: 'Camera Required', description: 'Camera access is required to start a broadcast.' });
+      return;
     }
 
-    // Redirect to livenet with the title to initiate stream creation there
-    router.push(`/livenet?title=${encodeURIComponent(title)}`);
+    setIsSubmitting(true);
+
+    try {
+      // Step 1: Generate a unique ID for the new broadcast
+      const broadcastId = uuidv4();
+
+      // Step 2 (Server-Side): Get a token for the Stream client
+      setStatusMessage('Requesting stream token...');
+      const tokenResponse = await fetch('/api/stream/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.uid }),
+      });
+      if (!tokenResponse.ok) throw new Error('Failed to fetch stream token.');
+      const { token } = await tokenResponse.json();
+
+      // Step 3 (Client-Side): Initialize Stream client and create call object
+      setStatusMessage('Initializing video client...');
+      const apiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY;
+      if (!apiKey) throw new Error('Stream API Key is missing.');
+      
+      const client = new StreamVideoClient({ apiKey, user: { id: user.uid }, token });
+      
+      setStatusMessage('Creating live call...');
+      const call = client.call('livestream', broadcastId);
+      await call.getOrCreate({
+        data: { custom: { title, hostId: user.uid } },
+      });
+      
+      // Disconnect the temporary client, the livenet page will create its own
+      await client.disconnectUser();
+
+      // Step 4: Create the broadcast document in Firestore
+      setStatusMessage('Registering broadcast in database...');
+      const broadcastDocRef = doc(firestore, 'broadcasts', broadcastId);
+      await setDoc(broadcastDocRef, {
+        title: title,
+        hostId: user.uid,
+        hostName: userDocument.username,
+        hostAvatar: userDocument.profilePicture || '',
+        isLive: false, // Will be set to true by the livenet page upon joining
+        createdAt: serverTimestamp(),
+      });
+      
+      // Stop the local camera preview before navigating
+      if (videoRef.current && videoRef.current.srcObject) {
+        const stream = videoRef.current.srcObject as MediaStream;
+        stream.getTracks().forEach(track => track.stop());
+      }
+      
+      // Step 5: Redirect to the livenet page with the new broadcastId
+      setStatusMessage('Redirecting to studio...');
+      router.push(`/livenet?id=${broadcastId}`);
+
+    } catch (error: any) {
+      console.error('Go Live setup failed:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Stream Setup Failed',
+        description: error.message || 'An unknown error occurred. Please try again.',
+      });
+      setIsSubmitting(false);
+      setStatusMessage('');
+    }
   };
   
   const isLoading = isUserLoading || isDocLoading;
 
-  if (isLoading) {
+  if (isLoading && !isSubmitting) {
     return (
         <div className="flex h-screen w-full items-center justify-center bg-background">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -110,39 +164,45 @@ function CreateBroadcastPageComponent() {
         )}
 
         <div className="relative z-10 w-full max-w-md space-y-6 rounded-2xl bg-card/80 backdrop-blur-lg p-8 shadow-2xl">
-            <div className="text-center">
-            <h1 className="text-3xl font-bold font-headline text-foreground">Go Live</h1>
-            <p className="text-muted-foreground">
-                Set up the details for your new broadcast.
-            </p>
-            </div>
-            <div className="space-y-4">
-            <div className="grid w-full items-center gap-1.5">
-                <Label htmlFor="title" className="text-foreground">Broadcast Title</Label>
-                <Input
-                id="title"
-                type="text"
-                placeholder="e.g., My Awesome Live Stream"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="bg-background/80"
-                disabled={isSubmitting}
-                />
-            </div>
-            </div>
-            <Button
-            size="lg"
-            onClick={handleGoLive}
-            disabled={isSubmitting || !title || isLoading || hasCameraPermission === false}
-            className="w-full"
-            >
-            {isSubmitting ? (
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-            ) : (
-                <Video className="mr-2 h-5 w-5" />
-            )}
-            {isSubmitting ? 'Proceeding to Studio...' : 'Go Live Now'}
-            </Button>
+           {isSubmitting ? (
+              <div className="flex flex-col items-center justify-center text-center h-48">
+                  <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+                  <h1 className="text-2xl font-bold font-headline text-foreground">Setting Up Your Stream...</h1>
+                  <p className="text-muted-foreground mt-2">{statusMessage}</p>
+              </div>
+           ) : (
+            <>
+              <div className="text-center">
+                <h1 className="text-3xl font-bold font-headline text-foreground">Go Live</h1>
+                <p className="text-muted-foreground">
+                    Set up the details for your new broadcast.
+                </p>
+              </div>
+              <div className="space-y-4">
+                <div className="grid w-full items-center gap-1.5">
+                    <Label htmlFor="title" className="text-foreground">Broadcast Title</Label>
+                    <Input
+                    id="title"
+                    type="text"
+                    placeholder="e.g., My Awesome Live Stream"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    className="bg-background/80"
+                    disabled={isSubmitting}
+                    />
+                </div>
+              </div>
+              <Button
+                size="lg"
+                onClick={handleGoLive}
+                disabled={isSubmitting || !title || isLoading || hasCameraPermission === false}
+                className="w-full"
+              >
+                  <Video className="mr-2 h-5 w-5" />
+                  Go Live Now
+              </Button>
+             </>
+           )}
         </div>
     </div>
   );
@@ -161,5 +221,3 @@ export default function CreateBroadcastPage() {
         </Suspense>
     )
 }
-
-    
