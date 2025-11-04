@@ -40,12 +40,17 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
     const { userDocument } = useUserDocument();
     const firestore = useFirestore();
     const { toast } = useToast();
+    const [isPlaying, setIsPlaying] = useState(false);
 
     useEffect(() => {
         if (inView) {
             onVisible();
         }
-    }, [inView, onVisible]);
+        // If the item is no longer active (scrolled away), stop playing.
+        if (!isActive) {
+            setIsPlaying(false);
+        }
+    }, [inView, onVisible, isActive]);
 
     const [newMessage, setNewMessage] = useState('');
     const [isChatVisible, setIsChatVisible] = useState(true);
@@ -196,17 +201,25 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
         <div ref={ref} className="h-full w-full snap-start relative bg-black">
             
             <div className="absolute inset-0 z-0 bg-black">
-                {broadcast.thumbnailUrl && (
-                    <Image src={broadcast.thumbnailUrl} alt={broadcast.title} fill className="object-cover opacity-50" />
+              {isPlaying ? (
+                    <VideoPlayer broadcast={broadcast} isHost={false} />
+                ) : (
+                    <>
+                        {broadcast.thumbnailUrl && (
+                           <Image src={broadcast.thumbnailUrl} alt={broadcast.title} fill className="object-cover opacity-50" />
+                        )}
+                         <div
+                            className="absolute inset-0 z-10 bg-black/50 flex items-center justify-center group cursor-pointer"
+                            onClick={() => setIsPlaying(true)}
+                        >
+                            <div className="text-center text-white transition-transform group-hover:scale-110">
+                                <Play className="h-20 w-20 mx-auto text-white/80" />
+                                <p className="mt-2 text-lg font-semibold">Join Stream</p>
+                            </div>
+                        </div>
+                    </>
                 )}
             </div>
-
-            <Link href={`/broadcast/${broadcast.id}`} className="absolute inset-0 z-10 bg-black/50 flex items-center justify-center group cursor-pointer">
-                <div className="text-center text-white transition-transform group-hover:scale-110">
-                    <Play className="h-20 w-20 mx-auto text-white/80" />
-                    <p className="mt-2 text-lg font-semibold">Join Stream</p>
-                </div>
-            </Link>
             
             <div className="absolute inset-0 flex flex-col justify-between p-3 md:p-4 text-white z-40 pointer-events-none">
                  {isChallengeVisible && broadcast.activeChallenge && broadcast.activeChallengeType && (
