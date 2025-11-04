@@ -77,6 +77,7 @@ function LivenetSetupComponent() {
   const broadcastId = searchParams.get('id');
 
   useEffect(() => {
+    // Wait for user and doc loading to complete before doing anything
     if (status !== 'initializing' || isUserLoading || isDocLoading) {
       return;
     }
