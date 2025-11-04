@@ -8,6 +8,7 @@ import {
   StreamVideoClient,
   useCall,
   useCallStateHooks,
+  ParticipantView,
 } from '@stream-io/video-react-sdk';
 import { useUser } from '@/firebase';
 import type { BroadcastData } from '@/lib/types';
@@ -25,24 +26,22 @@ interface VideoPlayerProps {
 function HostVideoPlayer({ broadcast }: { broadcast: BroadcastData }) {
     const call = useCall();
     const { useParticipant, useScreenShareState, useCameraState } = useCallStateHooks();
-    const videoRef = useRef<HTMLVideoElement>(null);
-    const screenShareRef = useRef<HTMLVideoElement>(null);
-
+    
+    // Find the host participant from the call state
     const participant = call?.state.participants.find(p => p.userId === broadcast.hostId);
+    
+    // Get camera and screen share states for the host participant
     const { camera, isCameraEnabled } = useCameraState(participant);
     const { screenShareStream, isScreenSharing } = useScreenShareState(participant);
-    
-    useEffect(() => {
-        if (camera.stream && videoRef.current) {
-            videoRef.current.srcObject = camera.stream;
-        }
-    }, [camera.stream]);
 
+    // --- NEW LOGIC TO FIX BLANK SCREEN ---
+    // Explicitly enable the camera when the component mounts and the camera is available.
     useEffect(() => {
-        if (screenShareStream && screenShareRef.current) {
-            screenShareRef.current.srcObject = screenShareStream;
+        if (camera && !isCameraEnabled) {
+            camera.enable();
         }
-    }, [screenShareStream]);
+    }, [camera, isCameraEnabled]);
+    // --- END OF NEW LOGIC ---
 
     if (!participant) {
         return (
@@ -55,23 +54,14 @@ function HostVideoPlayer({ broadcast }: { broadcast: BroadcastData }) {
     
     return (
         <div className="absolute inset-0 w-full h-full bg-black">
-             <video 
-                ref={screenShareRef}
-                autoPlay
-                muted
-                playsInline
-                className={cn("w-full h-full object-contain", !isScreenSharing && "hidden")}
-             />
-             <video 
-                ref={videoRef}
-                autoPlay
-                muted
-                playsInline
-                className={cn(
-                    "w-full h-full object-cover",
-                    isScreenSharing && 'hidden'
-                )}
-             />
+            {/* 
+              This is the fully custom component. 
+              We pass the participant and override the default UI rendering `null`.
+              The video is handled by the SDK through the parent ParticipantView.
+            */}
+            <ParticipantView participant={participant} ParticipantViewUI={null} />
+
+             {/* Show an avatar as a fallback if the camera is off and not screen sharing */}
              {!isCameraEnabled && !isScreenSharing && (
                 <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-900 gap-4">
                      <Avatar className="h-24 w-24">
