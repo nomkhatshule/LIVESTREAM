@@ -135,7 +135,7 @@ function CreateBroadcastPageComponent() {
 
         await tempClient.disconnectUser();
         
-        router.push(`/agora-test?id=${broadcastId}`);
+        router.push('/livenet');
         
     } catch (error: any) {
         console.error("Error starting broadcast:", error);
