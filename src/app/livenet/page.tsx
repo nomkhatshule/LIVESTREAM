@@ -19,12 +19,14 @@ import { Loader2, VideoOff, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import AgoraTestPageUI from '@/components/agora-test/AgoraTestPageUI';
+import { useStudioInitializer } from '@/hooks/useStudioInitializer';
 
 // --- Wrapper Component for Initialization and Auth ---
 function AgoraTestWrapper() {
     const searchParams = useSearchParams();
     const broadcastId = searchParams.get('id');
     const { user, isUserLoading } = useUser();
+    const firestore = useFirestore();
     const { toast } = useToast();
     const router = useRouter();
 
@@ -81,6 +83,12 @@ function AgoraTestWrapper() {
                 
                 // Join and also create if it doesn't exist
                 await callInstance.join({ create: true });
+
+                // ***** THIS IS THE NEW LOGIC *****
+                // Set the broadcast as live in Firestore so it appears on the feed
+                const broadcastDocRef = doc(firestore, 'broadcasts', broadcastId);
+                await updateDoc(broadcastDocRef, { isLive: true });
+                // **********************************
                 
                 setCall(callInstance);
 
