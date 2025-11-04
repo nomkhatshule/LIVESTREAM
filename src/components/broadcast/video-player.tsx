@@ -29,7 +29,7 @@ function HostVideoPlayer({ broadcast }: { broadcast: BroadcastData }) {
     const participant = call?.state.participants.find(p => p.userId === broadcast.hostId);
     
     const isSpeaking = useIsSpeaking(participant);
-    const isCameraOn = participant?.isCameraEnabled;
+    const { isCameraEnabled } = useCameraState(participant);
 
     const { isScreenSharing } = useScreenShareState();
 
@@ -54,10 +54,10 @@ function HostVideoPlayer({ broadcast }: { broadcast: BroadcastData }) {
         <div className="absolute inset-0 w-full h-full bg-black">
             <ParticipantView 
                 participant={participant} 
-                className={cn(isSpeaking && 'ring-4 ring-primary rounded-lg', !isCameraOn && 'hidden')}
+                className={cn(isSpeaking && 'ring-4 ring-primary rounded-lg', !isCameraEnabled && 'hidden')}
                 ParticipantDetails={null}
             />
-             {!isCameraOn && (
+             {!isCameraEnabled && (
                 <div className="w-full h-full flex items-center justify-center bg-zinc-900">
                     <p className="text-white text-lg">Camera is off</p>
                 </div>
