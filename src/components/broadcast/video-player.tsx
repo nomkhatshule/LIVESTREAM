@@ -7,19 +7,53 @@ import {
   StreamVideo,
   StreamVideoClient,
   ParticipantView,
+  useCall,
+  useCallStateHooks,
 } from '@stream-io/video-react-sdk';
 import { useUser } from '@/firebase';
 import type { BroadcastData } from '@/lib/types';
 import { useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface VideoPlayerProps {
   broadcast: BroadcastData;
   isHost?: boolean;
 }
 
-export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerProps) {
+function HostVideoPlayer({ broadcast }: { broadcast: BroadcastData }) {
+    const call = useCall();
+    const { useIsSpeaking, useIsCameraOn, useScreenShareState } = useCallStateHooks();
+    const isSpeaking = useIsSpeaking(call?.microphone.participant?.sessionId);
+    const isCameraOn = useIsCameraOn(call?.camera.participant?.sessionId);
+    const { isScreenSharing } = useScreenShareState();
+
+    if (isScreenSharing) {
+        return (
+            <div className="absolute inset-0 w-full h-full bg-black">
+                <ParticipantView participant={broadcast.hostId} trackType='screenShareTrack' />
+            </div>
+        );
+    }
+
+    return (
+        <div className="absolute inset-0 w-full h-full bg-black">
+            <ParticipantView 
+                participant={broadcast.hostId} 
+                className={cn(isSpeaking && 'ring-4 ring-primary rounded-lg', !isCameraOn && 'hidden')}
+            />
+             {!isCameraOn && (
+                <div className="w-full h-full flex items-center justify-center bg-zinc-900">
+                    <p className="text-white text-lg">Camera is off</p>
+                </div>
+            )}
+        </div>
+    )
+}
+
+
+function ViewerVideoPlayer({ broadcast }: { broadcast: BroadcastData }) {
   const { user } = useUser();
   const [client, setClient] = useState<StreamVideoClient | null>(null);
   const [call, setCall] = useState<Call | null>(null);
@@ -60,10 +94,7 @@ export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerPr
         
         const callInstance = videoClient.call('livestream', broadcast.id);
         
-        // For viewers, we join. For hosts, join is handled in the studio page.
-        if (!isHost) {
-          await callInstance.join();
-        }
+        await callInstance.join();
 
         setCall(callInstance);
 
@@ -83,15 +114,14 @@ export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerPr
       if (call) {
         call.leave().catch(err => console.error("Failed to leave call on cleanup", err));
       }
-      if (client) {
-        client.disconnectUser().catch(err => console.error("Failed to disconnect user on cleanup", err));
+      if (videoClient) {
+        videoClient.disconnectUser().catch(err => console.error("Failed to disconnect user on cleanup", err));
       }
-      setClient(null);
-      setCall(null);
     };
-  }, [user, broadcast?.id, isHost, toast, client, call]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, broadcast?.id, toast]);
 
-  if (!broadcast || !client || !call) {
+  if (!client || !call) {
     return (
       <div className="absolute inset-0 flex items-center justify-center bg-black">
         <Loader2 className="h-8 w-8 animate-spin text-white" />
@@ -110,4 +140,11 @@ export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerPr
   );
 }
 
-    
+
+export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerProps) {
+    if (isHost) {
+        return <HostVideoPlayer broadcast={broadcast} />;
+    } else {
+        return <ViewerVideoPlayer broadcast={broadcast} />;
+    }
+}
