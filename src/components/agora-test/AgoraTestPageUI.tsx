@@ -36,6 +36,7 @@ export default function AgoraTestPageUI() {
   
   const [reactions, setReactions] = useState<Reaction[]>([]);
   const [isGamePanelOpen, setIsGamePanelOpen] = useState(false);
+  const [isChatVisible, setIsChatVisible] = useState(true);
 
   // Stream SDK Hooks
   const { useParticipants, useCallCallingState } = useCallStateHooks();
@@ -154,6 +155,10 @@ export default function AgoraTestPageUI() {
             isCallJoined={isCallJoined}
             onOpenGames={() => setIsGamePanelOpen(true)}
             viewerCount={viewerCount}
+            onToggleChat={() => setIsChatVisible(prev => !prev)}
+            isChatVisible={isChatVisible}
+            broadcastId={broadcastId}
+            onReaction={handleReaction}
         />
         
         <InStreamGamesPanel 
@@ -163,9 +168,8 @@ export default function AgoraTestPageUI() {
         />
 
         <ChatPanel 
-            broadcastId={broadcastId}
             comments={comments}
-            onReaction={handleReaction}
+            isVisible={isChatVisible}
         />
     </div>
   );
