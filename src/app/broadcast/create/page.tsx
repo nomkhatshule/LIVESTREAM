@@ -6,10 +6,9 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useUser, useFirestore, useUserDocument } from '@/firebase';
+import { useUser, useUserDocument } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { Video, Loader2, CameraOff } from 'lucide-react';
-
 
 function CreateBroadcastPageComponent() {
   const router = useRouter();
@@ -46,7 +45,7 @@ function CreateBroadcastPageComponent() {
   }, [hasCameraPermission, toast]);
 
   const handleGoLive = () => {
-     if (!hasCameraPermission) {
+    if (!hasCameraPermission) {
         toast({
             variant: 'destructive',
             title: 'Camera Required',
@@ -162,3 +161,5 @@ export default function CreateBroadcastPage() {
         </Suspense>
     )
 }
+
+    
