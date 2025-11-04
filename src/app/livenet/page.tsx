@@ -74,7 +74,7 @@ function LivenetSetupComponent() {
   const [call, setCall] = useState<Call | null>(null);
   const [client, setClient] = useState<StreamVideoClient | null>(null);
 
-  const title = searchParams.get('title');
+  const broadcastId = searchParams.get('id');
 
   useEffect(() => {
     if (status !== 'initializing' || isUserLoading || isDocLoading) {
@@ -87,17 +87,14 @@ function LivenetSetupComponent() {
       return;
     }
 
-    if (!title) {
-        toast({ variant: 'destructive', title: 'Error', description: 'No broadcast title provided.' });
+    if (!broadcastId) {
+        toast({ variant: 'destructive', title: 'Error', description: 'No broadcast ID provided.' });
         router.push('/broadcast/create');
         return;
     }
 
     const setupAndJoinStream = async () => {
       setStatus('setting_up');
-      setStatusMessage('Creating broadcast session...');
-
-      const broadcastId = uuidv4();
       const broadcastDocRef = doc(firestore, 'broadcasts', broadcastId);
 
       try {
@@ -122,25 +119,13 @@ function LivenetSetupComponent() {
         });
         setClient(streamClient);
 
-        setStatusMessage('Creating live call...');
+        setStatusMessage('Connecting to live call...');
         const streamCall = streamClient.call('livestream', broadcastId);
-        await streamCall.getOrCreate({
-          data: { custom: { title: title, hostId: user.uid } },
-        });
+        // The call object was already created, so we just get it
+        await streamCall.get();
         setCall(streamCall);
-
-        // Step 2: Create the Firestore document
-        setStatusMessage('Registering broadcast...');
-        await setDoc(broadcastDocRef, {
-            title: title,
-            hostId: user.uid,
-            hostName: userDocument.username,
-            hostAvatar: userDocument.profilePicture || '',
-            isLive: false, // Set to false initially
-            createdAt: serverTimestamp(),
-        });
         
-        // Step 3: Join the call and update status to live
+        // Step 2: Join the call and update status to live
         setStatus('connecting');
         setStatusMessage('Joining channel...');
         await streamCall.join();
@@ -214,5 +199,3 @@ export default function LivenetPage() {
         </Suspense>
     );
 }
-
-    
