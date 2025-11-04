@@ -99,7 +99,7 @@ export default function ChatPanel({
                         <ScrollArea className="h-full pr-4 pointer-events-auto">
                             <div className="flex flex-col gap-3">
                                 {comments && comments.map((comment: Comment) => (
-                                    <div key={comment.id} className="group flex items-start gap-3 text-sm text-white bg-black/20 p-2 rounded-lg max-w-xs sm:max-w-sm">
+                                    <div key={comment.id} className="group flex items-start gap-3 text-sm text-white p-2 rounded-lg max-w-xs sm:max-w-sm">
                                         <Avatar className="h-6 w-6 border-2 border-secondary">
                                             <AvatarImage src={comment.userAvatar} alt={comment.username} />
                                             <AvatarFallback>{comment.username.charAt(0)}</AvatarFallback>
