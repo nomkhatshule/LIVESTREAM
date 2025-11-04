@@ -18,177 +18,119 @@ import '@stream-io/video-react-sdk/dist/css/styles.css';
 import { Loader2, VideoOff, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import AgoraTestPageUI from '@/components/agora-test/AgoraTestPageUI';
 
-// The main UI for the live studio
-function LiveStudio({ call, onEndStream }: { call: Call; onEndStream: () => void }) {
-  const [isCameraEnabled, setIsCameraEnabled] = useState(true);
+// --- Wrapper Component for Initialization and Auth ---
+function AgoraTestWrapper() {
+    const searchParams = useSearchParams();
+    const broadcastId = searchParams.get('id');
+    const { user, isUserLoading } = useUser();
+    const { toast } = useToast();
+    const router = useRouter();
 
-  useEffect(() => {
-    // Enable camera automatically when the studio loads
-    call.camera.enable();
-    const cameraUpdateListener = () => {
-        setIsCameraEnabled(!call.camera.isMute);
-    };
-    call.camera.on('update', cameraUpdateListener);
+    const [client, setClient] = useState<StreamVideoClient | null>(null);
+    const [call, setCall] = useState<Call | null>(null);
     
-    return () => {
-        call.camera.off('update', cameraUpdateListener);
-    }
-  }, [call]);
-
-  return (
-    <div className="relative h-screen w-full bg-black text-white">
-      <div className="absolute inset-0 z-0">
-        <ParticipantView
-          participant={call.user}
-          className={cn(!isCameraEnabled && 'hidden')}
-        />
-        {!isCameraEnabled && (
-          <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-900">
-            <VideoOff className="h-16 w-16 text-zinc-500 mb-4" />
-            <p className="text-zinc-400">Your camera is off</p>
-          </div>
-        )}
-      </div>
-      <div className="absolute top-4 right-4 z-10">
-        <Button onClick={onEndStream} variant="destructive">
-            <X className="mr-2 h-4 w-4" />
-            End Stream
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-// The wrapper component that handles all setup and state logic
-function LivenetSetupComponent() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const { user, isUserLoading } = useUser();
-  const { userDocument, isDocLoading } = useUserDocument();
-  const firestore = useFirestore();
-  const { toast } = useToast();
-
-  const [status, setStatus] = useState<'initializing' | 'setting_up' | 'connecting' | 'live' | 'error'>('initializing');
-  const [statusMessage, setStatusMessage] = useState('Preparing your studio...');
-  const [call, setCall] = useState<Call | null>(null);
-  const [client, setClient] = useState<StreamVideoClient | null>(null);
-
-  const broadcastId = searchParams.get('id');
-
-  useEffect(() => {
-    // Wait for user and doc loading to complete before doing anything
-    if (status !== 'initializing' || isUserLoading || isDocLoading) {
-      return;
-    }
-
-    if (!user || !userDocument) {
-      toast({ variant: 'destructive', title: 'Authentication Error', description: 'You must be logged in.' });
-      router.push('/login');
-      return;
-    }
-
-    if (!broadcastId) {
-        toast({ variant: 'destructive', title: 'Error', description: 'No broadcast ID provided.' });
-        router.push('/broadcast/create');
-        return;
-    }
-
-    const setupAndJoinStream = async () => {
-      setStatus('setting_up');
-      const broadcastDocRef = doc(firestore, 'broadcasts', broadcastId);
-
-      try {
-        // Step 1: Create the Stream call object on their servers
-        const apiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY;
-        if (!apiKey) throw new Error('Stream API Key is missing.');
-        
-        setStatusMessage('Requesting stream token...');
-        const tokenResponse = await fetch('/api/stream/token', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: user.uid }),
-        });
-        if (!tokenResponse.ok) throw new Error('Failed to fetch stream token.');
-        const { token } = await tokenResponse.json();
-        
-        setStatusMessage('Initializing video client...');
-        const streamClient = new StreamVideoClient({
-            apiKey,
-            user: { id: user.uid, name: userDocument.username || 'Host' },
-            token,
-        });
-        setClient(streamClient);
-
-        setStatusMessage('Connecting to live call...');
-        const streamCall = streamClient.call('livestream', broadcastId);
-        // The call object was already created, so we just get it
-        await streamCall.get();
-        setCall(streamCall);
-        
-        // Step 2: Join the call and update status to live
-        setStatus('connecting');
-        setStatusMessage('Joining channel...');
-        await streamCall.join();
-        await updateDoc(broadcastDocRef, { isLive: true });
-
-        setStatus('live');
-        
-      } catch (error: any) {
-        setStatus('error');
-        setStatusMessage('Failed to start stream.');
-        console.error('Error setting up stream:', error);
-        toast({ variant: 'destructive', title: 'Stream Setup Failed', description: error.message });
-        router.push('/broadcast/create');
-      }
-    };
-
-    setupAndJoinStream();
-
-    // Cleanup function
-    return () => {
-        if (call) {
-            updateDoc(doc(firestore, 'broadcasts', call.id), { isLive: false, activeChallenge: null });
-            call.leave();
+    // Auth check
+    useEffect(() => {
+        if (!isUserLoading && !user) {
+            toast({
+                title: 'Authentication Required',
+                description: "You must be logged in to access the live studio.",
+                variant: 'destructive',
+            });
+            router.push('/login');
         }
-        if (client) {
-            client.disconnectUser();
-        }
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, isUserLoading, userDocument, isDocLoading, status]);
+    }, [user, isUserLoading, router, toast]);
 
-  const handleEndStream = async () => {
-    if (call) {
-        await updateDoc(doc(firestore, 'broadcasts', call.id), { isLive: false, activeChallenge: null });
-        await call.leave();
-    }
-    if (client) {
-        await client.disconnectUser();
-    }
-    router.push('/');
-  }
+    // Stream Client initialization
+    useEffect(() => {
+        if (!user || !broadcastId || client) return;
 
-  if (status !== 'live' || !client || !call) {
+        let videoClient: StreamVideoClient;
+        const apiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY || '';
+
+        const initStream = async () => {
+            if (!apiKey) {
+                toast({ variant: 'destructive', title: 'Stream API Key is missing.' });
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/stream/token', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ userId: user.uid }),
+                });
+                if (!response.ok) throw new Error('Failed to fetch stream token');
+                
+                const { token } = await response.json();
+                
+                videoClient = new StreamVideoClient({
+                    apiKey,
+                    user: {
+                        id: user.uid,
+                        name: user.displayName || 'Anonymous',
+                        image: user.photoURL || undefined,
+                    },
+                    token,
+                });
+
+                setClient(videoClient);
+                const callInstance = videoClient.call('livestream', broadcastId);
+                
+                // Join and also create if it doesn't exist
+                await callInstance.join({ create: true });
+                
+                setCall(callInstance);
+
+            } catch (error: any) {
+                console.error("Stream initialization failed:", error);
+                toast({ variant: 'destructive', title: 'Connection Failed', description: error.message || 'Could not connect to the broadcast.'});
+            }
+        };
+        
+        initStream();
+
+        return () => {
+            if (call) {
+                call.leave().catch(err => console.error("Failed to leave call on cleanup", err));
+            }
+            if (client) {
+                client.disconnectUser().catch(err => console.error("Failed to disconnect user on cleanup", err));
+            }
+        };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [broadcastId, user, client]);
+
+    if (isUserLoading || !broadcastId) {
+        return (
+            <div className="flex h-screen w-full items-center justify-center bg-background">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="ml-2">Loading your studio...</p>
+            </div>
+        );
+    }
+    
+    if (!client || !call) {
+         return (
+            <div className="flex h-screen w-full items-center justify-center bg-background">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="ml-2">Connecting to broadcast channel...</p>
+            </div>
+        );
+    }
+
     return (
-      <div className="flex h-screen w-full flex-col items-center justify-center bg-background space-y-4">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        <p className="text-lg text-muted-foreground">{statusMessage}</p>
-      </div>
-    );
-  }
-
-  return (
-    <StreamVideo client={client}>
-      <StreamCall call={call}>
-        <LiveStudio call={call} onEndStream={handleEndStream} />
-      </StreamCall>
-    </StreamVideo>
-  );
+        <StreamVideo client={client}>
+            <StreamCall call={call}>
+                <AgoraTestPageUI />
+            </StreamCall>
+        </StreamVideo>
+    )
 }
 
-
-// This is the default export for the page, wrapped in Suspense
+// --- Default Export with Suspense ---
 export default function LivenetPage() {
     return (
         <Suspense fallback={
@@ -196,7 +138,7 @@ export default function LivenetPage() {
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
         }>
-            <LivenetSetupComponent />
+            <AgoraTestWrapper />
         </Suspense>
-    );
+    )
 }
