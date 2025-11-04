@@ -39,7 +39,7 @@ export default function StreamControls({
     }
     
     return (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 md:gap-4 p-2 bg-black/40 rounded-full backdrop-blur-sm pointer-events-auto">
+        <div className="absolute top-1/2 right-4 -translate-y-1/2 z-30 flex flex-col items-center gap-4 p-2 bg-black/40 rounded-full backdrop-blur-sm pointer-events-auto">
             <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onToggleVideo}>
                 {isVideoEnabled ? <Video className="h-5 w-5 md:h-6 md:w-6"/> : <VideoOff className="h-5 w-5 md:h-6 md:w-6 text-red-500"/>}
             </Button>
