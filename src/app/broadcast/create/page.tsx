@@ -81,6 +81,8 @@ function CreateBroadcastPageComponent() {
       else if (!userDocument) router.push('/profile');
       return;
     }
+
+    // Enter submitting state
     setIsSubmitting(true);
     
     // Stop camera tracks before navigating
@@ -90,12 +92,12 @@ function CreateBroadcastPageComponent() {
     }
 
     try {
-        // 1. Generate a unique ID for the broadcast (which will also be the Stream call ID)
+        // 1. Generate a unique ID for the broadcast
         const broadcastId = uuidv4();
         const apiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY;
         if (!apiKey) throw new Error("Stream API Key is missing.");
 
-        // 2. Get a Stream token for the user
+        // Step A: Get a Stream token for the user
         const tokenResponse = await fetch('/api/stream/token', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -104,18 +106,25 @@ function CreateBroadcastPageComponent() {
         if (!tokenResponse.ok) throw new Error('Failed to fetch stream token');
         const { token } = await tokenResponse.json();
 
-        // 3. Initialize a temporary Stream client to create the call
+        // Step B: Initialize a temporary Stream client
         const tempClient = new StreamVideoClient({
             apiKey,
             user: { id: user.uid, name: userDocument.username || user.displayName || 'Host' },
             token,
         });
 
-        // 4. Create the call object on Stream's servers
+        // Step C: Create the call object on Stream's servers
         const call = tempClient.call('livestream', broadcastId);
-        await call.getOrCreate(); // This creates the call on the server
+        await call.getOrCreate({
+          data: {
+            custom: {
+              title: title,
+              hostId: user.uid,
+            }
+          }
+        });
         
-        // 5. Create the broadcast document in Firestore with the generated ID
+        // Step D: Create the broadcast document in Firestore
         const broadcastDocRef = doc(firestore, 'broadcasts', broadcastId);
         const broadcastData: any = {
           title: title,
@@ -128,17 +137,17 @@ function CreateBroadcastPageComponent() {
           hostId: user.uid,
           hostName: userDocument.username || user.displayName || 'Anonymous',
           hostAvatar: userDocument.profilePicture || user.photoURL || '',
-          isLive: false, // Set to false initially, will be set to true when host joins in the studio
+          isLive: false, // Set to false initially. The studio will set this to true.
           viewers: 0,
           createdAt: serverTimestamp(),
           tags: challengeParam ? ['Challenge', 'Games', 'Live'] : ['New', 'Live'],
         };
         await setDoc(broadcastDocRef, broadcastData);
 
-        // Disconnect the temporary client
+        // Disconnect the temporary client as its job is done
         await tempClient.disconnectUser();
         
-        // 6. Redirect to the live studio, which will join the now-existing Stream call
+        // Final Trigger: Route to studio only on full success
         router.push(`/agora-test?id=${broadcastId}`);
         
     } catch (error: any) {
@@ -148,6 +157,7 @@ function CreateBroadcastPageComponent() {
             title: 'Error Starting Stream',
             description: error.message || 'An unexpected error occurred. Please try again.',
         });
+        // On failure, reset the UI
         setIsSubmitting(false);
     }
   };
