@@ -158,16 +158,9 @@ html {
   position: relative;
 }
 
-/* Hide the participant name overlay in the main video view */
-.str-video__participant-details {
-    display: none;
-}
-
 /* Ensure Stream's video fills its container without distortion */
 .str-video__video {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
-
-    

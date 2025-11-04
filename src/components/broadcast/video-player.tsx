@@ -26,10 +26,8 @@ function HostVideoPlayer({ broadcast }: { broadcast: BroadcastData }) {
     const call = useCall();
     const { useCameraState, useScreenShareState } = useCallStateHooks();
     
-    // Correctly get the participant from the call state
     const participant = call?.state.participants.find(p => p.userId === broadcast.hostId);
     
-    // Correctly use the hooks by getting the state values from useCallStateHooks
     const { isSpeaking } = useCallStateHooks(call, participant);
     const isCameraOn = participant?.isCameraEnabled;
 
