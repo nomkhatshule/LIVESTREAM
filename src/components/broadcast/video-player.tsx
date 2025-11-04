@@ -35,10 +35,19 @@ function HostVideoPlayer({ broadcast }: { broadcast: BroadcastData }) {
 
     const { isScreenSharing } = useScreenShareState();
 
+    if (!participant) {
+        return (
+            <div className="absolute inset-0 w-full h-full bg-black flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-white" />
+                <p className="ml-2 text-white">Waiting for host to connect...</p>
+            </div>
+        );
+    }
+
     if (isScreenSharing) {
         return (
             <div className="absolute inset-0 w-full h-full bg-black">
-                <ParticipantView participant={broadcast.hostId} trackType='screenShareTrack' />
+                <ParticipantView participant={participant} trackType='screenShareTrack' />
             </div>
         );
     }
@@ -46,7 +55,7 @@ function HostVideoPlayer({ broadcast }: { broadcast: BroadcastData }) {
     return (
         <div className="absolute inset-0 w-full h-full bg-black">
             <ParticipantView 
-                participant={broadcast.hostId} 
+                participant={participant} 
                 className={cn(isSpeaking && 'ring-4 ring-primary rounded-lg', !isCameraOn && 'hidden')}
             />
              {!isCameraOn && (
