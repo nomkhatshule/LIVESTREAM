@@ -154,10 +154,43 @@ function ViewerVideoPlayer({ broadcast }: { broadcast: BroadcastData }) {
   return (
     <StreamVideo client={client}>
       <StreamCall call={call}>
-        <HostVideoPlayer broadcast={broadcast} />
+        <ViewerStreamContent broadcast={broadcast} />
       </StreamCall>
     </StreamVideo>
   );
+}
+
+
+function ViewerStreamContent({ broadcast }: { broadcast: BroadcastData }) {
+  const { useParticipants } = useCallStateHooks();
+  const participants = useParticipants();
+  const hostParticipant = participants.find(p => p.userId === broadcast.hostId);
+
+  if (!hostParticipant) {
+    return (
+      <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-900 gap-4">
+        <Loader2 className="h-8 w-8 animate-spin text-white" />
+        <p className="text-white text-lg">Waiting for host...</p>
+      </div>
+    );
+  }
+  
+  const { isCameraEnabled } = useCallStateHooks().useCameraState(hostParticipant);
+
+  return (
+      <div className="w-full h-full relative">
+          <ParticipantView participant={hostParticipant} ParticipantViewUI={null} />
+          {!isCameraEnabled && (
+             <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center bg-zinc-900 gap-4">
+                 <Avatar className="h-24 w-24">
+                    <AvatarImage src={broadcast.hostAvatar} />
+                    <AvatarFallback>{broadcast.hostName?.charAt(0) || 'H'}</AvatarFallback>
+                </Avatar>
+                <p className="text-white text-lg">Host's camera is off</p>
+            </div>
+          )}
+      </div>
+  )
 }
 
 export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerProps) {

@@ -201,7 +201,7 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
         <div ref={ref} className="h-full w-full snap-start relative bg-black">
             
             <div className="absolute inset-0 z-0 bg-black">
-              {isPlaying ? (
+              {isPlaying && isActive ? (
                     <VideoPlayer broadcast={broadcast} isHost={false} />
                 ) : (
                     <>
@@ -570,5 +570,3 @@ export default function HomePage() {
         </Suspense>
     )
 }
-
-    
