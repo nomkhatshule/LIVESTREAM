@@ -290,7 +290,7 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
 
                 {/* Bottom Chat Area */}
                  {isChatVisible && (
-                    <div className="bg-gradient-to-t from-black/70 to-transparent -m-3 md:-m-4 p-3 md:p-4 pt-12 flex flex-col justify-end">
+                    <div className="p-3 md:p-4 pt-12 flex flex-col justify-end">
                         <div className="w-full sm:max-w-sm md:max-w-md self-start flex-grow flex flex-col justify-end">
                             <div className="h-80 w-full pointer-events-auto">
                                 <ScrollArea className="h-full pr-2">

@@ -235,21 +235,21 @@ export default function BroadcastPage() {
           </div>
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 p-4 pb-8 bg-gradient-to-t from-black/70 to-transparent text-white pointer-events-none">
+      <div className="absolute bottom-0 left-0 right-0 p-4 pb-8 pointer-events-none">
         <div className="flex items-end justify-between gap-4">
           <div className="flex-1 w-full max-w-md">
             {isChatVisible && (
               <div className="pointer-events-auto">
-                <div className="h-80 w-full rounded-xl bg-black/40 p-3 backdrop-blur-sm">
+                <div className="h-80 w-full">
                   <ScrollArea className="h-full pr-2">
                     <div className="flex flex-col-reverse gap-y-1">
                         {comments && comments.map((comment) => (
-                        <div key={comment.id} className="group flex items-start gap-2 text-sm py-1.5 border-b border-white/10">
+                        <div key={comment.id} className="group flex items-start gap-2 text-sm py-1.5 text-white">
                             <Avatar className="h-6 w-6 border-secondary">
                             <AvatarImage src={comment.userAvatar} alt={comment.username} />
                             <AvatarFallback>{comment.username.charAt(0)}</AvatarFallback>
                             </Avatar>
-                            <div className="flex-1">
+                            <div className="flex-1 bg-black/20 p-2 rounded-lg">
                               <Link href={`/profile/${comment.userId}`} className="pointer-events-auto">
                                 <span className="font-bold font-headline text-primary mr-1.5 hover:underline">{comment.username}:</span>
                               </Link>
