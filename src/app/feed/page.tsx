@@ -3,11 +3,12 @@
 'use client';
 
 import { Suspense, useEffect, useState, useMemo, useRef } from 'react';
-import { useUser, useFirestore, useMemoFirebase, useUserDocument } from '@/firebase';
+import { useUser, useFirestore, useMemoFirebase, useUserDocument, useStorage } from '@/firebase';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { collection, query, where, writeBatch, doc, orderBy, serverTimestamp } from 'firebase/firestore';
+import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import type { Broadcast, ChatMessage } from '@/lib/data';
-import { Clapperboard, Loader2, Mail, ChevronDownCircle, MessageCircleHeart, Film, Heart, MessageSquareMore, Gift, Search, Swords, Users, CornerUpLeft, ArrowUp, Play, X } from 'lucide-react';
+import { Clapperboard, Loader2, Mail, ChevronDownCircle, MessageCircleHeart, Film, Heart, MessageSquareMore, Gift, Search, Swords, Users, CornerUpLeft, ArrowUp, Play, X, Paperclip } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useStreamStore } from '@/lib/stream-store';
 import { Button } from '@/components/ui/button';
@@ -40,6 +41,7 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
     const { user } = useUser();
     const { userDocument } = useUserDocument();
     const firestore = useFirestore();
+    const storage = useStorage();
     const { toast } = useToast();
     const [isPlaying, setIsPlaying] = useState(false);
 
@@ -47,7 +49,6 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
         if (inView) {
             onVisible();
         }
-        // If the item is no longer active (scrolled away), stop playing.
         if (!isActive) {
             setIsPlaying(false);
         }
@@ -56,9 +57,12 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
     const [newMessage, setNewMessage] = useState('');
     const [isChatVisible, setIsChatVisible] = useState(true);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const [isChallengeVisible, setIsChallengeVisible] = useState(false);
     const [isGifPickerOpen, setIsGifPickerOpen] = useState(false);
     const [selectedGif, setSelectedGif] = useState<GiphyResult | null>(null);
+    const [isSending, setIsSending] = useState(false);
+    const [imageAttachment, setImageAttachment] = useState<{ file: File, url: string } | null>(null);
 
     const messagesQuery = useMemoFirebase(() => {
         if (!broadcast.id || !firestore) return null;
@@ -91,37 +95,63 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
         return likes.some(like => like.id === user.uid);
     }, [user, likes]);
 
-    const handleSendMessage = (e: React.FormEvent) => {
+    const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
-        if ((!newMessage.trim() && !selectedGif) || !user || !userDocument) return;
+        if ((!newMessage.trim() && !selectedGif && !imageAttachment) || !user || !userDocument) return;
     
-        const messagesCollectionRef = collection(firestore, 'broadcasts', broadcast.id, 'messages');
-        
-        let newComment: Omit<ChatMessage, 'id' | 'timestamp'> & { timestamp: any; replyingTo?: string } = {
-            userId: user.uid,
-            username: userDocument.username || "Anonymous",
-            userAvatar: userDocument.profilePicture || '',
-            message: newMessage,
-            timestamp: serverTimestamp(),
-        };
+        setIsSending(true);
+        let messageAttachment: ChatMessage['attachment'] | null = null;
     
-        if (selectedGif) {
-            (newComment as ChatMessage).attachment = {
-                type: 'giphy',
-                title: selectedGif.title,
-                imageUrl: selectedGif.images.original.url,
-                thumbUrl: selectedGif.images.fixed_width.url,
+        try {
+            if (imageAttachment) {
+                const imageFile = imageAttachment.file;
+                const filePath = `chat_images/${broadcast.id}/${Date.now()}-${imageFile.name}`;
+                const fileRef = storageRef(storage, filePath);
+                await uploadBytes(fileRef, imageFile);
+                const downloadURL = await getDownloadURL(fileRef);
+                messageAttachment = {
+                    type: 'image',
+                    imageUrl: downloadURL,
+                };
+            } else if (selectedGif) {
+                messageAttachment = {
+                    type: 'giphy',
+                    title: selectedGif.title,
+                    imageUrl: selectedGif.images.original.url,
+                    thumbUrl: selectedGif.images.fixed_width.url,
+                };
+            }
+    
+            let newComment: Partial<ChatMessage> & { timestamp: any } = {
+                userId: user.uid,
+                username: userDocument.username || "Anonymous",
+                userAvatar: userDocument.profilePicture || '',
+                message: newMessage,
+                timestamp: serverTimestamp(),
             };
-        }
-        
-        const mentionMatch = newMessage.match(/^@(\w+)\s/);
-        if (mentionMatch && mentionMatch[1]) {
-            newComment.replyingTo = mentionMatch[1];
-        }
     
-        addDocumentNonBlocking(messagesCollectionRef, newComment);
-        setNewMessage('');
-        setSelectedGif(null);
+            if (messageAttachment) {
+                newComment.attachment = messageAttachment;
+            }
+            
+            const mentionMatch = newMessage.match(/^@(\w+)\s/);
+            if (mentionMatch && mentionMatch[1]) {
+                newComment.replyingTo = mentionMatch[1];
+            }
+    
+            const messagesCollectionRef = collection(firestore, 'broadcasts', broadcast.id, 'messages');
+            addDocumentNonBlocking(messagesCollectionRef, newComment);
+    
+            setNewMessage('');
+            setSelectedGif(null);
+            setImageAttachment(null);
+    
+        } catch (error) {
+            console.error("Error sending message:", error);
+            toast({ title: "Error", description: "Could not send message.", variant: "destructive" });
+        } finally {
+            setIsSending(false);
+        }
     };
     
     const handleLike = () => {
@@ -194,7 +224,24 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
     const handleGifSelect = (gif: GiphyResult) => {
         setSelectedGif(gif);
         setIsGifPickerOpen(false);
+        setImageAttachment(null);
     }
+
+    const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            if (file.size > 2 * 1024 * 1024) { // 2MB limit
+                toast({ title: "File too large", description: "Please select an image under 2MB.", variant: "destructive" });
+                return;
+            }
+            if (!file.type.startsWith('image/')) {
+                toast({ title: "Invalid file type", description: "Please select an image file.", variant: "destructive" });
+                return;
+            }
+            setImageAttachment({ file, url: URL.createObjectURL(file) });
+            setSelectedGif(null);
+        }
+    };
     
     const handleGiftClick = () => {
         toast({
@@ -330,9 +377,9 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
                                                     </Link>
                                                     {comment.replyingTo && <Link href={`/profile/${comment.replyingTo}`} className="text-accent font-semibold mr-1.5 hover:underline pointer-events-auto text-xs">@{comment.replyingTo}</Link>}
                                                     
-                                                    {comment.attachment?.type === 'giphy' ? (
+                                                    {comment.attachment?.type === 'giphy' || comment.attachment?.type === 'image' ? (
                                                         <div className='mt-1'>
-                                                            <Image src={comment.attachment.imageUrl} width={150} height={100} alt={comment.attachment.title || 'gif'} className="rounded-md" />
+                                                            <Image src={comment.attachment.imageUrl} width={150} height={100} alt={comment.attachment.title || 'attachment'} className="rounded-md" />
                                                             {comment.message && <p className="break-words mt-1 text-sm">{comment.message.replace(/^@\w+\s/, '')}</p>}
                                                         </div>
                                                     ) : (
@@ -349,12 +396,13 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
                             </div>
                             <div className="pb-4">
                                 <form onSubmit={handleSendMessage} className="relative flex w-full pointer-events-auto items-center gap-2 mt-2">
+                                     <input type="file" ref={fileInputRef} onChange={handleFileSelect} className="hidden" accept="image/png, image/jpeg, image/gif" />
                                     <div className="relative flex-1 bg-black/50 border border-white/20 rounded-2xl overflow-hidden flex flex-col">
-                                        {selectedGif && (
+                                        {(selectedGif || imageAttachment) && (
                                             <div className='p-2'>
                                                 <div className="relative w-32 h-24">
-                                                    <Image src={selectedGif.images.fixed_width.url} alt={selectedGif.title} fill className="object-cover rounded-md" />
-                                                    <Button variant="destructive" size="icon" className="absolute -top-2 -right-2 h-6 w-6 rounded-full" onClick={() => setSelectedGif(null)}>
+                                                    <Image src={imageAttachment?.url || selectedGif?.images.fixed_width.url || ''} alt={imageAttachment?.file.name || selectedGif?.title || ''} fill className="object-cover rounded-md" />
+                                                    <Button variant="destructive" size="icon" className="absolute -top-2 -right-2 h-6 w-6 rounded-full" onClick={() => { setSelectedGif(null); setImageAttachment(null); }}>
                                                         <X className="h-4 w-4" />
                                                     </Button>
                                                 </div>
@@ -374,14 +422,18 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
                                                     }
                                                 }}
                                                 className={cn(
-                                                    "bg-transparent border-none placeholder:text-gray-400 w-full min-h-[40px] h-10 resize-none py-2 pr-20 pl-4 focus-visible:ring-0",
-                                                    selectedGif ? "rounded-b-2xl rounded-t-none" : "rounded-2xl"
+                                                    "bg-transparent border-none placeholder:text-gray-400 w-full min-h-[40px] h-10 resize-none py-2 pr-24 pl-4 focus-visible:ring-0",
+                                                    (selectedGif || imageAttachment) ? "rounded-b-2xl rounded-t-none" : "rounded-2xl"
                                                 )}
+                                                disabled={isSending}
                                             />
                                             <div className="absolute bottom-1 right-1 flex items-center">
+                                                <Button size="icon" type="button" variant="ghost" className="rounded-full h-9 w-9 text-white" onClick={() => fileInputRef.current?.click()} disabled={isSending}>
+                                                    <Paperclip className="h-5 w-5" />
+                                                </Button>
                                                 <Popover open={isGifPickerOpen} onOpenChange={setIsGifPickerOpen}>
                                                     <PopoverTrigger asChild>
-                                                        <Button size="icon" type="button" variant="ghost" className="rounded-full h-9 w-9 text-white">
+                                                        <Button size="icon" type="button" variant="ghost" className="rounded-full h-9 w-9 text-white" disabled={isSending}>
                                                             <b className="text-xs">GIF</b>
                                                         </Button>
                                                     </PopoverTrigger>
@@ -389,8 +441,8 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
                                                     <GifPicker onSendGif={handleGifSelect} />
                                                     </PopoverContent>
                                                 </Popover>
-                                                <Button variant="ghost" size="icon" type="submit" className="text-white hover:bg-transparent hover:text-white h-9 w-9">
-                                                    <ArrowUp className="h-5 w-5" />
+                                                <Button variant="ghost" size="icon" type="submit" className="text-white hover:bg-transparent hover:text-white h-9 w-9" disabled={isSending}>
+                                                    {isSending ? <Loader2 className="h-5 w-5 animate-spin" /> : <ArrowUp className="h-5 w-5" />}
                                                 </Button>
                                             </div>
                                         </div>

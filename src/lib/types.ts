@@ -11,10 +11,10 @@ export interface Comment {
   timestamp: any;
   replyingTo?: string;
   attachment?: {
-    type: 'giphy';
-    title: string;
+    type: 'giphy' | 'image';
+    title?: string;
     imageUrl: string;
-    thumbUrl: string;
+    thumbUrl?: string;
   }
 }
 
