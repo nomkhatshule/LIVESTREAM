@@ -10,11 +10,6 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { tavily } from '@tavily/core';
-
-const tavilyClient = tavily({
-    apiKey: process.env.TAVILY_API_KEY,
-});
 
 
 const AskAssistantInputSchema = z.object({
@@ -24,7 +19,7 @@ const AskAssistantInputSchema = z.object({
     .describe(
       'A summary of the current broadcast including title, category, and host.'
     ),
-  useWebSearch: z.boolean().optional().describe('Whether to use the web search tool for the query.'),
+  useWebSearch: z.boolean().optional().describe('Whether to use the web search tool for the query. This is now deprecated and handled by a separate flow.'),
 });
 export type AskAssistantInput = z.infer<typeof AskAssistantInputSchema>;
 
@@ -39,25 +34,6 @@ export async function askAssistant(input: AskAssistantInput): Promise<AskAssista
     return askAssistantFlow(input);
 }
 
-const webSearch = ai.defineTool(
-    {
-        name: 'webSearch',
-        description: 'Performs a web search to find real-time or up-to-date information.',
-        inputSchema: z.object({ query: z.string() }),
-        outputSchema: z.string(),
-    },
-    async (input) => {
-        try {
-            const response = await tavilyClient.search(input.query, { searchDepth: "advanced" });
-            const context = response.results.map((result: any) => result.content).join('\n');
-            return JSON.stringify(context);
-        } catch (error) {
-            console.error("Tavily search failed:", error);
-            return "Web search failed. Please try again later.";
-        }
-    }
-);
-
 
 const prompt = ai.definePrompt({
   name: 'askAssistantPrompt',
@@ -67,14 +43,13 @@ const prompt = ai.definePrompt({
 
 Your entire public response must adhere to the following rules.
 
-- **For all tools or no tools:** Your response should be a standard conversational reply.
-    - **Driven Opener:** Your response MUST begin with a charismatic, engaging opener.
+- **Driven Opener:** Your response MUST begin with a charismatic, engaging opener.
 - **Structure and Clarity:** Use Markdown for structure. Headings, bold text, and lists are essential for readability.
 - **Bulleted Sentences:** For detailed explanations, transform long paragraphs into a list of bullet points. Each bullet point should be a complete sentence.
 - **Tables for Tabular Data:** When presenting data in rows and columns, you MUST use Markdown table syntax.
 - **Visual Separators:** Use a Markdown horizontal rule ("---") to visually separate distinct topics or sections within your answer.
 - **Concluding Thought & Engagement:** End your answer with a concluding thought that summarizes the key takeaway. Follow this with one or two engaging follow-up questions to encourage further interaction.
-- **Tool Usage:** If the user's question requires up-to-date information, breaking news, or knowledge beyond your training data, you MUST use the webSearch tool to find the answer.
+- **IMPORTANT**: You do NOT have access to web search. Do not offer to search the web. If a question requires real-time information, state that you cannot access live data.
 
 Here is the context for the current stream: {{{broadcastContext}}}.
 
@@ -97,7 +72,7 @@ const askAssistantFlow = ai.defineFlow(
     const {output} = await ai.generate({
         model: 'googleai/gemini-2.5-flash',
         prompt: `The user's question is: ${input.query}. Context: ${input.broadcastContext}`,
-        tools: input.useWebSearch ? [webSearch] : [],
+        tools: [], // Explicitly disable tools for this flow
         output: { schema: AskAssistantOutputSchema },
     });
     
