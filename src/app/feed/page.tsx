@@ -362,16 +362,16 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
                         <div className="w-full sm:max-w-sm md:max-w-md self-start flex-grow flex flex-col justify-end">
                             <div className="h-80 w-full pointer-events-auto">
                                 <ScrollArea className="h-full pr-2">
-                                    <div className="flex flex-col-reverse gap-3">
+                                    <div className="flex flex-col-reverse">
                                         {reversedComments.map((comment) => (
-                                            <div key={comment.id} className="group flex items-start gap-2 text-sm text-white">
+                                            <div key={comment.id} className="group flex items-start gap-2 text-sm text-white pb-1">
                                                 <Link href={`/profile/${comment.userId}`} className="pointer-events-auto flex-shrink-0">
                                                     <Avatar className="h-6 w-6 border-2 border-secondary">
                                                         <AvatarImage src={comment.userAvatar} alt={comment.username} />
                                                         <AvatarFallback>{comment.username.charAt(0)}</AvatarFallback>
                                                     </Avatar>
                                                 </Link>
-                                                <div className="flex-1 bg-black/20 p-2 rounded-lg">
+                                                <div className="flex-1">
                                                     <Link href={`/profile/${comment.userId}`} className="pointer-events-auto">
                                                         <span className="font-bold font-headline text-primary mr-1.5 hover:underline text-xs">{comment.username}</span>
                                                     </Link>

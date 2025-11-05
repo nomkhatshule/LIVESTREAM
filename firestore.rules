@@ -14,9 +14,8 @@ service cloud.firestore {
       }
       match /followers/{followerUserId} {
         allow read: if true;
-        // Followers list is managed by the actions of other users, so owner of this doc should not have write access.
-        // Writes are handled by the 'following' rule on the other user's doc.
-        allow write: if false; 
+        // Allow users to add/remove themselves from other users' followers list.
+        allow write: if request.auth.uid == followerUserId;
       }
 
       // Statuses can be read by anyone, but only the user who owns them can write.

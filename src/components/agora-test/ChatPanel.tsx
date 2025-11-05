@@ -61,14 +61,14 @@ export default function ChatPanel({
         <div className="absolute bottom-0 left-0 p-4 w-full md:w-96 flex flex-col justify-end max-h-[50%] pointer-events-none">
             <div className="h-80 relative pointer-events-auto">
                 <ScrollArea className="h-full pr-4">
-                    <div className="flex flex-col gap-3">
+                    <div className="flex flex-col">
                         {comments && comments.map((comment: Comment) => (
-                            <div key={comment.id} className="group flex items-start gap-3 text-sm text-white p-2 rounded-lg">
+                            <div key={comment.id} className="group flex items-start gap-3 text-sm text-white p-2 rounded-lg pb-1">
                                 <Avatar className="h-6 w-6 border-2 border-secondary">
                                     <AvatarImage src={comment.userAvatar} alt={comment.username} />
                                     <AvatarFallback>{comment.username.charAt(0)}</AvatarFallback>
                                 </Avatar>
-                                <div className="flex-1 bg-black/20 p-2 rounded-lg">
+                                <div className="flex-1">
                                     <span className="font-bold font-headline text-primary mr-1.5">{comment.username}:</span>
                                     {comment.replyingTo && <span className="font-semibold text-accent mr-1.5">@{comment.replyingTo}</span>}
                                     {comment.attachment?.type === 'giphy' ? (

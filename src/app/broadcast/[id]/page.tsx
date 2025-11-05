@@ -242,14 +242,14 @@ export default function BroadcastPage() {
               <div className="pointer-events-auto">
                 <div className="h-80 w-full">
                   <ScrollArea className="h-full pr-2">
-                    <div className="flex flex-col-reverse gap-y-1">
+                    <div className="flex flex-col-reverse">
                         {comments && comments.map((comment) => (
-                        <div key={comment.id} className="group flex items-start gap-2 text-sm py-1.5 text-white">
+                        <div key={comment.id} className="group flex items-start gap-2 text-sm text-white pb-1">
                             <Avatar className="h-6 w-6 border-secondary">
                             <AvatarImage src={comment.userAvatar} alt={comment.username} />
                             <AvatarFallback>{comment.username.charAt(0)}</AvatarFallback>
                             </Avatar>
-                            <div className="flex-1 bg-black/20 p-2 rounded-lg">
+                            <div className="flex-1">
                               <Link href={`/profile/${comment.userId}`} className="pointer-events-auto">
                                 <span className="font-bold font-headline text-primary mr-1.5 hover:underline">{comment.username}:</span>
                               </Link>
