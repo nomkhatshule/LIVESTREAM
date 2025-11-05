@@ -33,7 +33,7 @@ import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover
 import GifPicker from '@/components/inbox/GifPicker';
 import Image from 'next/image';
 import VideoPlayer from '@/components/broadcast/video-player';
-import { Separator } from '../ui/separator';
+import { Separator } from '@/components/ui/separator';
 
 function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broadcast, onVisible: () => void, isActive: boolean }) {
     const { ref, inView } = useInView({ threshold: 0.7 });
@@ -94,17 +94,17 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
     const handleSendMessage = (e: React.FormEvent) => {
         e.preventDefault();
         if ((!newMessage.trim() && !selectedGif) || !user || !userDocument) return;
-
+    
         const messagesCollectionRef = collection(firestore, 'broadcasts', broadcast.id, 'messages');
         
-        let newComment: Omit<ChatMessage, 'id' | 'timestamp'> & { timestamp: any } = {
+        let newComment: Omit<ChatMessage, 'id' | 'timestamp'> & { timestamp: any; replyingTo?: string } = {
             userId: user.uid,
             username: userDocument.username || "Anonymous",
             userAvatar: userDocument.profilePicture || '',
             message: newMessage,
             timestamp: serverTimestamp(),
         };
-
+    
         if (selectedGif) {
             (newComment as ChatMessage).attachment = {
                 type: 'giphy',
@@ -116,9 +116,9 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
         
         const mentionMatch = newMessage.match(/^@(\w+)\s/);
         if (mentionMatch && mentionMatch[1]) {
-            (newComment as ChatMessage).replyingTo = mentionMatch[1];
+            newComment.replyingTo = mentionMatch[1];
         }
-
+    
         addDocumentNonBlocking(messagesCollectionRef, newComment);
         setNewMessage('');
         setSelectedGif(null);
@@ -375,7 +375,7 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
                                                 }}
                                                 className={cn(
                                                     "bg-transparent border-none placeholder:text-gray-400 w-full min-h-[40px] h-10 resize-none py-2 pr-20 pl-4 focus-visible:ring-0",
-                                                    selectedGif ? "rounded-b-2xl" : "rounded-2xl"
+                                                    selectedGif ? "rounded-b-2xl rounded-t-none" : "rounded-2xl"
                                                 )}
                                             />
                                             <div className="absolute bottom-1 right-1 flex items-center">
