@@ -78,7 +78,7 @@ export default function ChatPanel({
         <div className="absolute bottom-0 left-0 p-4 w-full md:w-96 flex flex-col justify-end max-h-[50%] pointer-events-none">
             <div className="h-80 relative pointer-events-auto">
                 <ScrollArea className="h-full pr-4">
-                    <div className="flex flex-col">
+                    <div className="flex flex-col-reverse">
                         {comments && comments.map((comment: Comment) => (
                             <div key={comment.id} className="group flex items-start text-sm text-white pb-1">
                                 <Avatar className="h-6 w-6 border-2 border-secondary flex-shrink-0 mt-1">
@@ -107,7 +107,7 @@ export default function ChatPanel({
                     </div>
                 </ScrollArea>
             </div>
-             <div className="pt-2 pb-[72px] pointer-events-auto">
+             <div className="pt-2 pb-20 pointer-events-auto">
                 <form onSubmit={handleFormSubmit} className="relative flex w-full items-center gap-2">
                     <div className="relative flex-1 bg-black/50 border border-white/20 rounded-2xl overflow-hidden flex flex-col">
                         {(selectedGif || imageAttachment) && (
