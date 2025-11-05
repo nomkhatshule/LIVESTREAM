@@ -19,7 +19,6 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { askAssistant } from '@/ai/flows/in-stream-assistant';
-import { webSearch, WebSearchOutput } from '@/ai/flows/web-search-flow';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import Link from 'next/link';
@@ -36,14 +35,8 @@ type UserMessage = {
   timestamp: string;
 };
 
-type SearchResultMessage = {
-    sender: 'search';
-    results: WebSearchOutput;
-    timestamp: string;
-    query: string;
-}
 
-type AIChatMessage = AssistantMessage | UserMessage | SearchResultMessage;
+type AIChatMessage = AssistantMessage | UserMessage;
 
 interface AIChatProps {
   children: ReactNode;
@@ -61,7 +54,7 @@ export default function AIChat({
       sender: 'ai',
       text: {
         openingStatement: "Hi there!",
-        body: "I'm your in-stream assistant, powered by Gemini. Ask me anything about what's happening in the stream. Toggle the globe icon for direct web search results."
+        body: "I'm your in-stream assistant, powered by Gemini. Ask me anything about what's happening in the stream. Toggle the globe icon to enable web search for real-time questions."
       },
       timestamp: format(new Date(), 'HH:mm'),
     },
@@ -87,32 +80,18 @@ export default function AIChat({
     setIsLoading(true);
 
     try {
-        if (isWebSearchActive) {
-            // New: Call the direct web search flow
-            const searchResults = await webSearch({ query: currentInput });
-            const searchResultMessage: SearchResultMessage = {
-                sender: 'search',
-                results: searchResults,
-                timestamp: format(new Date(), 'HH:mm'),
-                query: currentInput,
-            };
-            setMessages(prev => [...prev, searchResultMessage]);
+        const result = await askAssistant({
+            query: currentInput,
+            broadcastContext: broadcastContext,
+            useWebSearch: isWebSearchActive,
+        });
 
-        } else {
-            // Original: Call the Gemini assistant flow
-            const result = await askAssistant({
-                query: currentInput,
-                broadcastContext: broadcastContext,
-                useWebSearch: false, // Explicitly false as we are separating concerns
-            });
-
-            const aiResponse: AssistantMessage = {
-                sender: 'ai',
-                text: result,
-                timestamp: format(new Date(), 'HH:mm'),
-            };
-            setMessages(prev => [...prev, aiResponse]);
-        }
+        const aiResponse: AssistantMessage = {
+            sender: 'ai',
+            text: result,
+            timestamp: format(new Date(), 'HH:mm'),
+        };
+        setMessages(prev => [...prev, aiResponse]);
 
     } catch (error) {
         console.error("Error calling AI service:", error);
@@ -151,10 +130,10 @@ export default function AIChat({
       >
         <SheetHeader>
           <SheetTitle className="text-black">
-             {isWebSearchActive ? 'Web Search' : 'Your AI Stream Assistant'}
+             {isWebSearchActive ? 'Web Search Enabled' : 'Your AI Stream Assistant'}
           </SheetTitle>
           <SheetDescription className="text-gray-500">
-             {isWebSearchActive ? 'Powered by Tavily' : 'Powered by Gemini'}
+             {isWebSearchActive ? 'Powered by Tavily and Gemini' : 'Powered by Gemini'}
           </SheetDescription>
         </SheetHeader>
 
@@ -181,23 +160,10 @@ export default function AIChat({
                   >
                      {msg.sender === 'user' ? (
                         <p className="text-sm">{msg.text}</p>
-                     ) : msg.sender === 'ai' ? (
+                     ) : ( // msg.sender === 'ai'
                         <div className="space-y-2 text-sm prose prose-sm max-w-full">
                           <p className="font-semibold">{msg.text.openingStatement}</p>
                           <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text.body}</ReactMarkdown>
-                        </div>
-                     ) : ( // msg.sender === 'search'
-                        <div className="space-y-3">
-                            <p className="font-semibold">Web search results for: "{msg.query}"</p>
-                            {msg.results.results.map((result, i) => (
-                                <div key={i} className="p-3 bg-gray-100 rounded-lg">
-                                    <Link href={result.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                                        <p className="font-bold text-sm truncate">{result.title}</p>
-                                    </Link>
-                                    <p className="text-xs text-gray-500 truncate">{result.url}</p>
-                                    <p className="text-sm text-gray-700 mt-1 line-clamp-3">{result.content}</p>
-                                </div>
-                            ))}
                         </div>
                      )}
                     <p
@@ -222,7 +188,7 @@ export default function AIChat({
               {isLoading && (
                 <div className="flex items-center gap-2 justify-start">
                     <Loader2 className="h-5 w-5 text-gray-500 animate-spin" />
-                    <p className="text-sm text-gray-500">{isWebSearchActive ? 'Searching the web...' : 'Assistant is thinking...'}</p>
+                    <p className="text-sm text-gray-500">{isWebSearchActive ? 'Searching and summarizing...' : 'Assistant is thinking...'}</p>
                 </div>
               )}
             </div>
@@ -235,7 +201,7 @@ export default function AIChat({
               <Input
                 value={input}
                 onChange={e => setInput(e.target.value)}
-                placeholder={isWebSearchActive ? "Enter a search query..." : "Ask a question..."}
+                placeholder={isWebSearchActive ? "Ask a real-time question..." : "Ask about the stream..."}
                 className="flex-1 bg-gray-100 text-black border-gray-300 placeholder:text-gray-500 rounded-full pr-20 focus-visible:ring-0 focus-visible:ring-offset-0"
                 disabled={isLoading}
               />
