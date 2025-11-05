@@ -10,7 +10,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import Tavily from '@tavily/core';
+import { Tavily } from '@tavily/core';
 
 const tavilyClient = new Tavily({
     apiKey: process.env.TAVILY_API_KEY,
