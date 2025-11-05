@@ -52,10 +52,18 @@ function HostVideoPlayer({ broadcast }: { broadcast: BroadcastData }) {
     
     return (
         <div className="absolute inset-0 w-full h-full bg-black">
-            <ParticipantView participant={participant} ParticipantViewUI={null} className="w-full h-full object-cover" />
+            <ParticipantView 
+              participant={participant} 
+              ParticipantViewUI={null} 
+              className="w-full h-full object-cover"
+              style={{ transform: 'scaleX(-1)' }}
+            />
 
              {!isCameraEnabled && !isScreenSharing && (
-                <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-900 gap-4">
+                <div 
+                  className="w-full h-full flex flex-col items-center justify-center bg-zinc-900 gap-4"
+                  style={{ transform: 'scaleX(-1)' }} // Mirror the fallback UI as well
+                >
                      <Avatar className="h-24 w-24">
                         <AvatarImage src={broadcast.hostAvatar} />
                         <AvatarFallback>{broadcast.hostName?.charAt(0) || 'H'}</AvatarFallback>
