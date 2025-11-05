@@ -51,6 +51,7 @@ export default function AIChat({
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isWebSearchActive, setIsWebSearchActive] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   const handleSendMessage = async (e: React.FormEvent) => {
@@ -72,6 +73,7 @@ export default function AIChat({
       const result = await askAssistant({
         query: currentInput,
         broadcastContext: broadcastContext,
+        useWebSearch: isWebSearchActive,
       });
 
       const aiResponse: AIChatMessage = {
@@ -200,7 +202,8 @@ export default function AIChat({
                     type="button"
                     size="icon"
                     variant="ghost"
-                    className="text-gray-500 hover:bg-gray-200 rounded-full p-2 h-auto aspect-square"
+                    className={cn("text-gray-500 hover:bg-gray-200 rounded-full p-2 h-auto aspect-square", isWebSearchActive && "bg-blue-100 text-blue-600 hover:bg-blue-200")}
+                    onClick={() => setIsWebSearchActive(prev => !prev)}
                     disabled={isLoading}
                 >
                     <Globe className="h-full w-full" />
