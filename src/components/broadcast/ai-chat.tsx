@@ -5,7 +5,7 @@ import { useState, useRef, useEffect, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, ArrowUp, Bot, Loader2 } from 'lucide-react';
+import { Send, ArrowUp, Bot, Loader2, Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import {
@@ -192,18 +192,29 @@ export default function AIChat({
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 placeholder="Ask a question..."
-                className="flex-1 bg-gray-100 text-black border-gray-300 placeholder:text-gray-500 rounded-full pr-10 focus-visible:ring-0 focus-visible:ring-offset-0"
+                className="flex-1 bg-gray-100 text-black border-gray-300 placeholder:text-gray-500 rounded-full pr-20 focus-visible:ring-0 focus-visible:ring-offset-0"
                 disabled={isLoading}
               />
-              <Button
-                type="submit"
-                size="icon"
-                variant="ghost"
-                className="absolute inset-y-0 right-1 text-gray-500 hover:bg-gray-200 rounded-full p-2 h-auto aspect-square"
-                disabled={isLoading}
-              >
-                <ArrowUp className="h-full w-full" />
-              </Button>
+              <div className="absolute inset-y-0 right-1 flex items-center">
+                <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    className="text-gray-500 hover:bg-gray-200 rounded-full p-2 h-auto aspect-square"
+                    disabled={isLoading}
+                >
+                    <Globe className="h-full w-full" />
+                </Button>
+                <Button
+                    type="submit"
+                    size="icon"
+                    variant="ghost"
+                    className="text-gray-500 hover:bg-gray-200 rounded-full p-2 h-auto aspect-square"
+                    disabled={isLoading}
+                >
+                    <ArrowUp className="h-full w-full" />
+                </Button>
+              </div>
             </form>
           </footer>
         </div>
