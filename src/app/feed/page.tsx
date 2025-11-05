@@ -346,17 +346,19 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
                                     </div>
                                 </ScrollArea>
                             </div>
-                            {selectedGif && (
-                                <div className="relative w-32 h-24 mt-2 pointer-events-auto">
-                                    <Image src={selectedGif.images.fixed_width.url} alt={selectedGif.title} fill className="object-cover rounded-md" />
-                                     <Button variant="destructive" size="icon" className="absolute -top-2 -right-2 h-6 w-6 rounded-full" onClick={() => setSelectedGif(null)}>
-                                        <X className="h-4 w-4" />
-                                    </Button>
-                                </div>
-                            )}
                             <div className="pb-4">
                                 <form onSubmit={handleSendMessage} className="relative flex w-full pointer-events-auto items-center gap-2 mt-2">
-                                    <div className="relative flex-1">
+                                    <div className="relative flex-1 bg-black/50 border border-white/20 rounded-2xl overflow-hidden">
+                                        {selectedGif && (
+                                            <div className="relative w-full p-2">
+                                                <div className="relative w-32 h-24">
+                                                    <Image src={selectedGif.images.fixed_width.url} alt={selectedGif.title} fill className="object-cover rounded-md" />
+                                                    <Button variant="destructive" size="icon" className="absolute -top-2 -right-2 h-6 w-6 rounded-full" onClick={() => setSelectedGif(null)}>
+                                                        <X className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        )}
                                         <Textarea
                                             ref={textareaRef}
                                             placeholder="Add a comment..."
@@ -368,9 +370,9 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
                                                     handleSendMessage(e);
                                                 }
                                             }}
-                                            className="bg-black/50 border-white/20 placeholder:text-gray-400 w-full min-h-[40px] h-10 resize-none rounded-full py-2 pr-20 pl-4"
+                                            className="bg-transparent border-none placeholder:text-gray-400 w-full min-h-[40px] h-10 resize-none rounded-full py-2 pr-20 pl-4 focus-visible:ring-0"
                                         />
-                                        <div className="absolute top-1/2 -translate-y-1/2 right-1 flex items-center">
+                                        <div className="absolute bottom-1 right-1 flex items-center">
                                             <Popover open={isGifPickerOpen} onOpenChange={setIsGifPickerOpen}>
                                                 <PopoverTrigger asChild>
                                                     <Button size="icon" type="button" variant="ghost" className="rounded-full h-9 w-9 text-white">
