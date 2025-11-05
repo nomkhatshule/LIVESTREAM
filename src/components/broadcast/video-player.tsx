@@ -9,7 +9,6 @@ import {
   useCall,
   useCallStateHooks,
   ParticipantView,
-  useMediaStream,
 } from '@stream-io/video-react-sdk';
 import { useUser } from '@/firebase';
 import type { BroadcastData } from '@/lib/types';
@@ -53,7 +52,7 @@ function HostVideoPlayer({ broadcast }: { broadcast: BroadcastData }) {
     
     return (
         <div className="absolute inset-0 w-full h-full bg-black">
-            <ParticipantView participant={participant} ParticipantViewUI={null} />
+            <ParticipantView participant={participant} ParticipantViewUI={null} className="w-full h-full object-cover" />
 
              {!isCameraEnabled && !isScreenSharing && (
                 <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-900 gap-4">
@@ -158,14 +157,6 @@ function ViewerStreamContent({ broadcast }: { broadcast: BroadcastData }) {
   const { useParticipants } = useCallStateHooks();
   const participants = useParticipants();
   const hostParticipant = participants.find(p => p.userId === broadcast.hostId);
-  const { stream } = useMediaStream(hostParticipant);
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  useEffect(() => {
-    if (stream && videoRef.current) {
-        videoRef.current.srcObject = stream;
-    }
-  }, [stream]);
 
   if (!hostParticipant) {
     return (
@@ -178,11 +169,9 @@ function ViewerStreamContent({ broadcast }: { broadcast: BroadcastData }) {
   
   return (
       <div className="w-full h-full relative">
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            muted
+          <ParticipantView 
+            participant={hostParticipant} 
+            ParticipantViewUI={null}
             className="w-full h-full object-cover"
           />
       </div>
