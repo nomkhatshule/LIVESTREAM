@@ -58,7 +58,7 @@ export default function ChatPanel({
     if (!isVisible) return null;
 
     return (
-        <div className="absolute bottom-0 left-0 p-4 w-full md:w-96 flex flex-col justify-end bg-gradient-to-t from-black/70 via-black/40 to-transparent max-h-[50%] pointer-events-none">
+        <div className="absolute bottom-0 left-0 p-4 w-full md:w-96 flex flex-col justify-end max-h-[50%] pointer-events-none">
             <div className="h-80 relative pointer-events-auto">
                 <ScrollArea className="h-full pr-4">
                     <div className="flex flex-col gap-3">
