@@ -107,7 +107,7 @@ export default function ChatPanel({
                     </div>
                 </ScrollArea>
             </div>
-             <div className="pt-2 pb-16 pointer-events-auto">
+             <div className="pt-2 pb-[72px] pointer-events-auto">
                 <form onSubmit={handleFormSubmit} className="relative flex w-full items-center gap-2">
                     <div className="relative flex-1 bg-black/50 border border-white/20 rounded-2xl overflow-hidden flex flex-col">
                         {(selectedGif || imageAttachment) && (
