@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import type { Comment, GiphyResult } from '@/lib/types';
-import { CornerUpLeft, X, ArrowUp, Smile, Heart, ThumbsUp } from 'lucide-react';
+import { CornerUpLeft, X, ArrowUp, Smile, Heart, ThumbsUp, Paperclip } from 'lucide-react';
 import Image from 'next/image';
 import { Input } from '../ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
@@ -15,7 +15,7 @@ import GifPicker from '../inbox/GifPicker';
 interface ChatPanelProps {
     comments: Comment[] | null;
     isVisible: boolean;
-    onSendMessage: (message: string, attachment: GiphyResult | null) => void;
+    onSendMessage: (message: string, attachment: GiphyResult | { file: File, url: string } | null) => void;
     onReaction: (emoji: React.ReactNode) => void;
 }
 
@@ -26,9 +26,11 @@ export default function ChatPanel({
     onReaction
 }: ChatPanelProps) {
     const chatInputRef = useRef<HTMLInputElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const [newMessage, setNewMessage] = useState('');
     const [isGifPickerOpen, setIsGifPickerOpen] = useState(false);
     const [selectedGif, setSelectedGif] = useState<GiphyResult | null>(null);
+    const [imageAttachment, setImageAttachment] = useState<{ file: File, url: string } | null>(null);
 
     const onReply = (username: string) => {
         setNewMessage(`@${username} `);
@@ -37,15 +39,27 @@ export default function ChatPanel({
 
     const handleFormSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSendMessage(newMessage, selectedGif);
+        onSendMessage(newMessage, imageAttachment || selectedGif);
         setNewMessage('');
         setSelectedGif(null);
+        setImageAttachment(null);
     };
 
     const handleGifSelect = (gif: GiphyResult) => {
         setSelectedGif(gif);
         setIsGifPickerOpen(false);
+        setImageAttachment(null);
     };
+    
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            // Add validation if needed (size, type)
+            setImageAttachment({ file, url: URL.createObjectURL(file) });
+            setSelectedGif(null);
+        }
+    };
+
 
     const reactions = [
         { id: 'heart', emoji: <Heart key="heart" className="text-red-500 fill-red-500" /> },
@@ -63,7 +77,7 @@ export default function ChatPanel({
                 <ScrollArea className="h-full pr-4">
                     <div className="flex flex-col">
                         {comments && comments.map((comment: Comment) => (
-                            <div key={comment.id} className="group flex items-start gap-3 text-sm text-white p-2 rounded-lg pb-1">
+                            <div key={comment.id} className="group flex items-start gap-3 text-sm text-white pb-1">
                                 <Avatar className="h-6 w-6 border-2 border-secondary">
                                     <AvatarImage src={comment.userAvatar} alt={comment.username} />
                                     <AvatarFallback>{comment.username.charAt(0)}</AvatarFallback>
@@ -71,9 +85,9 @@ export default function ChatPanel({
                                 <div className="flex-1">
                                     <span className="font-bold font-headline text-primary mr-1.5">{comment.username}:</span>
                                     {comment.replyingTo && <span className="font-semibold text-accent mr-1.5">@{comment.replyingTo}</span>}
-                                    {comment.attachment?.type === 'giphy' ? (
+                                     {comment.attachment?.type === 'giphy' || comment.attachment?.type === 'image' ? (
                                         <div className="mt-1">
-                                            <Image src={comment.attachment.imageUrl} width={150} height={100} alt={comment.attachment.title || 'gif'} className="rounded-md" />
+                                            <Image src={comment.attachment.imageUrl} width={150} height={100} alt={comment.attachment.title || 'attachment'} className="rounded-md" />
                                             {comment.message && <p className="break-words inline mt-1">{comment.message.replace(/^@\w+\s/, '')}</p>}
                                         </div>
                                     ) : (
@@ -89,10 +103,10 @@ export default function ChatPanel({
                 </ScrollArea>
             </div>
              <div className="pt-2 pointer-events-auto">
-                {selectedGif && (
+                {(selectedGif || imageAttachment) && (
                     <div className="relative w-32 h-24 mb-2 ml-2">
-                        <Image src={selectedGif.images.fixed_width.url} alt={selectedGif.title} fill className="object-cover rounded-md" />
-                        <Button variant="destructive" size="icon" className="absolute -top-2 -right-2 h-6 w-6 rounded-full" onClick={() => setSelectedGif(null)}>
+                        <Image src={imageAttachment?.url || selectedGif!.images.fixed_width.url} alt={imageAttachment?.file.name || selectedGif!.title} fill className="object-cover rounded-md" />
+                        <Button variant="destructive" size="icon" className="absolute -top-2 -right-2 h-6 w-6 rounded-full" onClick={() => { setSelectedGif(null); setImageAttachment(null); }}>
                             <X className="h-4 w-4" />
                         </Button>
                     </div>
@@ -104,9 +118,19 @@ export default function ChatPanel({
                             placeholder="Add a comment..."
                             value={newMessage}
                             onChange={(e) => setNewMessage(e.target.value)}
-                            className="bg-black/50 border-white/20 text-white placeholder:text-gray-400 pr-28 rounded-full"
+                            className="bg-black/50 border-white/20 text-white placeholder:text-gray-400 pr-36 rounded-full"
+                        />
+                         <input
+                            type="file"
+                            ref={fileInputRef}
+                            onChange={handleFileChange}
+                            className="hidden"
+                            accept="image/png, image/jpeg, image/gif"
                         />
                         <div className="absolute inset-y-0 right-0 flex items-center">
+                            <Button variant="ghost" size="icon" type="button" className="text-white rounded-full h-9 w-9" onClick={() => fileInputRef.current?.click()}>
+                                <Paperclip className="h-5 w-5" />
+                            </Button>
                             <Popover>
                                 <PopoverTrigger asChild>
                                     <Button variant="ghost" size="icon" type="button" className="text-white rounded-full h-9 w-9">

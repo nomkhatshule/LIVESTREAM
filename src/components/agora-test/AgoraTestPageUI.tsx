@@ -5,9 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Loader2, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { useUser, useDoc, useFirestore, useMemoFirebase, useUserDocument } from '@/firebase';
+import { useUser, useDoc, useFirestore, useMemoFirebase, useUserDocument, useStorage } from '@/firebase';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { doc, query, orderBy, limit, collection, serverTimestamp } from 'firebase/firestore';
+import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useCollection } from '@/firebase';
 import {
   useCall,
@@ -33,9 +34,11 @@ export default function AgoraTestPageUI() {
   const searchParams = useSearchParams();
   const broadcastId = searchParams.get('id');
   const firestore = useFirestore();
+  const storage = useStorage();
   const call = useCall();
   const { user } = useUser();
   const { userDocument } = useUserDocument();
+  const { toast } = useToast();
   
   const [reactions, setReactions] = useState<Reaction[]>([]);
   const [isGamePanelOpen, setIsGamePanelOpen] = useState(false);
@@ -98,33 +101,57 @@ export default function AgoraTestPageUI() {
     }, 5000);
   }
 
-  const handleSendMessage = (message: string, attachment: GiphyResult | null) => {
+  const handleSendMessage = async (message: string, attachment: GiphyResult | { file: File, url: string } | null) => {
     if ((message.trim() === '' && !attachment) || !user || !broadcastId || !userDocument) return;
-    
-    let newComment: any = {
-      userId: user.uid,
-      username: userDocument.username || 'Anonymous',
-      userAvatar: userDocument.profilePicture || '',
-      message: message,
-      timestamp: serverTimestamp(),
-    };
 
-    if (attachment) {
-      newComment.attachment = {
-        type: 'giphy',
-        title: attachment.title,
-        imageUrl: attachment.images.original.url,
-        thumbUrl: attachment.images.fixed_width.url,
-      };
-    }
+    let messageAttachment: Comment['attachment'] | null = null;
     
-    const mentionMatch = message.match(/^@(\w+)\s/);
-    if (mentionMatch) {
-      newComment.replyingTo = mentionMatch[1];
-    }
+    try {
+        if (attachment) {
+            if ('file' in attachment) { // Image attachment
+                const imageFile = attachment.file;
+                const filePath = `chat_images/${broadcastId}/${Date.now()}-${imageFile.name}`;
+                const fileRef = storageRef(storage, filePath);
+                await uploadBytes(fileRef, imageFile);
+                const downloadURL = await getDownloadURL(fileRef);
+                messageAttachment = {
+                    type: 'image',
+                    imageUrl: downloadURL,
+                };
+            } else { // Giphy attachment
+                messageAttachment = {
+                    type: 'giphy',
+                    title: attachment.title,
+                    imageUrl: attachment.images.original.url,
+                    thumbUrl: attachment.images.fixed_width.url,
+                };
+            }
+        }
+        
+        let newComment: any = {
+          userId: user.uid,
+          username: userDocument.username || 'Anonymous',
+          userAvatar: userDocument.profilePicture || '',
+          message: message,
+          timestamp: serverTimestamp(),
+        };
 
-    const messagesCollectionRef = collection(firestore, 'broadcasts', broadcastId, 'messages');
-    addDocumentNonBlocking(messagesCollectionRef, newComment);
+        if (messageAttachment) {
+            newComment.attachment = messageAttachment;
+        }
+        
+        const mentionMatch = message.match(/^@(\w+)\s/);
+        if (mentionMatch) {
+          newComment.replyingTo = mentionMatch[1];
+        }
+
+        const messagesCollectionRef = collection(firestore, 'broadcasts', broadcastId, 'messages');
+        addDocumentNonBlocking(messagesCollectionRef, newComment);
+
+    } catch (error) {
+        console.error("Error sending message:", error);
+        toast({ title: "Error", description: "Could not send message.", variant: "destructive" });
+    }
   };
 
 
