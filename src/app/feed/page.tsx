@@ -96,7 +96,7 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
 
         const messagesCollectionRef = collection(firestore, 'broadcasts', broadcast.id, 'messages');
         
-        let newComment: any = {
+        let newComment: Omit<ChatMessage, 'id' | 'timestamp'> & { timestamp: any } = {
             userId: user.uid,
             username: userDocument.username || "Anonymous",
             userAvatar: userDocument.profilePicture || '',
@@ -105,7 +105,7 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
         };
 
         if (selectedGif) {
-            newComment.attachment = {
+            (newComment as ChatMessage).attachment = {
                 type: 'giphy',
                 title: selectedGif.title,
                 imageUrl: selectedGif.images.original.url,
@@ -113,9 +113,9 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
             };
         }
         
-        const mentionMatch = newMessage.match(/^@\w+\s/);
-        if (mentionMatch) {
-            newComment.replyingTo = mentionMatch[1];
+        const mentionMatch = newMessage.match(/^@(\w+)\s/);
+        if (mentionMatch && mentionMatch[1]) {
+            (newComment as ChatMessage).replyingTo = mentionMatch[1];
         }
 
         addDocumentNonBlocking(messagesCollectionRef, newComment);
@@ -193,6 +193,13 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
     const handleGifSelect = (gif: GiphyResult) => {
         setSelectedGif(gif);
         setIsGifPickerOpen(false);
+    }
+    
+    const handleGiftClick = () => {
+        toast({
+            title: "Coming Soon!",
+            description: "Gifting is not yet available, but we're working on it!",
+        });
     }
 
     const broadcastContext = `The streamer is ${broadcast.hostName}. The stream is titled "${broadcast.title}" under the category "${broadcast.category}".`;
@@ -277,12 +284,12 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
                         </button>
                         <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">{comments?.length || 0}</span>
                     </div>
-                    <Link href="/cards" className="flex flex-col items-center group pointer-events-auto">
-                        <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform">
+                    <div className="flex flex-col items-center group pointer-events-auto">
+                        <button onClick={handleGiftClick} className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform">
                            <Gift className="h-7 w-7 drop-shadow-md" strokeWidth={1.5} />
                         </button>
                         <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">Gifts</span>
-                    </Link>
+                    </div>
                     <AIChat userAvatar={userDocument?.profilePicture} broadcastContext={broadcastContext}>
                         <div className="flex flex-col items-center group">
                             <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform">
