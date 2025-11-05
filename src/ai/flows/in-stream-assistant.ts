@@ -10,6 +10,12 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
+import Tavily from '@tavily/core';
+
+const tavilyClient = new Tavily({
+    apiKey: process.env.TAVILY_API_KEY,
+});
+
 
 const AskAssistantInputSchema = z.object({
   query: z.string().describe("The user's question for the assistant."),
@@ -32,6 +38,26 @@ export type AskAssistantOutput = z.infer<typeof AskAssistantOutputSchema>;
 export async function askAssistant(input: AskAssistantInput): Promise<AskAssistantOutput> {
     return askAssistantFlow(input);
 }
+
+const webSearch = ai.defineTool(
+    {
+        name: 'webSearch',
+        description: 'Performs a web search to find real-time or up-to-date information.',
+        inputSchema: z.object({ query: z.string() }),
+        outputSchema: z.string(),
+    },
+    async (input) => {
+        try {
+            const response = await tavilyClient.search(input.query, { searchDepth: "advanced" });
+            const context = response.results.map((result: any) => result.content).join('\n');
+            return JSON.stringify(context);
+        } catch (error) {
+            console.error("Tavily search failed:", error);
+            return "Web search failed. Please try again later.";
+        }
+    }
+);
+
 
 const prompt = ai.definePrompt({
   name: 'askAssistantPrompt',
@@ -68,7 +94,12 @@ const askAssistantFlow = ai.defineFlow(
     outputSchema: AskAssistantOutputSchema,
   },
   async (input) => {
-    const {output} = await prompt(input);
+    const {output} = await ai.generate({
+        model: 'googleai/gemini-2.5-flash',
+        prompt: `The user's question is: ${input.query}. Context: ${input.broadcastContext}`,
+        tools: input.useWebSearch ? [webSearch] : [],
+        output: { schema: AskAssistantOutputSchema },
+    });
     
     if (!output) {
       return {
