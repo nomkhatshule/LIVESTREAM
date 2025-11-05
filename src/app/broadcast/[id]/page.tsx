@@ -264,24 +264,26 @@ export default function BroadcastPage() {
                     </div>
                   </ScrollArea>
                 </div>
-                 <form onSubmit={handleSendMessage} className="relative w-full pointer-events-auto items-center gap-2 mt-2">
-                      <Textarea
-                          ref={textareaRef}
-                          placeholder="Add a comment..."
-                          value={newMessage}
-                          onChange={(e) => setNewMessage(e.target.value)}
-                           onKeyDown={(e) => {
-                              if (e.key === 'Enter' && !e.shiftKey) {
-                                  e.preventDefault();
-                                  handleSendMessage(e);
-                              }
-                          }}
-                          className="bg-black/50 border-white/20 placeholder:text-gray-400 w-full min-h-[40px] h-10 resize-none rounded-full py-2 pr-12 pl-4"
-                      />
-                      <Button variant="ghost" size="icon" type="submit" className="absolute top-1/2 -translate-y-1/2 right-1 text-white h-9 w-9">
-                          <ArrowUp className="h-5 w-5" />
-                      </Button>
-                  </form>
+                <div className="pb-4">
+                  <form onSubmit={handleSendMessage} className="relative w-full pointer-events-auto items-center gap-2 mt-2">
+                        <Textarea
+                            ref={textareaRef}
+                            placeholder="Add a comment..."
+                            value={newMessage}
+                            onChange={(e) => setNewMessage(e.target.value)}
+                             onKeyDown={(e) => {
+                                if (e.key === 'Enter' && !e.shiftKey) {
+                                    e.preventDefault();
+                                    handleSendMessage(e);
+                                }
+                            }}
+                            className="bg-black/50 border-white/20 placeholder:text-gray-400 w-full min-h-[40px] h-10 resize-none rounded-full py-2 pr-12 pl-4"
+                        />
+                        <Button variant="ghost" size="icon" type="submit" className="absolute top-1/2 -translate-y-1/2 right-1 text-white h-9 w-9">
+                            <ArrowUp className="h-5 w-5" />
+                        </Button>
+                    </form>
+                </div>
               </div>
             )}
           </div>
