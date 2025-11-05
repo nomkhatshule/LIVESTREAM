@@ -10,28 +10,6 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import Tavily from 'tavily-ai';
-
-const tavilyClient = new Tavily(process.env.TAVILY_API_KEY);
-
-const webSearch = ai.defineTool(
-    {
-      name: 'webSearch',
-      description: 'Performs a web search to get up-to-date information on a topic.',
-      inputSchema: z.object({
-        query: z.string().describe('The search query.'),
-      }),
-      outputSchema: z.string(),
-    },
-    async (input) => {
-      console.log(`Performing web search for: ${input.query}`);
-      const response = await tavilyClient.search(input.query, {
-        maxResults: 5,
-        includeImages: false,
-      });
-      return JSON.stringify(response.results);
-    }
-);
 
 const AskAssistantInputSchema = z.object({
   query: z.string().describe("The user's question for the assistant."),
@@ -59,7 +37,6 @@ const prompt = ai.definePrompt({
   name: 'askAssistantPrompt',
   input: {schema: AskAssistantInputSchema},
   output: {schema: AskAssistantOutputSchema},
-  tools: [webSearch],
   prompt: `You are a helpful and friendly AI assistant integrated into a live streaming platform called AgoraLive. Your goal is to answer viewer questions about the current stream.
 
 Your entire public response must adhere to the following rules.
@@ -91,9 +68,7 @@ const askAssistantFlow = ai.defineFlow(
     outputSchema: AskAssistantOutputSchema,
   },
   async (input) => {
-    const {output} = await prompt(input, {
-        tools: input.useWebSearch ? [webSearch] : [],
-    });
+    const {output} = await prompt(input);
     
     if (!output) {
       return {
