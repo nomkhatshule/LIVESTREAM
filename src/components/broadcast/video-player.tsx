@@ -52,14 +52,8 @@ function HostVideoPlayer({ broadcast }: { broadcast: BroadcastData }) {
     
     return (
         <div className="absolute inset-0 w-full h-full bg-black">
-            {/* 
-              This is the fully custom component. 
-              We pass the participant and override the default UI rendering with `null`.
-              The video is handled by the SDK through the parent ParticipantView.
-            */}
             <ParticipantView participant={participant} ParticipantViewUI={null} />
 
-             {/* Show an avatar as a fallback if the camera is off and not screen sharing */}
              {!isCameraEnabled && !isScreenSharing && (
                 <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-900 gap-4">
                      <Avatar className="h-24 w-24">
