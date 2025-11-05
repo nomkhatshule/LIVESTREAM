@@ -204,20 +204,18 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
               {isPlaying && isActive ? (
                     <VideoPlayer broadcast={broadcast} isHost={false} />
                 ) : (
-                    <>
+                    <div
+                        className="absolute inset-0 z-10 flex items-center justify-center group cursor-pointer"
+                        onClick={() => setIsPlaying(true)}
+                    >
                         {broadcast.thumbnailUrl && (
-                           <Image src={broadcast.thumbnailUrl} alt={broadcast.title} fill className="object-cover opacity-50" />
+                           <Image src={broadcast.thumbnailUrl} alt={broadcast.title} layout="fill" className="object-cover opacity-50 -z-10" />
                         )}
-                         <div
-                            className="absolute inset-0 z-10 bg-black/50 flex items-center justify-center group cursor-pointer"
-                            onClick={() => setIsPlaying(true)}
-                        >
-                            <div className="text-center text-white transition-transform group-hover:scale-110">
-                                <Play className="h-20 w-20 mx-auto text-white/80" />
-                                <p className="mt-2 text-lg font-semibold">Join Stream</p>
-                            </div>
+                         <div className="text-center text-white transition-transform group-hover:scale-110 z-20">
+                            <Play className="h-20 w-20 mx-auto text-white/80" />
+                            <p className="mt-2 text-lg font-semibold">Join Stream</p>
                         </div>
-                    </>
+                    </div>
                 )}
             </div>
             
@@ -570,3 +568,5 @@ export default function HomePage() {
         </Suspense>
     )
 }
+
+    
