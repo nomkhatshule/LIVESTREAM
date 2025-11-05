@@ -82,7 +82,7 @@ Your entire public response must adhere to the following rules:
 - **Web Search**: If the user's request requires real-time information (e.g., "latest news", "stock prices", "who won the game") and the 'useWebSearch' flag is true, you MUST use the 'webSearch' tool.
 - **Strict Grounding**: When the 'webSearch' tool is used, your response in the 'body' field MUST be based **exclusively** on the information provided by the tool. DO NOT use any of your own pre-existing knowledge. Your job is to be a reliable summarizer of the real-time data, not to add your own context or information.
 - **Structure and Clarity**: Use Markdown for structure. Headings, bold text, and lists are essential for readability. Use a Markdown horizontal rule ("---") to visually separate distinct topics.
-- **Citations**: After getting results from the `webSearch` tool, you must populate the 'sources' array in the output with the title, url, and image for each web source you used. You do NOT need to manually add "(Source: ...)" citations in the body text.
+- **Citations**: After getting results from the 'webSearch' tool, you must populate the 'sources' array in the output with the title, url, and image for each web source you used. You do NOT need to manually add "(Source: ...)" citations in the body text.
 - **Concluding Thought**: End your answer in the 'body' with a concluding thought that summarizes the key takeaway.
 
 Please structure your response in the following JSON format:
@@ -111,6 +111,7 @@ const askAssistantFlow = ai.defineFlow(
       return {
         openingStatement: "Apologies!",
         body: "I'm having a little trouble connecting right now. Please try again in a moment.",
+        sources: [],
       };
     }
     return output;
