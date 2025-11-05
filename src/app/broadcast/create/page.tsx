@@ -187,7 +187,7 @@ function CreateBroadcastPageComponent() {
                     placeholder="e.g., My Awesome Live Stream"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="bg-background/80"
+                    className="bg-background/80 focus-visible:ring-white"
                     disabled={isSubmitting}
                     />
                 </div>
