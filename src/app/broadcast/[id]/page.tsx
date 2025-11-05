@@ -264,7 +264,7 @@ export default function BroadcastPage() {
                     </div>
                   </ScrollArea>
                 </div>
-                <div className="pb-4">
+                <div className="pb-20 md:pb-4">
                   <form onSubmit={handleSendMessage} className="relative w-full pointer-events-auto items-center gap-2 mt-2">
                         <Textarea
                             ref={textareaRef}
