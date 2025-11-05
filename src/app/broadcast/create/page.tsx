@@ -196,7 +196,7 @@ function CreateBroadcastPageComponent() {
                 size="lg"
                 onClick={handleGoLive}
                 disabled={isSubmitting || !title || isLoading || hasCameraPermission === false}
-                className="w-full"
+                className="w-full bg-white text-black hover:bg-gray-200"
               >
                   <Video className="mr-2 h-5 w-5" />
                   Go Live Now
