@@ -9,6 +9,7 @@ import {
   useCall,
   useCallStateHooks,
   ParticipantView,
+  useMediaStream,
 } from '@stream-io/video-react-sdk';
 import { useUser } from '@/firebase';
 import type { BroadcastData } from '@/lib/types';
@@ -157,6 +158,14 @@ function ViewerStreamContent({ broadcast }: { broadcast: BroadcastData }) {
   const { useParticipants } = useCallStateHooks();
   const participants = useParticipants();
   const hostParticipant = participants.find(p => p.userId === broadcast.hostId);
+  const { stream } = useMediaStream(hostParticipant);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (stream && videoRef.current) {
+        videoRef.current.srcObject = stream;
+    }
+  }, [stream]);
 
   if (!hostParticipant) {
     return (
@@ -169,7 +178,13 @@ function ViewerStreamContent({ broadcast }: { broadcast: BroadcastData }) {
   
   return (
       <div className="w-full h-full relative">
-          <ParticipantView participant={hostParticipant} ParticipantViewUI={null} />
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted
+            className="w-full h-full object-cover"
+          />
       </div>
   )
 }
