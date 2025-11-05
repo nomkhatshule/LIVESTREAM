@@ -184,7 +184,7 @@ export default function BroadcastPage() {
   const cardSize = broadcast.challengeCardSize || { width: 384, height: 550 };
 
   return (
-    <div className="relative h-[calc(100vh-4rem)] w-full bg-black snap-start">
+    <div className="relative h-screen w-full bg-black snap-start">
       <VideoPlayer broadcast={broadcast} />
       
       {broadcast.activeChallenge && broadcast.activeChallengeType && (
@@ -339,7 +339,7 @@ export default function BroadcastPage() {
 
 function BroadcastSkeleton() {
   return (
-    <div className="relative h-[calc(100vh-4rem)] w-full bg-black">
+    <div className="relative h-screen w-full bg-black">
       <div className="absolute top-0 left-0 p-4">
         <div className="flex items-center gap-3">
           <Skeleton className="h-12 w-12 rounded-full" />

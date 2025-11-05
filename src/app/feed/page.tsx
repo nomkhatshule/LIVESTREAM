@@ -458,7 +458,7 @@ function HomePageContent() {
 
     return (
         <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
-            <div className="h-[calc(100vh-4rem)] relative bg-black">
+            <div className="h-screen relative bg-black">
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                          <Button variant="ghost" size="icon" className="absolute top-4 right-4 z-50 text-white transition-transform hover:bg-black/20 hover:scale-110 pointer-events-auto focus-visible:ring-0 rounded-full h-10 w-10 bg-black/20">
