@@ -72,6 +72,17 @@ const nextConfig: NextConfig = {
         hostname: 'image.mux.com',
         pathname: '/**',
       },
+      // Added for Tavily search result images
+      {
+        protocol: 'https',
+        hostname: 'i.gyazo.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'img.tavily.com',
+        pathname: '/**',
+      },
     ]
   },
 };

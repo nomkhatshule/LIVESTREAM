@@ -18,14 +18,15 @@ import {
 } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import { askAssistant } from '@/ai/flows/in-stream-assistant';
+import { askAssistant, type AskAssistantOutput } from '@/ai/flows/in-stream-assistant';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import Link from 'next/link';
+import Image from 'next/image';
 
 type AssistantMessage = {
   sender: 'ai';
-  text: { openingStatement: string; body: string };
+  text: AskAssistantOutput;
   timestamp: string;
 };
 
@@ -164,6 +165,27 @@ export default function AIChat({
                         <div className="space-y-2 text-sm prose prose-sm max-w-full">
                           <p className="font-semibold">{msg.text.openingStatement}</p>
                           <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text.body}</ReactMarkdown>
+                          {msg.text.sources && msg.text.sources.length > 0 && (
+                            <>
+                               <Separator className="my-3" />
+                               <h4 className="font-semibold !mb-2">Sources</h4>
+                               <div className="grid grid-cols-1 gap-2">
+                                  {msg.text.sources.map((source, i) => (
+                                     <a key={i} href={source.url} target="_blank" rel="noopener noreferrer" className="no-underline text-black hover:bg-gray-100 p-2 rounded-lg border border-gray-200 flex items-center gap-3">
+                                        {source.image && (
+                                            <div className="relative w-16 h-10 flex-shrink-0 bg-gray-200 rounded">
+                                                <Image src={source.image} alt={source.title} fill className="object-cover rounded" />
+                                            </div>
+                                        )}
+                                        <div className="overflow-hidden">
+                                           <p className="text-xs font-bold truncate">{source.title}</p>
+                                           <p className="text-xs text-gray-500 truncate">{source.url}</p>
+                                        </div>
+                                     </a>
+                                  ))}
+                               </div>
+                            </>
+                          )}
                         </div>
                      )}
                     <p

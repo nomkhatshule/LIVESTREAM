@@ -30,6 +30,11 @@ export type AskAssistantInput = z.infer<typeof AskAssistantInputSchema>;
 const AskAssistantOutputSchema = z.object({
   openingStatement: z.string().describe("A brief, conversational opening that acknowledges the user's question before providing the main answer."),
   body: z.string().describe("The main body of the response. Use simple markdown for formatting (e.g., **bold**, *italics*, bullet points). If web search was used, cite sources at the end like (Source 1, Source 2)."),
+  sources: z.array(z.object({
+      title: z.string().describe("The title of the source article."),
+      url: z.string().describe("The URL of the source article."),
+      image: z.string().optional().describe("The meta image URL of the source article, if available.")
+  })).optional().describe("An array of web sources used to generate the answer.")
 });
 export type AskAssistantOutput = z.infer<typeof AskAssistantOutputSchema>;
 
@@ -50,6 +55,7 @@ const webSearch = ai.defineTool(
       const response = await tavilyClient.search(input.query, {
         searchDepth: "advanced",
         maxResults: 5,
+        includeImages: true, // Request images from Tavily
       });
       // Synthesize results into a string for the model
       return JSON.stringify(response.results);
@@ -76,7 +82,10 @@ Your entire public response must adhere to the following rules.
 - **Tables for Tabular Data:** When presenting data in rows and columns, you MUST use Markdown table syntax.
 - **Visual Separators:** Use a Markdown horizontal rule ("---") to visually separate distinct topics or sections within your answer.
 - **Concluding Thought & Engagement:** End your answer with a concluding thought that summarizes the key takeaway. Follow this with one or two engaging follow-up questions to encourage further interaction.
-- **Web Search**: If the user's request requires real-time information (e.g., "latest news", "stock prices", "who won the game") and the 'useWebSearch' flag is true, you MUST use the 'webSearch' tool. After getting the results, synthesize them into a clear, structured answer and cite your sources at the end, like this: (Source: CNN, Reuters).
+- **Web Search**: If the user's request requires real-time information (e.g., "latest news", "stock prices", "who won the game") and the 'useWebSearch' flag is true, you MUST use the 'webSearch' tool. After getting the results, you must:
+    1.  Synthesize them into a clear, structured answer.
+    2.  Populate the 'sources' array in the output with the title, url, and image from the search results you used.
+    3.  You do NOT need to manually add "(Source: ...)" citations in the body text.
 
 Here is the context for the current stream: {{{broadcastContext}}}.
 
@@ -85,6 +94,7 @@ The user's question is: {{{query}}}
 Please structure your response in the following JSON format:
 1.  **openingStatement**: Write a short, friendly acknowledgment of the user's question. For example, if they ask "What is this stream about?", you could say "Great question! This stream is all about...".
 2.  **body**: Provide the detailed answer, following all the markdown and structural rules defined above.
+3.  **sources**: An array of objects, where each object contains the 'title', 'url', and 'image' for each web source you used.
 `,
 });
 
