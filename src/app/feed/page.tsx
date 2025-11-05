@@ -33,6 +33,7 @@ import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover
 import GifPicker from '@/components/inbox/GifPicker';
 import Image from 'next/image';
 import VideoPlayer from '@/components/broadcast/video-player';
+import { Separator } from '../ui/separator';
 
 function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broadcast, onVisible: () => void, isActive: boolean }) {
     const { ref, inView } = useInView({ threshold: 0.7 });
@@ -348,44 +349,50 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
                             </div>
                             <div className="pb-4">
                                 <form onSubmit={handleSendMessage} className="relative flex w-full pointer-events-auto items-center gap-2 mt-2">
-                                    <div className="relative flex-1 bg-black/50 border border-white/20 rounded-2xl overflow-hidden">
+                                    <div className="relative flex-1 bg-black/50 border border-white/20 rounded-2xl overflow-hidden flex flex-col">
                                         {selectedGif && (
-                                            <div className="relative w-full p-2">
+                                            <div className='p-2'>
                                                 <div className="relative w-32 h-24">
                                                     <Image src={selectedGif.images.fixed_width.url} alt={selectedGif.title} fill className="object-cover rounded-md" />
                                                     <Button variant="destructive" size="icon" className="absolute -top-2 -right-2 h-6 w-6 rounded-full" onClick={() => setSelectedGif(null)}>
                                                         <X className="h-4 w-4" />
                                                     </Button>
                                                 </div>
+                                                <Separator className='my-2 bg-white/20'/>
                                             </div>
                                         )}
-                                        <Textarea
-                                            ref={textareaRef}
-                                            placeholder="Add a comment..."
-                                            value={newMessage}
-                                            onChange={(e) => setNewMessage(e.target.value)}
-                                            onKeyDown={(e) => {
-                                                if (e.key === 'Enter' && !e.shiftKey) {
-                                                    e.preventDefault();
-                                                    handleSendMessage(e);
-                                                }
-                                            }}
-                                            className="bg-transparent border-none placeholder:text-gray-400 w-full min-h-[40px] h-10 resize-none rounded-full py-2 pr-20 pl-4 focus-visible:ring-0"
-                                        />
-                                        <div className="absolute bottom-1 right-1 flex items-center">
-                                            <Popover open={isGifPickerOpen} onOpenChange={setIsGifPickerOpen}>
-                                                <PopoverTrigger asChild>
-                                                    <Button size="icon" type="button" variant="ghost" className="rounded-full h-9 w-9 text-white">
-                                                        <b className="text-xs">GIF</b>
-                                                    </Button>
-                                                </PopoverTrigger>
-                                                <PopoverContent className="w-screen sm:w-96 h-96 p-0 border-zinc-700 bg-zinc-900" side="top" align="end">
-                                                <GifPicker onSendGif={handleGifSelect} />
-                                                </PopoverContent>
-                                            </Popover>
-                                            <Button variant="ghost" size="icon" type="submit" className="text-white hover:bg-transparent hover:text-white h-9 w-9">
-                                                <ArrowUp className="h-5 w-5" />
-                                            </Button>
+                                        <div className="relative flex items-center">
+                                            <Textarea
+                                                ref={textareaRef}
+                                                placeholder="Add a comment..."
+                                                value={newMessage}
+                                                onChange={(e) => setNewMessage(e.target.value)}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                                        e.preventDefault();
+                                                        handleSendMessage(e);
+                                                    }
+                                                }}
+                                                className={cn(
+                                                    "bg-transparent border-none placeholder:text-gray-400 w-full min-h-[40px] h-10 resize-none py-2 pr-20 pl-4 focus-visible:ring-0",
+                                                    selectedGif ? "rounded-b-2xl" : "rounded-2xl"
+                                                )}
+                                            />
+                                            <div className="absolute bottom-1 right-1 flex items-center">
+                                                <Popover open={isGifPickerOpen} onOpenChange={setIsGifPickerOpen}>
+                                                    <PopoverTrigger asChild>
+                                                        <Button size="icon" type="button" variant="ghost" className="rounded-full h-9 w-9 text-white">
+                                                            <b className="text-xs">GIF</b>
+                                                        </Button>
+                                                    </PopoverTrigger>
+                                                    <PopoverContent className="w-screen sm:w-96 h-96 p-0 border-zinc-700 bg-zinc-900" side="top" align="end">
+                                                    <GifPicker onSendGif={handleGifSelect} />
+                                                    </PopoverContent>
+                                                </Popover>
+                                                <Button variant="ghost" size="icon" type="submit" className="text-white hover:bg-transparent hover:text-white h-9 w-9">
+                                                    <ArrowUp className="h-5 w-5" />
+                                                </Button>
+                                            </div>
                                         </div>
                                     </div>
                                 </form>
