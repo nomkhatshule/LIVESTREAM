@@ -1,10 +1,11 @@
+
 'use client';
 
 import { useFirestore } from '@/firebase';
 import { Button } from './ui/button';
-import { doc, writeBatch, serverTimestamp, collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, writeBatch } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
-import { useState }from 'react';
+import { useState } from 'react';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { CheckCircle, Loader2, Wrench } from 'lucide-react';
 
@@ -13,47 +14,55 @@ export function TempDataMigration() {
     const { toast } = useToast();
     const [isLoading, setIsLoading] = useState(false);
     const [isDone, setIsDone] = useState(false);
+    const [updatedCount, setUpdatedCount] = useState(0);
 
-    const handleFixTimestamps = async () => {
+    const handleFixOldStreams = async () => {
         if (!firestore) return;
         setIsLoading(true);
 
         try {
-            const usersCollectionRef = collection(firestore, 'users');
-            const querySnapshot = await getDocs(usersCollectionRef);
+            const broadcastsRef = collection(firestore, 'broadcasts');
+            const querySnapshot = await getDocs(broadcastsRef);
             
             if (querySnapshot.empty) {
-                toast({ title: "No users found."});
+                toast({ title: "No broadcasts found to update."});
                 setIsDone(true);
                 return;
             }
 
             const batch = writeBatch(firestore);
+            let count = 0;
 
-            querySnapshot.forEach(document => {
-                const data = document.data();
-                const userRef = doc(firestore, 'users', document.id);
-
-                // Check if createdAt is a Timestamp object
-                if (data.createdAt && typeof data.createdAt.toDate === 'function') {
-                    // Convert timestamp to milliseconds
-                    const numericTimestamp = data.createdAt.toDate().getTime();
-                    batch.update(userRef, { createdAt: numericTimestamp });
+            querySnapshot.forEach(doc => {
+                const data = doc.data();
+                if (data.isLive === true) {
+                    batch.update(doc.ref, { isLive: false });
+                    count++;
                 }
             });
+            
+            setUpdatedCount(count);
 
-            await batch.commit();
-            toast({
-                title: 'Success!',
-                description: 'User timestamps have been converted. Algolia should now be able to index correctly.',
-            });
+            if (count > 0) {
+                await batch.commit();
+                toast({
+                    title: 'Success!',
+                    description: `${count} old broadcasts have been marked as offline.`,
+                });
+            } else {
+                 toast({
+                    title: 'All Good!',
+                    description: 'No old live broadcasts were found.',
+                });
+            }
+            
             setIsDone(true);
         } catch (error: any) {
             console.error('Data migration failed:', error);
             toast({
                 variant: 'destructive',
                 title: 'Migration Failed',
-                description: error.message || 'Could not update user documents.',
+                description: error.message || 'Could not update broadcast documents.',
             });
         } finally {
             setIsLoading(false);
@@ -64,9 +73,9 @@ export function TempDataMigration() {
         return (
              <Alert variant="default" className="bg-green-100 dark:bg-green-900/30 border-green-500 dark:border-green-700">
               <CheckCircle className="h-4 w-4 !text-green-500" />
-              <AlertTitle className="text-green-800 dark:text-green-300">Migration Complete</AlertTitle>
+              <AlertTitle className="text-green-800 dark:text-green-300">Cleanup Complete</AlertTitle>
               <AlertDescription className="text-green-700 dark:text-green-400">
-                The timestamps have been fixed. You can now remove the {'<TempDataMigration />'} component from `src/app/page.tsx`. Please check your Algolia dashboard to see if indexing is succeeding.
+                {updatedCount > 0 ? `${updatedCount} old broadcasts were fixed.` : `No old broadcasts needed fixing.`} You can now remove the {'<TempDataMigration />'} component from `src/app/feed/page.tsx`.
               </AlertDescription>
             </Alert>
         )
@@ -75,12 +84,12 @@ export function TempDataMigration() {
     return (
         <Alert>
           <Wrench className="h-4 w-4" />
-          <AlertTitle>Action Recommended: Fix Data for Search</AlertTitle>
+          <AlertTitle>Feed Cleanup Tool</AlertTitle>
           <AlertDescription className="flex items-center justify-between">
-            <p>Click the button to convert user data to a search-compatible format. This should resolve the Algolia indexing error.</p>
-            <Button onClick={handleFixTimestamps} disabled={isLoading}>
+            <p>Some old broadcasts might still appear in the feed. Click here to clean them up.</p>
+            <Button onClick={handleFixOldStreams} disabled={isLoading} variant="secondary" size="sm">
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Fix Timestamps
+                Fix Old Streams
             </Button>
           </AlertDescription>
         </Alert>
