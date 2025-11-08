@@ -336,7 +336,7 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
                         <button onClick={handleGiftClick} className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform">
                            <Gamepad2 className="h-7 w-7 drop-shadow-md" strokeWidth={1.5} />
                         </button>
-                        <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">Games</span>
+                        <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">Fun</span>
                     </div>
                     <AIChat userAvatar={userDocument?.profilePicture} broadcastContext={broadcastContext}>
                         <div className="flex flex-col items-center group">
