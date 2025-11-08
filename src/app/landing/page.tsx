@@ -13,13 +13,15 @@ export default function LandingPage() {
     <>
       <LandingHeader />
       <div className="relative h-screen w-full overflow-hidden flex items-center justify-center text-center p-8">
-        <Image
-          src="https://cdn.pixabay.com/photo/2024/12/16/06/42/camera-9270111_1280.png"
-          alt="Hero Background"
-          fill
-          className="object-cover -z-10"
-          data-ai-hint="action camera parachute"
-        />
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute top-0 left-0 w-full h-full object-cover -z-10"
+        >
+          <source src="https://cdn.midjourney.com/video/74dca46e-4efb-4400-bbc0-94587f904b8a/0.mp4" type="video/mp4" />
+        </video>
         <div className="absolute inset-0 bg-black/60" />
         <div className="relative z-10 flex flex-col items-center">
           <h1 className="text-5xl md:text-7xl font-bold font-headline text-white mb-4 drop-shadow-lg">
