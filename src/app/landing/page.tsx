@@ -27,7 +27,7 @@ export default function LandingPage() {
           <h1 className="text-5xl md:text-7xl font-bold font-headline text-white mb-4 drop-shadow-lg">
             Share Every Moment
           </h1>
-          <p className="text-xl text-primary-foreground/90 max-w-2xl mb-8 drop-shadow-md">
+          <p className="text-xl text-stone-200 max-w-2xl mb-8 drop-shadow-md">
             Discover live streams from creators around the world, or go live and share your passion.
           </p>
           <Button size="lg" className="bg-black text-white hover:bg-black/80" asChild>
