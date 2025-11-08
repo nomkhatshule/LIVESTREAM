@@ -8,7 +8,7 @@ import { useCollection } from '@/firebase/firestore/use-collection';
 import { collection, query, where, writeBatch, doc, orderBy, serverTimestamp } from 'firebase/firestore';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import type { Broadcast, ChatMessage } from '@/lib/data';
-import { Clapperboard, Loader2, Mail, ChevronDownCircle, MessageCircleHeart, Film, Heart, MessageSquareMore, Gift, Search, Swords, Users, CornerUpLeft, ArrowUp, Play, X, Paperclip } from 'lucide-react';
+import { Clapperboard, Loader2, Mail, ChevronDownCircle, MessageCircleHeart, Film, Heart, MessageSquareMore, Gift, Search, Swords, Users, CornerUpLeft, ArrowUp, Play, X, Paperclip, Gamepad2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useStreamStore } from '@/lib/stream-store';
 import { Button } from '@/components/ui/button';
@@ -334,9 +334,9 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
                     </div>
                     <div className="flex flex-col items-center group pointer-events-auto">
                         <button onClick={handleGiftClick} className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform">
-                           <Gift className="h-7 w-7 drop-shadow-md" strokeWidth={1.5} />
+                           <Gamepad2 className="h-7 w-7 drop-shadow-md" strokeWidth={1.5} />
                         </button>
-                        <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">Gifts</span>
+                        <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">Games</span>
                     </div>
                     <AIChat userAvatar={userDocument?.profilePicture} broadcastContext={broadcastContext}>
                         <div className="flex flex-col items-center group">
