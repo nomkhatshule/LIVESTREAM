@@ -3,7 +3,7 @@
 
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Sheet, SheetTrigger, SheetContent } from '@/components/ui/sheet';
+import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Menu } from 'lucide-react';
 
 export default function LandingHeader() {
@@ -37,6 +37,12 @@ export default function LandingHeader() {
                     </Button>
                 </SheetTrigger>
                 <SheetContent side="right" className="bg-black/80 backdrop-blur-lg border-l-white/20 text-white">
+                    <SheetHeader className="sr-only">
+                      <SheetTitle>Mobile Navigation Menu</SheetTitle>
+                      <SheetDescription>
+                        A menu with links to features, about, login, and sign up pages.
+                      </SheetDescription>
+                    </SheetHeader>
                     <div className="flex flex-col items-center justify-center h-full gap-8">
                          <Link href="/" className="flex items-center gap-2 px-4">
                           <span className="font-logo font-black text-white text-4xl">LIVENET</span>
