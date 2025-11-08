@@ -44,16 +44,12 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
     const firestore = useFirestore();
     const storage = useStorage();
     const { toast } = useToast();
-    const [isPlaying, setIsPlaying] = useState(false);
 
     useEffect(() => {
         if (inView) {
             onVisible();
         }
-        if (!isActive) {
-            setIsPlaying(false);
-        }
-    }, [inView, onVisible, isActive]);
+    }, [inView, onVisible]);
 
     const [newMessage, setNewMessage] = useState('');
     const [isChatVisible, setIsChatVisible] = useState(true);
@@ -257,19 +253,16 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
         <div ref={ref} className="h-full w-full snap-start relative bg-black">
             
             <div className="absolute inset-0 z-0 bg-black">
-              {isPlaying && isActive ? (
+              {isActive ? (
                     <VideoPlayer broadcast={broadcast} isHost={false} />
                 ) : (
-                    <div
-                        className="absolute inset-0 z-10 flex items-center justify-center group cursor-pointer"
-                        onClick={() => setIsPlaying(true)}
-                    >
+                    <div className="absolute inset-0 z-10 flex items-center justify-center">
                         {broadcast.thumbnailUrl && (
                            <Image src={broadcast.thumbnailUrl} alt={broadcast.title} layout="fill" className="object-cover opacity-50 -z-10" />
                         )}
-                         <div className="text-center text-white transition-transform group-hover:scale-110 z-20">
-                            <Play className="h-20 w-20 mx-auto text-white/80" />
-                            <p className="mt-2 text-lg font-semibold">Join Stream</p>
+                         <div className="text-center text-white">
+                            <Loader2 className="h-16 w-16 mx-auto text-white/80 animate-spin" />
+                            <p className="mt-2 text-lg font-semibold">Connecting...</p>
                         </div>
                     </div>
                 )}
