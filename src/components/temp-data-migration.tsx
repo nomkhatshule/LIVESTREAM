@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { CheckCircle, Loader2, Wrench } from 'lucide-react';
+import { errorEmitter, FirestorePermissionError } from '@/firebase';
 
 export function TempDataMigration() {
     const firestore = useFirestore();
@@ -44,10 +45,20 @@ export function TempDataMigration() {
             setUpdatedCount(count);
 
             if (count > 0) {
-                await batch.commit();
+                // Do not await, use .catch() for non-blocking error handling
+                batch.commit().catch(error => {
+                    console.error("Batch commit failed:", error);
+                    // Create and emit the detailed permission error
+                    const permissionError = new FirestorePermissionError({
+                        path: `broadcasts (batch update)`,
+                        operation: 'update',
+                        requestResourceData: { isLive: false }
+                    });
+                    errorEmitter.emit('permission-error', permissionError);
+                });
                 toast({
-                    title: 'Success!',
-                    description: `${count} old broadcasts have been marked as offline.`,
+                    title: 'Cleanup Started',
+                    description: `Attempting to fix ${count} old broadcasts.`,
                 });
             } else {
                  toast({
@@ -56,13 +67,14 @@ export function TempDataMigration() {
                 });
             }
             
-            setIsDone(true);
+            setIsDone(true); // Mark as done immediately for UI purposes
         } catch (error: any) {
-            console.error('Data migration failed:', error);
+            // This will catch errors during the getDocs query itself
+            console.error('Data migration query failed:', error);
             toast({
                 variant: 'destructive',
                 title: 'Migration Failed',
-                description: error.message || 'Could not update broadcast documents.',
+                description: error.message || 'Could not query broadcast documents.',
             });
         } finally {
             setIsLoading(false);
@@ -75,7 +87,7 @@ export function TempDataMigration() {
               <CheckCircle className="h-4 w-4 !text-green-500" />
               <AlertTitle className="text-green-800 dark:text-green-300">Cleanup Complete</AlertTitle>
               <AlertDescription className="text-green-700 dark:text-green-400">
-                {updatedCount > 0 ? `${updatedCount} old broadcasts were fixed.` : `No old broadcasts needed fixing.`} You can now remove the {'<TempDataMigration />'} component from `src/app/feed/page.tsx`.
+                {updatedCount > 0 ? `Attempted to fix ${updatedCount} old broadcasts.` : `No old broadcasts needed fixing.`} You can now remove the {'<TempDataMigration />'} component from `src/app/feed/page.tsx`.
               </AlertDescription>
             </Alert>
         )
