@@ -25,7 +25,7 @@ export default function LandingPage() {
         <div className="absolute inset-0 bg-black/60" />
         <div className="relative z-10 flex flex-col items-center">
           <h1 className="text-5xl md:text-7xl font-bold font-headline text-white mb-4 drop-shadow-lg">
-            Share Your Moment
+            Share Every Moment
           </h1>
           <p className="text-xl text-primary-foreground/90 max-w-2xl mb-8 drop-shadow-md">
             Discover live streams from creators around the world, or go live and share your passion.
