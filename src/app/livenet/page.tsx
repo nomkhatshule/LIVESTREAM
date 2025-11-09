@@ -107,8 +107,8 @@ function LivenetWrapper() {
                 client.disconnectUser().catch(err => console.error("Failed to disconnect user on cleanup", err));
             }
         };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [broadcastId, user, client]);
+    // Corrected dependency array
+    }, [broadcastId, user, firestore, toast, router]);
 
     if (isUserLoading || !broadcastId) {
         return (
