@@ -40,7 +40,7 @@ export default function LandingPage() {
       </div>
       <section className="relative h-screen w-full bg-black flex flex-col items-center justify-center p-8">
         <Image
-          src="https://cdn.pixabay.com/photo/2022/06/23/16/54/pixel-art-7280230_1280.png"
+          src="https://cdn.midjourney.com/36ee8fa8-29f4-46e0-be75-a695ae1c59e1/0_0.png"
           alt="Pixel art background"
           fill
           className="object-cover"
