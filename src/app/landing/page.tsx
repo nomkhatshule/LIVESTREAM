@@ -38,6 +38,21 @@ export default function LandingPage() {
           </Button>
         </div>
       </div>
+      <section className="relative h-screen w-full bg-black flex flex-col items-center justify-center text-center p-8">
+        <Image
+            src="https://media.istockphoto.com/id/1217435231/photo/times-square-during-covid-19.jpg?s=612x612&w=0&k=20&c=zFWQdZ4MzGkB96k5586oPq2PqnoXW18vL75zHK734fs="
+            alt="Empty Times Square"
+            fill
+            className="object-cover"
+            data-ai-hint="city square"
+        />
+        <div className="absolute inset-0 bg-black/50" />
+        <div className="relative z-10">
+             <h2 className="text-4xl md:text-6xl font-bold font-headline text-white drop-shadow-xl">
+                Reality social, by the people, for the people
+            </h2>
+        </div>
+      </section>
       <section className="relative h-screen w-full bg-black flex flex-col items-center justify-center p-8">
         <Image
           src="https://cdn.midjourney.com/36ee8fa8-29f4-46e0-be75-a695ae1c59e1/0_0.png"
