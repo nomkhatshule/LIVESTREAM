@@ -49,6 +49,8 @@ const reducer = (state: State, action: Action): State => {
 };
 
 // 4. The Hook itself: The "Controller" that runs the machine
+// THIS HOOK IS NO LONGER IN USE AND IS DEPRECATED.
+// The logic has been moved directly into /livenet/page.tsx for a more direct implementation.
 export const useStudioInitializer = (broadcastId: string | null) => {
   const [state, dispatch] = useReducer(reducer, { status: 'idle' });
   const { user, isUserLoading } = useUser();

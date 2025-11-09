@@ -3,26 +3,21 @@
 
 import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useUser, useFirestore, useUserDocument } from '@/firebase';
-import { serverTimestamp, doc, setDoc, updateDoc } from 'firebase/firestore';
+import { useUser, useFirestore } from '@/firebase';
+import { doc, updateDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
-import { v4 as uuidv4 } from 'uuid';
 import {
   StreamVideoClient,
   StreamVideo,
   StreamCall,
   Call,
-  ParticipantView,
 } from '@stream-io/video-react-sdk';
 import '@stream-io/video-react-sdk/dist/css/styles.css';
-import { Loader2, VideoOff, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { Loader2 } from 'lucide-react';
 import AgoraTestPageUI from '@/components/agora-test/AgoraTestPageUI';
-import { useStudioInitializer } from '@/hooks/useStudioInitializer';
 
 // --- Wrapper Component for Initialization and Auth ---
-function AgoraTestWrapper() {
+function LivenetWrapper() {
     const searchParams = useSearchParams();
     const broadcastId = searchParams.get('id');
     const { user, isUserLoading } = useUser();
@@ -59,6 +54,8 @@ function AgoraTestWrapper() {
             }
 
             try {
+                // The broadcast document should have been created by the /broadcast/create page.
+                // Now, we connect to it.
                 const response = await fetch('/api/stream/token', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
@@ -81,26 +78,28 @@ function AgoraTestWrapper() {
                 setClient(videoClient);
                 const callInstance = videoClient.call('livestream', broadcastId);
                 
-                // Join and also create if it doesn't exist
+                // Join the call. The `create` flag is a fallback.
                 await callInstance.join({ create: true });
 
-                // ***** THIS IS THE NEW LOGIC *****
-                // Set the broadcast as live in Firestore so it appears on the feed
+                // Once successfully joined, mark the broadcast as 'isLive' in Firestore.
+                // This makes it appear on the feed for other users.
                 const broadcastDocRef = doc(firestore, 'broadcasts', broadcastId);
                 await updateDoc(broadcastDocRef, { isLive: true });
-                // **********************************
                 
                 setCall(callInstance);
 
             } catch (error: any) {
                 console.error("Stream initialization failed:", error);
                 toast({ variant: 'destructive', title: 'Connection Failed', description: error.message || 'Could not connect to the broadcast.'});
+                // If connection fails, maybe route back home
+                router.push('/');
             }
         };
         
         initStream();
 
         return () => {
+            // Cleanup logic when the component unmounts
             if (call) {
                 call.leave().catch(err => console.error("Failed to leave call on cleanup", err));
             }
@@ -146,7 +145,7 @@ export default function LivenetPage() {
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
         }>
-            <AgoraTestWrapper />
+            <LivenetWrapper />
         </Suspense>
     )
 }

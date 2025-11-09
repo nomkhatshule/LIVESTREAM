@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, useRef, Suspense } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,10 +11,10 @@ import { useToast } from '@/hooks/use-toast';
 import { Video, Loader2, CameraOff } from 'lucide-react';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { v4 as uuidv4 } from 'uuid';
-import { StreamVideoClient } from '@stream-io/video-react-sdk';
 
 function CreateBroadcastPageComponent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, isUserLoading } = useUser();
   const { userDocument, isDocLoading } = useUserDocument();
   const firestore = useFirestore();
@@ -26,6 +26,14 @@ function CreateBroadcastPageComponent() {
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
+  
+  // Pre-fill title from URL if available, for the cards flow
+  useEffect(() => {
+    const challengeTitle = searchParams.get('challenge');
+    if (challengeTitle) {
+      setTitle(challengeTitle);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const getCameraPermission = async () => {
@@ -48,7 +56,6 @@ function CreateBroadcastPageComponent() {
     };
     getCameraPermission();
     
-    // Clean up camera stream on unmount
     return () => {
        if (videoRef.current && videoRef.current.srcObject) {
         const stream = videoRef.current.srcObject as MediaStream;
@@ -76,44 +83,33 @@ function CreateBroadcastPageComponent() {
     try {
       // Step 1: Generate a unique ID for the new broadcast
       const broadcastId = uuidv4();
+      const challengeType = searchParams.get('type') as 'truth' | 'dare' | 'challenge' | null;
+      const challengeDuration = searchParams.get('duration');
 
-      // Step 2 (Server-Side): Get a token for the Stream client
-      setStatusMessage('Requesting stream token...');
-      const tokenResponse = await fetch('/api/stream/token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.uid }),
-      });
-      if (!tokenResponse.ok) throw new Error('Failed to fetch stream token.');
-      const { token } = await tokenResponse.json();
-
-      // Step 3 (Client-Side): Initialize Stream client and create call object
-      setStatusMessage('Initializing video client...');
-      const apiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY;
-      if (!apiKey) throw new Error('Stream API Key is missing.');
-      
-      const client = new StreamVideoClient({ apiKey, user: { id: user.uid }, token });
-      
-      setStatusMessage('Creating live call...');
-      const call = client.call('livestream', broadcastId);
-      await call.getOrCreate({
-        data: { custom: { title, hostId: user.uid } },
-      });
-      
-      // Disconnect the temporary client, the livenet page will create its own
-      await client.disconnectUser();
-
-      // Step 4: Create the broadcast document in Firestore
+      // Step 2: Create the broadcast document in Firestore FIRST
+      // This is crucial to avoid race conditions. The /livenet page will depend on this doc existing.
       setStatusMessage('Registering broadcast in database...');
       const broadcastDocRef = doc(firestore, 'broadcasts', broadcastId);
-      await setDoc(broadcastDocRef, {
+      const broadcastPayload: any = {
         title: title,
         hostId: user.uid,
         hostName: userDocument.username,
         hostAvatar: userDocument.profilePicture || '',
-        isLive: false, // Will be set to true by the livenet page upon joining
+        isLive: false, // /livenet will set this to true upon successful connection
         createdAt: serverTimestamp(),
-      });
+        viewerCount: 0,
+        streamDetails: { isScreenSharing: false },
+      };
+
+      // Add challenge details if they exist in the URL
+      if (challengeType && challengeDuration) {
+          broadcastPayload.activeChallenge = title;
+          broadcastPayload.activeChallengeType = challengeType;
+          broadcastPayload.challengeDurationSeconds = parseInt(challengeDuration, 10);
+          broadcastPayload.challengeStartTime = serverTimestamp();
+      }
+
+      await setDoc(broadcastDocRef, broadcastPayload);
       
       // Stop the local camera preview before navigating
       if (videoRef.current && videoRef.current.srcObject) {
@@ -121,7 +117,7 @@ function CreateBroadcastPageComponent() {
         stream.getTracks().forEach(track => track.stop());
       }
       
-      // Step 5: Redirect to the livenet page with the new broadcastId
+      // Step 3: Redirect to the livenet page, which will handle the Stream connection
       setStatusMessage('Redirecting to studio...');
       router.push(`/livenet?id=${broadcastId}`);
 
