@@ -35,7 +35,6 @@ import GifPicker from '@/components/inbox/GifPicker';
 import Image from 'next/image';
 import VideoPlayer from '@/components/broadcast/video-player';
 import { Separator } from '@/components/ui/separator';
-import { TempDataMigration } from '@/components/temp-data-migration';
 
 function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broadcast, onVisible: () => void, isActive: boolean }) {
     const { ref, inView } = useInView({ threshold: 0.7 });
@@ -519,9 +518,6 @@ function HomePageContent() {
     return (
         <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
             <div className="h-screen relative bg-black">
-                 <div className="absolute top-4 left-4 z-50">
-                    <TempDataMigration />
-                </div>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                          <Button variant="ghost" size="icon" className="absolute top-4 right-4 z-50 text-white transition-transform hover:bg-black/20 hover:scale-110 pointer-events-auto focus-visible:ring-0 rounded-full h-10 w-10 bg-black/20">
