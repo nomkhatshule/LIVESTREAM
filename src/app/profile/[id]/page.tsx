@@ -8,7 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useParams } from 'next/navigation';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useUserDocument } from '@/firebase';
 import { Button } from '@/components/ui/button';
-import { doc, writeBatch, serverTimestamp, where, query, orderBy, limit, collection, addDoc, getCountFromServer } from 'firebase/firestore';
+import { doc, writeBatch, serverTimestamp, where, query, orderBy, limit, collection, addDoc, getCountFromServer, onSnapshot } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { useMemo, useState, useEffect } from 'react';
 import { UserPlus, UserCheck, MessageSquare, Heart, Eye, Gem, Gift, Video, Settings, X } from 'lucide-react';
