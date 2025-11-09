@@ -40,11 +40,11 @@ export default function LandingPage() {
       </div>
       <section className="relative h-screen w-full bg-black flex flex-col items-center justify-center text-center p-8">
         <Image
-            src="https://media.istockphoto.com/id/1217435231/photo/times-square-during-covid-19.jpg?s=612x612&w=0&k=20&c=zFWQdZ4MzGkB96k5586oPq2PqnoXW18vL75zHK734fs="
-            alt="Empty Times Square"
+            src="https://cdn.pixabay.com/photo/2019/04/03/02/46/streets-4099408_1280.jpg"
+            alt="City street at night"
             fill
             className="object-cover"
-            data-ai-hint="city square"
+            data-ai-hint="city street"
         />
         <div className="absolute inset-0 bg-black/50" />
         <div className="relative z-10">
