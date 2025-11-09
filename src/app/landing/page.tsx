@@ -40,7 +40,7 @@ export default function LandingPage() {
       </div>
       <section className="relative h-screen w-full bg-black flex flex-col items-center justify-center text-center p-8">
         <Image
-            src="https://cdn.pixabay.com/photo/2019/04/03/02/46/streets-4099408_1280.jpg"
+            src="https://cdn.pixabay.com/photo/2013/06/08/21/26/usa-123420_1280.jpg"
             alt="City street at night"
             fill
             className="object-cover"
