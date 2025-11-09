@@ -488,6 +488,12 @@ function HomePageContent() {
     }, [notifications]);
 
     useEffect(() => {
+        if (!isUserLoading && !user) {
+            router.push('/login');
+        }
+    }, [isUserLoading, user, router]);
+
+    useEffect(() => {
         // Set the initial active broadcast if it's not already set
         if (!activeBroadcast && liveBroadcasts && liveBroadcasts.length > 0) {
             setActiveBroadcast(liveBroadcasts[0]);
@@ -510,18 +516,13 @@ function HomePageContent() {
     
     const isLoading = isUserLoading || areBroadcastsLoading || areNotificationsLoading || isUserDocLoading;
 
-    if (isLoading) {
+    if (isLoading || !user) {
         return (
             <div className="flex h-screen w-full items-center justify-center bg-background">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 <p className="ml-2">Loading Feed...</p>
             </div>
         );
-    }
-    
-    if (!user) {
-        router.push('/login');
-        return null;
     }
 
     return (
