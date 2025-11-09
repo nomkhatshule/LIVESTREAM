@@ -8,7 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useParams } from 'next/navigation';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useUserDocument } from '@/firebase';
 import { Button } from '@/components/ui/button';
-import { doc, writeBatch, serverTimestamp, where, query, orderBy, limit, collection, addDoc, getCountFromServer, onSnapshot } from 'firebase/firestore';
+import { doc, writeBatch, serverTimestamp, where, query, orderBy, limit, collection, getCountFromServer, onSnapshot } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { useMemo, useState, useEffect } from 'react';
 import { UserPlus, UserCheck, MessageSquare, Heart, Eye, Gem, Gift, Video, Settings, X } from 'lucide-react';
@@ -76,48 +76,42 @@ export default function UserProfilePage() {
   const { data: userBroadcasts, isLoading: areBroadcastsLoading } = useCollection(userBroadcastsQuery);
   
   useEffect(() => {
-    if (userBroadcasts && firestore) {
-      let listeners: (() => void)[] = [];
-      let isMounted = true;
-
-      const fetchAllLikes = async () => {
-        let cumulativeLikes = 0;
-        
-        for (const broadcast of userBroadcasts) {
-          const likesColRef = collection(firestore, 'broadcasts', broadcast.id, 'likes');
-          
-          // Use onSnapshot to get real-time updates for each broadcast's likes
-          const unsubscribe = onSnapshot(likesColRef, (snapshot) => {
-             if (isMounted) {
-                // To avoid race conditions, we recalculate the total from scratch on every update
-                // This is less efficient but safer for this real-time scenario
-                recalculateTotalLikes();
-             }
-          });
-          listeners.push(unsubscribe);
-        }
-      };
-
-      const recalculateTotalLikes = async () => {
-         let total = 0;
-         for (const broadcast of userBroadcasts) {
-            const likesColRef = collection(firestore, 'broadcasts', broadcast.id, 'likes');
-            const snapshot = await getCountFromServer(likesColRef);
-            total += snapshot.data().count;
-         }
-         if (isMounted) {
-            setTotalLikes(total);
-         }
-      }
-
-      fetchAllLikes();
-      recalculateTotalLikes(); // Initial calculation
-
-      return () => {
-        isMounted = false;
-        listeners.forEach(unsub => unsub()); // Detach all listeners on cleanup
-      };
+    if (!userBroadcasts || !firestore) {
+      setTotalLikes(0);
+      return;
     }
+  
+    const initialCounts: Record<string, number> = {};
+    let isMounted = true;
+  
+    // Function to update the total count from the individual broadcast counts
+    const updateTotal = () => {
+      if (isMounted) {
+        const total = Object.values(initialCounts).reduce((sum, count) => sum + count, 0);
+        setTotalLikes(total);
+      }
+    };
+  
+    // Set up listeners for each broadcast
+    const listeners = userBroadcasts.map(broadcast => {
+      const likesColRef = collection(firestore, 'broadcasts', broadcast.id, 'likes');
+  
+      // Get initial count and then listen for changes
+      return onSnapshot(likesColRef, (snapshot) => {
+        initialCounts[broadcast.id] = snapshot.size;
+        updateTotal();
+      }, (error) => {
+        console.error(`Error fetching likes for broadcast ${broadcast.id}:`, error);
+        initialCounts[broadcast.id] = 0; // On error, assume 0 for this broadcast
+        updateTotal();
+      });
+    });
+  
+    // Cleanup function
+    return () => {
+      isMounted = false;
+      listeners.forEach(unsubscribe => unsubscribe());
+    };
   }, [userBroadcasts, firestore]);
 
   const isFollowing = useMemo(() => {
