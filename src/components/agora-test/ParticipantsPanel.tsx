@@ -2,7 +2,7 @@
 'use client';
 
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Users, Loader2 } from "lucide-react";
 import { StreamVideoParticipant } from "@stream-io/video-react-sdk";
 import { useUserDocumentById } from "@/firebase";
