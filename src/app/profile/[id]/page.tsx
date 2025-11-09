@@ -1,4 +1,5 @@
 
+
 'use client';
 import { useUserDocumentById, UserProfile } from '@/firebase/firestore/use-user-document';
 import { Card, CardContent } from '@/components/ui/card';
@@ -7,9 +8,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useParams } from 'next/navigation';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useUserDocument } from '@/firebase';
 import { Button } from '@/components/ui/button';
-import { doc, writeBatch, serverTimestamp, where, query, orderBy, limit, collection, addDoc } from 'firebase/firestore';
+import { doc, writeBatch, serverTimestamp, where, query, orderBy, limit, collection, addDoc, getCountFromServer } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { UserPlus, UserCheck, MessageSquare, Heart, Eye, Gem, Gift, Video, Settings, X } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Link from 'next/link';
@@ -42,6 +43,7 @@ export default function UserProfilePage() {
   const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
   const [selectedHighlight, setSelectedHighlight] = useState<Highlight | null>(null);
+  const [totalLikes, setTotalLikes] = useState(0);
   
   const { userDocument, isDocLoading } = useUserDocumentById(profileUserId);
 
@@ -73,11 +75,50 @@ export default function UserProfilePage() {
   }, [profileUserId, firestore]);
   const { data: userBroadcasts, isLoading: areBroadcastsLoading } = useCollection(userBroadcastsQuery);
   
-  const totalLikes = useMemo(() => {
-    if (!userBroadcasts) return 0;
-    // This is a rough estimate. A better solution needs backend aggregation.
-    return userBroadcasts.reduce((acc, broadcast) => acc + (broadcast.viewers || 0), 0);
-  }, [userBroadcasts]);
+  useEffect(() => {
+    if (userBroadcasts && firestore) {
+      let listeners: (() => void)[] = [];
+      let isMounted = true;
+
+      const fetchAllLikes = async () => {
+        let cumulativeLikes = 0;
+        
+        for (const broadcast of userBroadcasts) {
+          const likesColRef = collection(firestore, 'broadcasts', broadcast.id, 'likes');
+          
+          // Use onSnapshot to get real-time updates for each broadcast's likes
+          const unsubscribe = onSnapshot(likesColRef, (snapshot) => {
+             if (isMounted) {
+                // To avoid race conditions, we recalculate the total from scratch on every update
+                // This is less efficient but safer for this real-time scenario
+                recalculateTotalLikes();
+             }
+          });
+          listeners.push(unsubscribe);
+        }
+      };
+
+      const recalculateTotalLikes = async () => {
+         let total = 0;
+         for (const broadcast of userBroadcasts) {
+            const likesColRef = collection(firestore, 'broadcasts', broadcast.id, 'likes');
+            const snapshot = await getCountFromServer(likesColRef);
+            total += snapshot.data().count;
+         }
+         if (isMounted) {
+            setTotalLikes(total);
+         }
+      }
+
+      fetchAllLikes();
+      recalculateTotalLikes(); // Initial calculation
+
+      return () => {
+        isMounted = false;
+        listeners.forEach(unsub => unsub()); // Detach all listeners on cleanup
+      };
+    }
+  }, [userBroadcasts, firestore]);
 
   const isFollowing = useMemo(() => {
     return currentUserFollowingList?.some(follow => follow.id === profileUserId) || false;
