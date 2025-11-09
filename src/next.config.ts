@@ -24,6 +24,8 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
       {
+        protocol: 'https',"hostname":"media.istockphoto.com","port":"","pathname":"/**"},
+      {
         protocol: 'https',
         hostname: 'picsum.photos',
         pathname: '/**',
@@ -39,15 +41,53 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
       {
+        protocol: 'https',"hostname":"media0.giphy.com","pathname":"/**"},
+      {
         protocol: 'https',
-        hostname: 'media*.giphy.com',
+        hostname: 'media1.giphy.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'media2.giphy.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'media3.giphy.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'media4.giphy.com',
         pathname: '/**',
       },
       {
         protocol: 'https',
         hostname: 'cdn.pixabay.com',
         pathname: '/**',
-      }
+      },
+      {
+        protocol: 'https',
+        hostname: 'image.mux.com',
+        pathname: '/**',
+      },
+      // Added for Tavily search result images
+      {
+        protocol: 'https',
+        hostname: 'i.gyazo.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'img.tavily.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdn.midjourney.com',
+        pathname: '/**',
+      },
     ]
   },
 };
