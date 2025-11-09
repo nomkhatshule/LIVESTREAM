@@ -14,6 +14,7 @@ import {
   useCall,
   useCallStateHooks,
   CallingState,
+  StreamVideoParticipant,
 } from '@stream-io/video-react-sdk';
 import VideoPlayer from '@/components/broadcast/video-player';
 import StreamHeader from '@/components/agora-test/StreamHeader';
@@ -217,6 +218,7 @@ export default function AgoraTestPageUI() {
             viewerCount={viewerCount}
             onToggleChat={() => setIsChatVisible(prev => !prev)}
             isChatVisible={isChatVisible}
+            participants={participants}
         />
         
         <InStreamGamesPanel 

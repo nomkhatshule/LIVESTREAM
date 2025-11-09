@@ -4,6 +4,7 @@
 import { Button } from "@/components/ui/button";
 import { Dice6, Mic, MicOff, Minus, MonitorUp, ScreenShare, UserPlus, Video, VideoOff, MessageCircle, MessageCircleOff } from "lucide-react";
 import ParticipantsPanel from "./ParticipantsPanel";
+import { StreamVideoParticipant } from "@stream-io/video-react-sdk";
 
 interface StreamControlsProps {
     onToggleVideo: () => void;
@@ -20,6 +21,7 @@ interface StreamControlsProps {
     isChatVisible: boolean;
     viewerCount: number;
     isCallJoined: boolean;
+    participants: StreamVideoParticipant[];
 }
 
 export default function StreamControls({ 
@@ -37,6 +39,7 @@ export default function StreamControls({
     isCallJoined,
     isChatVisible,
     onToggleChat,
+    participants,
 }: StreamControlsProps) {
     
     if (!isCallJoined) {
@@ -62,7 +65,7 @@ export default function StreamControls({
                   <Minus className="h-5 w-5 md:h-6 md:w-6"/>
               </Button>
             )}
-            <ParticipantsPanel viewerCount={viewerCount} />
+            <ParticipantsPanel viewerCount={viewerCount} participants={participants} />
             <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onOpenGames}>
                 <Dice6 className="h-5 w-5 md:h-6 md:w-6"/>
             </Button>
