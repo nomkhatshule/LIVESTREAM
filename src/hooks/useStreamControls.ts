@@ -1,12 +1,12 @@
-
 'use client';
 
 import { useRouter } from 'next/navigation';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-sdk';
 import { useToast } from '@/hooks/use-toast';
 import { doc, updateDoc, DocumentReference } from 'firebase/firestore';
+import type { Call } from '@stream-io/video-react-sdk';
 
-export function useStreamControls(call: ReturnType<typeof useCall>, broadcastDocRef: DocumentReference | null) {
+export function useStreamControls(call: Call | null, broadcastDocRef: DocumentReference | null) {
   const router = useRouter();
   const { toast } = useToast();
   
