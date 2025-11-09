@@ -58,7 +58,7 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
       {
-        protocol: 'httpshttps',
+        protocol: 'https',
         hostname: 'media4.giphy.com',
         pathname: '/**',
       },
