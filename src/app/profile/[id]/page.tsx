@@ -97,7 +97,6 @@ export default function UserProfilePage() {
                     // A simpler way for real-time is often server-side aggregation (e.g., Cloud Functions).
                     // For client-side, we can refetch all counts, which is what we'll simulate here.
                     // This is NOT the most performant way but avoids complex state management.
-                    // A better client-side way is to keep a map of counts per broadcast.
                     return prevTotal + snapshot.size; // This is a simplification and might lead to drift
                 });
             }
@@ -405,39 +404,41 @@ export default function UserProfilePage() {
 function ProfileSkeleton() {
   return (
     <div className="container mx-auto max-w-4xl py-8 px-4">
-      <Card className="overflow-hidden mb-2">
-        <Skeleton className="h-48 w-full" />
-        <div className="flex flex-col items-center p-6 pt-0 -mt-24">
-          <Skeleton className="w-28 h-28 rounded-full border-4 border-background ring-4 ring-destructive" />
-          <Skeleton className="h-9 w-48 mt-4" />
-          <Skeleton className="h-5 w-80 mt-3" />
-          
-          <div className="flex items-center gap-6 mt-6">
-            <div className="text-center">
-              <Skeleton className="h-7 w-12 mb-1" />
-              <Skeleton className="h-4 w-20" />
+      <Tabs defaultValue="highlights" className="w-full">
+        <Card className="overflow-hidden mb-2">
+          <Skeleton className="h-48 w-full" />
+          <div className="flex flex-col items-center p-6 pt-0 -mt-24">
+            <Skeleton className="w-28 h-28 rounded-full border-4 border-background ring-4 ring-destructive" />
+            <Skeleton className="h-9 w-48 mt-4" />
+            <Skeleton className="h-5 w-80 mt-3" />
+            
+            <div className="flex items-center gap-6 mt-6">
+              <div className="text-center">
+                <Skeleton className="h-7 w-12 mb-1" />
+                <Skeleton className="h-4 w-20" />
+              </div>
+              <div className="text-center">
+                <Skeleton className="h-7 w-12 mb-1" />
+                <Skeleton className="h-4 w-20" />
+              </div>
+               <div className="text-center">
+                <Skeleton className="h-7 w-12 mb-1" />
+                <Skeleton className="h-4 w-12" />
+              </div>
             </div>
-            <div className="text-center">
-              <Skeleton className="h-7 w-12 mb-1" />
-              <Skeleton className="h-4 w-20" />
-            </div>
-             <div className="text-center">
-              <Skeleton className="h-7 w-12 mb-1" />
-              <Skeleton className="h-4 w-12" />
+            <div className="mt-6 flex items-center gap-2">
+              <Skeleton className="h-12 w-32 rounded-md" />
+              <Skeleton className="h-12 w-32 rounded-md" />
             </div>
           </div>
-          <div className="mt-6 flex items-center gap-2">
-            <Skeleton className="h-12 w-32 rounded-md" />
-            <Skeleton className="h-12 w-32 rounded-md" />
-          </div>
-        </div>
-         <Skeleton className="h-10 w-full rounded-none" />
-      </Card>
-       <TabsContent value="highlights" className="mt-0">
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1">
-                {[...Array(8)].map((_, i) => <Skeleton key={i} className="aspect-[9/16]"/>)}
-            </div>
-        </TabsContent>
+           <Skeleton className="h-10 w-full rounded-none" />
+        </Card>
+         <TabsContent value="highlights" className="mt-0">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1">
+                  {[...Array(8)].map((_, i) => <Skeleton key={i} className="aspect-[9/16]"/>)}
+              </div>
+          </TabsContent>
+      </Tabs>
     </div>
   );
 }
