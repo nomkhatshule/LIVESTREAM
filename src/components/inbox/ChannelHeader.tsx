@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useChatContext } from '@/components/chat/ChatProvider';
@@ -21,7 +22,7 @@ export default function ChannelHeader() {
     if (isDocLoading || !otherUser) {
         return (
              <div className="border-b p-3 flex items-center gap-3 bg-black border-zinc-700">
-                <Link href="/feed-test">
+                <Link href="/feed">
                     <Button variant="ghost" size="icon">
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
@@ -34,7 +35,7 @@ export default function ChannelHeader() {
     
     return (
         <div className="border-b p-3 flex items-center gap-3 bg-black border-zinc-700">
-             <Link href="/feed-test">
+             <Link href="/feed">
                 <Button variant="ghost" size="icon">
                     <ArrowLeft className="h-5 w-5" />
                 </Button>

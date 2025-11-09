@@ -146,7 +146,7 @@ function InboxPageComponent() {
         createAndWatchChannel().catch(err => {
             console.error("Failed to create or watch channel:", err);
             setIsLoadingChannel(false);
-            router.push('/feed-test');
+            router.push('/feed');
         });
 
     }
@@ -209,7 +209,7 @@ function InboxPageComponent() {
              <h2 className="text-xl font-bold text-white">Your Messages</h2>
              <p>Select a conversation from your inbox to start chatting.</p>
              <Button variant="outline" asChild className="mt-4 bg-transparent border-zinc-700 hover:bg-zinc-900 hover:text-white">
-                <Link href="/feed-test">
+                <Link href="/feed">
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Back to Feed
                 </Link>
