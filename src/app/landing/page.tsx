@@ -40,7 +40,7 @@ export default function LandingPage() {
       </div>
       <section className="relative h-screen w-full bg-black flex flex-col items-center justify-center text-center p-8">
         <Image
-            src="https://cdn.pixabay.com/photo/2014/02/28/19/42/times-square-277118_1280.jpg"
+            src="https://cdn.pixabay.com/photo/2016/08/21/20/13/time-square-1610667_1280.jpg"
             alt="City street at night"
             fill
             className="object-cover"
@@ -63,13 +63,13 @@ export default function LandingPage() {
         />
         <div className="absolute inset-0 bg-black/50" />
         <div className="relative z-10 w-full max-w-3xl flex flex-col items-center gap-4">
-            <div className="bg-white/80 backdrop-blur-md border-2 border-destructive/50 rounded-full py-2 px-6 shadow-xl">
-              <h2 className="text-lg font-bold font-headline uppercase tracking-widest text-black text-center">
-                NO AI SLOP!!
-              </h2>
-            </div>
-            <div className="bg-white/80 backdrop-blur-md border-2 border-destructive/50 rounded-2xl p-8 shadow-xl max-w-2xl">
-              <div className="text-base leading-relaxed text-black text-center space-y-4">
+            <div className="bg-white/80 backdrop-blur-md border border-black/10 rounded-2xl p-8 shadow-xl max-w-2xl text-center">
+               <div className="inline-block bg-green-200/50 text-green-900 border-2 border-green-700/50 rounded-md px-3 py-1 mb-6">
+                 <h3 className="text-sm font-bold font-cosmic uppercase tracking-widest">
+                   100% Human Content
+                 </h3>
+               </div>
+              <div className="text-base leading-relaxed text-black space-y-4">
                 <p>
                   We live in a digital world where nothing feels real anymore, flooded with AI slop, AI-generated videos, fake photos, and soulless content.
                 </p>
