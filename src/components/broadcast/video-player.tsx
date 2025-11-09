@@ -17,10 +17,13 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
+import { useStreamPrefetch } from '@/hooks/useStreamPrefetch';
 
 interface VideoPlayerProps {
   broadcast: BroadcastData;
   isHost?: boolean;
+  prefetchedClient?: StreamVideoClient | null;
+  prefetchedToken?: string | null;
 }
 
 function HostVideoPlayer({ broadcast }: { broadcast: BroadcastData }) {
@@ -75,14 +78,16 @@ function HostVideoPlayer({ broadcast }: { broadcast: BroadcastData }) {
     )
 }
 
-function ViewerVideoPlayer({ broadcast }: { broadcast: BroadcastData }) {
+function ViewerVideoPlayer({ broadcast, prefetchedClient, prefetchedToken }: VideoPlayerProps) {
   const { user } = useUser();
-  const [client, setClient] = useState<StreamVideoClient | null>(null);
+  const [client, setClient] = useState<StreamVideoClient | null>(prefetchedClient || null);
   const [call, setCall] = useState<Call | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!user || !broadcast?.id || client) return;
+    // If the client is already prefetched, don't re-initialize
+    if (client) return;
+    if (!user || !broadcast?.id) return;
 
     const apiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY;
     if (!apiKey) {
@@ -94,14 +99,15 @@ function ViewerVideoPlayer({ broadcast }: { broadcast: BroadcastData }) {
 
     const initClient = async () => {
       try {
-        const response = await fetch('/api/stream/token', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: user.uid }),
-        });
-        if (!response.ok) throw new Error('Failed to get stream token');
-
-        const { token } = await response.json();
+        const token = prefetchedToken || await (async () => {
+            const response = await fetch('/api/stream/token', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ userId: user.uid }),
+            });
+            if (!response.ok) throw new Error('Failed to get stream token');
+            return (await response.json()).token;
+        })();
 
         videoClient = new StreamVideoClient({
           apiKey,
@@ -115,9 +121,7 @@ function ViewerVideoPlayer({ broadcast }: { broadcast: BroadcastData }) {
         setClient(videoClient);
         
         const callInstance = videoClient.call('livestream', broadcast.id);
-        
         await callInstance.join();
-
         setCall(callInstance);
 
       } catch (error) {
@@ -136,12 +140,21 @@ function ViewerVideoPlayer({ broadcast }: { broadcast: BroadcastData }) {
       if (call) {
         call.leave().catch(err => console.error("Failed to leave call on cleanup", err));
       }
-      if (videoClient) {
+      if (videoClient && !prefetchedClient) { // Only disconnect if not prefetched
         videoClient.disconnectUser().catch(err => console.error("Failed to disconnect user on cleanup", err));
       }
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, broadcast?.id, toast]);
+  }, [user, broadcast?.id, toast, client, prefetchedClient, prefetchedToken]);
+
+  // Use prefetched client for the initial connection
+  useEffect(() => {
+    if (prefetchedClient && !call) {
+      const callInstance = prefetchedClient.call('livestream', broadcast.id);
+      callInstance.join().then(() => setCall(callInstance));
+    }
+  }, [prefetchedClient, broadcast, call]);
+
 
   if (!client || !call) {
     return (
@@ -186,10 +199,10 @@ function ViewerStreamContent({ broadcast }: { broadcast: BroadcastData }) {
   )
 }
 
-export default function VideoPlayer({ broadcast, isHost = false }: VideoPlayerProps) {
+export default function VideoPlayer({ broadcast, isHost = false, prefetchedClient, prefetchedToken }: VideoPlayerProps) {
     if (isHost) {
         return <HostVideoPlayer broadcast={broadcast} />;
     } else {
-        return <ViewerVideoPlayer broadcast={broadcast} />;
+        return <ViewerVideoPlayer broadcast={broadcast} prefetchedClient={prefetchedClient} prefetchedToken={prefetchedToken}/>;
     }
 }

@@ -35,6 +35,7 @@ import GifPicker from '@/components/inbox/GifPicker';
 import Image from 'next/image';
 import VideoPlayer from '@/components/broadcast/video-player';
 import { Separator } from '@/components/ui/separator';
+import { useStreamPrefetch } from '@/hooks/useStreamPrefetch';
 
 function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broadcast, onVisible: () => void, isActive: boolean }) {
     const { ref, inView } = useInView({ threshold: 0.7 });
@@ -43,6 +44,9 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
     const firestore = useFirestore();
     const storage = useStorage();
     const { toast } = useToast();
+
+    // PREFETCH HOOK - This will start fetching the stream token when the item is active
+    const { prefetchedClient, prefetchedToken } = useStreamPrefetch(isActive ? user : null, broadcast);
 
     useEffect(() => {
         if (inView) {
@@ -253,7 +257,12 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
             
             <div className="absolute inset-0 z-0 bg-black">
               {isActive ? (
-                    <VideoPlayer broadcast={broadcast} isHost={false} />
+                    <VideoPlayer 
+                        broadcast={broadcast} 
+                        isHost={false}
+                        prefetchedClient={prefetchedClient}
+                        prefetchedToken={prefetchedToken}
+                    />
                 ) : (
                     <div className="absolute inset-0 z-10 flex items-center justify-center">
                         {broadcast.thumbnailUrl && (
