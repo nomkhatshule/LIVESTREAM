@@ -222,10 +222,6 @@ export default function UserProfilePage() {
                     <DialogTitle>{`Highlight video: ${selectedHighlight.title}`}</DialogTitle>
                     <DialogDescription>A full-screen video player for the highlight titled "{selectedHighlight.title}".</DialogDescription>
                   </VisuallyHidden>
-                   <DialogClose className="absolute right-4 top-4 z-50 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus-visible:ring-0 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
-                    <X className="h-6 w-6 text-white" />
-                    <span className="sr-only">Close</span>
-                  </DialogClose>
                   <div className="relative w-full h-full flex items-center justify-center">
                       <video
                           src={selectedHighlight.videoUrl}
