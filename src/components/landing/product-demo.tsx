@@ -26,7 +26,7 @@ const FloatingReaction = ({ reaction }: { reaction: DemoReaction }) => (
 );
 
 const DemoComment = ({ avatar, name, text }: { avatar: string, name: string, text: string }) => (
-    <div className="flex items-start gap-2 text-sm text-white p-2 bg-black/70 rounded-lg w-fit backdrop-blur-sm border border-white/10">
+    <div className="flex items-start gap-2 text-sm text-white p-2 bg-zinc-900/90 rounded-lg w-fit border border-zinc-700/80">
         <Avatar className="h-6 w-6 border-2 border-secondary">
             <AvatarImage src={avatar} />
             <AvatarFallback>{name.charAt(0)}</AvatarFallback>
