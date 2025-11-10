@@ -25,7 +25,7 @@ const FloatingReaction = ({ reaction }: { reaction: DemoReaction }) => (
   </div>
 );
 
-const DemoComment = ({ avatar, name, text, attachment }: { avatar: string, name: string, text?: string, attachment?: { type: 'image' | 'gif', url: string, alt: string } }) => (
+const DemoComment = ({ avatar, name, text }: { avatar: string, name: string, text: string }) => (
     <div className="flex items-start gap-2 text-sm text-white p-1.5 rounded-lg bg-black/20 backdrop-blur-sm w-fit">
         <Avatar className="h-6 w-6 border-2 border-secondary">
             <AvatarImage src={avatar} />
@@ -33,12 +33,7 @@ const DemoComment = ({ avatar, name, text, attachment }: { avatar: string, name:
         </Avatar>
         <div className="flex flex-col">
             <span className="font-bold font-headline text-primary mr-1.5">{name}</span>
-            {text && <span className="break-words">{text}</span>}
-            {attachment && (
-                <div className="mt-1">
-                    <Image src={attachment.url} width={100} height={80} alt={attachment.alt} className="rounded-md" />
-                </div>
-            )}
+            <span className="break-words">{text}</span>
         </div>
     </div>
 );
@@ -115,7 +110,7 @@ export default function ProductDemo() {
                <ConnectorLine className="self-end" />
             </div>
 
-            <div className="relative w-[240px] h-[480px] md:w-[260px] md:h-[520px] bg-zinc-900 rounded-[40px] border-[10px] border-black shadow-2xl overflow-hidden z-20">
+            <div className="relative w-[240px] h-[480px] md:w-[260px] md:h-[520px] bg-zinc-900 rounded-[40px] border-[10px] border-zinc-700 shadow-2xl overflow-hidden z-20">
                 {/* Video Background */}
                 <video
                     autoPlay
@@ -200,5 +195,3 @@ export default function ProductDemo() {
     </section>
   );
 }
-
-    
