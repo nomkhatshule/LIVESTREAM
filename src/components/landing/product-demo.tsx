@@ -87,13 +87,16 @@ export default function ProductDemo() {
              <h2 className="text-4xl md:text-6xl font-bold font-headline text-white drop-shadow-xl">
                 Experience the Live Feed
             </h2>
+            <p className="text-lg text-zinc-400 mt-4 max-w-2xl mx-auto">
+                This is a real-time preview of what it's like to watch a stream on LIVENET.
+            </p>
         </div>
       
         {/* Phone Mockup and Feature Descriptions */}
         <div className="relative flex items-center justify-center gap-4">
 
             {/* Left Descriptions */}
-            <div className="hidden md:flex flex-col gap-[5.5rem] w-48">
+            <div className="hidden md:flex flex-col gap-16 w-48">
               <FeatureDescription
                 title="Join the Convo"
                 description="Comment on any live stream using text, GIFs, and images to share your reactions."
@@ -107,12 +110,12 @@ export default function ProductDemo() {
             </div>
             
             {/* Dashed Lines - Left */}
-            <div className="hidden md:flex flex-col gap-[10rem] w-12">
-               <ConnectorLine className="mt-8" />
-               <ConnectorLine className="mb-8" />
+            <div className="hidden md:flex flex-col gap-[8.5rem] w-12">
+               <ConnectorLine className="self-end" />
+               <ConnectorLine className="self-end" />
             </div>
 
-            <div className="relative w-[280px] h-[600px] md:w-[320px] md:h-[700px] bg-zinc-900 rounded-[40px] border-[10px] border-black shadow-2xl overflow-hidden z-20">
+            <div className="relative w-[240px] h-[480px] md:w-[280px] md:h-[560px] bg-zinc-900 rounded-[40px] border-[10px] border-black shadow-2xl overflow-hidden z-20">
                 {/* Video Background */}
                 <video
                     autoPlay
@@ -178,13 +181,13 @@ export default function ProductDemo() {
             </div>
 
             {/* Dashed Lines - Right */}
-            <div className="hidden md:flex flex-col gap-[10rem] w-12">
-               <ConnectorLine className="mb-8" />
-               <ConnectorLine className="mt-8" />
+            <div className="hidden md:flex flex-col gap-[8.5rem] w-12">
+               <ConnectorLine className="self-start" />
+               <ConnectorLine className="self-start" />
             </div>
             
             {/* Right Descriptions */}
-            <div className="hidden md:flex flex-col gap-[5.5rem] w-48">
+             <div className="hidden md:flex flex-col gap-16 w-48">
                <FeatureDescription
                 title="Show Some Love"
                 description="Like any live stream on your feed to show your support for the creator."
