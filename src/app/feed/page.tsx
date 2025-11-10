@@ -6,7 +6,6 @@ import { Suspense, useEffect, useState, useMemo, useRef } from 'react';
 import { useUser, useFirestore, useMemoFirebase, useUserDocument, useStorage } from '@/firebase';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { collection, query, where, writeBatch, doc, orderBy, serverTimestamp } from 'firebase/firestore';
-import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import type { Broadcast, ChatMessage } from '@/lib/data';
 import { Clapperboard, Loader2, Mail, ChevronDownCircle, MessageCircleHeart, Film, Heart, MessageSquareMore, Gift, Search, Swords, Users, CornerUpLeft, ArrowUp, Play, X, Paperclip, Gamepad2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -303,7 +302,12 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
                                         <p className="font-bold font-headline text-base md:text-lg hover:underline">{broadcast.hostName}</p>
                                     </Link>
                                     {user && user.uid !== broadcast.hostId && !isFollowing && (
-                                        <Button size="sm" className="h-7 rounded-full px-4 text-xs pointer-events-auto" onClick={handleFollowToggle} variant='default'>
+                                        <Button 
+                                            size="sm" 
+                                            className="h-7 rounded-full px-4 text-xs pointer-events-auto bg-transparent border-white text-white hover:bg-white hover:text-black" 
+                                            onClick={handleFollowToggle} 
+                                            variant='outline'
+                                        >
                                             Follow
                                         </Button>
                                     )}
@@ -635,3 +639,5 @@ export default function HomePage() {
         </Suspense>
     )
 }
+
+    
