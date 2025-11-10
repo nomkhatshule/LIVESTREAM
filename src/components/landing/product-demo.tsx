@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -82,7 +83,7 @@ export default function ProductDemo() {
         {/* Background elements */}
         <div className="absolute inset-0 bg-grid-zinc-800/20 [mask-image:linear-gradient(to_bottom,white_20%,transparent_100%)]"></div>
 
-        <div className="text-center z-10 px-4 mb-8">
+        <div className="text-center z-10 px-4 mb-16">
              <h2 className="text-4xl md:text-6xl font-bold font-headline text-white drop-shadow-xl">
                 Experience the Live Feed
             </h2>
@@ -92,7 +93,7 @@ export default function ProductDemo() {
         <div className="relative flex items-center justify-center gap-4">
 
             {/* Left Descriptions */}
-            <div className="hidden md:flex flex-col gap-12 w-48">
+            <div className="hidden md:flex flex-col gap-[5.5rem] w-48">
               <FeatureDescription
                 title="Join the Convo"
                 description="Comment on any live stream using text, GIFs, and images to share your reactions."
@@ -106,12 +107,12 @@ export default function ProductDemo() {
             </div>
             
             {/* Dashed Lines - Left */}
-            <div className="hidden md:flex flex-col gap-[8.5rem] w-12">
-               <ConnectorLine />
-               <ConnectorLine />
+            <div className="hidden md:flex flex-col gap-[10rem] w-12">
+               <ConnectorLine className="mt-8" />
+               <ConnectorLine className="mb-8" />
             </div>
 
-            <div className="relative w-[260px] h-[560px] md:w-[300px] md:h-[640px] bg-zinc-900 rounded-[40px] border-[10px] border-black shadow-2xl overflow-hidden z-20">
+            <div className="relative w-[280px] h-[600px] md:w-[320px] md:h-[700px] bg-zinc-900 rounded-[40px] border-[10px] border-black shadow-2xl overflow-hidden z-20">
                 {/* Video Background */}
                 <video
                     autoPlay
@@ -177,13 +178,13 @@ export default function ProductDemo() {
             </div>
 
             {/* Dashed Lines - Right */}
-            <div className="hidden md:flex flex-col gap-[8.5rem] w-12">
-               <ConnectorLine />
-               <ConnectorLine />
+            <div className="hidden md:flex flex-col gap-[10rem] w-12">
+               <ConnectorLine className="mb-8" />
+               <ConnectorLine className="mt-8" />
             </div>
             
             {/* Right Descriptions */}
-            <div className="hidden md:flex flex-col gap-12 w-48">
+            <div className="hidden md:flex flex-col gap-[5.5rem] w-48">
                <FeatureDescription
                 title="Show Some Love"
                 description="Like any live stream on your feed to show your support for the creator."
@@ -197,5 +198,3 @@ export default function ProductDemo() {
     </section>
   );
 }
-
-    
