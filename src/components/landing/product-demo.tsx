@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -44,6 +43,18 @@ const DemoComment = ({ avatar, name, text, attachment }: { avatar: string, name:
 );
 
 
+const FeatureDescription = ({ title, description, alignment = 'left' }: { title: string, description: string, alignment?: 'left' | 'right' }) => (
+  <div className={cn("w-48 text-white", alignment === 'right' ? 'text-right' : 'text-left')}>
+    <h4 className="font-bold font-headline">{title}</h4>
+    <p className="text-xs text-zinc-400 mt-1">{description}</p>
+  </div>
+);
+
+const ConnectorLine = ({ className }: { className?: string }) => (
+  <div className={cn("w-12 border-b-2 border-dashed border-zinc-600", className)} />
+);
+
+
 export default function ProductDemo() {
   const [reactions, setReactions] = useState<DemoReaction[]>([]);
 
@@ -71,78 +82,120 @@ export default function ProductDemo() {
         {/* Background elements */}
         <div className="absolute inset-0 bg-grid-zinc-800/20 [mask-image:linear-gradient(to_bottom,white_20%,transparent_100%)]"></div>
 
-        <div className="text-center z-10 px-4 mb-12">
+        <div className="text-center z-10 px-4 mb-8">
              <h2 className="text-4xl md:text-6xl font-bold font-headline text-white drop-shadow-xl">
                 Experience the Live Feed
             </h2>
         </div>
       
-        {/* Phone Mockup */}
-        <div className="relative w-[260px] h-[560px] md:w-[300px] md:h-[640px] bg-zinc-900 rounded-[40px] border-[10px] border-black shadow-2xl overflow-hidden z-20">
-            {/* Video Background */}
-            <video
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="absolute top-0 left-0 w-full h-full object-cover"
-                poster="https://cdn.midjourney.com/a857a58a-3511-4355-901c-6d9b54178577/0_0.png"
-            >
-                <source src="https://cdn.pixabay.com/video/2016/08/22/4727-179738642_tiny.mp4" type="video/mp4" />
-            </video>
+        {/* Phone Mockup and Feature Descriptions */}
+        <div className="relative flex items-center justify-center gap-4">
 
-            {/* UI Overlay */}
-            <div className="absolute inset-0 flex flex-col justify-between p-3 text-white z-10 pointer-events-none">
-                {/* Top: Host Info */}
-                <div className="flex items-center gap-2">
-                    <Avatar className={cn("h-10 w-10 border-2 border-destructive animate-breathing")}>
-                        <AvatarImage src="https://picsum.photos/seed/demohost/200" alt="Host" />
-                        <AvatarFallback>H</AvatarFallback>
-                    </Avatar>
-                    <div>
-                        <p className="font-bold font-headline text-base">StreamSavvy</p>
-                        <p className="text-xs">Vibin' with the community!</p>
+            {/* Left Descriptions */}
+            <div className="hidden md:flex flex-col gap-12 w-48">
+              <FeatureDescription
+                title="Join the Convo"
+                description="Comment on any live stream using text, GIFs, and images to share your reactions."
+                alignment="right"
+              />
+               <FeatureDescription
+                title="Instant Answers"
+                description="Find anything, anywhere in real-time with an AI assistant that can search the web for you."
+                alignment="right"
+              />
+            </div>
+            
+            {/* Dashed Lines - Left */}
+            <div className="hidden md:flex flex-col gap-[8.5rem] w-12">
+               <ConnectorLine />
+               <ConnectorLine />
+            </div>
+
+            <div className="relative w-[260px] h-[560px] md:w-[300px] md:h-[640px] bg-zinc-900 rounded-[40px] border-[10px] border-black shadow-2xl overflow-hidden z-20">
+                {/* Video Background */}
+                <video
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="absolute top-0 left-0 w-full h-full object-cover"
+                    poster="https://cdn.midjourney.com/a857a58a-3511-4355-901c-6d9b54178577/0_0.png"
+                >
+                    <source src="https://cdn.pixabay.com/video/2016/08/22/4727-179738642_tiny.mp4" type="video/mp4" />
+                </video>
+
+                {/* UI Overlay */}
+                <div className="absolute inset-0 flex flex-col justify-between p-3 text-white z-10 pointer-events-none">
+                    {/* Top: Host Info */}
+                    <div className="flex items-center gap-2">
+                        <Avatar className={cn("h-10 w-10 border-2 border-destructive animate-breathing")}>
+                            <AvatarImage src="https://picsum.photos/seed/demohost/200" alt="Host" />
+                            <AvatarFallback>H</AvatarFallback>
+                        </Avatar>
+                        <div>
+                            <p className="font-bold font-headline text-base">StreamSavvy</p>
+                            <p className="text-xs">Vibin' with the community!</p>
+                        </div>
+                    </div>
+
+                    {/* Bottom: Chat and Reactions */}
+                    <div className="relative h-1/2 flex flex-col justify-end">
+                        {/* Floating Reactions */}
+                         <div className="absolute bottom-16 left-0 h-64 w-48 z-20">
+                            {reactions.map((r) => <FloatingReaction key={r.key} reaction={r} />)}
+                         </div>
+
+                        {/* Chat Messages */}
+                        <div className="space-y-1.5">
+                            <DemoComment avatar="https://picsum.photos/seed/user1/100" name="ChattyCathy" text="This is awesome! 🔥" />
+                            <DemoComment avatar="https://picsum.photos/seed/user2/100" name="LurkerLou" text="Let's goooo! 🚀" />
+                            <DemoComment avatar="https://picsum.photos/seed/user3/100" name="GifMaster" attachment={{ type: 'gif', url: 'https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExaGlicjRqdG1zZGlmNW1hZHE1d3Z2dHRlZGhyMmh2emlmcjZrbmE5NSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/hVrxCqNNE1i4w/giphy.gif', alt: 'Mind blown' }} />
+                            <DemoComment avatar="https://picsum.photos/seed/user4/100" name="ArtFan" attachment={{ type: 'image', url: 'https://picsum.photos/seed/chat-image/200/150', alt: 'Cool art' }} />
+                        </div>
                     </div>
                 </div>
 
-                {/* Bottom: Chat and Reactions */}
-                <div className="relative h-1/2 flex flex-col justify-end">
-                    {/* Floating Reactions */}
-                     <div className="absolute bottom-16 left-0 h-64 w-48 z-20">
-                        {reactions.map((r) => <FloatingReaction key={r.key} reaction={r} />)}
-                     </div>
-
-                    {/* Chat Messages */}
-                    <div className="space-y-1.5">
-                        <DemoComment avatar="https://picsum.photos/seed/user1/100" name="ChattyCathy" text="This is awesome! 🔥" />
-                        <DemoComment avatar="https://picsum.photos/seed/user2/100" name="LurkerLou" text="Let's goooo! 🚀" />
-                        <DemoComment avatar="https://picsum.photos/seed/user3/100" name="GifMaster" attachment={{ type: 'gif', url: 'https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExaGlicjRqdG1zZGlmNW1hZHE1d3Z2dHRlZGhyMmh2emlmcjZrbmE5NSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/hVrxCqNNE1i4w/giphy.gif', alt: 'Mind blown' }} />
-                        <DemoComment avatar="https://picsum.photos/seed/user4/100" name="ArtFan" attachment={{ type: 'image', url: 'https://picsum.photos/seed/chat-image/200/150', alt: 'Cool art' }} />
-
+                 {/* Right Side Action Bar */}
+                <div className="absolute top-1/2 right-0 -translate-y-1/2 z-20 flex flex-col items-center gap-y-5 pointer-events-auto text-white p-2">
+                    <div id="demo-like" className="flex flex-col items-center">
+                        <Heart className="h-7 w-7 drop-shadow-md text-red-500 fill-red-500" strokeWidth={1.5} />
+                        <span className="text-[10px] font-bold mt-1">1.2k</span>
+                    </div>
+                    <div id="demo-comment" className="flex flex-col items-center">
+                        <MessageSquareMore className="h-7 w-7 drop-shadow-md" strokeWidth={1.5} />
+                        <span className="text-[10px] font-bold mt-1">345</span>
+                    </div>
+                    <div id="demo-fun" className="flex flex-col items-center">
+                       <Gamepad2 className="h-7 w-7 drop-shadow-md" strokeWidth={1.5} />
+                       <span className="text-[10px] font-bold mt-1">Fun</span>
+                    </div>
+                    <div id="demo-ai" className="flex flex-col items-center">
+                       <Search className="h-7 w-7 drop-shadow-md" strokeWidth={1.5} />
+                        <span className="text-[10px] font-bold mt-1">AI</span>
                     </div>
                 </div>
             </div>
 
-             {/* Right Side Action Bar */}
-            <div className="absolute top-1/2 right-0 -translate-y-1/2 z-20 flex flex-col items-center gap-y-5 pointer-events-auto text-white p-2">
-                <div className="flex flex-col items-center">
-                    <Heart className="h-7 w-7 drop-shadow-md text-red-500 fill-red-500" strokeWidth={1.5} />
-                    <span className="text-[10px] font-bold mt-1">1.2k</span>
-                </div>
-                <div className="flex flex-col items-center">
-                    <MessageSquareMore className="h-7 w-7 drop-shadow-md" strokeWidth={1.5} />
-                    <span className="text-[10px] font-bold mt-1">345</span>
-                </div>
-                <div className="flex flex-col items-center">
-                   <Gamepad2 className="h-7 w-7 drop-shadow-md" strokeWidth={1.5} />
-                   <span className="text-[10px] font-bold mt-1">Fun</span>
-                </div>
-                <div className="flex flex-col items-center">
-                   <Search className="h-7 w-7 drop-shadow-md" strokeWidth={1.5} />
-                    <span className="text-[10px] font-bold mt-1">AI</span>
-                </div>
+            {/* Dashed Lines - Right */}
+            <div className="hidden md:flex flex-col gap-[8.5rem] w-12">
+               <ConnectorLine />
+               <ConnectorLine />
+            </div>
+            
+            {/* Right Descriptions */}
+            <div className="hidden md:flex flex-col gap-12 w-48">
+               <FeatureDescription
+                title="Show Some Love"
+                description="Like any live stream on your feed to show your support for the creator."
+              />
+               <FeatureDescription
+                title="Spark the Fun"
+                description="Play Truth or Dare, or complete wild challenges with your followers."
+              />
             </div>
         </div>
     </section>
   );
 }
+
+    
