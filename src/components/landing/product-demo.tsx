@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { Gamepad2, Heart, MessageSquareMore, Search, Swords } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
+import Image from 'next/image';
 
 // Simplified reaction type for the demo
 type DemoReaction = {
@@ -24,15 +25,20 @@ const FloatingReaction = ({ reaction }: { reaction: DemoReaction }) => (
   </div>
 );
 
-const DemoComment = ({ avatar, name, text }: { avatar: string, name: string, text: string }) => (
+const DemoComment = ({ avatar, name, text, attachment }: { avatar: string, name: string, text?: string, attachment?: { type: 'image' | 'gif', url: string, alt: string } }) => (
     <div className="flex items-start gap-2 text-sm text-white p-1.5 rounded-lg bg-black/20 backdrop-blur-sm w-fit">
         <Avatar className="h-6 w-6 border-2 border-secondary">
             <AvatarImage src={avatar} />
             <AvatarFallback>{name.charAt(0)}</AvatarFallback>
         </Avatar>
-        <div>
+        <div className="flex flex-col">
             <span className="font-bold font-headline text-primary mr-1.5">{name}</span>
-            <span className="break-words">{text}</span>
+            {text && <span className="break-words">{text}</span>}
+            {attachment && (
+                <div className="mt-1">
+                    <Image src={attachment.url} width={100} height={80} alt={attachment.alt} className="rounded-md" />
+                </div>
+            )}
         </div>
     </div>
 );
@@ -65,14 +71,14 @@ export default function ProductDemo() {
         {/* Background elements */}
         <div className="absolute inset-0 bg-grid-zinc-800/20 [mask-image:linear-gradient(to_bottom,white_20%,transparent_100%)]"></div>
 
-        <div className="text-center z-10 px-4 mb-8">
+        <div className="text-center z-10 px-4 mb-12">
              <h2 className="text-4xl md:text-6xl font-bold font-headline text-white drop-shadow-xl">
                 Experience the Live Feed
             </h2>
         </div>
       
         {/* Phone Mockup */}
-        <div className="relative w-[280px] h-[600px] md:w-[320px] md:h-[700px] bg-zinc-900 rounded-[40px] border-[10px] border-black shadow-2xl overflow-hidden z-20">
+        <div className="relative w-[260px] h-[560px] md:w-[300px] md:h-[640px] bg-zinc-900 rounded-[40px] border-[10px] border-black shadow-2xl overflow-hidden z-20">
             {/* Video Background */}
             <video
                 autoPlay
@@ -80,6 +86,7 @@ export default function ProductDemo() {
                 muted
                 playsInline
                 className="absolute top-0 left-0 w-full h-full object-cover"
+                poster="https://cdn.midjourney.com/a857a58a-3511-4355-901c-6d9b54178577/0_0.png"
             >
                 <source src="https://cdn.pixabay.com/video/2016/08/22/4727-179738642_tiny.mp4" type="video/mp4" />
             </video>
@@ -109,6 +116,9 @@ export default function ProductDemo() {
                     <div className="space-y-1.5">
                         <DemoComment avatar="https://picsum.photos/seed/user1/100" name="ChattyCathy" text="This is awesome! 🔥" />
                         <DemoComment avatar="https://picsum.photos/seed/user2/100" name="LurkerLou" text="Let's goooo! 🚀" />
+                        <DemoComment avatar="https://picsum.photos/seed/user3/100" name="GifMaster" attachment={{ type: 'gif', url: 'https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExaGlicjRqdG1zZGlmNW1hZHE1d3Z2dHRlZGhyMmh2emlmcjZrbmE5NSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/hVrxCqNNE1i4w/giphy.gif', alt: 'Mind blown' }} />
+                        <DemoComment avatar="https://picsum.photos/seed/user4/100" name="ArtFan" attachment={{ type: 'image', url: 'https://picsum.photos/seed/chat-image/200/150', alt: 'Cool art' }} />
+
                     </div>
                 </div>
             </div>
