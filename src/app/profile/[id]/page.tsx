@@ -242,7 +242,7 @@ export default function UserProfilePage() {
       </Dialog>
 
 
-      <div className="container mx-auto max-w-4xl py-8 sm:px-4">
+      <div className="container mx-auto max-w-4xl pb-8 sm:px-0 md:px-4">
         <Tabs defaultValue="highlights" className="w-full">
           {/* Profile Header Card */}
           <Card className="overflow-hidden mb-2 sm:rounded-lg">
