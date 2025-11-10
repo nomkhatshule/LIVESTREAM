@@ -69,13 +69,10 @@ export default function ProductDemo() {
              <h2 className="text-4xl md:text-6xl font-bold font-headline text-white drop-shadow-xl">
                 Experience the Live Feed
             </h2>
-            <p className="text-lg text-zinc-400 mt-4 max-w-2xl mx-auto">
-                This is a real-time preview of what it's like to watch a stream on LIVENET.
-            </p>
         </div>
       
         {/* Phone Mockup */}
-        <div className="relative w-[240px] h-[480px] md:w-[280px] md:h-[560px] bg-zinc-900 rounded-[40px] border-[10px] border-black shadow-2xl overflow-hidden z-20">
+        <div className="relative w-[280px] h-[600px] md:w-[320px] md:h-[700px] bg-zinc-900 rounded-[40px] border-[10px] border-black shadow-2xl overflow-hidden z-20">
             {/* Video Background */}
             <video
                 autoPlay
