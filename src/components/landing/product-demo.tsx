@@ -83,11 +83,11 @@ export default function ProductDemo() {
         {/* Background elements */}
         <div className="absolute inset-0 bg-grid-zinc-800/20 [mask-image:linear-gradient(to_bottom,white_20%,transparent_100%)]"></div>
 
-        <div className="text-center z-10 px-4 mb-16">
+        <div className="text-center z-10 px-4 mb-8">
              <h2 className="text-4xl md:text-6xl font-bold font-headline text-white drop-shadow-xl">
                 Experience the Live Feed
             </h2>
-            <p className="text-lg text-zinc-400 mt-4 max-w-2xl mx-auto">
+            <p className="text-lg text-stone-200 mt-4 max-w-2xl mx-auto">
                 This is a real-time preview of what it's like to watch a stream on LIVENET.
             </p>
         </div>
@@ -115,7 +115,7 @@ export default function ProductDemo() {
                <ConnectorLine className="self-end" />
             </div>
 
-            <div className="relative w-[240px] h-[480px] md:w-[280px] md:h-[560px] bg-zinc-900 rounded-[40px] border-[10px] border-black shadow-2xl overflow-hidden z-20">
+            <div className="relative w-[240px] h-[480px] md:w-[260px] md:h-[520px] bg-zinc-900 rounded-[40px] border-[10px] border-black shadow-2xl overflow-hidden z-20">
                 {/* Video Background */}
                 <video
                     autoPlay
