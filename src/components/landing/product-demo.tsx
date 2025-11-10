@@ -26,7 +26,7 @@ const FloatingReaction = ({ reaction }: { reaction: DemoReaction }) => (
 );
 
 const DemoComment = ({ avatar, name, text }: { avatar: string, name: string, text: string }) => (
-    <div className="flex items-start gap-2 text-sm text-white p-1.5 rounded-lg bg-black/20 backdrop-blur-sm w-fit">
+    <div className="flex items-start gap-2 text-sm text-white p-1.5 rounded-lg w-fit">
         <Avatar className="h-6 w-6 border-2 border-secondary">
             <AvatarImage src={avatar} />
             <AvatarFallback>{name.charAt(0)}</AvatarFallback>
@@ -184,7 +184,7 @@ export default function ProductDemo() {
              <div className="hidden md:flex flex-col gap-16 w-48">
                <FeatureDescription
                 title="Comment on Every Live"
-                description="Comment on any live stream on your feed using text to share your reactions."
+                description="Comment on any live stream on your feed using text, GIFs, and images to share your reactions."
               />
                <FeatureDescription
                 title="Find Anything, Anywhere"
