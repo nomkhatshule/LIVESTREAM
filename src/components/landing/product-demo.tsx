@@ -61,11 +61,11 @@ export default function ProductDemo() {
 
 
   return (
-    <section className="relative h-screen w-full bg-[#0a0a0a] flex items-center justify-center p-4 overflow-hidden">
+    <section className="relative h-screen w-full bg-[#0a0a0a] flex flex-col items-center justify-center p-4 overflow-hidden">
         {/* Background elements */}
         <div className="absolute inset-0 bg-grid-zinc-800/20 [mask-image:linear-gradient(to_bottom,white_20%,transparent_100%)]"></div>
 
-        <div className="text-center absolute top-12 md:top-20 z-10 px-4">
+        <div className="text-center z-10 px-4 mb-8">
              <h2 className="text-4xl md:text-6xl font-bold font-headline text-white drop-shadow-xl">
                 Experience the Live Feed
             </h2>
