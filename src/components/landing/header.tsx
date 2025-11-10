@@ -19,9 +19,9 @@ export default function LandingHeader() {
           <button className="px-4 py-1.5 rounded-full text-sm tracking-tight transition-all duration-300 hover:scale-105 active:scale-95 bg-white/20 backdrop-blur-md text-white shadow-lg">
             Features
           </button>
-          <button className="px-4 py-1.5 rounded-full text-sm tracking-tight transition-all duration-300 hover:scale-105 active:scale-95 text-white/80 hover:bg-white/10">
+          <Link href="#demo" className="px-4 py-1.5 rounded-full text-sm tracking-tight transition-all duration-300 hover:scale-105 active:scale-95 text-white/80 hover:bg-white/10">
             Demo
-          </button>
+          </Link>
           <Button variant="ghost" className="text-white hover:bg-white/10 hover:text-white rounded-full" asChild>
               <Link href="/login">Log in</Link>
           </Button>
