@@ -75,7 +75,7 @@ export default function ProductDemo() {
         </div>
       
         {/* Phone Mockup */}
-        <div className="relative w-[340px] h-[700px] md:w-[375px] md:h-[812px] bg-zinc-900 rounded-[60px] border-[14px] border-black shadow-2xl overflow-hidden z-20">
+        <div className="relative w-[340px] h-[600px] md:w-[375px] md:h-[700px] bg-zinc-900 rounded-[60px] border-[14px] border-black shadow-2xl overflow-hidden z-20">
             {/* Video Background */}
             <video
                 autoPlay
