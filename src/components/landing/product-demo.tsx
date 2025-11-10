@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -46,7 +47,7 @@ const DemoComment = ({ avatar, name, text, attachment }: { avatar: string, name:
 const FeatureDescription = ({ title, description, alignment = 'left' }: { title: string, description: string, alignment?: 'left' | 'right' }) => (
   <div className={cn("w-48 text-white", alignment === 'right' ? 'text-right' : 'text-left')}>
     <h4 className="font-bold font-headline">{title}</h4>
-    <p className="text-xs text-zinc-400 mt-1">{description}</p>
+    <p className="text-xs text-stone-200 mt-1">{description}</p>
   </div>
 );
 
@@ -78,7 +79,7 @@ export default function ProductDemo() {
 
 
   return (
-    <section className="relative min-h-screen w-full bg-[#0a0a0a] flex flex-col items-center justify-center p-4 overflow-hidden">
+    <section id="demo" className="relative min-h-screen w-full bg-[#0a0a0a] flex flex-col items-center justify-center p-4 overflow-hidden">
         {/* Background elements */}
         <div className="absolute inset-0 bg-grid-zinc-800/20 [mask-image:linear-gradient(to_bottom,white_20%,transparent_100%)]"></div>
 
@@ -97,12 +98,12 @@ export default function ProductDemo() {
             {/* Left Descriptions */}
             <div className="hidden md:flex flex-col gap-16 w-48">
               <FeatureDescription
-                title="Comment on every live"
+                title="Comment on Every Live"
                 description="Comment on any live stream on your feed using text, GIFs, and images to share your reactions."
                 alignment="right"
               />
                <FeatureDescription
-                title="Find anything, anywhere"
+                title="Find Anything, Anywhere"
                 description="Find anything, anywhere in real-time with an AI assistant that can search the web for you."
                 alignment="right"
               />
@@ -187,11 +188,11 @@ export default function ProductDemo() {
             {/* Right Descriptions */}
              <div className="hidden md:flex flex-col gap-16 w-48">
                <FeatureDescription
-                title="Like any live stream"
+                title="Like Any Live Stream"
                 description="Like any live stream on your feed to show your support for the creator."
               />
                <FeatureDescription
-                title="Find truth or dare cards"
+                title="Find Truth or Dare Cards"
                 description="Play Truth or Dare, or complete wild challenges with your followers."
               />
             </div>
@@ -199,3 +200,5 @@ export default function ProductDemo() {
     </section>
   );
 }
+
+    
