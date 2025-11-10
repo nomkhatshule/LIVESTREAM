@@ -75,7 +75,7 @@ export default function ProductDemo() {
         </div>
       
         {/* Phone Mockup */}
-        <div className="relative w-[340px] h-[600px] md:w-[375px] md:h-[700px] bg-zinc-900 rounded-[60px] border-[14px] border-black shadow-2xl overflow-hidden z-20">
+        <div className="relative w-[240px] h-[480px] md:w-[280px] md:h-[560px] bg-zinc-900 rounded-[40px] border-[10px] border-black shadow-2xl overflow-hidden z-20">
             {/* Video Background */}
             <video
                 autoPlay
@@ -89,28 +89,28 @@ export default function ProductDemo() {
             </video>
 
             {/* UI Overlay */}
-            <div className="absolute inset-0 flex flex-col justify-between p-4 text-white z-10 pointer-events-none">
+            <div className="absolute inset-0 flex flex-col justify-between p-3 text-white z-10 pointer-events-none">
                 {/* Top: Host Info */}
-                <div className="flex items-center gap-3">
-                    <Avatar className={cn("h-12 w-12 border-4 border-destructive animate-breathing-prominent")}>
+                <div className="flex items-center gap-2">
+                    <Avatar className={cn("h-10 w-10 border-2 border-destructive animate-breathing")}>
                         <AvatarImage src="https://picsum.photos/seed/demohost/200" alt="Host" />
                         <AvatarFallback>H</AvatarFallback>
                     </Avatar>
                     <div>
-                        <p className="font-bold font-headline text-lg">StreamSavvy</p>
-                        <p className="text-sm">Vibin' with the community!</p>
+                        <p className="font-bold font-headline text-base">StreamSavvy</p>
+                        <p className="text-xs">Vibin' with the community!</p>
                     </div>
                 </div>
 
                 {/* Bottom: Chat and Reactions */}
                 <div className="relative h-1/2 flex flex-col justify-end">
                     {/* Floating Reactions */}
-                     <div className="absolute bottom-24 left-0 h-96 w-64 z-20">
+                     <div className="absolute bottom-16 left-0 h-64 w-48 z-20">
                         {reactions.map((r) => <FloatingReaction key={r.key} reaction={r} />)}
                      </div>
 
                     {/* Chat Messages */}
-                    <div className="space-y-2">
+                    <div className="space-y-1.5">
                         <DemoComment avatar="https://picsum.photos/seed/user1/100" name="ChattyCathy" text="This is awesome! 🔥" />
                         <DemoComment avatar="https://picsum.photos/seed/user2/100" name="LurkerLou" text="Let's goooo! 🚀" />
                     </div>
@@ -118,22 +118,22 @@ export default function ProductDemo() {
             </div>
 
              {/* Right Side Action Bar */}
-            <div className="absolute top-1/2 right-0 -translate-y-1/2 z-20 flex flex-col items-center gap-y-6 pointer-events-auto text-white p-4">
+            <div className="absolute top-1/2 right-0 -translate-y-1/2 z-20 flex flex-col items-center gap-y-5 pointer-events-auto text-white p-2">
                 <div className="flex flex-col items-center">
-                    <Heart className="h-8 w-8 drop-shadow-md text-red-500 fill-red-500" strokeWidth={1.5} />
-                    <span className="text-xs font-bold mt-1.5">1.2k</span>
+                    <Heart className="h-7 w-7 drop-shadow-md text-red-500 fill-red-500" strokeWidth={1.5} />
+                    <span className="text-[10px] font-bold mt-1">1.2k</span>
                 </div>
                 <div className="flex flex-col items-center">
-                    <MessageSquareMore className="h-8 w-8 drop-shadow-md" strokeWidth={1.5} />
-                    <span className="text-xs font-bold mt-1.5">345</span>
+                    <MessageSquareMore className="h-7 w-7 drop-shadow-md" strokeWidth={1.5} />
+                    <span className="text-[10px] font-bold mt-1">345</span>
                 </div>
                 <div className="flex flex-col items-center">
-                   <Gamepad2 className="h-8 w-8 drop-shadow-md" strokeWidth={1.5} />
-                   <span className="text-xs font-bold mt-1.5">Fun</span>
+                   <Gamepad2 className="h-7 w-7 drop-shadow-md" strokeWidth={1.5} />
+                   <span className="text-[10px] font-bold mt-1">Fun</span>
                 </div>
                 <div className="flex flex-col items-center">
-                   <Search className="h-8 w-8 drop-shadow-md" strokeWidth={1.5} />
-                    <span className="text-xs font-bold mt-1.5">AI</span>
+                   <Search className="h-7 w-7 drop-shadow-md" strokeWidth={1.5} />
+                    <span className="text-[10px] font-bold mt-1">AI</span>
                 </div>
             </div>
         </div>
