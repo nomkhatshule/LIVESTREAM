@@ -135,10 +135,6 @@ export default function ProductDemo() {
                    <Search className="h-8 w-8 drop-shadow-md" strokeWidth={1.5} />
                     <span className="text-xs font-bold mt-1.5">AI</span>
                 </div>
-                 <div className="flex flex-col items-center">
-                   <Swords className="h-8 w-8 drop-shadow-md text-yellow-400" strokeWidth={1.5} />
-                   <span className="text-xs font-bold mt-1.5">Challenge</span>
-                </div>
             </div>
         </div>
     </section>
