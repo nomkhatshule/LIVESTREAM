@@ -26,7 +26,7 @@ const FloatingReaction = ({ reaction }: { reaction: DemoReaction }) => (
 );
 
 const DemoComment = ({ avatar, name, text }: { avatar: string, name: string, text: string }) => (
-    <div className="flex items-start gap-2 text-sm text-white p-1.5 bg-black/50 rounded-lg w-fit">
+    <div className="flex items-start gap-2 text-sm text-white p-2 bg-black/70 rounded-lg w-fit backdrop-blur-sm border border-white/10">
         <Avatar className="h-6 w-6 border-2 border-secondary">
             <AvatarImage src={avatar} />
             <AvatarFallback>{name.charAt(0)}</AvatarFallback>
@@ -42,7 +42,7 @@ const DemoComment = ({ avatar, name, text }: { avatar: string, name: string, tex
 const FeatureDescription = ({ title, description, alignment = 'left' }: { title: string, description: string, alignment?: 'left' | 'right' }) => (
   <div className={cn("w-48 text-white", alignment === 'right' ? 'text-right' : 'text-left')}>
     <h4 className="font-bold font-headline">{title}</h4>
-    <p className="text-xs text-stone-200 mt-1">{description}</p>
+    <p className="text-xs text-stone-300 mt-1">{description}</p>
   </div>
 );
 
@@ -110,66 +110,68 @@ export default function ProductDemo() {
                <ConnectorLine className="self-end" />
             </div>
 
-            <div className="relative w-[280px] h-[560px] md:w-[300px] md:h-[600px] bg-zinc-900 rounded-[40px] border-[10px] border-zinc-700 shadow-2xl overflow-hidden z-20">
-                {/* Video Background */}
-                <video
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    className="absolute top-0 left-0 w-full h-full object-cover"
-                    poster="https://cdn.midjourney.com/a857a58a-3511-4355-901c-6d9b54178577/0_0.png"
-                >
-                    <source src="https://cdn.pixabay.com/video/2016/08/22/4727-179738642_tiny.mp4" type="video/mp4" />
-                </video>
+            <div className="relative w-[300px] h-[600px] md:w-[320px] md:h-[640px] bg-zinc-900 rounded-[40px] border-[12px] border-zinc-700 shadow-2xl z-20 p-1">
+                <div className="relative w-full h-full bg-black rounded-[32px] overflow-hidden">
+                    {/* Video Background */}
+                    <video
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        className="absolute top-0 left-0 w-full h-full object-cover"
+                        poster="https://cdn.midjourney.com/a857a58a-3511-4355-901c-6d9b54178577/0_0.png"
+                    >
+                        <source src="https://cdn.pixabay.com/video/2016/08/22/4727-179738642_tiny.mp4" type="video/mp4" />
+                    </video>
 
-                {/* UI Overlay */}
-                <div className="absolute inset-0 flex flex-col justify-between p-3 text-white z-10 pointer-events-none">
-                    {/* Top: Host Info */}
-                    <div className="flex items-center gap-2">
-                        <Avatar className={cn("h-10 w-10 border-2 border-destructive animate-breathing")}>
-                            <AvatarImage src="https://picsum.photos/seed/demohost/200" alt="Host" />
-                            <AvatarFallback>H</AvatarFallback>
-                        </Avatar>
-                        <div>
-                            <p className="font-bold font-headline text-base">StreamSavvy</p>
-                            <p className="text-xs">Vibin' with the community!</p>
+                    {/* UI Overlay */}
+                    <div className="absolute inset-0 flex flex-col justify-between p-3 text-white z-10 pointer-events-none">
+                        {/* Top: Host Info */}
+                        <div className="flex items-center gap-2">
+                            <Avatar className={cn("h-10 w-10 border-2 border-destructive animate-breathing")}>
+                                <AvatarImage src="https://picsum.photos/seed/demohost/200" alt="Host" />
+                                <AvatarFallback>H</AvatarFallback>
+                            </Avatar>
+                            <div>
+                                <p className="font-bold font-headline text-base">StreamSavvy</p>
+                                <p className="text-xs">Vibin' with the community!</p>
+                            </div>
+                        </div>
+
+                        {/* Bottom: Chat and Reactions */}
+                        <div className="relative h-1/2 flex flex-col justify-end">
+                            {/* Floating Reactions */}
+                            <div className="absolute bottom-16 left-0 h-64 w-48 z-20">
+                                {reactions.map((r) => <FloatingReaction key={r.key} reaction={r} />)}
+                            </div>
+
+                            {/* Chat Messages */}
+                            <div className="space-y-1.5">
+                                <DemoComment avatar="https://picsum.photos/seed/user1/100" name="ChattyCathy" text="This is awesome! 🔥" />
+                                <DemoComment avatar="https://picsum.photos/seed/user2/100" name="LurkerLou" text="Let's goooo! 🚀" />
+                                <DemoComment avatar="https://picsum.photos/seed/user4/100" name="ArtFan" text="What a vibe!" />
+                            </div>
                         </div>
                     </div>
 
-                    {/* Bottom: Chat and Reactions */}
-                    <div className="relative h-1/2 flex flex-col justify-end">
-                        {/* Floating Reactions */}
-                         <div className="absolute bottom-16 left-0 h-64 w-48 z-20">
-                            {reactions.map((r) => <FloatingReaction key={r.key} reaction={r} />)}
-                         </div>
-
-                        {/* Chat Messages */}
-                        <div className="space-y-1.5">
-                            <DemoComment avatar="https://picsum.photos/seed/user1/100" name="ChattyCathy" text="This is awesome! 🔥" />
-                            <DemoComment avatar="https://picsum.photos/seed/user2/100" name="LurkerLou" text="Let's goooo! 🚀" />
-                            <DemoComment avatar="https://picsum.photos/seed/user4/100" name="ArtFan" text="What a vibe!" />
+                    {/* Right Side Action Bar */}
+                    <div className="absolute top-1/2 right-0 -translate-y-1/2 z-20 flex flex-col items-center gap-y-5 pointer-events-auto text-white p-2">
+                        <div id="demo-like" className="flex flex-col items-center">
+                            <Heart className="h-7 w-7 drop-shadow-md text-red-500 fill-red-500" strokeWidth={1.5} />
+                            <span className="text-[10px] font-bold mt-1">1.2k</span>
                         </div>
-                    </div>
-                </div>
-
-                 {/* Right Side Action Bar */}
-                <div className="absolute top-1/2 right-0 -translate-y-1/2 z-20 flex flex-col items-center gap-y-5 pointer-events-auto text-white p-2">
-                    <div id="demo-like" className="flex flex-col items-center">
-                        <Heart className="h-7 w-7 drop-shadow-md text-red-500 fill-red-500" strokeWidth={1.5} />
-                        <span className="text-[10px] font-bold mt-1">1.2k</span>
-                    </div>
-                    <div id="demo-comment" className="flex flex-col items-center">
-                        <MessageSquareMore className="h-7 w-7 drop-shadow-md" strokeWidth={1.5} />
-                        <span className="text-[10px] font-bold mt-1">345</span>
-                    </div>
-                    <div id="demo-fun" className="flex flex-col items-center">
-                       <Gamepad2 className="h-7 w-7 drop-shadow-md" strokeWidth={1.5} />
-                       <span className="text-[10px] font-bold mt-1">Fun</span>
-                    </div>
-                    <div id="demo-ai" className="flex flex-col items-center">
-                       <Search className="h-7 w-7 drop-shadow-md" strokeWidth={1.5} />
-                        <span className="text-[10px] font-bold mt-1">AI</span>
+                        <div id="demo-comment" className="flex flex-col items-center">
+                            <MessageSquareMore className="h-7 w-7 drop-shadow-md" strokeWidth={1.5} />
+                            <span className="text-[10px] font-bold mt-1">345</span>
+                        </div>
+                        <div id="demo-fun" className="flex flex-col items-center">
+                        <Gamepad2 className="h-7 w-7 drop-shadow-md" strokeWidth={1.5} />
+                        <span className="text-[10px] font-bold mt-1">Fun</span>
+                        </div>
+                        <div id="demo-ai" className="flex flex-col items-center">
+                        <Search className="h-7 w-7 drop-shadow-md" strokeWidth={1.5} />
+                            <span className="text-[10px] font-bold mt-1">AI</span>
+                        </div>
                     </div>
                 </div>
             </div>
