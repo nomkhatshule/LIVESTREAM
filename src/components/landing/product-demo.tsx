@@ -94,7 +94,7 @@ export default function ProductDemo() {
             <div className="hidden md:flex flex-col gap-16 w-48">
               <FeatureDescription
                 title="Comment on Every Live"
-                description="Comment on any live stream on your feed using text, GIFs, and images to share your reactions."
+                description="Comment on any live stream on your feed using text to share your reactions."
                 alignment="right"
               />
                <FeatureDescription
@@ -110,7 +110,7 @@ export default function ProductDemo() {
                <ConnectorLine className="self-end" />
             </div>
 
-            <div className="relative w-[240px] h-[480px] md:w-[260px] md:h-[520px] bg-zinc-900 rounded-[40px] border-[10px] border-purple-900 shadow-2xl overflow-hidden z-20">
+            <div className="relative w-[300px] h-[600px] md:w-[320px] md:h-[640px] bg-zinc-900 rounded-[40px] border-[10px] border-purple-900 shadow-2xl overflow-hidden z-20">
                 {/* Video Background */}
                 <video
                     autoPlay
