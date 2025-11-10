@@ -40,14 +40,14 @@ const DemoComment = ({ avatar, name, text }: { avatar: string, name: string, tex
 
 
 const FeatureDescription = ({ title, description, alignment = 'left' }: { title: string, description: string, alignment?: 'left' | 'right' }) => (
-  <div className={cn("w-48 text-white", alignment === 'right' ? 'text-right' : 'text-left')}>
+  <div className={cn("w-full md:w-48 text-white text-center md:text-left", alignment === 'right' ? 'md:text-right' : 'md:text-left')}>
     <h4 className="font-bold font-headline">{title}</h4>
     <p className="text-xs text-stone-300 mt-1">{description}</p>
   </div>
 );
 
 const ConnectorLine = ({ className }: { className?: string }) => (
-  <div className={cn("w-12 border-b-2 border-dashed border-zinc-600", className)} />
+  <div className={cn("hidden md:block w-12 border-b-2 border-dashed border-zinc-600", className)} />
 );
 
 
@@ -88,10 +88,10 @@ export default function ProductDemo() {
         </div>
       
         {/* Phone Mockup and Feature Descriptions */}
-        <div className="relative flex items-center justify-center gap-4">
+        <div className="relative flex flex-col md:flex-row items-center justify-center gap-4">
 
             {/* Left Descriptions */}
-            <div className="hidden md:flex flex-col gap-16 w-48">
+            <div className="flex flex-col gap-8 md:gap-16 w-full md:w-48 items-center md:items-end">
               <FeatureDescription
                 title="Like Any Live Stream"
                 description="Like any live stream on your feed to show your support for the creator."
@@ -110,15 +110,15 @@ export default function ProductDemo() {
                <ConnectorLine className="self-end" />
             </div>
 
-            <div className="relative w-[300px] h-[600px] md:w-[320px] md:h-[640px] bg-zinc-900 rounded-[40px] border-[12px] border-zinc-700 shadow-2xl z-20 p-1">
-                <div className="relative w-full h-full bg-black rounded-[32px] overflow-hidden">
+            <div className="relative w-[280px] h-[560px] md:w-[320px] md:h-[640px] bg-zinc-700 rounded-[40px] border-[10px] border-zinc-700 shadow-2xl z-20 my-8 md:my-0">
+                 <div className="relative w-full h-full bg-black rounded-[32px] overflow-hidden p-1 border-2 border-black">
                     {/* Video Background */}
                     <video
                         autoPlay
                         loop
                         muted
                         playsInline
-                        className="absolute top-0 left-0 w-full h-full object-cover"
+                        className="absolute top-0 left-0 w-full h-full object-cover rounded-[28px]"
                         poster="https://cdn.midjourney.com/a857a58a-3511-4355-901c-6d9b54178577/0_0.png"
                     >
                         <source src="https://cdn.pixabay.com/video/2016/08/22/4727-179738642_tiny.mp4" type="video/mp4" />
@@ -183,7 +183,7 @@ export default function ProductDemo() {
             </div>
             
             {/* Right Descriptions */}
-             <div className="hidden md:flex flex-col gap-16 w-48">
+             <div className="flex flex-col gap-8 md:gap-16 w-full md:w-48 items-center md:items-start">
                <FeatureDescription
                 title="Comment on Every Live"
                 description="Comment on any live stream on your feed using text, GIFs, and images to share your reactions."
