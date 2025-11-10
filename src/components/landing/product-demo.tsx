@@ -26,7 +26,7 @@ const FloatingReaction = ({ reaction }: { reaction: DemoReaction }) => (
 );
 
 const DemoComment = ({ avatar, name, text }: { avatar: string, name: string, text: string }) => (
-    <div className="flex items-start gap-2 text-sm text-white p-1.5 rounded-lg w-fit">
+    <div className="flex items-start gap-2 text-sm text-white p-1.5 bg-black/50 rounded-lg w-fit">
         <Avatar className="h-6 w-6 border-2 border-secondary">
             <AvatarImage src={avatar} />
             <AvatarFallback>{name.charAt(0)}</AvatarFallback>
@@ -110,7 +110,7 @@ export default function ProductDemo() {
                <ConnectorLine className="self-end" />
             </div>
 
-            <div className="relative w-[280px] h-[560px] md:w-[300px] md:h-[600px] bg-zinc-900 rounded-[40px] border-[10px] border-purple-900 shadow-2xl overflow-hidden z-20">
+            <div className="relative w-[280px] h-[560px] md:w-[300px] md:h-[600px] bg-zinc-900 rounded-[40px] border-[10px] border-zinc-700 shadow-2xl overflow-hidden z-20">
                 {/* Video Background */}
                 <video
                     autoPlay
