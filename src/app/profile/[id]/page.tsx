@@ -215,7 +215,7 @@ export default function UserProfilePage() {
       
       {/* Highlight Video Modal */}
       <Dialog open={!!selectedHighlight} onOpenChange={(open) => !open && setSelectedHighlight(null)}>
-        <DialogContent className="bg-black border-none shadow-none p-0 max-w-full h-full">
+        <DialogContent className="bg-black border-none shadow-none p-0 max-w-full h-full sm:h-auto sm:max-w-3xl">
             {selectedHighlight && (
                 <>
                   <VisuallyHidden>
@@ -293,7 +293,12 @@ export default function UserProfilePage() {
                 
                 {!isOwnProfile && currentUser && (
                   <div className="mt-6 flex items-center gap-2">
-                    <Button onClick={handleFollowToggle} variant={isFollowing ? 'secondary' : 'default'} size="lg">
+                    <Button
+                      onClick={handleFollowToggle}
+                      variant={isFollowing ? 'secondary' : 'outline'}
+                      size="lg"
+                      className={!isFollowing ? "bg-transparent border-white text-white hover:bg-white hover:text-black" : ""}
+                    >
                       {isFollowing ? <UserCheck className="mr-2" /> : <UserPlus className="mr-2" />}
                       {isFollowing ? 'Following' : 'Follow'}
                     </Button>
@@ -399,7 +404,7 @@ export default function UserProfilePage() {
 
 function ProfileSkeleton() {
   return (
-    <div className="container mx-auto max-w-4xl py-8 sm:px-4">
+    <div className="container mx-auto max-w-4xl py-8 sm:px-0 md:px-4">
       <Tabs defaultValue="highlights" className="w-full">
         <Card className="overflow-hidden mb-2 sm:rounded-lg">
           <Skeleton className="h-48 w-full" />
