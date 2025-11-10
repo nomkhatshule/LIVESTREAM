@@ -242,10 +242,10 @@ export default function UserProfilePage() {
       </Dialog>
 
 
-      <div className="container mx-auto max-w-4xl py-8 px-4">
+      <div className="container mx-auto max-w-4xl py-8 sm:px-4">
         <Tabs defaultValue="highlights" className="w-full">
           {/* Profile Header Card */}
-          <Card className="overflow-hidden mb-2">
+          <Card className="overflow-hidden mb-2 sm:rounded-lg">
               <div className="relative h-48 w-full bg-muted">
                 {userDocument.coverUrl && userDocument.coverType === 'video' ? (
                       <video
@@ -318,7 +318,7 @@ export default function UserProfilePage() {
           </Card>
 
           {/* Activity Tabs Content */}
-          <TabsContent value="highlights">
+          <TabsContent value="highlights" className="sm:rounded-lg">
             {areHighlightsLoading ? (
                <div className="grid grid-cols-3 gap-1">
                   {[...Array(6)].map((_, i) => <Skeleton key={i} className="aspect-[9/16]"/>)}
@@ -328,7 +328,7 @@ export default function UserProfilePage() {
                 {highlights.map((highlight) => (
                     <div 
                         key={highlight.id} 
-                        className="relative group aspect-[9/16] overflow-hidden rounded-md bg-muted cursor-pointer"
+                        className="relative group aspect-[9/16] overflow-hidden sm:rounded-md bg-muted cursor-pointer"
                         onClick={() => setSelectedHighlight(highlight)}
                     >
                         <video
@@ -360,7 +360,7 @@ export default function UserProfilePage() {
             )}
           </TabsContent>
            <TabsContent value="gifts">
-            <Card>
+            <Card className="sm:rounded-lg">
                 <CardContent className="p-6">
                     <div className="text-center py-16 text-muted-foreground">
                         <Gift className="h-12 w-12 mx-auto mb-4" />
@@ -371,7 +371,7 @@ export default function UserProfilePage() {
             </Card>
           </TabsContent>
           <TabsContent value="activity">
-            <Card>
+            <Card className="sm:rounded-lg">
               <CardContent className="p-6 space-y-6">
                 {mockActivity.map(activity => (
                   <div key={activity.id} className="flex items-start gap-4">
@@ -403,9 +403,9 @@ export default function UserProfilePage() {
 
 function ProfileSkeleton() {
   return (
-    <div className="container mx-auto max-w-4xl py-8 px-4">
+    <div className="container mx-auto max-w-4xl py-8 sm:px-4">
       <Tabs defaultValue="highlights" className="w-full">
-        <Card className="overflow-hidden mb-2">
+        <Card className="overflow-hidden mb-2 sm:rounded-lg">
           <Skeleton className="h-48 w-full" />
           <div className="flex flex-col items-center p-6 pt-0 -mt-24">
             <Skeleton className="w-28 h-28 rounded-full border-4 border-background ring-4 ring-destructive" />
@@ -435,10 +435,12 @@ function ProfileSkeleton() {
         </Card>
          <TabsContent value="highlights" className="mt-0">
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1">
-                  {[...Array(8)].map((_, i) => <Skeleton key={i} className="aspect-[9/16]"/>)}
+                  {[...Array(8)].map((_, i) => <Skeleton key={i} className="aspect-[9/16] sm:rounded-md"/>)}
               </div>
           </TabsContent>
       </Tabs>
     </div>
   );
 }
+
+    
