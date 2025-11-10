@@ -93,13 +93,13 @@ export default function ProductDemo() {
             {/* Left Descriptions */}
             <div className="hidden md:flex flex-col gap-16 w-48">
               <FeatureDescription
-                title="Comment on Every Live"
-                description="Comment on any live stream on your feed using text to share your reactions."
+                title="Like Any Live Stream"
+                description="Like any live stream on your feed to show your support for the creator."
                 alignment="right"
               />
                <FeatureDescription
-                title="Find Anything, Anywhere"
-                description="Find anything, anywhere in real-time with an AI assistant that can search the web for you."
+                title="Find Truth or Dare Cards"
+                description="Play Truth or Dare, or complete wild challenges with your followers."
                 alignment="right"
               />
             </div>
@@ -110,7 +110,7 @@ export default function ProductDemo() {
                <ConnectorLine className="self-end" />
             </div>
 
-            <div className="relative w-[300px] h-[600px] md:w-[320px] md:h-[640px] bg-zinc-900 rounded-[40px] border-[10px] border-purple-900 shadow-2xl overflow-hidden z-20">
+            <div className="relative w-[280px] h-[560px] md:w-[300px] md:h-[600px] bg-zinc-900 rounded-[40px] border-[10px] border-purple-900 shadow-2xl overflow-hidden z-20">
                 {/* Video Background */}
                 <video
                     autoPlay
@@ -183,12 +183,12 @@ export default function ProductDemo() {
             {/* Right Descriptions */}
              <div className="hidden md:flex flex-col gap-16 w-48">
                <FeatureDescription
-                title="Like Any Live Stream"
-                description="Like any live stream on your feed to show your support for the creator."
+                title="Comment on Every Live"
+                description="Comment on any live stream on your feed using text to share your reactions."
               />
                <FeatureDescription
-                title="Find Truth or Dare Cards"
-                description="Play Truth or Dare, or complete wild challenges with your followers."
+                title="Find Anything, Anywhere"
+                description="Find anything, anywhere in real-time with an AI assistant that can search the web for you."
               />
             </div>
         </div>
