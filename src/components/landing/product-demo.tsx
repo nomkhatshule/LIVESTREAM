@@ -61,7 +61,7 @@ export default function ProductDemo() {
 
 
   return (
-    <section className="relative h-screen w-full bg-[#0a0a0a] flex flex-col items-center justify-center p-4 overflow-hidden">
+    <section className="relative min-h-screen w-full bg-[#0a0a0a] flex flex-col items-center justify-center p-4 overflow-hidden">
         {/* Background elements */}
         <div className="absolute inset-0 bg-grid-zinc-800/20 [mask-image:linear-gradient(to_bottom,white_20%,transparent_100%)]"></div>
 
@@ -80,9 +80,8 @@ export default function ProductDemo() {
                 muted
                 playsInline
                 className="absolute top-0 left-0 w-full h-full object-cover"
-                poster="https://cdn.midjourney.com/a857a58a-3511-4355-901c-6d9b54178577/0_0.png"
             >
-                <source src="https://cdn.midjourney.com/a857a58a-3511-4355-901c-6d9b54178577/0.mp4" type="video/mp4" />
+                <source src="https://cdn.pixabay.com/video/2016/08/22/4727-179738642_tiny.mp4" type="video/mp4" />
             </video>
 
             {/* UI Overlay */}
