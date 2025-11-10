@@ -7,6 +7,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import LandingHeader from '@/components/landing/header';
 import AboutSection from '@/components/landing/about-section';
+import ProductDemo from '@/components/landing/product-demo';
 
 export default function LandingPage() {
   return (
@@ -53,6 +54,9 @@ export default function LandingPage() {
             </h2>
         </div>
       </section>
+      
+      <ProductDemo />
+
       <section className="relative h-screen w-full bg-black flex flex-col items-center justify-center p-8">
         <Image
           src="https://cdn.midjourney.com/36ee8fa8-29f4-46e0-be75-a695ae1c59e1/0_0.png"
