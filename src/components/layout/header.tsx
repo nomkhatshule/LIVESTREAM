@@ -34,6 +34,7 @@ export default function Header() {
     '/inbox-page',
     '/login',
     '/signup',
+    '/landing',
   ];
 
   if (noHeaderPaths.some(p => pathname.startsWith(p))) {
