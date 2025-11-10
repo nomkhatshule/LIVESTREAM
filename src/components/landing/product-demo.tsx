@@ -110,7 +110,7 @@ export default function ProductDemo() {
                <ConnectorLine className="self-end" />
             </div>
 
-            <div className="relative w-[240px] h-[480px] md:w-[260px] md:h-[520px] bg-zinc-900 rounded-[40px] border-[10px] border-zinc-700 shadow-2xl overflow-hidden z-20">
+            <div className="relative w-[240px] h-[480px] md:w-[260px] md:h-[520px] bg-zinc-900 rounded-[40px] border-[10px] border-purple-700 shadow-2xl overflow-hidden z-20">
                 {/* Video Background */}
                 <video
                     autoPlay
