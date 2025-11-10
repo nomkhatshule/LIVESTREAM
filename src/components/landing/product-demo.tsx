@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -83,7 +82,7 @@ export default function ProductDemo() {
         {/* Background elements */}
         <div className="absolute inset-0 bg-grid-zinc-800/20 [mask-image:linear-gradient(to_bottom,white_20%,transparent_100%)]"></div>
 
-        <div className="text-center z-10 px-4 mb-8">
+        <div className="text-center z-10 px-4 mb-12">
              <h2 className="text-4xl md:text-6xl font-bold font-headline text-white drop-shadow-xl">
                 Experience the Live Feed
             </h2>
@@ -98,12 +97,12 @@ export default function ProductDemo() {
             {/* Left Descriptions */}
             <div className="hidden md:flex flex-col gap-16 w-48">
               <FeatureDescription
-                title="Join the Convo"
-                description="Comment on any live stream using text, GIFs, and images to share your reactions."
+                title="Comment on every live"
+                description="Comment on any live stream on your feed using text, GIFs, and images to share your reactions."
                 alignment="right"
               />
                <FeatureDescription
-                title="Instant Answers"
+                title="Find anything, anywhere"
                 description="Find anything, anywhere in real-time with an AI assistant that can search the web for you."
                 alignment="right"
               />
@@ -153,8 +152,7 @@ export default function ProductDemo() {
                         <div className="space-y-1.5">
                             <DemoComment avatar="https://picsum.photos/seed/user1/100" name="ChattyCathy" text="This is awesome! 🔥" />
                             <DemoComment avatar="https://picsum.photos/seed/user2/100" name="LurkerLou" text="Let's goooo! 🚀" />
-                            <DemoComment avatar="https://picsum.photos/seed/user3/100" name="GifMaster" attachment={{ type: 'gif', url: 'https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExaGlicjRqdG1zZGlmNW1hZHE1d3Z2dHRlZGhyMmh2emlmcjZrbmE5NSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/hVrxCqNNE1i4w/giphy.gif', alt: 'Mind blown' }} />
-                            <DemoComment avatar="https://picsum.photos/seed/user4/100" name="ArtFan" attachment={{ type: 'image', url: 'https://picsum.photos/seed/chat-image/200/150', alt: 'Cool art' }} />
+                            <DemoComment avatar="https://picsum.photos/seed/user4/100" name="ArtFan" text="What a vibe!" />
                         </div>
                     </div>
                 </div>
@@ -189,11 +187,11 @@ export default function ProductDemo() {
             {/* Right Descriptions */}
              <div className="hidden md:flex flex-col gap-16 w-48">
                <FeatureDescription
-                title="Show Some Love"
+                title="Like any live stream"
                 description="Like any live stream on your feed to show your support for the creator."
               />
                <FeatureDescription
-                title="Spark the Fun"
+                title="Find truth or dare cards"
                 description="Play Truth or Dare, or complete wild challenges with your followers."
               />
             </div>
