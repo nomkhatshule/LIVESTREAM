@@ -17,11 +17,11 @@ import {
   StreamVideoParticipant,
 } from '@stream-io/video-react-sdk';
 import VideoPlayer from '@/components/broadcast/video-player';
-import StreamHeader from '@/components/agora-test/StreamHeader';
-import FloatingReactions from '@/components/agora-test/FloatingReactions';
-import InStreamGamesPanel from '@/components/agora-test/InStreamGamesPanel';
-import StreamControls from '@/components/agora-test/StreamControls';
-import ChatPanel from '@/components/agora-test/ChatPanel';
+import StreamHeader from '@/components/livenet/StreamHeader';
+import FloatingReactions from '@/components/livenet/FloatingReactions';
+import InStreamGamesPanel from '@/components/livenet/InStreamGamesPanel';
+import StreamControls from '@/components/livenet/StreamControls';
+import ChatPanel from '@/components/livenet/ChatPanel';
 import type { Reaction, BroadcastData, Comment, GiphyResult } from '@/lib/types';
 import { useGameFlow } from '@/hooks/useGameFlow';
 import { useChallengeCard } from '@/hooks/useChallengeCard';

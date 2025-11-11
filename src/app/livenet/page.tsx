@@ -14,7 +14,7 @@ import {
 } from '@stream-io/video-react-sdk';
 import '@stream-io/video-react-sdk/dist/css/styles.css';
 import { Loader2 } from 'lucide-react';
-import AgoraTestPageUI from '@/components/agora-test/AgoraTestPageUI';
+import AgoraTestPageUI from '@/components/livenet/AgoraTestPageUI';
 
 // --- Wrapper Component for Initialization and Auth ---
 function LivenetWrapper() {
