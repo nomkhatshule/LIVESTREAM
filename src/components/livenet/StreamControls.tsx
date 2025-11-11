@@ -1,11 +1,15 @@
-
 'use client';
 
-import { Button } from "@/components/ui/button";
-import { Dice6, Mic, MicOff, Minus, MonitorUp, ScreenShare, UserPlus, Video, VideoOff, MessageCircle, MessageCircleOff, SwitchCamera } from "lucide-react";
-import ParticipantsPanel from "./ParticipantsPanel";
 import { StreamVideoParticipant } from "@stream-io/video-react-sdk";
-import { cn } from "@/lib/utils";
+import ParticipantsPanel from "./ParticipantsPanel";
+import VideoButton from "./controls/VideoButton";
+import MicButton from "./controls/MicButton";
+import FlipCameraButton from "./controls/FlipCameraButton";
+import ScreenShareButton from "./controls/ScreenShareButton";
+import InviteGuestButton from "./controls/InviteGuestButton";
+import ChallengeVisibilityButton from "./controls/ChallengeVisibilityButton";
+import GamesButton from "./controls/GamesButton";
+import ChatButton from "./controls/ChatButton";
 
 interface StreamControlsProps {
     onToggleVideo: () => void;
@@ -51,41 +55,15 @@ export default function StreamControls({
     
     return (
         <div className="absolute top-1/2 right-4 -translate-y-1/2 z-30 flex flex-col items-center gap-4 p-2 bg-black/40 rounded-full backdrop-blur-sm pointer-events-auto">
-            <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onToggleVideo}>
-                {isVideoEnabled ? <Video className="h-5 w-5 md:h-6 md:w-6"/> : <VideoOff className="h-5 w-5 md:h-6 md:w-6 text-red-500"/>}
-            </Button>
-            <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onFlipCamera}>
-                <SwitchCamera className="h-5 w-5 md:h-6 md:w-6" />
-            </Button>
-            <Button 
-              variant="secondary" 
-              size="icon" 
-              className={cn(
-                "rounded-full h-10 w-10 md:h-12 md:w-12",
-                isMicEnabled && "animate-breathing-green"
-              )} 
-              onClick={onToggleMic}
-            >
-                {isMicEnabled ? <Mic className="h-5 w-5 md:h-6 md:w-6"/> : <MicOff className="h-5 w-5 md:h-6 md:w-6 text-red-500"/>}
-            </Button>
-            <Button variant={isScreenSharing ? "primary" : "secondary"} size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onToggleScreenShare}>
-                {isScreenSharing ? <MonitorUp className="h-5 w-5 md:h-6 md:w-6"/> : <ScreenShare className="h-5 w-5 md:h-6 md:w-6"/>}
-            </Button>
-            <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onInviteGuest}>
-                <UserPlus className="h-5 w-5 md:h-6 md:w-6"/>
-            </Button>
-            {isChallengeActive && (
-              <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onToggleChallengeVisibility}>
-                  <Minus className="h-5 w-5 md:h-6 md:w-6"/>
-              </Button>
-            )}
+            <VideoButton isVideoEnabled={isVideoEnabled} onClick={onToggleVideo} />
+            <FlipCameraButton onClick={onFlipCamera} />
+            <MicButton isMicEnabled={isMicEnabled} onClick={onToggleMic} />
+            <ScreenShareButton isScreenSharing={isScreenSharing} onClick={onToggleScreenShare} />
+            <InviteGuestButton onClick={onInviteGuest} />
+            <ChallengeVisibilityButton isChallengeActive={isChallengeActive} onClick={onToggleChallengeVisibility} />
             <ParticipantsPanel viewerCount={viewerCount} participants={participants} />
-            <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onOpenGames}>
-                <Dice6 className="h-5 w-5 md:h-6 md:w-6"/>
-            </Button>
-             <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onToggleChat}>
-                {isChatVisible ? <MessageCircleOff className="h-5 w-5 md:h-6 md:w-6"/> : <MessageCircle className="h-5 w-5 md:h-6 md:w-6"/>}
-            </Button>
+            <GamesButton onClick={onOpenGames} />
+            <ChatButton isChatVisible={isChatVisible} onClick={onToggleChat} />
         </div>
     );
 };
