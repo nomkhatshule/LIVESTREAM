@@ -28,7 +28,7 @@ const AskAssistantInputSchema = z.object({
 export type AskAssistantInput = z.infer<typeof AskAssistantInputSchema>;
 
 const AskAssistantOutputSchema = z.object({
-  openingStatement: z.string().describe("A brief, conversational opening that directly answers the user's question in one or two sentences."),
+  openingStatement: z.string().describe("A brief, conversational opening that directly answers the user's question in one or two sentences. This should be plain text without any markdown."),
   body: z.string().describe("The main body of the response, providing key milestones or points as a Markdown bulleted list. Each point should be a single, concise sentence. Start a new bullet point after every full stop. This should be followed by a concluding summary sentence and a relevant follow-up question."),
   sources: z.array(z.object({
       title: z.string().describe("The title of the source article."),
