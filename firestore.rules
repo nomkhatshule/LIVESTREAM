@@ -1,3 +1,4 @@
+
 rules_version = '2';
 
 service cloud.firestore {
@@ -53,8 +54,14 @@ service cloud.firestore {
     match /broadcasts/{broadcastId} {
       allow read: if true;
       allow create: if request.auth.uid == request.resource.data.hostId;
-      allow update: if request.auth.uid == resource.data.hostId || (request.auth != null && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isLive']));
+      // Host can update anything.
+      // Any authenticated user can update a document IF the only field changing is `isLive` from true to false.
+      // This allows the client-side "End Stream" button to work, but prevents a client from maliciously re-activating a stream.
+      // The server-side webhook is the ultimate authority for ending a stream.
+      allow update: if request.auth.uid == resource.data.hostId ||
+                    (request.auth != null && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isLive']) && resource.data.isLive == true && request.resource.data.isLive == false);
       allow delete: if request.auth.uid == resource.data.hostId;
+
 
       // Messages can be read by anyone. Authenticated users can create messages.
       match /messages/{messageId} {

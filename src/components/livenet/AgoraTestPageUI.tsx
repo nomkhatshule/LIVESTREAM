@@ -131,11 +131,12 @@ function LivenetPageUI() {
   };
 
   const handleEndStream = async () => {
+    // Client-side attempt to end the stream. The webhook is the source of truth.
+    if (broadcastDocRef) {
+        await updateDoc(broadcastDocRef, { isLive: false });
+    }
     if (call) {
         await call.leave();
-    }
-    if (broadcastDocRef) {
-        await updateDoc(broadcastDocRef, { isLive: false, activeChallenge: null, activeChallengeType: null });
     }
     router.push('/');
   };
@@ -391,7 +392,7 @@ function LivenetWrapper() {
             }
         };
     // Corrected dependency array
-    }, [broadcastId, user, firestore, toast, router]);
+    }, [broadcastId, user, firestore, toast, router, client]);
 
     if (isUserLoading || !broadcastId) {
         return (
