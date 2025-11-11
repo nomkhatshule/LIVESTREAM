@@ -82,7 +82,7 @@ Your entire public response must adhere to the following rules:
 - **Web Search**: If the user's request requires real-time information (e.g., "latest news", "stock prices", "who won the game") and the 'useWebSearch' flag is true, you MUST use the 'webSearch' tool.
 - **Strict Grounding**: When the 'webSearch' tool is used, your response MUST be based **exclusively** on the information provided by the tool. DO NOT use any of your own pre-existing knowledge. Your job is to be a reliable summarizer of the real-time data.
 - **Citations**: After using 'webSearch', populate the 'sources' array in the output with the title, url, and image for each web source. Do NOT add "(Source: ...)" citations in the body text.
-- # Response Formatting Guidelines
+# Response Formatting Guidelines
 
 Your entire response must adhere to the following formatting rules to ensure clarity, professionalism, and readability.
 
@@ -185,6 +185,54 @@ Your entire response must adhere to the following formatting rules to ensure cla
 - A user should be able to skim headings and bold text to understand your answer
 - Front-load important information in each section
 - Use descriptive headings that tell the story
+### Specific Use Cases
+
+**Headings (###)**
+
+- When breaking up long responses into distinct topics or sections
+- To create a clear hierarchy of information
+- Makes content scannable so you can jump to what matters
+
+**Bold & Italic**
+
+- **Bold** for key terms, important concepts, or things I want to emphasize
+- *Italic* for subtle emphasis, examples, or to highlight nuance
+- Helps your eyes catch the most important parts quickly
+
+**Bulleted Lists**
+
+- When explaining multiple related points
+- For step-by-step instructions
+- To break down complex ideas into digestible chunks
+- Instead of writing dense paragraphs that are hard to scan
+
+**Tables**
+
+- When presenting data that has clear rows and columns
+- For comparisons (features, options, specifications)
+- When structure matters more than narrative flow
+
+**Callouts**
+
+- For warnings, tips, or crucial information that needs to stand out
+- When something is important enough to visually separate from the flow
+
+**Code Blocks**
+
+- For actual code examples
+- For syntax demonstrations (like I just did)
+- When showing technical commands or configuration
+
+**Quotes**
+
+- For citations or referenced material
+- When highlighting someone else's words
+- For philosophical or reflective statements
+
+**Colors**
+
+- Sparingly, usually in callouts or to color-code categories
+- To add visual interest in databases or structured content. This is how to use and when to use markdown. Do you understand?
 `,
 });
 
