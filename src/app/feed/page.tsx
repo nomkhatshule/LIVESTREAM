@@ -36,6 +36,7 @@ import Image from 'next/image';
 import VideoPlayer from '@/components/broadcast/video-player';
 import { Separator } from '@/components/ui/separator';
 import { useStreamPrefetch } from '@/hooks/useStreamPrefetch';
+import FeedCleanupTool from '@/components/feed/FeedCleanupTool';
 
 function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broadcast, onVisible: () => void, isActive: boolean }) {
     const { ref, inView } = useInView({ threshold: 0.7 });
@@ -605,6 +606,9 @@ function HomePageContent() {
                 </DropdownMenu>
                 
                 <div className="h-full overflow-y-scroll snap-y snap-mandatory">
+                    <div className="snap-start">
+                      <FeedCleanupTool />
+                    </div>
                     {liveBroadcasts && liveBroadcasts.map(broadcast => (
                         <BroadcastFeedItem
                             key={broadcast.id}
