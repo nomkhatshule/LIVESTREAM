@@ -103,12 +103,12 @@ function LivenetWrapper() {
             if (call) {
                 call.leave().catch(err => console.error("Failed to leave call on cleanup", err));
             }
-            if (client) {
-                client.disconnectUser().catch(err => console.error("Failed to disconnect user on cleanup", err));
+            if (videoClient) {
+                videoClient.disconnectUser().catch(err => console.error("Failed to disconnect user on cleanup", err));
             }
         };
     // Corrected dependency array
-    }, [broadcastId, user, firestore, toast, router]);
+    }, [broadcastId, user, firestore, toast, router, call, client]);
 
     if (isUserLoading || !broadcastId) {
         return (
