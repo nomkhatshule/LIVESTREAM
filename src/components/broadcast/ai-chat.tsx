@@ -5,9 +5,9 @@ import { useState, useRef, useEffect, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, ArrowUp, Bot, Loader2, Globe, Search } from 'lucide-react';
+import { Send, ArrowUp, Bot, Loader2, Globe, Search, User, Calendar, Newspaper } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import {
   Sheet,
   SheetContent,
@@ -44,6 +44,44 @@ interface AIChatProps {
   userAvatar?: string;
   broadcastContext: string;
 }
+
+const SourceItem = ({ source }: { source: NonNullable<AskAssistantOutput['sources']>[0] }) => {
+    const formattedDate = source.publishDate ? format(parseISO(source.publishDate), 'MMM d, yyyy') : null;
+
+    return (
+        <a href={source.url} target="_blank" rel="noopener noreferrer" className="no-underline text-black hover:bg-gray-100 p-2 rounded-lg border border-gray-200 flex flex-col gap-3 transition-colors">
+            {source.image && (
+                <div className="relative w-full aspect-video flex-shrink-0 bg-gray-200 rounded-md overflow-hidden">
+                    <Image src={source.image} alt={source.title} fill className="object-cover" />
+                </div>
+            )}
+            <div className="overflow-hidden space-y-2">
+                <p className="font-bold truncate text-sm">{source.title}</p>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
+                    {source.publisher && (
+                        <div className="flex items-center gap-1">
+                            <Newspaper className="h-3 w-3" />
+                            <span>{source.publisher}</span>
+                        </div>
+                    )}
+                     {source.author && (
+                        <div className="flex items-center gap-1">
+                            <User className="h-3 w-3" />
+                            <span>{source.author}</span>
+                        </div>
+                    )}
+                    {formattedDate && (
+                        <div className="flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            <span>{formattedDate}</span>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </a>
+    )
+}
+
 
 export default function AIChat({
   children,
@@ -173,19 +211,9 @@ export default function AIChat({
                               <>
                                 <Separator className="my-3" />
                                 <h4 className="font-semibold !mb-2">Sources</h4>
-                                <div className="grid grid-cols-1 gap-2">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 not-prose">
                                     {msg.text.sources.map((source, i) => (
-                                      <a key={i} href={source.url} target="_blank" rel="noopener noreferrer" className="no-underline text-black hover:bg-gray-100 p-2 rounded-lg border border-gray-200 flex items-center gap-3">
-                                          {source.image && (
-                                              <div className="relative w-16 h-10 flex-shrink-0 bg-gray-200 rounded">
-                                                  <Image src={source.image} alt={source.title} fill className="object-cover rounded" />
-                                              </div>
-                                          )}
-                                          <div className="overflow-hidden">
-                                            <p className="text-xs font-bold truncate">{source.title}</p>
-                                            <p className="text-xs text-gray-500 truncate">{source.url}</p>
-                                          </div>
-                                      </a>
+                                      <SourceItem key={i} source={source} />
                                     ))}
                                 </div>
                               </>

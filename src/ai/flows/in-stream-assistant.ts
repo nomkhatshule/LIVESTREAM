@@ -33,7 +33,10 @@ const AskAssistantOutputSchema = z.object({
   sources: z.array(z.object({
       title: z.string().describe("The title of the source article."),
       url: z.string().describe("The URL of the source article."),
-      image: z.string().optional().describe("The meta image URL of the source article, if available.")
+      image: z.string().optional().describe("The meta image URL of the source article, if available."),
+      publisher: z.string().optional().describe("The name of the website or publisher (e.g., 'The Verge', 'Wikipedia')."),
+      author: z.string().optional().describe("The author of the article, if available."),
+      publishDate: z.string().optional().describe("The publication date of the article, if available.")
   })).optional().describe("An array of web sources used to generate the answer.")
 });
 export type AskAssistantOutput = z.infer<typeof AskAssistantOutputSchema>;
@@ -55,9 +58,11 @@ const webSearch = ai.defineTool(
       const response = await tavilyClient.search(input.query, {
         searchDepth: "advanced",
         maxResults: 5,
-        includeImages: true, // Request images from Tavily
+        includeImages: true,
+        includeRawContent: false, // Don't need full raw content
       });
       // Synthesize results into a string for the model
+      // We pass the whole result object so the LLM can extract what it needs.
       return JSON.stringify(response.results);
     } catch (error) {
       console.error("Tavily search failed:", error);
@@ -81,7 +86,7 @@ Your entire public response must adhere to the following rules:
 
 - **Web Search**: If the user's request requires real-time information (e.g., "latest news", "stock prices", "who won the game") and the 'useWebSearch' flag is true, you MUST use the 'webSearch' tool.
 - **Strict Grounding**: When the 'webSearch' tool is used, your response MUST be based **exclusively** on the information provided by the tool. DO NOT use any of your own pre-existing knowledge. Your job is to be a reliable summarizer of the real-time data.
-- **Citations**: After using 'webSearch', populate the 'sources' array in the output with the title, url, and image for each web source. Do NOT add "(Source: ...)" citations in the body text.`,
+- **Citations**: After using 'webSearch', populate the 'sources' array in the output with the relevant metadata for each web source used. You must extract the 'title', 'url', 'image', 'publisher', 'author', and 'publishDate' if they are available in the search result data. Do NOT add "(Source: ...)" citations in the body text.`,
 });
 
 const askAssistantFlow = ai.defineFlow(
@@ -92,6 +97,13 @@ const askAssistantFlow = ai.defineFlow(
   },
   async (input) => {
     const {output} = await prompt(input);
-    return output!;
+    if (!output) {
+      return {
+        openingStatement: "Apologies!",
+        body: "I'm having a little trouble connecting right now. Please try again in a moment.",
+        sources: [],
+      };
+    }
+    return output;
   }
 );
