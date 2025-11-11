@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { StreamVideoClient } from '@stream-io/video-react-sdk';
 import type { User } from 'firebase/auth';
 import type { Broadcast } from '@/lib/data';
@@ -16,23 +16,29 @@ import type { Broadcast } from '@/lib/data';
 export const useStreamPrefetch = (user: User | null, broadcast: Broadcast) => {
   const [prefetchedClient, setPrefetchedClient] = useState<StreamVideoClient | null>(null);
   const [prefetchedToken, setPrefetchedToken] = useState<string | null>(null);
+  const isConnecting = useRef(false);
 
   useEffect(() => {
-    // Only run if a user is provided and we haven't already prefetched.
-    if (!user || !broadcast || prefetchedClient) {
-        // If the user becomes null (item is no longer active), clean up.
-        if (prefetchedClient) {
-            prefetchedClient.disconnectUser();
-            setPrefetchedClient(null);
-            setPrefetchedToken(null);
-        }
+    // If the user scrolls away, the `user` prop becomes null. This is our signal to clean up.
+    if (!user && prefetchedClient) {
+        // Disconnect and reset state.
+        prefetchedClient.disconnectUser().catch(err => console.error("Prefetch cleanup: Failed to disconnect user", err));
+        setPrefetchedClient(null);
+        setPrefetchedToken(null);
+        isConnecting.current = false;
         return;
     }
 
+    // Don't start a new connection if one is already in progress, or if we don't have a user.
+    if (isConnecting.current || !user || !broadcast || prefetchedClient) {
+      return;
+    }
+    
+    isConnecting.current = true;
     let client: StreamVideoClient;
     let isCancelled = false;
 
-    const prefetch = async () => {
+    const prefetch = async (attempt = 1) => {
       try {
         const apiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY;
         if (!apiKey) {
@@ -62,17 +68,27 @@ export const useStreamPrefetch = (user: User | null, broadcast: Broadcast) => {
             token,
         });
 
-        if (isCancelled) {
+        // Set the state once the client is successfully created
+        if (!isCancelled) {
+            setPrefetchedToken(token);
+            setPrefetchedClient(client);
+            isConnecting.current = false;
+        } else {
+             // If cancelled during creation, make sure to clean up.
              client.disconnectUser();
-             return;
         }
 
-        // Set the state
-        setPrefetchedToken(token);
-        setPrefetchedClient(client);
-
       } catch (error) {
-        console.error("Stream pre-fetching failed:", error);
+        console.error(`Stream pre-fetching failed on attempt ${attempt}:`, error);
+        isConnecting.current = false; // Allow for a retry on the next render
+        
+        // Retry logic with exponential backoff
+        const maxRetries = 3;
+        if (attempt < maxRetries && !isCancelled) {
+            const delay = Math.pow(2, attempt) * 1000; // 2s, 4s, 8s
+            console.log(`Retrying prefetch in ${delay / 1000}s...`);
+            setTimeout(() => prefetch(attempt + 1), delay);
+        }
       }
     };
 
@@ -81,13 +97,10 @@ export const useStreamPrefetch = (user: User | null, broadcast: Broadcast) => {
     // Cleanup function
     return () => {
       isCancelled = true;
-      if (client) {
-        client.disconnectUser();
-      }
+      // The main cleanup is now handled when the `user` prop becomes null,
+      // which is a more reliable signal that the component is no longer active.
     };
   }, [user, broadcast, prefetchedClient]);
 
   return { prefetchedClient, prefetchedToken };
 };
-
-    

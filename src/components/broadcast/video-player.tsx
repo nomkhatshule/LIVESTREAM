@@ -72,92 +72,36 @@ function HostVideoPlayer({ broadcast }: { broadcast: BroadcastData }) {
 }
 
 function ViewerVideoPlayer({ broadcast, prefetchedClient, prefetchedToken }: VideoPlayerProps) {
-  const { user } = useUser();
-  const [client, setClient] = useState<StreamVideoClient | null>(prefetchedClient || null);
   const [call, setCall] = useState<Call | null>(null);
-  const { toast } = useToast();
 
+  // This effect's only job is to join the call when the prefetched client is ready.
   useEffect(() => {
-    // If the client is already prefetched, don't re-initialize
-    if (client) return;
-    if (!user || !broadcast?.id) return;
-
-    const apiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY;
-    if (!apiKey) {
-      console.error('Stream API key is missing.');
-      return;
-    }
-
-    let videoClient: StreamVideoClient;
-
-    const initClient = async () => {
-      const maxRetries = 5;
-      for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        try {
-          const token = prefetchedToken || await (async () => {
-              const response = await fetch('/api/stream/token', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: user.uid }),
-              });
-              if (!response.ok) throw new Error('Failed to get stream token');
-              return (await response.json()).token;
-          })();
-
-          videoClient = new StreamVideoClient({
-            apiKey,
-            user: {
-              id: user.uid,
-              name: user.displayName || 'Viewer',
-              image: user.photoURL || undefined,
-            },
-            token,
-          });
-          setClient(videoClient);
-          
-          const callInstance = videoClient.call('livestream', broadcast.id);
-          await callInstance.join();
-          setCall(callInstance);
-          return; // Success, exit the loop
-        } catch (error) {
-          console.error(`Failed to init Stream client on attempt ${attempt}:`, error);
-          if (attempt === maxRetries) {
-            toast({
-              title: 'Connection Error',
-              description: 'Could not connect to the video service after multiple attempts.',
-              variant: 'destructive',
-            });
-          } else {
-             // Wait before retrying
-             await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
-          }
-        }
-      }
+    if (!prefetchedClient || !broadcast?.id) {
+        setCall(null); // Clear call if client disappears
+        return;
     };
 
-    initClient();
+    let callInstance = prefetchedClient.call('livestream', broadcast.id);
+    
+    // The `join` creates and activates the call.
+    callInstance.join()
+      .then(() => {
+        setCall(callInstance);
+      })
+      .catch(err => {
+        console.error(`Failed to join call ${broadcast.id}`, err);
+        setCall(null);
+      });
 
-    return () => {
-      if (call) {
-        call.leave().catch(err => console.error("Failed to leave call on cleanup", err));
-      }
-      if (videoClient && !prefetchedClient) { // Only disconnect if not prefetched
-        videoClient.disconnectUser().catch(err => console.error("Failed to disconnect user on cleanup", err));
-      }
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, broadcast?.id, client, prefetchedClient, prefetchedToken]);
+    // Unlike before, we don't return a cleanup function here.
+    // The `useStreamPrefetch` hook is now solely responsible for disconnecting the client.
+    // This prevents the race condition where the player disconnects the client
+    // while the prefetch hook is still trying to use it.
 
-  // Use prefetched client for the initial connection
-  useEffect(() => {
-    if (prefetchedClient && !call) {
-      const callInstance = prefetchedClient.call('livestream', broadcast.id);
-      callInstance.join().then(() => setCall(callInstance));
-    }
-  }, [prefetchedClient, broadcast, call]);
+  }, [prefetchedClient, broadcast?.id]);
 
 
-  if (!client || !call) {
+  if (!prefetchedClient || !call) {
     return (
       <div className="absolute inset-0 flex items-center justify-center bg-black">
         <Loader2 className="h-8 w-8 animate-spin text-white" />
@@ -165,8 +109,10 @@ function ViewerVideoPlayer({ broadcast, prefetchedClient, prefetchedToken }: Vid
     );
   }
 
+  // The StreamVideo component needs to be re-mounted when the client changes.
+  // Using a key ensures that React treats it as a new component instance.
   return (
-    <StreamVideo client={client}>
+    <StreamVideo client={prefetchedClient} key={prefetchedClient.userID}>
       <StreamCall call={call}>
         <ViewerStreamContent broadcast={broadcast} />
       </StreamCall>
@@ -208,5 +154,3 @@ export default function VideoPlayer({ broadcast, isHost = false, prefetchedClien
         return <ViewerVideoPlayer broadcast={broadcast} prefetchedClient={prefetchedClient} prefetchedToken={prefetchedToken}/>;
     }
 }
-
-    
