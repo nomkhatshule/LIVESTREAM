@@ -208,3 +208,5 @@ export default function VideoPlayer({ broadcast, isHost = false, prefetchedClien
         return <ViewerVideoPlayer broadcast={broadcast} prefetchedClient={prefetchedClient} prefetchedToken={prefetchedToken}/>;
     }
 }
+
+    
