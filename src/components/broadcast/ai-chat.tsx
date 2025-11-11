@@ -49,30 +49,30 @@ const SourceItem = ({ source }: { source: NonNullable<AskAssistantOutput['source
     const formattedDate = source.publishDate ? format(parseISO(source.publishDate), 'MMM d, yyyy') : null;
 
     return (
-        <a href={source.url} target="_blank" rel="noopener noreferrer" className="no-underline text-black hover:bg-gray-100 p-2 rounded-lg border border-gray-200 flex flex-col gap-3 transition-colors">
+        <a href={source.url} target="_blank" rel="noopener noreferrer" className="no-underline text-black hover:bg-gray-100 p-3 rounded-lg border border-gray-200 flex flex-col gap-3 transition-colors">
             {source.image && (
                 <div className="relative w-full aspect-video flex-shrink-0 bg-gray-200 rounded-md overflow-hidden">
                     <Image src={source.image} alt={source.title} fill className="object-cover" />
                 </div>
             )}
             <div className="overflow-hidden space-y-2">
-                <p className="font-bold truncate text-sm">{source.title}</p>
+                <p className="font-semibold text-black truncate text-sm">{source.title}</p>
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
                     {source.publisher && (
-                        <div className="flex items-center gap-1">
-                            <Newspaper className="h-3 w-3" />
+                        <div className="flex items-center gap-1.5">
+                            <Newspaper className="h-3.5 w-3.5" />
                             <span>{source.publisher}</span>
                         </div>
                     )}
                      {source.author && (
-                        <div className="flex items-center gap-1">
-                            <User className="h-3 w-3" />
+                        <div className="flex items-center gap-1.5">
+                            <User className="h-3.5 w-3.5" />
                             <span>{source.author}</span>
                         </div>
                     )}
                     {formattedDate && (
-                        <div className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
+                        <div className="flex items-center gap-1.5">
+                            <Calendar className="h-3.5 w-3.5" />
                             <span>{formattedDate}</span>
                         </div>
                     )}
@@ -92,8 +92,8 @@ export default function AIChat({
     {
       sender: 'ai',
       text: {
-        openingStatement: "Hi there!",
-        body: "I'm your in-stream assistant. Ask me anything about what's happening in the stream. Toggle the globe icon to enable web search for real-time questions."
+        openingStatement: "Hi there! I'm your in-stream assistant. Ask me anything about what's happening in the stream. Toggle the globe icon to enable web search for real-time questions.",
+        body: ""
       },
       timestamp: format(new Date(), 'HH:mm'),
     },
@@ -210,7 +210,7 @@ export default function AIChat({
                             {msg.text.sources && msg.text.sources.length > 0 && (
                               <>
                                 <Separator className="my-3" />
-                                <h4 className="font-semibold !mb-2">Sources</h4>
+                                <h4 className="font-semibold !mb-2 !text-black">Sources</h4>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 not-prose">
                                     {msg.text.sources.map((source, i) => (
                                       <SourceItem key={i} source={source} />
