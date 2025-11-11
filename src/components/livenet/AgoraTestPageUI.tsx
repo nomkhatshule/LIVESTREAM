@@ -1,16 +1,21 @@
 
+
 'use client';
 
 import { Button } from '@/components/ui/button';
 import { Loader2, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useDoc, useFirestore, useMemoFirebase, useUserDocument, useStorage } from '@/firebase';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { doc, query, orderBy, limit, collection, serverTimestamp } from 'firebase/firestore';
+import { doc, query, orderBy, limit, collection, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useCollection } from '@/firebase';
 import {
+  Call,
+  StreamCall,
+  StreamVideo,
+  StreamVideoClient,
   useCall,
   useCallStateHooks,
   CallingState,
@@ -25,18 +30,18 @@ import ChatPanel from '@/components/livenet/ChatPanel';
 import type { Reaction, BroadcastData, Comment, GiphyResult } from '@/lib/types';
 import { useGameFlow } from '@/hooks/useGameFlow';
 import { useChallengeCard } from '@/hooks/useChallengeCard';
-import { useStreamControls } from '@/hooks/useStreamControls';
 import GameFlowManager from './GameFlowManager';
 import ChallengeCardManager from './ChallengeCardManager';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 
-export default function AgoraTestPageUI() {
+function LivenetPageUI() {
   const searchParams = useSearchParams();
   const broadcastId = searchParams.get('id');
   const firestore = useFirestore();
   const storage = useStorage();
   const call = useCall();
+  const router = useRouter();
   const { user } = useUser();
   const { userDocument } = useUserDocument();
   const { toast } = useToast();
@@ -46,12 +51,17 @@ export default function AgoraTestPageUI() {
   const [isChatVisible, setIsChatVisible] = useState(true);
 
   // Stream SDK Hooks
-  const { useParticipants, useCallCallingState } = useCallStateHooks();
+  const { useParticipants, useCallCallingState, useCameraState, useMicrophoneState, useScreenShareState } = useCallStateHooks();
   const participants = useParticipants();
   const callingState = useCallCallingState();
+  const { camera } = useCameraState();
+  const { microphone } = useMicrophoneState();
+  const { isScreenSharing } = useScreenShareState();
   
   const viewerCount = Math.max(0, participants.length -1); // Exclude the host
   const isCallJoined = callingState === CallingState.JOINED;
+  const isVideoEnabled = camera ? !camera.isMute : false;
+  const isMicEnabled = microphone ? !microphone.isMute : false;
 
   // Real-time broadcast document
   const broadcastDocRef = useMemoFirebase(() => {
@@ -72,8 +82,57 @@ export default function AgoraTestPageUI() {
   }, [broadcastId, firestore]);
   const { data: comments } = useCollection<Comment>(messagesQuery);
 
+  const handleToggleVideo = async () => {
+    if (call && call.camera) {
+      await call.camera.toggle();
+    }
+  };
+
+  const handleToggleMic = async () => {
+    if (call && call.microphone) {
+      await call.microphone.toggle();
+    }
+  };
+
+  const handleToggleScreenShare = async () => {
+    if (!call || !call.screenShare) return;
+    const nextIsScreenSharing = !isScreenSharing;
+    try {
+        await call.screenShare.toggle();
+        if (broadcastDocRef) {
+            updateDoc(broadcastDocRef, { 'streamDetails.isScreenSharing': nextIsScreenSharing });
+        }
+    } catch (error) {
+        console.error('Error toggling screen share:', error);
+        toast({
+            variant: 'destructive',
+            title: 'Screen Share Failed',
+            description: 'Could not change screen sharing state.',
+        });
+        if (broadcastDocRef) {
+            updateDoc(broadcastDocRef, { 'streamDetails.isScreenSharing': isScreenSharing }); // Revert on error
+        }
+    }
+  };
+
+  const handleEndStream = async () => {
+    if (call) {
+        await call.leave();
+    }
+    if (broadcastDocRef) {
+        await updateDoc(broadcastDocRef, { isLive: false, activeChallenge: null, activeChallengeType: null });
+    }
+    router.push('/');
+  };
+
+  const handleInviteGuest = () => {
+    toast({
+        title: "Guest Link Copied!",
+        description: "A unique invite link has been copied to your clipboard.",
+    });
+  };
+
   // Custom Hooks for managing complex logic
-  const { isVideoEnabled, isMicEnabled, isScreenSharing, handleToggleVideo, handleToggleMic, handleToggleScreenShare, handleEndStream, handleInviteGuest } = useStreamControls(call, broadcastDocRef);
   const { showChallengeCoverCard, isChallengeVisible, isTimerFinished, handleChallengeSelect, handleStartStagedChallenge, handleCancelStagedChallenge, handleGenerateNextChallenge, setIsChallengeVisible } = useGameFlow(broadcastDocRef, broadcastData);
   const { cardPosition, cardSize, isDragging, handleMouseDown, handleTouchStart, handleTouchMove, handleTouchEnd, handleResizeStop, setCardSize } = useChallengeCard(broadcastDocRef, broadcastData?.challengeCardPosition, broadcastData?.challengeCardSize);
   
@@ -222,4 +281,138 @@ export default function AgoraTestPageUI() {
         />
     </div>
   );
+}
+
+// --- Wrapper Component for Initialization and Auth ---
+function LivenetWrapper() {
+    const searchParams = useSearchParams();
+    const broadcastId = searchParams.get('id');
+    const { user, isUserLoading } = useUser();
+    const firestore = useFirestore();
+    const { toast } = useToast();
+    const router = useRouter();
+
+    const [client, setClient] = useState<StreamVideoClient | null>(null);
+    const [call, setCall] = useState<Call | null>(null);
+    
+    // Auth check
+    useEffect(() => {
+        if (!isUserLoading && !user) {
+            toast({
+                title: 'Authentication Required',
+                description: "You must be logged in to access the live studio.",
+                variant: 'destructive',
+            });
+            router.push('/login');
+        }
+    }, [user, isUserLoading, router, toast]);
+
+    // Stream Client initialization
+    useEffect(() => {
+        if (!user || !broadcastId || client) return;
+
+        let videoClient: StreamVideoClient;
+        const apiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY || '';
+
+        const initStream = async () => {
+            if (!apiKey) {
+                toast({ variant: 'destructive', title: 'Stream API Key is missing.' });
+                return;
+            }
+
+            try {
+                // The broadcast document should have been created by the /broadcast/create page.
+                // Now, we connect to it.
+                const response = await fetch('/api/stream/token', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ userId: user.uid }),
+                });
+                if (!response.ok) throw new Error('Failed to fetch stream token');
+                
+                const { token } = await response.json();
+                
+                videoClient = new StreamVideoClient({
+                    apiKey,
+                    user: {
+                        id: user.uid,
+                        name: user.displayName || 'Anonymous',
+                        image: user.photoURL || undefined,
+                    },
+                    token,
+                });
+
+                setClient(videoClient);
+                const callInstance = videoClient.call('livestream', broadcastId);
+                
+                // Join the call. The `create` flag is a fallback.
+                await callInstance.join({ create: true });
+
+                // Once successfully joined, mark the broadcast as 'isLive' in Firestore.
+                // This makes it appear on the feed for other users.
+                const broadcastDocRef = doc(firestore, 'broadcasts', broadcastId);
+                await updateDoc(broadcastDocRef, { isLive: true });
+                
+                setCall(callInstance);
+
+            } catch (error: any) {
+                console.error("Stream initialization failed:", error);
+                toast({ variant: 'destructive', title: 'Connection Failed', description: error.message || 'Could not connect to the broadcast.'});
+                // If connection fails, maybe route back home
+                router.push('/');
+            }
+        };
+        
+        initStream();
+
+        return () => {
+            // Cleanup logic when the component unmounts
+            if (call) {
+                call.leave().catch(err => console.error("Failed to leave call on cleanup", err));
+            }
+            if (client) {
+                client.disconnectUser().catch(err => console.error("Failed to disconnect user on cleanup", err));
+            }
+        };
+    // Corrected dependency array
+    }, [broadcastId, user, firestore, toast, router]);
+
+    if (isUserLoading || !broadcastId) {
+        return (
+            <div className="flex h-screen w-full items-center justify-center bg-background">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="ml-2">Loading your studio...</p>
+            </div>
+        );
+    }
+    
+    if (!client || !call) {
+         return (
+            <div className="flex h-screen w-full items-center justify-center bg-background">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="ml-2">Connecting to broadcast channel...</p>
+            </div>
+        );
+    }
+
+    return (
+        <StreamVideo client={client}>
+            <StreamCall call={call}>
+                <LivenetPageUI />
+            </StreamCall>
+        </StreamVideo>
+    )
+}
+
+// --- Default Export with Suspense ---
+export default function LivenetPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex h-screen w-full items-center justify-center bg-background">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        }>
+            <LivenetWrapper />
+        </Suspense>
+    )
 }
