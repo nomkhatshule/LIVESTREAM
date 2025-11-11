@@ -98,39 +98,47 @@ function ViewerVideoPlayer({ broadcast, prefetchedClient, prefetchedToken }: Vid
     let videoClient: StreamVideoClient;
 
     const initClient = async () => {
-      try {
-        const token = prefetchedToken || await (async () => {
-            const response = await fetch('/api/stream/token', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ userId: user.uid }),
+      const maxRetries = 5;
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+          const token = prefetchedToken || await (async () => {
+              const response = await fetch('/api/stream/token', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: user.uid }),
+              });
+              if (!response.ok) throw new Error('Failed to get stream token');
+              return (await response.json()).token;
+          })();
+
+          videoClient = new StreamVideoClient({
+            apiKey,
+            user: {
+              id: user.uid,
+              name: user.displayName || 'Viewer',
+              image: user.photoURL || undefined,
+            },
+            token,
+          });
+          setClient(videoClient);
+          
+          const callInstance = videoClient.call('livestream', broadcast.id);
+          await callInstance.join();
+          setCall(callInstance);
+          return; // Success, exit the loop
+        } catch (error) {
+          console.error(`Failed to init Stream client on attempt ${attempt}:`, error);
+          if (attempt === maxRetries) {
+            toast({
+              title: 'Connection Error',
+              description: 'Could not connect to the video service after multiple attempts.',
+              variant: 'destructive',
             });
-            if (!response.ok) throw new Error('Failed to get stream token');
-            return (await response.json()).token;
-        })();
-
-        videoClient = new StreamVideoClient({
-          apiKey,
-          user: {
-            id: user.uid,
-            name: user.displayName || 'Viewer',
-            image: user.photoURL || undefined,
-          },
-          token,
-        });
-        setClient(videoClient);
-        
-        const callInstance = videoClient.call('livestream', broadcast.id);
-        await callInstance.join();
-        setCall(callInstance);
-
-      } catch (error) {
-        console.error('Failed to init Stream client', error);
-        toast({
-          title: 'Connection Error',
-          description: 'Could not connect to the video service.',
-          variant: 'destructive',
-        });
+          } else {
+             // Wait before retrying
+             await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+          }
+        }
       }
     };
 
