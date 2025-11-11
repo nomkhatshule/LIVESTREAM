@@ -35,7 +35,7 @@ import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import ChatPanel from './ChatPanel';
 
 
-function LivenetPageUI() {
+function LivenetStudioUI() {
   const searchParams = useSearchParams();
   const broadcastId = searchParams.get('id');
   const firestore = useFirestore();
@@ -300,31 +300,4 @@ function LivenetPageUI() {
   );
 }
 
-// --- Default Export with Suspense ---
-export default function AgoraTestPage() {
-    const router = useRouter();
-    const searchParams = useSearchParams();
-    
-    useEffect(() => {
-        const broadcastId = searchParams.get('id');
-        if (broadcastId) {
-            router.replace(`/livenet?id=${broadcastId}`);
-        } else {
-            router.replace('/');
-        }
-    }, [router, searchParams]);
-
-    return (
-        <Suspense fallback={
-            <div className="flex h-screen w-full items-center justify-center bg-background">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="ml-2">Redirecting...</p>
-            </div>
-        }>
-            <div className="flex h-screen w-full items-center justify-center bg-background">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="ml-2">Redirecting to the new live studio...</p>
-            </div>
-        </Suspense>
-    )
-}
+export default LivenetStudioUI;

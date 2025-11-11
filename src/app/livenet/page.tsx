@@ -14,7 +14,7 @@ import {
 } from '@stream-io/video-react-sdk';
 import '@stream-io/video-react-sdk/dist/css/styles.css';
 import { Loader2 } from 'lucide-react';
-import AgoraTestPageUI from '@/components/livenet/AgoraTestPageUI';
+import LivenetStudioUI from '@/components/livenet/LivenetStudioUI';
 
 // --- Wrapper Component for Initialization and Auth ---
 function LivenetWrapper() {
@@ -131,7 +131,7 @@ function LivenetWrapper() {
     return (
         <StreamVideo client={client}>
             <StreamCall call={call}>
-                <AgoraTestPageUI />
+                <LivenetStudioUI />
             </StreamCall>
         </StreamVideo>
     )
