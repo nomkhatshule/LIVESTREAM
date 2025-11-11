@@ -5,10 +5,10 @@
 import { Suspense, useEffect, useState, useMemo, useRef } from 'react';
 import { useUser, useFirestore, useMemoFirebase, useUserDocument, useStorage } from '@/firebase';
 import { useCollection } from '@/firebase/firestore/use-collection';
-import { collection, query, where, writeBatch, doc, orderBy, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, writeBatch, doc, orderBy, serverTimestamp, getDocs } from 'firebase/firestore';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import type { Broadcast, ChatMessage } from '@/lib/data';
-import { Clapperboard, Loader2, Mail, ChevronDownCircle, MessageCircleHeart, Film, Heart, MessageSquareMore, Gift, Search, Swords, Users, CornerUpLeft, ArrowUp, Play, X, Paperclip, Gamepad2 } from 'lucide-react';
+import { Clapperboard, Loader2, Mail, ChevronDownCircle, MessageCircleHeart, Film, Heart, MessageSquareMore, Gift, Search, Swords, Users, CornerUpLeft, ArrowUp, Play, X, Paperclip, Gamepad2, RefreshCw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useStreamStore } from '@/lib/stream-store';
 import { Button } from '@/components/ui/button';
@@ -36,7 +36,6 @@ import Image from 'next/image';
 import VideoPlayer from '@/components/broadcast/video-player';
 import { Separator } from '@/components/ui/separator';
 import { useStreamPrefetch } from '@/hooks/useStreamPrefetch';
-import FeedCleanupTool from '@/components/feed/FeedCleanupTool';
 
 function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broadcast, onVisible: () => void, isActive: boolean }) {
     const { ref, inView } = useInView({ threshold: 0.7 });
@@ -475,6 +474,9 @@ function HomePageContent() {
     const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
     const [isMessagesOpen, setIsMessagesOpen] = useState(false);
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+    const { toast } = useToast();
+    const [isCleaning, setIsCleaning] = useState(false);
+
     
     const liveBroadcastsQuery = useMemoFirebase(() => {
         if (!firestore) return null;
@@ -518,6 +520,44 @@ function HomePageContent() {
             }
         });
         await batch.commit().catch(err => console.error("Failed to mark notifications as read:", err));
+    };
+
+    const handleCleanup = async () => {
+        setIsCleaning(true);
+        try {
+          const q = query(collection(firestore, 'broadcasts'), where('isLive', '==', true));
+          const querySnapshot = await getDocs(q);
+          
+          if (querySnapshot.empty) {
+            toast({ title: 'No active streams found', description: 'Your feed is already clean!' });
+            setIsCleaning(false);
+            return;
+          }
+    
+          const batch = writeBatch(firestore);
+          let count = 0;
+          querySnapshot.forEach((doc) => {
+            batch.update(doc.ref, { isLive: false });
+            count++;
+          });
+    
+          await batch.commit();
+    
+          toast({
+            title: 'Feed Refreshed!',
+            description: `Successfully marked ${count} ghost stream(s) as offline.`,
+          });
+    
+        } catch (error) {
+          console.error('Error cleaning up feed:', error);
+          toast({
+            variant: 'destructive',
+            title: 'Refresh Failed',
+            description: 'Could not refresh the feed. Please check the console for errors.',
+          });
+        } finally {
+          setIsCleaning(false);
+        }
     };
     
     const isLoading = isUserLoading || areBroadcastsLoading || areNotificationsLoading || isUserDocLoading;
@@ -590,6 +630,11 @@ function HomePageContent() {
                                 </DropdownMenuItem>
                             </DialogTrigger>
                              <DropdownMenuSeparator />
+                             <DropdownMenuItem onSelect={handleCleanup} disabled={isCleaning}>
+                                {isCleaning ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+                                <span>Refresh</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
                             <DropdownMenuItem asChild>
                                 <Link href={`/profile/${user.uid}`}>
                                     <Avatar className="h-4 w-4 mr-2">
@@ -606,20 +651,25 @@ function HomePageContent() {
                 </DropdownMenu>
                 
                 <div className="h-full overflow-y-scroll snap-y snap-mandatory">
-                    <div className="snap-start">
-                      <FeedCleanupTool />
-                    </div>
-                    {liveBroadcasts && liveBroadcasts.map(broadcast => (
+                    {liveBroadcasts && liveBroadcasts.length > 0 ? liveBroadcasts.map(broadcast => (
                         <BroadcastFeedItem
                             key={broadcast.id}
                             broadcast={broadcast}
                             onVisible={() => setActiveBroadcast(broadcast)}
                             isActive={activeBroadcast?.id === broadcast.id}
                         />
-                    ))}
-                    {(!liveBroadcasts || liveBroadcasts.length === 0) && (
+                    )) : (
                         <div className="h-full w-full flex items-center justify-center text-white snap-start">
-                            <p>No live broadcasts right now. Check back later!</p>
+                             <div className="text-center">
+                                <p className="text-lg font-semibold">No live broadcasts right now.</p>
+                                <p className="text-sm text-muted-foreground">Check back later or be the first to go live!</p>
+                                <Button asChild className="mt-4">
+                                    <Link href="/broadcast/create">
+                                        <Clapperboard className="mr-2 h-4 w-4" />
+                                        Go Live
+                                    </Link>
+                                </Button>
+                            </div>
                         </div>
                     )}
                 </div>
@@ -644,7 +694,3 @@ export default function HomePage() {
         </Suspense>
     )
 }
-
-    
-
-    
