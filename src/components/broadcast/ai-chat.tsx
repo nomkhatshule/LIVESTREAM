@@ -72,7 +72,7 @@ export default function AIChat({
     const userMessage: UserMessage = {
       sender: 'user',
       text: input,
-      timestamp: format(new Date(), 'HH-mm'),
+      timestamp: format(new Date(), 'HH:mm'),
     };
 
     setMessages(prev => [...prev, userMessage]);
@@ -102,7 +102,7 @@ export default function AIChat({
               openingStatement: "Connection Error",
               body: "I'm sorry, my connection to the AI service is currently unavailable. Please try again later."
             },
-            timestamp: format(new Date(), 'HH-mm'),
+            timestamp: format(new Date(), 'HH:mm'),
         };
         setMessages(prev => [...prev, errorResponse]);
     } finally {
@@ -153,42 +153,47 @@ export default function AIChat({
                 >
                   <div
                     className={cn(
-                      'max-w-[80%]',
-                      msg.sender === 'user'
-                        ? 'bg-black text-white rounded-2xl px-4 py-3 rounded-br-none'
-                        : 'text-black' 
+                      'flex flex-col',
+                      msg.sender === 'user' ? 'items-end' : 'items-start'
                     )}
                   >
-                     {msg.sender === 'user' ? (
-                        <p className="text-sm">{msg.text}</p>
-                     ) : ( // msg.sender === 'ai'
-                        <div className="space-y-2 text-sm prose prose-sm max-w-full">
-                          <p>{msg.text.openingStatement}</p>
-                          <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text.body}</ReactMarkdown>
-                          {msg.text.sources && msg.text.sources.length > 0 && (
-                            <>
-                               <Separator className="my-3" />
-                               <h4 className="font-semibold !mb-2">Sources</h4>
-                               <div className="grid grid-cols-1 gap-2">
-                                  {msg.text.sources.map((source, i) => (
-                                     <a key={i} href={source.url} target="_blank" rel="noopener noreferrer" className="no-underline text-black hover:bg-gray-100 p-2 rounded-lg border border-gray-200 flex items-center gap-3">
-                                        {source.image && (
-                                            <div className="relative w-16 h-10 flex-shrink-0 bg-gray-200 rounded">
-                                                <Image src={source.image} alt={source.title} fill className="object-cover rounded" />
-                                            </div>
-                                        )}
-                                        <div className="overflow-hidden">
-                                           <p className="text-xs font-bold truncate">{source.title}</p>
-                                           <p className="text-xs text-gray-500 truncate">{source.url}</p>
-                                        </div>
-                                     </a>
-                                  ))}
-                               </div>
-                            </>
-                          )}
-                        </div>
-                     )}
-                    <p
+                    <div className={cn(
+                       'max-w-[80%]',
+                      msg.sender === 'user'
+                        ? 'bg-black text-white rounded-2xl px-4 py-3 rounded-br-none'
+                        : 'text-black'
+                    )}>
+                      {msg.sender === 'user' ? (
+                          <p className="text-sm">{msg.text}</p>
+                      ) : ( // msg.sender === 'ai'
+                          <div className="space-y-2 text-sm prose prose-sm max-w-full">
+                            <p>{msg.text.openingStatement}</p>
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text.body}</ReactMarkdown>
+                            {msg.text.sources && msg.text.sources.length > 0 && (
+                              <>
+                                <Separator className="my-3" />
+                                <h4 className="font-semibold !mb-2">Sources</h4>
+                                <div className="grid grid-cols-1 gap-2">
+                                    {msg.text.sources.map((source, i) => (
+                                      <a key={i} href={source.url} target="_blank" rel="noopener noreferrer" className="no-underline text-black hover:bg-gray-100 p-2 rounded-lg border border-gray-200 flex items-center gap-3">
+                                          {source.image && (
+                                              <div className="relative w-16 h-10 flex-shrink-0 bg-gray-200 rounded">
+                                                  <Image src={source.image} alt={source.title} fill className="object-cover rounded" />
+                                              </div>
+                                          )}
+                                          <div className="overflow-hidden">
+                                            <p className="text-xs font-bold truncate">{source.title}</p>
+                                            <p className="text-xs text-gray-500 truncate">{source.url}</p>
+                                          </div>
+                                      </a>
+                                    ))}
+                                </div>
+                              </>
+                            )}
+                          </div>
+                      )}
+                    </div>
+                     <p
                       className={cn(
                         'text-xs mt-2',
                         msg.sender === 'user'
