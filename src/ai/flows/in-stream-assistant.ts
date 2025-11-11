@@ -28,8 +28,8 @@ const AskAssistantInputSchema = z.object({
 export type AskAssistantInput = z.infer<typeof AskAssistantInputSchema>;
 
 const AskAssistantOutputSchema = z.object({
-  openingStatement: z.string().describe("A brief, conversational opening that acknowledges the user's specific question before providing the main answer."),
-  body: z.string().describe("The main body of the response. Use simple markdown for formatting (e.g., **bold**, *italics*, bullet points). If web search was used, cite sources at the end like (Source 1, Source 2)."),
+  openingStatement: z.string().describe("A brief, conversational opening that directly answers the user's question in one or two sentences."),
+  body: z.string().describe("The main body of the response, providing key milestones or points as a Markdown bulleted list. Each point should be concise. This should be followed by a concluding summary sentence."),
   sources: z.array(z.object({
       title: z.string().describe("The title of the source article."),
       url: z.string().describe("The URL of the source article."),
@@ -72,7 +72,7 @@ const prompt = ai.definePrompt({
   input: {schema: AskAssistantInputSchema},
   output: {schema: AskAssistantOutputSchema},
   tools: [webSearch],
-  prompt: `You are a helpful and friendly AI assistant for a live streaming platform.
+  prompt: `You are a helpful and friendly AI assistant for a live streaming platform. Your answers must be clear, concise, and easy to read.
 
 Here is the context for the current stream: {{{broadcastContext}}}.
 The user's question is: "{{{query}}}"
@@ -80,15 +80,24 @@ The user's question is: "{{{query}}}"
 Your entire public response must adhere to the following rules:
 
 - **Web Search**: If the user's request requires real-time information (e.g., "latest news", "stock prices", "who won the game") and the 'useWebSearch' flag is true, you MUST use the 'webSearch' tool.
-- **Strict Grounding**: When the 'webSearch' tool is used, your response in the 'body' field MUST be based **exclusively** on the information provided by the tool. DO NOT use any of your own pre-existing knowledge. Your job is to be a reliable summarizer of the real-time data, not to add your own context or information.
-- **Structure and Clarity**: Use Markdown for structure. Headings, bold text, and lists are essential for readability. Use a Markdown horizontal rule ("---") to visually separate distinct topics.
-- **Citations**: After getting results from the 'webSearch' tool, you must populate the 'sources' array in the output with the title, url, and image for each web source you used. You do NOT need to manually add "(Source: ...)" citations in the body text.
-- **Concluding Thought**: End your answer in the 'body' with a concluding thought that summarizes the key takeaway.
+- **Strict Grounding**: When the 'webSearch' tool is used, your response MUST be based **exclusively** on the information provided by the tool. DO NOT use any of your own pre-existing knowledge. Your job is to be a reliable summarizer of the real-time data.
+- **Citations**: After using 'webSearch', populate the 'sources' array in the output with the title, url, and image for each web source. Do NOT add "(Source: ...)" citations in the body text.
+- **Answer Structure**: You must format your answer into two distinct parts:
+    1.  **openingStatement**: A direct, one or two-sentence answer to the user's question.
+    2.  **body**: A list of "key milestones" or important points formatted as a Markdown bulleted list. Each bullet point should be concise. Follow the list with a single, concluding summary sentence.
 
-Please structure your response in the following JSON format:
-1.  **openingStatement**: Acknowledge the user's question with a brief, friendly opening. For example, if the user asked "Who won the game last night?", you could say "You're asking who won the big game last night! Here's what I found:".
-2.  **body**: Provide the detailed answer, following all the structural and grounding rules defined above.
-3.  **sources**: If web search was used, provide an array of objects for each source.
+Example for "When was America born?":
+- **openingStatement**: "America — meaning the United States of America — was 'born' on July 4, 1776, when the Continental Congress adopted the Declaration of Independence."
+- **body**: 
+'''
+Some other key milestones in its formation include:
+*   **July 2, 1776**: Congress voted to declare independence.
+*   **July 4, 1776**: The Declaration of Independence was approved and signed.
+*   **1783**: The Treaty of Paris officially ended the Revolutionary War and recognized U.S. independence.
+*   **1789**: The U.S. Constitution took effect, formally establishing the federal government.
+
+So, while July 4, 1776 is celebrated as the birthday of the United States, the process of becoming a fully independent country took several years.
+'''
 `,
 });
 
@@ -117,3 +126,4 @@ const askAssistantFlow = ai.defineFlow(
     return output;
   }
 );
+
