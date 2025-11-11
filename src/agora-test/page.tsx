@@ -3,7 +3,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Users, X, Send, Smile, MessageCircle, Video, Mic, UserPlus, ScreenShare, VideoOff, MicOff, ArrowUp, MessageCircleOff, MonitorUp, Heart, ThumbsUp, Loader2, Dice6, Trophy, Check, Minus, Swords, Undo2 } from 'lucide-react';
+import { Users, X, Send, Smile, MessageCircle, Video, Mic, UserPlus, ScreenShare, VideoOff, MicOff, ArrowUp, MessageCircleOff, MonitorUp, Heart, ThumbsUp, Loader2, Dice6, Trophy, Check, Minus, Swords, Undo2, SwitchCamera } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Suspense, forwardRef, useEffect, useMemo, useRef, useState } from 'react';
@@ -283,6 +283,21 @@ function AgoraTestPageUI() {
       await call.microphone.toggle();
     }
   }
+
+  const handleFlipCamera = async () => {
+    if (call && call.camera) {
+      try {
+        await call.camera.flip();
+      } catch (error) {
+        console.error('Failed to flip camera:', error);
+        toast({
+          title: 'Camera flip failed',
+          description: 'Could not switch between front and back cameras.',
+          variant: 'destructive',
+        });
+      }
+    }
+  };
 
   const handleToggleScreenShare = async () => {
     const nextIsScreenSharing = !isScreenSharing;
@@ -725,3 +740,5 @@ export default function AgoraTestPage() {
 
 
     
+
+      
