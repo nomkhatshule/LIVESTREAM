@@ -163,7 +163,7 @@ export default function AIChat({
                         <p className="text-sm">{msg.text}</p>
                      ) : ( // msg.sender === 'ai'
                         <div className="space-y-2 text-sm prose prose-sm max-w-full">
-                          <p className="font-semibold">{msg.text.openingStatement}</p>
+                          <p>{msg.text.openingStatement}</p>
                           <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text.body}</ReactMarkdown>
                           {msg.text.sources && msg.text.sources.length > 0 && (
                             <>
