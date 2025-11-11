@@ -37,13 +37,6 @@ function HostVideoPlayer({ broadcast }: { broadcast: BroadcastData }) {
     const { camera, isCameraEnabled } = useCameraState(participant);
     const { screenShareStream, isScreenSharing } = useScreenShareState(participant);
 
-    // This effect automatically enables the camera when the component mounts if it's not already on.
-    useEffect(() => {
-        if (camera && !isCameraEnabled) {
-            camera.enable();
-        }
-    }, [camera, isCameraEnabled]);
-
     if (!participant) {
         return (
             <div className="absolute inset-0 w-full h-full bg-black flex items-center justify-center">
