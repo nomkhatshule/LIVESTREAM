@@ -35,6 +35,7 @@ const AskAssistantOutputSchema = z.object({
       url: z.string().describe("The URL of the source article."),
       image: z.string().optional().describe("The meta image URL of the source article, if available."),
       publisher: z.string().optional().describe("The name of the website or publisher (e.g., 'The Verge', 'Wikipedia')."),
+      publisherLogoUrl: z.string().optional().describe("The URL for the publisher's favicon or logo image, if available."),
       author: z.string().optional().describe("The author of the article, if available."),
       publishDate: z.string().optional().describe("The publication date of the article, if available.")
   })).optional().describe("An array of web sources used to generate the answer.")
@@ -86,7 +87,7 @@ Your entire public response must adhere to the following rules:
 
 - **Web Search**: If the user's request requires real-time information (e.g., "latest news", "stock prices", "who won the game") and the 'useWebSearch' flag is true, you MUST use the 'webSearch' tool.
 - **Strict Grounding**: When the 'webSearch' tool is used, your response MUST be based **exclusively** on the information provided by the tool. DO NOT use any of your own pre-existing knowledge. Your job is to be a reliable summarizer of the real-time data.
-- **Citations**: After using 'webSearch', populate the 'sources' array in the output with the relevant metadata for each web source used. You must extract the 'title', 'url', 'image', 'publisher', 'author', and 'publishDate' if they are available in the search result data. Do NOT add "(Source: ...)" citations in the body text.`,
+- **Citations**: After using 'webSearch', populate the 'sources' array in the output with the relevant metadata for each web source used. You must extract the 'title', 'url', 'image', 'publisher', 'author', 'publishDate', and 'faviconUrl' (as publisherLogoUrl) if they are available in the search result data. Do NOT add "(Source: ...)" citations in the body text.`,
 });
 
 const askAssistantFlow = ai.defineFlow(

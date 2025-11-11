@@ -60,7 +60,9 @@ const SourceItem = ({ source }: { source: NonNullable<AskAssistantOutput['source
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
                     {source.publisher && (
                         <div className="flex items-center gap-1.5">
-                            <Newspaper className="h-3.5 w-3.5" />
+                            {source.publisherLogoUrl && (
+                                <Image src={source.publisherLogoUrl} alt={`${source.publisher} logo`} width={14} height={14} className="rounded-sm" />
+                            )}
                             <span>{source.publisher}</span>
                         </div>
                     )}
@@ -206,7 +208,14 @@ export default function AIChat({
                       ) : ( // msg.sender === 'ai'
                           <div className="space-y-2 text-sm prose prose-sm max-w-full">
                             <p>{msg.text.openingStatement}</p>
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text.body}</ReactMarkdown>
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}
+                                components={{
+                                    ul(props) {
+                                        const {node, ...rest} = props
+                                        return <ul className="prose-ul:text-black" {...rest} />
+                                    }
+                                }}
+                            >{msg.text.body}</ReactMarkdown>
                             {msg.text.sources && msg.text.sources.length > 0 && (
                               <>
                                 <Separator className="my-3" />
