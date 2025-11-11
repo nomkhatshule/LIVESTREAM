@@ -55,7 +55,7 @@ export default function AIChat({
       sender: 'ai',
       text: {
         openingStatement: "Hi there!",
-        body: "I'm your in-stream assistant, powered by Gemini. Ask me anything about what's happening in the stream. Toggle the globe icon to enable web search for real-time questions."
+        body: "I'm your in-stream assistant. Ask me anything about what's happening in the stream. Toggle the globe icon to enable web search for real-time questions."
       },
       timestamp: format(new Date(), 'HH:mm'),
     },
@@ -134,7 +134,7 @@ export default function AIChat({
              {isWebSearchActive ? 'Web Search Enabled' : 'Your AI Stream Assistant'}
           </SheetTitle>
           <SheetDescription className="text-gray-500">
-             {isWebSearchActive ? 'Powered by Tavily and Gemini' : 'Powered by Gemini'}
+             {isWebSearchActive ? 'Powered by Tavily' : 'Ask me anything about the stream.'}
           </SheetDescription>
         </SheetHeader>
 
