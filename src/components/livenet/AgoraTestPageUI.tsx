@@ -26,7 +26,6 @@ import StreamHeader from '@/components/livenet/StreamHeader';
 import FloatingReactions from '@/components/livenet/FloatingReactions';
 import InStreamGamesPanel from '@/components/livenet/InStreamGamesPanel';
 import StreamControls from '@/components/livenet/StreamControls';
-import ChatPanel from '@/components/livenet/ChatPanel';
 import type { Reaction, BroadcastData, Comment, GiphyResult } from '@/lib/types';
 import { useGameFlow } from '@/hooks/useGameFlow';
 import { useChallengeCard } from '@/hooks/useChallengeCard';

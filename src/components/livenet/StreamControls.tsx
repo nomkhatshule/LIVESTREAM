@@ -1,3 +1,4 @@
+
 'use client';
 
 import { StreamVideoParticipant } from "@stream-io/video-react-sdk";
