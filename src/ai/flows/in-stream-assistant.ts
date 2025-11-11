@@ -29,7 +29,7 @@ export type AskAssistantInput = z.infer<typeof AskAssistantInputSchema>;
 
 const AskAssistantOutputSchema = z.object({
   openingStatement: z.string().describe("A brief, conversational opening that directly answers the user's question in one or two sentences."),
-  body: z.string().describe("The main body of the response, providing key milestones or points as a Markdown bulleted list. Each point should be concise. This should be followed by a concluding summary sentence."),
+  body: z.string().describe("The main body of the response, providing key milestones or points as a Markdown bulleted list. Each point should be a single, concise sentence. Start a new bullet point after every full stop. This should be followed by a concluding summary sentence."),
   sources: z.array(z.object({
       title: z.string().describe("The title of the source article."),
       url: z.string().describe("The URL of the source article."),
@@ -84,17 +84,17 @@ Your entire public response must adhere to the following rules:
 - **Citations**: After using 'webSearch', populate the 'sources' array in the output with the title, url, and image for each web source. Do NOT add "(Source: ...)" citations in the body text.
 - **Answer Structure**: You must format your answer into two distinct parts:
     1.  **openingStatement**: A direct, one or two-sentence answer to the user's question.
-    2.  **body**: A list of "key milestones" or important points formatted as a Markdown bulleted list. Each bullet point should be concise. Follow the list with a single, concluding summary sentence.
+    2.  **body**: A list of "key milestones" or important points formatted as a Markdown bulleted list. Each bullet point MUST be a single, complete sentence. Start a new bullet point after every full stop. Follow the list with a single, concluding summary sentence.
 
 Example for "When was America born?":
 - **openingStatement**: "America — meaning the United States of America — was 'born' on July 4, 1776, when the Continental Congress adopted the Declaration of Independence."
 - **body**: 
 '''
 Some other key milestones in its formation include:
-*   **July 2, 1776**: Congress voted to declare independence.
-*   **July 4, 1776**: The Declaration of Independence was approved and signed.
-*   **1783**: The Treaty of Paris officially ended the Revolutionary War and recognized U.S. independence.
-*   **1789**: The U.S. Constitution took effect, formally establishing the federal government.
+*   Congress voted to declare independence on July 2, 1776.
+*   The Declaration of Independence was approved and signed on July 4, 1776.
+*   The Treaty of Paris officially ended the Revolutionary War and recognized U.S. independence in 1783.
+*   The U.S. Constitution took effect in 1789, formally establishing the federal government.
 
 So, while July 4, 1776 is celebrated as the birthday of the United States, the process of becoming a fully independent country took several years.
 '''
@@ -126,4 +126,3 @@ const askAssistantFlow = ai.defineFlow(
     return output;
   }
 );
-
