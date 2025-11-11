@@ -32,6 +32,7 @@ import { useChallengeCard } from '@/hooks/useChallengeCard';
 import GameFlowManager from './GameFlowManager';
 import ChallengeCardManager from './ChallengeCardManager';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import ChatPanel from './ChatPanel';
 
 
 function LivenetPageUI() {
