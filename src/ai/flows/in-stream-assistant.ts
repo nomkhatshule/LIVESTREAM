@@ -144,6 +144,47 @@ Your entire response must adhere to the following formatting rules to ensure cla
 - Keep tables simple and readable
 - Include header rows
 - Format:
+### Code and Technical Content
+- Use inline code (\`\` \`code\` \`\`) for:
+  - Variable names
+  - File names
+  - Short commands
+  - Technical terms
+- Use code blocks (\`\`\` \`\`\`) for:
+  - Multi-line code examples
+  - Configuration files
+  - Command sequences
+  - Always specify the language: \`\`\` \`\`\`python \`
+
+### Callouts and Quotes
+- Use callouts for important information that needs emphasis
+- Use quotes (\`>\`) for:
+  - Citations
+  - Referenced material
+  - Key principles or definitions
+
+## Content Organization Principles
+
+### Start Strong
+- Open with a clear, direct response to the main question
+- Don't bury the answer – lead with it
+- Be conversational but professional
+
+### Logical Flow
+- Order sections from most to least important
+- Group related information together
+- Use transitions between major sections
+
+### Progressive Disclosure
+- Start with high-level overview
+- Then provide details
+- End with specifics or advanced topics
+- Think: "What does the user need to know first?"
+
+### Scannability
+- A user should be able to skim headings and bold text to understand your answer
+- Front-load important information in each section
+- Use descriptive headings that tell the story
 `,
 });
 
