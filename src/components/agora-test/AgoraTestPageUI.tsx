@@ -76,19 +76,6 @@ export default function AgoraTestPageUI() {
   const { isVideoEnabled, isMicEnabled, isScreenSharing, handleToggleVideo, handleToggleMic, handleToggleScreenShare, handleEndStream, handleInviteGuest } = useStreamControls(call, broadcastDocRef);
   const { showChallengeCoverCard, isChallengeVisible, isTimerFinished, handleChallengeSelect, handleStartStagedChallenge, handleCancelStagedChallenge, handleGenerateNextChallenge, setIsChallengeVisible } = useGameFlow(broadcastDocRef, broadcastData);
   const { cardPosition, cardSize, isDragging, handleMouseDown, handleTouchStart, handleTouchMove, handleTouchEnd, handleResizeStop, setCardSize } = useChallengeCard(broadcastDocRef, broadcastData?.challengeCardPosition, broadcastData?.challengeCardSize);
-
-
-  // This effect automatically enables the camera once the call is joined with high-quality settings.
-  useEffect(() => {
-    if (isCallJoined && call && call.camera && !call.camera.isMute) {
-      const highQualityConstraints = {
-        width: { ideal: 1920 },
-        height: { ideal: 1080 },
-        frameRate: { ideal: 30 },
-      };
-      call.camera.enable(highQualityConstraints);
-    }
-  }, [isCallJoined, call]);
   
   const handleReaction = (emoji: React.ReactNode) => {
     const newReaction: Reaction = {
