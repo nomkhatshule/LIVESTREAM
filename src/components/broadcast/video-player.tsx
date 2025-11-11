@@ -146,7 +146,7 @@ function ViewerVideoPlayer({ broadcast, prefetchedClient, prefetchedToken }: Vid
       }
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, broadcast?.id, toast, client, prefetchedClient, prefetchedToken]);
+  }, [user, broadcast?.id, client, prefetchedClient, prefetchedToken]);
 
   // Use prefetched client for the initial connection
   useEffect(() => {
