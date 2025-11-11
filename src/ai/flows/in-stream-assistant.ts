@@ -28,7 +28,7 @@ const AskAssistantInputSchema = z.object({
 export type AskAssistantInput = z.infer<typeof AskAssistantInputSchema>;
 
 const AskAssistantOutputSchema = z.object({
-  openingStatement: z.string().describe("A brief, conversational opening that acknowledges the user's question before providing the main answer."),
+  openingStatement: z.string().describe("A brief, conversational opening that acknowledges the user's specific question before providing the main answer."),
   body: z.string().describe("The main body of the response. Use simple markdown for formatting (e.g., **bold**, *italics*, bullet points). If web search was used, cite sources at the end like (Source 1, Source 2)."),
   sources: z.array(z.object({
       title: z.string().describe("The title of the source article."),
@@ -75,7 +75,7 @@ const prompt = ai.definePrompt({
   prompt: `You are a helpful and friendly AI assistant for a live streaming platform.
 
 Here is the context for the current stream: {{{broadcastContext}}}.
-The user's question is: {{{query}}}
+The user's question is: "{{{query}}}"
 
 Your entire public response must adhere to the following rules:
 
@@ -86,7 +86,7 @@ Your entire public response must adhere to the following rules:
 - **Concluding Thought**: End your answer in the 'body' with a concluding thought that summarizes the key takeaway.
 
 Please structure your response in the following JSON format:
-1.  **openingStatement**: Write a short, friendly acknowledgment of the user's question. This is the only place for conversational filler.
+1.  **openingStatement**: Acknowledge the user's question with a brief, friendly opening. For example, if the user asked "Who won the game last night?", you could say "You're asking who won the big game last night! Here's what I found:".
 2.  **body**: Provide the detailed answer, following all the structural and grounding rules defined above.
 3.  **sources**: If web search was used, provide an array of objects for each source.
 `,
