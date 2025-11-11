@@ -88,6 +88,21 @@ function LivenetPageUI() {
     }
   };
 
+  const handleFlipCamera = async () => {
+    if (call && call.camera) {
+      try {
+        await call.camera.flip();
+      } catch (error) {
+        console.error('Failed to flip camera:', error);
+        toast({
+          title: 'Camera flip failed',
+          description: 'Could not switch between front and back cameras.',
+          variant: 'destructive',
+        });
+      }
+    }
+  };
+
   const handleToggleMic = async () => {
     if (call && call.microphone) {
       await call.microphone.toggle();
@@ -252,6 +267,7 @@ function LivenetPageUI() {
         <StreamControls 
             onToggleVideo={handleToggleVideo}
             onToggleMic={handleToggleMic}
+            onFlipCamera={handleFlipCamera}
             onToggleScreenShare={handleToggleScreenShare}
             onInviteGuest={handleInviteGuest}
             onToggleChallengeVisibility={() => setIsChallengeVisible(prev => !prev)}

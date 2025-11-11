@@ -2,7 +2,7 @@
 'use client';
 
 import { Button } from "@/components/ui/button";
-import { Dice6, Mic, MicOff, Minus, MonitorUp, ScreenShare, UserPlus, Video, VideoOff, MessageCircle, MessageCircleOff } from "lucide-react";
+import { Dice6, Mic, MicOff, Minus, MonitorUp, ScreenShare, UserPlus, Video, VideoOff, MessageCircle, MessageCircleOff, SwitchCamera } from "lucide-react";
 import ParticipantsPanel from "./ParticipantsPanel";
 import { StreamVideoParticipant } from "@stream-io/video-react-sdk";
 import { cn } from "@/lib/utils";
@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 interface StreamControlsProps {
     onToggleVideo: () => void;
     onToggleMic: () => void;
+    onFlipCamera: () => void;
     onToggleScreenShare: () => void;
     onInviteGuest: () => void;
     onToggleChallengeVisibility: () => void;
@@ -27,7 +28,8 @@ interface StreamControlsProps {
 
 export default function StreamControls({ 
     onToggleVideo, 
-    onToggleMic, 
+    onToggleMic,
+    onFlipCamera,
     onToggleScreenShare, 
     onInviteGuest, 
     isVideoEnabled, 
@@ -51,6 +53,9 @@ export default function StreamControls({
         <div className="absolute top-1/2 right-4 -translate-y-1/2 z-30 flex flex-col items-center gap-4 p-2 bg-black/40 rounded-full backdrop-blur-sm pointer-events-auto">
             <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onToggleVideo}>
                 {isVideoEnabled ? <Video className="h-5 w-5 md:h-6 md:w-6"/> : <VideoOff className="h-5 w-5 md:h-6 md:w-6 text-red-500"/>}
+            </Button>
+            <Button variant="secondary" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12" onClick={onFlipCamera}>
+                <SwitchCamera className="h-5 w-5 md:h-6 md:w-6" />
             </Button>
             <Button 
               variant="secondary" 
