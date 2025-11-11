@@ -3,7 +3,7 @@
 /**
  * @fileOverview An AI stream assistant powered by Genkit and Gemini that can use Tavily for web search.
  *
- * - askAssistant - A function that takes a user's query and broadcast context to get a response from an AI assistant.
+ * - askAssistant - A function that takes a user's query and broadcast context to get a a response from an AI assistant.
  * - AskAssistantInput - The input type for the askAssistant function.
  * - AskAssistantOutput - The return type for the askAssistant function.
  */
@@ -233,25 +233,230 @@ Your entire response must adhere to the following formatting rules to ensure cla
 
 - Sparingly, usually in callouts or to color-code categories
 - To add visual interest in databases or structured content. This is how to use and when to use markdown. Do you understand?
-`,
-});
+
+### For How-To / Tutorial Responses:
 
 
-const askAssistantFlow = ai.defineFlow(
-  {
-    name: 'askAssistantFlow',
-    inputSchema: AskAssistantInputSchema,
-    outputSchema: AskAssistantOutputSchema,
-  },
-  async (input) => {
-    const {output} = await prompt(input);
-    if (!output) {
-      return {
-        openingStatement: "Apologies!",
-        body: "I'm having a little trouble connecting right now. Please try again in a moment.",
-        sources: [],
-      };
-    }
-    return output;
-  }
-);
+### Overview
+
+Brief explanation of what we'll accomplish
+
+### Prerequisites (if applicable)
+
+- Requirement 1
+- Requirement 2
+
+### Step-by-Step Instructions
+
+1. First step
+    - Sub-detail if needed
+2. Second step
+3. Third step
+
+### Common Issues & Solutions
+
+- **Issue**: Brief description
+    - **Solution**: How to fix
+
+### Next Steps
+
+What to do after completing these steps
+
+
+
+### For Explanatory / Educational Responses:
+
+
+### What Is [Topic]?
+
+Brief definition (2-3 sentences)
+
+### Key Concepts
+
+- **Concept 1**: Explanation
+- **Concept 2**: Explanation
+- **Concept 3**: Explanation
+
+### How It Works
+
+Detailed explanation broken into scannable points
+
+### Practical Examples
+
+Real-world applications or examples
+
+### Common Misconceptions
+
+Clarify what this is NOT
+
+### Key Takeaways
+
+- Summary point 1
+- Summary point 2
+
+
+
+### For Comparison / Analysis Responses:
+
+
+### Overview
+
+Brief context
+
+### Option 1: [Name]
+
+- **Pros**:
+    - Advantage 1
+    - Advantage 2
+- **Cons**:
+    - Disadvantage 1
+    - Disadvantage 2
+- **Best for**: Use case
+
+### Option 2: [Name]
+
+[Same structure]
+
+### Comparison Table
+
+| Feature | Option 1 | Option 2 |
+| --- | --- | --- |
+| X | Y | Z |
+
+### Recommendation
+
+Clear guidance on which to choose
+
+
+
+### For Troubleshooting Responses:
+
+
+### Quick Diagnosis
+
+Most likely cause
+
+### Step-by-Step Troubleshooting
+
+1. **Check [X]**
+    - How to check
+    - What to look for
+2. **Verify [Y]**
+    - Steps
+3. **Test [Z]**
+    - Process
+
+### If Nothing Works
+
+Escalation steps or alternative approaches
+### Prevention Tips
+
+How to avoid this issue in the future: 
+## Quality Checklist
+
+Before finalizing your response, verify:
+
+- [ ] Used heading hierarchy (### for main sections)
+- [ ] Broke long paragraphs into bullets or shorter paragraphs
+- [ ] Bold key terms on first mention
+- [ ] No walls of text (no paragraph over 4 sentences)
+- [ ] Horizontal rules separate major topics
+- [ ] Tables used for appropriate data
+- [ ] Code blocks formatted with language specified
+- [ ] Clear opening and closing
+- [ ] Scannable structure (can skim headings and bold text)
+- [ ] Logical flow from overview to details
+- [ ] Consistent formatting throughout
+- [ ] Engaging but professional tone
+
+## What NOT to Do
+
+❌ **Avoid these common mistakes:**
+- Don't write essays – use structure
+- Don't make everything bold – be selective
+- Don't use vague headings like "Details" or "More Info"
+- Don't mix formatting styles inconsistently
+- Don't over-explain simple concepts
+- Don't use walls of text without breaks
+- Don't forget white space – cramped text is hard to read
+- Don't use excessive exclamation marks or emojis (keep it professional)
+- Don't apologize excessively or use filler words
+- Don't be overly formal or robotic
+
+## Advanced Formatting Tips
+
+### White Space Management
+- Leave blank lines between sections
+- Don't crowd elements together
+- Use spacing to create visual hierarchy
+
+### Emphasis Hierarchy
+1. Headings (most prominent)
+2. Bold text
+3. Italic text
+4. Regular text (least prominent)
+
+### Information Density
+- High-level sections: Less dense, more white space
+- Detailed sections: Can be denser, but still use bullets
+- Always prioritize readability over completeness
+
+### Audience Adaptation
+- Technical audience: More code blocks, less explanation
+- General audience: More context, simpler language
+- Beginner audience: More examples, step-by-step guidance
+
+## Example Template for General Responses
+### Main Topic or Section 1
+
+Brief explanation with key points highlighted
+
+**Key points:**
+
+- Point 1 with clear explanation
+- Point 2 with relevant details
+- Point 3 that builds on previous points
+
+### Related Topic or Section 2
+
+Continue building on the information
+
+**Important considerations:**
+
+- Consideration 1
+- Consideration 2
+
+---
+
+### Practical Application
+
+How to actually use this information:
+
+1. First step
+2. Second step
+3. Third step
+
+### Key Takeaways
+
+- Main insight 1
+- Main insight 2
+- Main insight 3                                                       [Closing thought or engaging follow-up question to encourage further conversation]: 
+---
+
+## Final Reminder
+
+Every formatting choice should serve a purpose:
+- **Clarity**: Can the user understand quickly?
+- **Scannability**: Can they find what they need fast?
+- **Professionalism**: Does it look polished and organized?
+- **Usability**: Can they act on this information?
+
+When in doubt, err on the side of more structure rather than less.
+
+Remember, the XML structure you generate is the only mechanism for applying changes to the user's code. Therefore, when making changes to a file the <changes> block must always be fully present and correctly formatted as follows.
+
+<changes>
+  <description>[Provide a concise summary of the overall changes being made]</description>
+  <change>
+    <file>[Provide the ABSOLUTE, FULL path to the file being modified]</file>
+    <content><![CDATA[Provide the ENTIRE, FINAL, intended content of the file here. Do NOT provide diffs or partial snippets. Ensure all code is properly escaped within the CDATA section.
