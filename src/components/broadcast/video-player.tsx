@@ -201,6 +201,7 @@ function ViewerStreamContent({ broadcast }: { broadcast: BroadcastData }) {
           <ParticipantView 
             participant={hostParticipant} 
             ParticipantViewUI={null}
+            muted={false}
             className="w-full h-full object-cover"
           />
       </div>
