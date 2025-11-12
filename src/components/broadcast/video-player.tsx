@@ -28,19 +28,18 @@ interface VideoPlayerProps {
 
 function HostVideoPlayer({ broadcast }: { broadcast: BroadcastData }) {
     const call = useCall();
-    
-    // Find the host participant from the call state
-    const participant = call?.state.participants.find(p => p.userId === broadcast.hostId);
-    
-    // Get camera and screen share states for the host participant
-    const { useCameraState, useScreenShareState } = useCallStateHooks();
-    const { camera, isCameraEnabled } = useCameraState(participant);
-    const { isScreenSharing } = useScreenShareState(participant);
+    const { useParticipants, useCallCallingState, useCameraState, useScreenShareState } = useCallStateHooks();
+    const participants = useParticipants();
+    const hostParticipant = participants.find(p => p.userId === broadcast.hostId);
+
+    // Get camera and screen share states specifically for the host participant
+    const { camera, isCameraEnabled } = useCameraState(hostParticipant);
+    const { isScreenSharing } = useScreenShareState(hostParticipant);
 
     // Determine if the video should be mirrored. Front camera ('user') should be mirrored.
     const isMirrored = camera?.facingMode === 'user';
-
-    if (!participant) {
+    
+    if (!hostParticipant) {
         return (
             <div className="absolute inset-0 w-full h-full bg-black flex items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin text-white" />
@@ -52,14 +51,13 @@ function HostVideoPlayer({ broadcast }: { broadcast: BroadcastData }) {
     return (
         <div className="absolute inset-0 w-full h-full bg-black">
             <ParticipantView 
-              key={camera?.deviceId} // This is the key change to force re-render
-              participant={participant} 
+              participant={hostParticipant} 
               ParticipantViewUI={null} 
-              className="w-full h-full object-cover"
+              className="w-full h-full" // The SDK handles object-fit
               style={{ transform: isMirrored ? 'scaleX(-1)' : 'scaleX(1)' }}
             />
 
-             {!isCameraEnabled && !isScreenSharing && (
+             {(!isCameraEnabled && !isScreenSharing) && (
                 <div 
                   className="w-full h-full flex flex-col items-center justify-center bg-zinc-900 gap-4"
                   style={{ transform: isMirrored ? 'scaleX(-1)' : 'scaleX(1)' }} // Also apply to fallback
