@@ -610,7 +610,20 @@ function HomePageContent() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="w-56 p-0" align="end">
                         <UserSearch>
+                            <DropdownMenuItem asChild>
+                                <Link href="/broadcast/create">
+                                    <Clapperboard className="mr-2 h-4 w-4" />
+                                    <span>Go Stream</span>
+                                </Link>
+                            </DropdownMenuItem>
                             <DropdownMenuSeparator />
+                            <DialogTrigger asChild>
+                                <DropdownMenuItem>
+                                    <Film className="mr-2 h-4 w-4" />
+                                    <span>Upload Highlight</span>
+                                </DropdownMenuItem>
+                            </DialogTrigger>
+                             <DropdownMenuSeparator />
                              <Sheet open={isMessagesOpen} onOpenChange={setIsMessagesOpen}>
                                 <SheetTrigger asChild>
                                     <DropdownMenuItem onSelect={e => e.preventDefault()}>
@@ -644,20 +657,6 @@ function HomePageContent() {
                                 </SheetContent>
                             </Sheet>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem asChild>
-                                <Link href="/broadcast/create">
-                                    <Clapperboard className="mr-2 h-4 w-4" />
-                                    <span>Go Stream</span>
-                                </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DialogTrigger asChild>
-                                <DropdownMenuItem>
-                                    <Film className="mr-2 h-4 w-4" />
-                                    <span>Upload Highlight</span>
-                                </DropdownMenuItem>
-                            </DialogTrigger>
-                             <DropdownMenuSeparator />
                              <DropdownMenuItem onSelect={handleCleanup} disabled={isCleaning}>
                                 {isCleaning ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
                                 <span>Refresh</span>
@@ -722,3 +721,4 @@ export default function HomePage() {
         </Suspense>
     )
 }
+
