@@ -243,7 +243,7 @@ function InboxPageComponent() {
                 </div>
              ))}
         </ScrollArea>
-        <div className="p-4 pt-2 border-t border-zinc-800">
+        <div className="p-4 pt-2 border-t border-zinc-800 md:pb-4 pb-16">
             <div className="h-5 text-xs text-zinc-400 italic px-2">
                 {typingUsers.length > 0 && `${typingUserNames} is typing...`}
             </div>
