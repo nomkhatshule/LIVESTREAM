@@ -6,7 +6,6 @@ import { Suspense, useEffect, useState, useMemo, useRef } from 'react';
 import { useUser, useFirestore, useMemoFirebase, useUserDocument, useStorage } from '@/firebase';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { collection, query, where, writeBatch, doc, orderBy, serverTimestamp, getDocs } from 'firebase/firestore';
-import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import type { Broadcast, ChatMessage } from '@/lib/data';
 import { Clapperboard, Loader2, Mail, ChevronDownCircle, MessageCircleHeart, Film, Heart, MessageSquareMore, Gift, Search, Swords, Users, CornerUpLeft, ArrowUp, Play, X, Paperclip, Gamepad2, RefreshCw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -19,7 +18,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTr
 import { UserSearch } from '@/components/search/user-search';
 import UploadHighlightForm from '@/components/feed/UploadHighlightForm';
 import InboxPanel from '@/components/feed/InboxPanel';
-import NotificationsPanel from '@/components/feed/NotificationsPanel';
+import ActivityPanel from '@/components/feed/ActivityPanel';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useInView } from 'react-intersection-observer';
 import { cn } from '@/lib/utils';
@@ -141,6 +140,21 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
     
             const messagesCollectionRef = collection(firestore, 'broadcasts', broadcast.id, 'messages');
             addDocumentNonBlocking(messagesCollectionRef, newComment);
+
+            if (user.uid !== broadcast.hostId) {
+                const hostNotificationsRef = collection(firestore, `users/${broadcast.hostId}/notifications`);
+                addDocumentNonBlocking(hostNotificationsRef, {
+                    userId: broadcast.hostId,
+                    type: 'comment',
+                    actorId: user.uid,
+                    actorName: userDocument.username || 'Someone',
+                    actorAvatar: userDocument.profilePicture || '',
+                    entityId: broadcast.id,
+                    entityInfo: `commented: "${newMessage.substring(0, 50)}${newMessage.length > 50 ? '...' : ''}"`,
+                    isRead: false,
+                    timestamp: serverTimestamp(),
+                });
+            }
     
             setNewMessage('');
             setSelectedGif(null);
@@ -159,7 +173,7 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
             toast({ title: 'Stream is offline', description: 'You can only like live streams.', variant: 'destructive' });
             return;
         }
-        if (!user) {
+        if (!user || !userDocument) {
             toast({ title: 'Login Required', description: 'You must be logged in to like a stream.', variant: 'destructive' });
             return;
         }
@@ -170,6 +184,20 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
             deleteDocumentNonBlocking(likeDocRef);
         } else {
             setDocumentNonBlocking(likeDocRef, { userId: user.uid, timestamp: serverTimestamp() }, {});
+            if (user.uid !== broadcast.hostId) {
+                const hostNotificationsRef = collection(firestore, `users/${broadcast.hostId}/notifications`);
+                addDocumentNonBlocking(hostNotificationsRef, {
+                    userId: broadcast.hostId,
+                    type: 'like',
+                    actorId: user.uid,
+                    actorName: userDocument.username || 'Someone',
+                    actorAvatar: userDocument.profilePicture || '',
+                    entityId: broadcast.id,
+                    entityInfo: `liked your stream: "${broadcast.title}"`,
+                    isRead: false,
+                    timestamp: serverTimestamp(),
+                });
+            }
         }
     };
     
@@ -607,12 +635,12 @@ function HomePageContent() {
                                 <SheetTrigger asChild>
                                     <DropdownMenuItem onSelect={(e) => { e.preventDefault(); handleOpenNotifications(); }}>
                                         <MessageCircleHeart className="mr-2 h-4 w-4" />
-                                        <span>Notifications</span>
+                                        <span>Activity</span>
                                         {unreadCount > 0 && <span className="ml-auto bg-primary text-primary-foreground text-xs font-bold px-2 py-0.5 rounded-full">{unreadCount}</span>}
                                     </DropdownMenuItem>
                                 </SheetTrigger>
                                 <SheetContent className="w-full sm:max-w-md">
-                                    <NotificationsPanel notifications={notifications || []} isLoading={areNotificationsLoading} />
+                                    <ActivityPanel notifications={notifications || []} isLoading={areNotificationsLoading} />
                                 </SheetContent>
                             </Sheet>
                             <DropdownMenuSeparator />
