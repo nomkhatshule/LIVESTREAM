@@ -89,19 +89,43 @@ function LivenetStudioUI() {
   };
 
   const handleFlipCamera = async () => {
-    if (call && call.camera) {
-      try {
-        await call.camera.flip();
-      } catch (error) {
-        console.error('Failed to flip camera:', error);
-        toast({
-          title: 'Camera flip failed',
-          description: 'Could not switch between front and back cameras.',
-          variant: 'destructive',
+    if (!call || !call.camera) return;
+
+    try {
+        const currentDevice = call.camera.currentDevice;
+        if (!currentDevice) {
+            toast({ title: "No camera selected", variant: "destructive" });
+            return;
+        }
+
+        const currentSettings = currentDevice.getSettings();
+        const currentFacingMode = currentSettings.facingMode;
+
+        const devices = await call.camera.getAvailableDevices();
+        const oppositeFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+
+        // Find a device with the opposite facing mode
+        const newDevice = devices.find(device => {
+            const settings = device.getSettings();
+            return settings.facingMode === oppositeFacingMode;
         });
-      }
+
+        if (newDevice) {
+            await call.camera.setDevice(newDevice.deviceId);
+        } else {
+            // Fallback for devices that don't report facingMode well
+            const otherCameras = devices.filter(d => d.deviceId !== currentDevice.deviceId);
+            if (otherCameras.length > 0) {
+                 await call.camera.setDevice(otherCameras[0].deviceId);
+            } else {
+               toast({ title: "No other camera found", description: "Could not switch cameras.", variant: "destructive" });
+            }
+        }
+    } catch (error) {
+        console.error('Failed to flip camera:', error);
+        toast({ title: 'Camera flip failed', variant: 'destructive' });
     }
-  };
+};
 
   const handleToggleMic = async () => {
     if (call && call.microphone) {
