@@ -14,7 +14,8 @@ import {
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useAuth, useToast } from '@/firebase';
+import { useAuth } from '@/firebase';
+import { useToast } from '@/hooks/use-toast';
 import {
   initiateEmailSignIn,
   initiateEmailSignUp,
