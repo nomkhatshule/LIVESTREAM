@@ -9,6 +9,7 @@ import {
   useCall,
   useCallStateHooks,
   ParticipantView,
+  StreamVideoParticipant,
 } from '@stream-io/video-react-sdk';
 import { useUser } from '@/firebase';
 import type { BroadcastData } from '@/lib/types';
@@ -26,24 +27,23 @@ interface VideoPlayerProps {
   prefetchedToken?: string | null;
 }
 
+// --- HOST-SPECIFIC PLAYER ---
+// This component is only used inside the /livenet studio.
+// It assumes it's running inside an existing StreamCall context.
 function HostVideoPlayer({ broadcast }: { broadcast: BroadcastData }) {
-    const call = useCall();
-    const { useParticipants, useCallCallingState, useCameraState, useScreenShareState } = useCallStateHooks();
+    const { useParticipants, useCameraState } = useCallStateHooks();
     const participants = useParticipants();
-    const hostParticipant = participants.find(p => p.userId === broadcast.hostId);
+    const hostParticipant = participants.find(p => p.isLocalParticipant);
 
-    // Get camera and screen share states specifically for the host participant
-    const { camera, isCameraEnabled } = useCameraState(hostParticipant);
-    const { isScreenSharing } = useScreenShareState(hostParticipant);
-
-    // Determine if the video should be mirrored. Front camera ('user') should be mirrored.
+    // Get camera state to determine if we should mirror the video
+    const { camera } = useCameraState(hostParticipant);
     const isMirrored = camera?.facingMode === 'user';
     
     if (!hostParticipant) {
         return (
             <div className="absolute inset-0 w-full h-full bg-black flex items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin text-white" />
-                <p className="ml-2 text-white">Waiting for host to connect...</p>
+                <p className="ml-2 text-white">Connecting to your camera...</p>
             </div>
         );
     }
@@ -51,16 +51,16 @@ function HostVideoPlayer({ broadcast }: { broadcast: BroadcastData }) {
     return (
         <div className="absolute inset-0 w-full h-full bg-black">
             <ParticipantView 
-              participant={hostParticipant} 
-              ParticipantViewUI={null} 
-              className="w-full h-full" // The SDK handles object-fit
-              style={{ transform: isMirrored ? 'scaleX(-1)' : 'scaleX(1)' }}
+                participant={hostParticipant} 
+                ParticipantViewUI={null} 
+                className="w-full h-full"
+                // The style is now dynamically applied based on camera state
+                style={{ transform: isMirrored ? 'scaleX(-1)' : 'scaleX(1)' }}
             />
-
-             {(!isCameraEnabled && !isScreenSharing) && (
-                <div 
+            { !hostParticipant.isCameraEnabled && !hostParticipant.isScreenSharing && (
+                 <div 
                   className="w-full h-full flex flex-col items-center justify-center bg-zinc-900 gap-4"
-                  style={{ transform: isMirrored ? 'scaleX(-1)' : 'scaleX(1)' }} // Also apply to fallback
+                  style={{ transform: isMirrored ? 'scaleX(-1)' : 'scaleX(1)' }}
                 >
                      <Avatar className="h-24 w-24">
                         <AvatarImage src={broadcast.hostAvatar} />
@@ -73,19 +73,21 @@ function HostVideoPlayer({ broadcast }: { broadcast: BroadcastData }) {
     )
 }
 
+
+// --- VIEWER-SPECIFIC PLAYER ---
+// This component is self-contained and used on the /feed page.
+// It manages its own StreamVideoClient and StreamCall.
 function ViewerVideoPlayer({ broadcast, prefetchedClient, prefetchedToken }: VideoPlayerProps) {
   const [call, setCall] = useState<Call | null>(null);
 
-  // This effect's only job is to join the call when the prefetched client is ready.
   useEffect(() => {
     if (!prefetchedClient || !broadcast?.id) {
-        setCall(null); // Clear call if client disappears
+        setCall(null);
         return;
     };
 
     let callInstance = prefetchedClient.call('livestream', broadcast.id);
     
-    // The `join` creates and activates the call.
     callInstance.join()
       .then(() => {
         setCall(callInstance);
@@ -94,11 +96,6 @@ function ViewerVideoPlayer({ broadcast, prefetchedClient, prefetchedToken }: Vid
         console.error(`Failed to join call ${broadcast.id}`, err);
         setCall(null);
       });
-
-    // Unlike before, we don't return a cleanup function here.
-    // The `useStreamPrefetch` hook is now solely responsible for disconnecting the client.
-    // This prevents the race condition where the player disconnects the client
-    // while the prefetch hook is still trying to use it.
 
   }, [prefetchedClient, broadcast?.id]);
 
@@ -111,8 +108,6 @@ function ViewerVideoPlayer({ broadcast, prefetchedClient, prefetchedToken }: Vid
     );
   }
 
-  // The StreamVideo component needs to be re-mounted when the client changes.
-  // Using a key ensures that React treats it as a new component instance.
   return (
     <StreamVideo client={prefetchedClient} key={prefetchedClient.userID}>
       <StreamCall call={call}>
@@ -122,7 +117,7 @@ function ViewerVideoPlayer({ broadcast, prefetchedClient, prefetchedToken }: Vid
   );
 }
 
-
+// Helper component for Viewer player UI
 function ViewerStreamContent({ broadcast }: { broadcast: BroadcastData }) {
   const { useParticipants } = useCallStateHooks();
   const participants = useParticipants();
@@ -142,17 +137,30 @@ function ViewerStreamContent({ broadcast }: { broadcast: BroadcastData }) {
           <ParticipantView 
             participant={hostParticipant} 
             ParticipantViewUI={null}
-            muted={false}
+            muted={false} // Viewers should hear audio
             className="w-full h-full object-cover"
           />
+           { !hostParticipant.isCameraEnabled && !hostParticipant.isScreenSharing && (
+                 <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-900 gap-4">
+                     <Avatar className="h-24 w-24">
+                        <AvatarImage src={broadcast.hostAvatar} />
+                        <AvatarFallback>{broadcast.hostName?.charAt(0) || 'H'}</AvatarFallback>
+                    </Avatar>
+                    <p className="text-white text-lg">Stream Paused</p>
+                </div>
+            )}
       </div>
   )
 }
 
+// --- Main Exported Component ---
+// This now acts as a router, deciding which player to render based on the isHost prop.
 export default function VideoPlayer({ broadcast, isHost = false, prefetchedClient, prefetchedToken }: VideoPlayerProps) {
     if (isHost) {
+        // The host player is simple because it expects to be inside a provider already
         return <HostVideoPlayer broadcast={broadcast} />;
     } else {
+        // The viewer player is more complex as it manages its own providers
         return <ViewerVideoPlayer broadcast={broadcast} prefetchedClient={prefetchedClient} prefetchedToken={prefetchedToken}/>;
     }
 }
