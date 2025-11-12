@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { AgoraLiveLogo } from '@/components/icons';
+import { LIVENETLogo } from '@/components/icons';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Clapperboard, Tv, FlaskConical } from 'lucide-react';
@@ -46,9 +46,9 @@ export default function Header() {
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center">
           <Link href="/" className="mr-6 flex items-center space-x-2">
-            <AgoraLiveLogo className="h-6 w-6" />
+            <LIVENETLogo className="h-6 w-6" />
             <span className="hidden font-bold sm:inline-block font-headline">
-              AgoraLive
+              LIVENET
             </span>
           </Link>
           <nav className="flex items-center space-x-4 text-sm font-medium">

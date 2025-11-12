@@ -9,7 +9,7 @@ import { ChatProvider } from '@/components/chat/ChatProvider';
 import Footer from '@/components/layout/footer';
 
 export const metadata: Metadata = {
-  title: 'AgoraLive',
+  title: 'LIVENET',
   description: 'The future of live broadcasting.',
 };
 
