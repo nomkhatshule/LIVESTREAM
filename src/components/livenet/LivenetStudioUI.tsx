@@ -89,22 +89,23 @@ function LivenetStudioUI() {
   };
 
   const handleFlipCamera = async () => {
-    if (!call || !camera) return;
+    if (!camera) {
+      toast({ title: 'Camera not ready', description: 'The camera is still initializing.', variant: 'destructive' });
+      return;
+    }
+    
+    const videoTrack = camera.mediaStreamTrack;
+    if (!videoTrack) {
+       toast({ title: 'Camera not ready', description: 'The video track is not available yet.', variant: 'destructive' });
+      return;
+    }
 
     try {
-        const videoTrack = camera.mediaStreamTrack;
-        if (!videoTrack) {
-            toast({ title: "Camera not ready", description: "The video track is not available yet.", variant: "destructive" });
-            return;
-        }
-
         const currentSettings = videoTrack.getSettings();
         const currentFacingMode = currentSettings.facingMode;
-        
         const oppositeFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
         
         const devices = await camera.getAvailableDevices();
-        
         const newDevice = devices.find(device => {
             const settings = device.getSettings();
             return settings.facingMode === oppositeFacingMode;
@@ -113,18 +114,13 @@ function LivenetStudioUI() {
         if (newDevice) {
             await camera.setDevice(newDevice.deviceId);
         } else {
-            const otherCameras = devices.filter(d => d.deviceId !== videoTrack.getSettings().deviceId);
-            if (otherCameras.length > 0) {
-                 await camera.setDevice(otherCameras[0].deviceId);
-            } else {
-               toast({ title: "No other camera found", description: "Could not switch cameras.", variant: "destructive" });
-            }
+           toast({ title: "No other camera found", description: "Could not switch cameras.", variant: "destructive" });
         }
     } catch (error) {
         console.error('Failed to flip camera:', error);
         toast({ title: 'Camera flip failed', variant: 'destructive' });
     }
-};
+  };
 
   const handleToggleMic = async () => {
     if (call && call.microphone) {
