@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { StreamVideoParticipant } from "@stream-io/video-react-sdk";
@@ -26,6 +27,7 @@ interface StreamControlsProps {
     isScreenSharing: boolean;
     isChallengeActive: boolean;
     isChatVisible: boolean;
+    isFlippingCamera: boolean;
     viewerCount: number;
     isCallJoined: boolean;
     participants: StreamVideoParticipant[];
@@ -48,6 +50,7 @@ export default function StreamControls({
     isChatVisible,
     onToggleChat,
     participants,
+    isFlippingCamera,
 }: StreamControlsProps) {
     
     if (!isCallJoined) {
@@ -57,7 +60,7 @@ export default function StreamControls({
     return (
         <div className="absolute top-1/2 right-4 -translate-y-1/2 z-30 flex flex-col items-center gap-4 p-2 bg-black/40 rounded-full backdrop-blur-sm pointer-events-auto">
             <VideoButton isVideoEnabled={isVideoEnabled} onClick={onToggleVideo} />
-            <FlipCameraButton onClick={onFlipCamera} />
+            <FlipCameraButton onClick={onFlipCamera} isFlipping={isFlippingCamera} />
             <MicButton isMicEnabled={isMicEnabled} onClick={onToggleMic} />
             <ScreenShareButton isScreenSharing={isScreenSharing} onClick={onToggleScreenShare} />
             <InviteGuestButton onClick={onInviteGuest} />

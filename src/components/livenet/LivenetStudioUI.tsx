@@ -49,6 +49,7 @@ function LivenetStudioUI() {
   const [reactions, setReactions] = useState<Reaction[]>([]);
   const [isGamePanelOpen, setIsGamePanelOpen] = useState(false);
   const [isChatVisible, setIsChatVisible] = useState(true);
+  const [isFlippingCamera, setIsFlippingCamera] = useState(false);
 
   // Stream SDK Hooks
   const { useParticipants, useCallCallingState, useCameraState, useMicrophoneState, useScreenShareState } = useCallStateHooks();
@@ -89,36 +90,16 @@ function LivenetStudioUI() {
   };
 
   const handleFlipCamera = async () => {
-    if (!camera) {
-      toast({ title: 'Camera not ready', description: 'The camera is still initializing.', variant: 'destructive' });
-      return;
-    }
-    
-    const videoTrack = camera.mediaStreamTrack;
-    if (!videoTrack) {
-       toast({ title: 'Camera not ready', description: 'The video track is not available yet.', variant: 'destructive' });
-      return;
-    }
+    if (!call || !call.camera || isFlippingCamera) return;
 
+    setIsFlippingCamera(true);
     try {
-        const currentSettings = videoTrack.getSettings();
-        const currentFacingMode = currentSettings.facingMode;
-        const oppositeFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
-        
-        const devices = await camera.getAvailableDevices();
-        const newDevice = devices.find(device => {
-            const settings = device.getSettings();
-            return settings.facingMode === oppositeFacingMode;
-        });
-
-        if (newDevice) {
-            await camera.setDevice(newDevice.deviceId);
-        } else {
-           toast({ title: "No other camera found", description: "Could not switch cameras.", variant: "destructive" });
-        }
+        await call.camera.flip();
     } catch (error) {
         console.error('Failed to flip camera:', error);
-        toast({ title: 'Camera flip failed', variant: 'destructive' });
+        toast({ title: 'Camera flip failed', description: 'Could not switch cameras.', variant: 'destructive' });
+    } finally {
+        setIsFlippingCamera(false);
     }
   };
 
@@ -275,10 +256,10 @@ function LivenetStudioUI() {
             cardSize={cardSize}
             isDragging={isDragging}
             onMouseDown={handleMouseDown}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-            onResizeStop={handleResizeStop}
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+            onResizeStop={onResizeStop}
             onSetCardSize={setCardSize}
             onGenerateNextChallenge={handleGenerateNextChallenge}
             broadcastDocRef={broadcastDocRef}
@@ -301,6 +282,7 @@ function LivenetStudioUI() {
             onToggleChat={() => setIsChatVisible(prev => !prev)}
             isChatVisible={isChatVisible}
             participants={participants}
+            isFlippingCamera={isFlippingCamera}
         />
         
         <InStreamGamesPanel 
