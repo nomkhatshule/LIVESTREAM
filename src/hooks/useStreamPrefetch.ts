@@ -17,16 +17,26 @@ export const useStreamPrefetch = (user: User | null, broadcast: Broadcast) => {
   const [prefetchedClient, setPrefetchedClient] = useState<StreamVideoClient | null>(null);
   const [prefetchedToken, setPrefetchedToken] = useState<string | null>(null);
   const isConnecting = useRef(false);
+  const disconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
+    // If a disconnect timer is running for this stream, cancel it because we are active again.
+    if (disconnectTimeoutRef.current) {
+        clearTimeout(disconnectTimeoutRef.current);
+        disconnectTimeoutRef.current = null;
+    }
+
     // If the user scrolls away, the `user` prop becomes null. This is our signal to clean up.
     if (!user && prefetchedClient) {
-        // Disconnect and reset state.
-        prefetchedClient.disconnectUser().catch(err => console.error("Prefetch cleanup: Failed to disconnect user", err));
-        setPrefetchedClient(null);
-        setPrefetchedToken(null);
-        isConnecting.current = false;
-        return;
+        // Instead of disconnecting immediately, set a timeout.
+        disconnectTimeoutRef.current = setTimeout(() => {
+            // Disconnect and reset state.
+            prefetchedClient.disconnectUser().catch(err => console.error("Prefetch cleanup: Failed to disconnect user", err));
+            setPrefetchedClient(null);
+            setPrefetchedToken(null);
+            isConnecting.current = false;
+        }, 5000); // 5-second delay before disconnecting
+        return; // Exit effect early
     }
 
     // Don't start a new connection if one is already in progress, or if we don't have a user.
@@ -97,8 +107,10 @@ export const useStreamPrefetch = (user: User | null, broadcast: Broadcast) => {
     // Cleanup function
     return () => {
       isCancelled = true;
-      // The main cleanup is now handled when the `user` prop becomes null,
-      // which is a more reliable signal that the component is no longer active.
+      // If component unmounts for good, clear any pending disconnect timer
+      if (disconnectTimeoutRef.current) {
+        clearTimeout(disconnectTimeoutRef.current);
+      }
     };
   }, [user, broadcast, prefetchedClient]);
 
