@@ -36,7 +36,7 @@ function HostVideoPlayer({ broadcast }: { broadcast: BroadcastData }) {
     const hostParticipant = participants.find(p => p.isLocalParticipant);
 
     // Get camera state to determine if we should mirror the video
-    const { camera } = useCameraState(hostParticipant);
+    const { camera } = useCameraState();
     const isMirrored = camera?.facingMode === 'user';
     
     if (!hostParticipant) {
