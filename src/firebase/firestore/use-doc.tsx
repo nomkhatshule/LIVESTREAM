@@ -1,3 +1,4 @@
+
 'use client';
     
 import { useState, useEffect } from 'react';
@@ -77,11 +78,12 @@ export function useDoc<T = any>(
           path: memoizedDocRef.path,
         })
 
-        setError(contextualError)
-        setData(null)
-        setIsLoading(false)
+        // Set local error state for the hook consumer
+        setError(contextualError);
+        setData(null);
+        setIsLoading(false);
 
-        // trigger global error propagation
+        // trigger global error propagation to be caught by Error Boundary
         errorEmitter.emit('permission-error', contextualError);
       }
     );
