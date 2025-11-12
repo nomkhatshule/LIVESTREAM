@@ -35,7 +35,10 @@ function HostVideoPlayer({ broadcast }: { broadcast: BroadcastData }) {
     // Get camera and screen share states for the host participant
     const { useCameraState, useScreenShareState } = useCallStateHooks();
     const { camera, isCameraEnabled } = useCameraState(participant);
-    const { screenShareStream, isScreenSharing } = useScreenShareState(participant);
+    const { isScreenSharing } = useScreenShareState(participant);
+
+    // Determine if the video should be mirrored. Front camera ('user') should be mirrored.
+    const isMirrored = camera?.facingMode === 'user';
 
     if (!participant) {
         return (
@@ -52,13 +55,13 @@ function HostVideoPlayer({ broadcast }: { broadcast: BroadcastData }) {
               participant={participant} 
               ParticipantViewUI={null} 
               className="w-full h-full object-cover"
-              style={{ transform: 'scaleX(-1)' }}
+              style={{ transform: isMirrored ? 'scaleX(-1)' : 'scaleX(1)' }}
             />
 
              {!isCameraEnabled && !isScreenSharing && (
                 <div 
                   className="w-full h-full flex flex-col items-center justify-center bg-zinc-900 gap-4"
-                  style={{ transform: 'scaleX(-1)' }} // Mirror the fallback UI as well
+                  style={{ transform: isMirrored ? 'scaleX(-1)' : 'scaleX(1)' }} // Also apply to fallback
                 >
                      <Avatar className="h-24 w-24">
                         <AvatarImage src={broadcast.hostAvatar} />
