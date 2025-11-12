@@ -52,6 +52,7 @@ function HostVideoPlayer({ broadcast }: { broadcast: BroadcastData }) {
     return (
         <div className="absolute inset-0 w-full h-full bg-black">
             <ParticipantView 
+              key={camera?.deviceId} // This is the key change to force re-render
               participant={participant} 
               ParticipantViewUI={null} 
               className="w-full h-full object-cover"
