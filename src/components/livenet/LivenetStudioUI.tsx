@@ -92,19 +92,22 @@ function LivenetStudioUI() {
     if (!call || !call.camera) return;
 
     try {
-        const currentDevice = call.camera.currentDevice;
-        if (!currentDevice) {
-            toast({ title: "No camera selected", variant: "destructive" });
+        // More robust: get the track directly from the camera state
+        const videoTrack = call.camera.mediaStreamTrack;
+        if (!videoTrack) {
+            toast({ title: "Camera not ready", description: "The video track is not available yet.", variant: "destructive" });
             return;
         }
 
-        const currentSettings = currentDevice.getSettings();
+        const currentSettings = videoTrack.getSettings();
         const currentFacingMode = currentSettings.facingMode;
-
-        const devices = await call.camera.getAvailableDevices();
+        
+        // Determine the target facing mode
         const oppositeFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
-
-        // Find a device with the opposite facing mode
+        
+        const devices = await call.camera.getAvailableDevices();
+        
+        // Find a device that explicitly matches the opposite facing mode
         const newDevice = devices.find(device => {
             const settings = device.getSettings();
             return settings.facingMode === oppositeFacingMode;
@@ -113,8 +116,8 @@ function LivenetStudioUI() {
         if (newDevice) {
             await call.camera.setDevice(newDevice.deviceId);
         } else {
-            // Fallback for devices that don't report facingMode well
-            const otherCameras = devices.filter(d => d.deviceId !== currentDevice.deviceId);
+             // Fallback for browsers/devices that don't report facingMode well
+            const otherCameras = devices.filter(d => d.deviceId !== videoTrack.getSettings().deviceId);
             if (otherCameras.length > 0) {
                  await call.camera.setDevice(otherCameras[0].deviceId);
             } else {
