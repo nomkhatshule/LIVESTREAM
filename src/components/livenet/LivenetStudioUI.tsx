@@ -90,18 +90,17 @@ function LivenetStudioUI() {
   };
 
   const handleFlipCamera = async () => {
-    if (!call || !call.camera || isFlippingCamera) return;
-
+    if (isFlippingCamera || !call || !call.camera) return;
     setIsFlippingCamera(true);
     try {
         await call.camera.flip();
     } catch (error: any) {
-        console.error('Failed to flip camera:', error);
-        // Provide a more specific error message if available
-        const errorMsg = error.message.includes('not available') 
-          ? 'Camera not ready. The video track is not available yet.'
-          : 'Could not switch cameras.';
-        toast({ title: 'Camera flip failed', description: errorMsg, variant: 'destructive' });
+        console.error("Error flipping camera:", error);
+        toast({
+            variant: "destructive",
+            title: "Camera Flip Failed",
+            description: error.message || "Could not switch cameras. Please try again."
+        });
     } finally {
         setIsFlippingCamera(false);
     }
@@ -262,7 +261,7 @@ function LivenetStudioUI() {
             onMouseDown={handleMouseDown}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
-            onTouchEnd={onTouchEnd}
+            onTouchEnd={handleTouchEnd}
             onResizeStop={handleResizeStop}
             onSetCardSize={setCardSize}
             onGenerateNextChallenge={handleGenerateNextChallenge}
