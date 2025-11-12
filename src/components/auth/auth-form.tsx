@@ -14,10 +14,11 @@ import {
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useAuth } from '@/firebase';
+import { useAuth, useToast } from '@/firebase';
 import {
   initiateEmailSignIn,
   initiateEmailSignUp,
+  initiateGoogleSignIn,
 } from '@/firebase/non-blocking-login';
 import { Suspense } from 'react';
 
@@ -42,6 +43,7 @@ function AuthFormComponent() {
   const auth = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { toast } = useToast();
   const authType = searchParams.get('type') === 'signup' ? 'signup' : 'login';
 
   const formSchema = authType === 'signup' ? signupSchema : loginSchema;
@@ -66,6 +68,20 @@ function AuthFormComponent() {
     }
     router.push('/feed');
   };
+
+  const handleGoogleSignIn = async () => {
+    const success = await initiateGoogleSignIn(auth);
+    if (success) {
+      router.push('/feed');
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'Google Sign-In Failed',
+        description: 'Could not sign in with Google. Please try again.',
+      });
+    }
+  };
+
 
   return (
     <Form {...form}>
@@ -114,7 +130,7 @@ function AuthFormComponent() {
         <Button type="submit" className="w-full">
           {authType === 'signup' ? 'Create an account' : 'Login'}
         </Button>
-        <Button variant="outline" className="w-full" type="button">
+        <Button variant="outline" className="w-full" type="button" onClick={handleGoogleSignIn}>
           {authType === 'signup' ? 'Sign up with Google' : 'Login with Google'}
         </Button>
       </form>

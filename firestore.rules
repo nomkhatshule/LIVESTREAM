@@ -6,6 +6,7 @@ service cloud.firestore {
 
     match /users/{userId} {
       allow read: if true;
+      allow create: if request.auth.uid == userId;
       allow update: if request.auth.uid == userId;
 
       // Following/Followers can be read by anyone, but only the owner can modify their own lists.
