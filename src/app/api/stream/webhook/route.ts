@@ -1,8 +1,12 @@
 
-import { db } from '@/firebase/server';
 import { headers } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { StreamChat } from 'stream-chat';
+import { getFirestore, doc, updateDoc } from 'firebase/firestore';
+import { initializeFirebase } from '@/firebase/index';
+
+// Initialize firebase to get the firestore instance.
+const { firestore: db } = initializeFirebase();
 
 export async function POST(req: NextRequest) {
   const apiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY;
@@ -41,9 +45,9 @@ export async function POST(req: NextRequest) {
       const broadcastId = event.call_cid.split(':')[1];
       
       if (broadcastId) {
-        // Use the Firebase Admin SDK to update the document on the server
-        const broadcastDocRef = db.collection('broadcasts').doc(broadcastId);
-        await broadcastDocRef.update({
+        // Use the client-side SDK to update the document.
+        const broadcastDocRef = doc(db, 'broadcasts', broadcastId);
+        await updateDoc(broadcastDocRef, {
           isLive: false,
           activeChallenge: null, // Also clear any active challenge
           activeChallengeType: null,

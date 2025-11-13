@@ -1,14 +1,12 @@
 
-import { initializeApp, getApps } from 'firebase-admin/app';
+import { initializeApp, getApps, getApp, type App } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 
-// In a managed environment like App Hosting, the SDK will automatically
-// find the correct service account credentials from the environment.
-
+let app: App;
 if (getApps().length === 0) {
-  // Initialize without arguments, relying on Application Default Credentials.
-  // This is the standard for App Hosting and other Google Cloud environments.
-  initializeApp();
+  app = initializeApp();
+} else {
+  app = getApp();
 }
 
-export const db = getFirestore();
+export const db = getFirestore(app);
