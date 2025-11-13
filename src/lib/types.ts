@@ -39,6 +39,9 @@ export interface BroadcastData {
     challenge?: string;
     activeChallenge?: string;
     activeChallengeType?: 'truth' | 'dare' | 'challenge';
+    challengeSenderId?: string;
+    challengeSenderName?: string;
+    challengeSenderAvatar?: string;
     challengeStartTime?: Timestamp;
     challengeDurationSeconds?: number;
     challengeCardPosition?: { x: number; y: number };
@@ -61,5 +64,7 @@ export interface GiphyResult {
     };
     title: string;
 }
+
+    
 
     

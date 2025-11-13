@@ -111,6 +111,19 @@
           "enum": ["truth", "dare", "challenge"],
           "description": "The type of the active challenge, used for UI styling."
         },
+        "challengeSenderId": {
+            "type": "string",
+            "description": "The UID of the user who sent the active challenge."
+        },
+        "challengeSenderName": {
+            "type": "string",
+            "description": "The denormalized username of the user who sent the challenge."
+        },
+        "challengeSenderAvatar": {
+            "type": "string",
+            "description": "The denormalized avatar URL of the user who sent the challenge.",
+            "format": "uri"
+        },
         "challengeStartTime": {
           "type": "string",
           "format": "date-time",
@@ -459,3 +472,5 @@
     "reasoning": "This Firestore structure is designed for a scalable and feature-rich live streaming application. It uses a root `broadcasts` collection for discoverability and nests ephemeral or stream-specific data like chat, reactions, likes, and guests in sub-collections. User profiles are kept in a separate root collection to avoid data duplication and to house user-specific sub-collections like `following` and `followers`. Denormalization of host information on the `Broadcast` document optimizes for read-heavy client scenarios, reducing the need for extra lookups."
   }
 }
+
+    

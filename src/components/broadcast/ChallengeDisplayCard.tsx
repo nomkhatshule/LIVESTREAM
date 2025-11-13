@@ -82,3 +82,5 @@ export default function ChallengeDisplayCard({ text, type, size = 'large', varia
     </div>
   );
 }
+
+    
