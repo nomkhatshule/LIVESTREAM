@@ -24,7 +24,8 @@ export function useChallengeCard(
 
     const handleMouseDown = (e: React.MouseEvent) => {
         const target = e.target as HTMLElement;
-        if (target.className.includes('handle')) return;
+        // Ignore clicks on resizer handles
+        if (target.className.includes && target.className.includes('handle')) return;
         setIsDragging(true);
         dragOffsetRef.current = {
             x: e.clientX - cardPosition.x,
