@@ -7,7 +7,7 @@ import { useUser, useFirestore, useMemoFirebase, useUserDocument, useStorage } f
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { collection, query, where, writeBatch, doc, orderBy, serverTimestamp, getDocs } from 'firebase/firestore';
 import type { Broadcast, ChatMessage } from '@/lib/data';
-import { Clapperboard, Loader2, Mail, ChevronDownCircle, MessageCircleHeart, Film, Heart, MessageSquareMore, Gift, Search, Swords, Users, CornerUpLeft, ArrowUp, Play, X, Paperclip, Gamepad2, RefreshCw } from 'lucide-react';
+import { Clapperboard, Loader2, Mail, ChevronDownCircle, MessageCircleHeart, Film, Heart, MessageSquareMore, Gift, Search, Swords, Users, CornerUpLeft, ArrowUp, Play, X, Paperclip, Gamepad2, RefreshCw, Send } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useStreamStore } from '@/lib/stream-store';
 import { Button } from '@/components/ui/button';
@@ -294,9 +294,9 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
                 ) : (
                     <div className="absolute inset-0 z-10 flex items-center justify-center">
                         {broadcast.thumbnailUrl && (
-                           <Image src={broadcast.thumbnailUrl} alt={broadcast.title} layout="fill" className="object-cover opacity-50 -z-10" />
+                           <Image src={broadcast.thumbnailUrl} alt={broadcast.title} layout="fill" className="object-contain" />
                         )}
-                         <div className="text-center text-white">
+                         <div className="text-center text-white absolute">
                             <Loader2 className="h-16 w-16 mx-auto text-white/80 animate-spin" />
                             <p className="mt-2 text-lg font-semibold">Connecting...</p>
                         </div>
@@ -316,7 +316,7 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
                 )}
                 
                 {/* Top Info */}
-                <div className="bg-gradient-to-b from-black/50 to-transparent -m-3 md:-m-4 p-3 md:p-4">
+                <div className="bg-gradient-to-b from-black/50 to-transparent -m-3 md:-m-4 p-3 md:p-4 pt-8">
                     <div className="flex items-start justify-between">
                         <div className="flex items-start gap-3">
                             <Link href={`/profile/${broadcast.hostId}`} className="pointer-events-auto">
@@ -368,10 +368,10 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
                         <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">{comments?.length || 0}</span>
                     </div>
                     <div className="flex flex-col items-center group pointer-events-auto">
-                        <button onClick={handleGiftClick} className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform">
-                           <Gamepad2 className="h-7 w-7 drop-shadow-md" strokeWidth={1.5} />
-                        </button>
-                        <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">Fun</span>
+                        <Link href="/cards" className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform flex flex-col items-center">
+                           <Send className="h-7 w-7 drop-shadow-md" strokeWidth={1.5} />
+                           <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">Challenge</span>
+                        </Link>
                     </div>
                     <AIChat userAvatar={userDocument?.profilePicture} broadcastContext={broadcastContext}>
                         <div className="flex flex-col items-center group">
@@ -432,7 +432,7 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
                             <div className="pb-16 md:pb-4">
                                 <form onSubmit={handleSendMessage} className="relative flex w-full pointer-events-auto items-center gap-2 mt-2">
                                      <input type="file" ref={fileInputRef} onChange={handleFileSelect} className="hidden" accept="image/png, image/jpeg, image/gif" />
-                                    <div className="relative flex-1 bg-transparent border border-white rounded-2xl overflow-hidden flex flex-col">
+                                    <div className="relative flex-1 bg-transparent border border-white/50 rounded-2xl overflow-hidden flex flex-col">
                                         {(selectedGif || imageAttachment) && (
                                             <div className='p-2'>
                                                 <div className="relative w-32 h-24">
@@ -604,7 +604,7 @@ function HomePageContent() {
             <div className="h-screen relative bg-black">
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                         <Button variant="ghost" size="icon" className="absolute top-4 right-4 z-50 text-white transition-transform hover:bg-black/20 hover:scale-110 pointer-events-auto focus-visible:ring-0 rounded-full h-10 w-10 bg-black/20">
+                         <Button variant="ghost" size="icon" className="absolute top-8 right-4 z-50 text-white transition-transform hover:bg-black/20 hover:scale-110 pointer-events-auto focus-visible:ring-0 rounded-full h-10 w-10 bg-black/20">
                             <ChevronDownCircle className="h-7 w-7" />
                         </Button>
                     </DropdownMenuTrigger>

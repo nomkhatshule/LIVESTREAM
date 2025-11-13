@@ -102,11 +102,17 @@ function CreateBroadcastPageComponent() {
       };
 
       // Add challenge details if they exist in the URL
-      if (challengeType && challengeDuration) {
+      if (challengeType) {
           broadcastPayload.activeChallenge = title;
           broadcastPayload.activeChallengeType = challengeType;
-          broadcastPayload.challengeDurationSeconds = parseInt(challengeDuration, 10);
-          broadcastPayload.challengeStartTime = serverTimestamp();
+          broadcastPayload.challengeSenderId = user.uid;
+          broadcastPayload.challengeSenderName = userDocument.username;
+          broadcastPayload.challengeSenderAvatar = userDocument.profilePicture;
+          
+          if (challengeDuration) {
+             broadcastPayload.challengeDurationSeconds = parseInt(challengeDuration, 10);
+          }
+          broadcastPayload.challengeStartTime = serverTimestamp(); // Start timer immediately
       }
 
       await setDoc(broadcastDocRef, broadcastPayload);

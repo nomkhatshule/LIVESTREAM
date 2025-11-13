@@ -49,10 +49,10 @@ export type ChatMessage = {
   broadcastTitle?: string;
   broadcastId?: string;
   attachment?: {
-    type: 'giphy';
-    title: string;
+    type: 'giphy' | 'image';
+    title?: string;
     imageUrl: string;
-    thumbUrl: string;
+    thumbUrl?: string;
   }
 };
 

@@ -1,187 +1,165 @@
 
 'use client';
 
-import Image from 'next/image';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
+import { useState, useMemo, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { useState } from 'react';
-import { truthQuestions, dareChallenges } from '@/lib/data';
-import { cn } from '@/lib/utils';
-import { Loader2, Play, Video, X } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Sparkles, Send, Users, Wand2, Search } from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { UserSearch } from '@/components/search/user-search';
+import { useUser, useUserDocument } from '@/firebase';
+import { useToast } from '@/hooks/use-toast';
 import { generateGamePrompts } from '@/ai/flows/generate-game-prompts';
-import Link from 'next/link';
-import ChallengeDisplayCard from '@/components/broadcast/ChallengeDisplayCard';
+import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { collection, serverTimestamp } from 'firebase/firestore';
+import { useFirestore } from '@/firebase';
 
-const SimpleTimerDisplay = ({ durationSeconds }: { durationSeconds: number }) => {
-    const minutes = Math.floor(durationSeconds / 60);
-    const seconds = durationSeconds % 60;
+
+// Mock data for the challenge board
+const mockChallenges = [
+  { id: 1, text: "Bake a cake that looks like your favorite emoji.", author: "PastryPro", avatar: "https://picsum.photos/seed/baker/100" },
+  { id: 2, text: "Learn and perform the first 15 seconds of a viral TikTok dance.", author: "DanceMachine", avatar: "https://picsum.photos/seed/dancer/100" },
+  { id: 3, text: "Try to draw a perfect circle freehand.", author: "SteadyHand", avatar: "https://picsum.photos/seed/artist/100" },
+  { id: 4, text: "Build a fort in your living room and stream from it.", author: "FortMaster", avatar: "https://picsum.photos/seed/builder/100" },
+];
+
+
+function ChallengeCreator() {
+    const { user } = useUser();
+    const { userDocument } = useUserDocument();
+    const firestore = useFirestore();
+    const { toast } = useToast();
+    const [challengeText, setChallengeText] = useState('');
+    const [isGenerating, setIsGenerating] = useState(false);
+
+    const handleGenerateChallenge = async () => {
+        setIsGenerating(true);
+        try {
+            const result = await generateGamePrompts({
+                gameType: 'challenge',
+                category: 'Creative & Fun',
+                count: 1,
+            });
+            if (result.prompts.length > 0) {
+                setChallengeText(result.prompts[0]);
+            }
+        } catch (error) {
+            console.error("AI challenge generation failed:", error);
+            toast({ variant: 'destructive', title: 'Error', description: 'Could not generate an AI challenge.' });
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+    
+    // This is a placeholder for sending. Needs the recipient selection logic.
+    const handleSendChallenge = () => {
+        if (!user || !challengeText.trim()) {
+            toast({ variant: 'destructive', title: "Missing info", description: 'Please write a challenge before sending.'});
+            return;
+        }
+
+        // In a real implementation, you'd select a user to send this to.
+        // For now, we'll simulate sending it and adding it to a public pool (which isn't implemented yet).
+        
+        toast({ title: 'Challenge Sent!', description: 'Your challenge has been sent.' });
+
+        // Optionally, reset after sending
+        setChallengeText('');
+    };
+
     return (
-        <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-black border-2 border-black shadow-lg">
-            <h3 className="text-xs font-bold tracking-tighter">
-                {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
-            </h3>
-        </div>
-    );
-};
+        <Card className="w-full max-w-md mx-auto bg-card/80 backdrop-blur-lg border-white/20">
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                    <Wand2 />
+                    Create a Challenge
+                </CardTitle>
+                <CardDescription>Write your own challenge or let the AI create one for you. Then, send it to a friend.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <Textarea
+                    placeholder="e.g., 'Try to beat my high score in GeoGuesser'"
+                    className="min-h-[100px] bg-background/80"
+                    value={challengeText}
+                    onChange={(e) => setChallengeText(e.target.value)}
+                />
+                <div className="flex flex-col sm:flex-row gap-2">
+                    <Button variant="outline" onClick={handleGenerateChallenge} disabled={isGenerating} className="flex-1">
+                        {isGenerating ? <Sparkles className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                        AI Game Master
+                    </Button>
+                    <Button onClick={handleSendChallenge} className="flex-1">
+                        <Send className="mr-2 h-4 w-4" />
+                        Send Challenge
+                    </Button>
+                </div>
+            </CardContent>
+        </Card>
+    )
+}
 
-export default function CardsPage() {
-  // --- State for Truth or Dare game ---
-  const [gameState, setGameState] = useState<'choice' | 'reveal'>('choice');
-  const [promptType, setPromptType] = useState<'truth' | 'dare' | 'challenge' | null>(null);
-  const [prompt, setPrompt] = useState('');
-  const [duration, setDuration] = useState(60);
-
-  // --- State for Challenges game ---
-  const [isGameStarted, setIsGameStarted] = useState(false);
-  const [challenge, setChallenge] = useState('');
-  const [isLoadingChallenge, setIsLoadingChallenge] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const handleChoice = (type: 'truth' | 'dare') => {
-    if (type === 'truth') {
-      const randomIndex = Math.floor(Math.random() * truthQuestions.length);
-      setPrompt(truthQuestions[randomIndex]);
-      setDuration(60);
-    } else {
-      const randomIndex = Math.floor(Math.random() * dareChallenges.length);
-      const selectedDare = dareChallenges[randomIndex];
-      setPrompt(selectedDare.text);
-      setDuration(selectedDare.duration);
-    }
-    setPromptType(type);
-    setGameState('reveal');
-  };
-
-  const handleNextRound = () => {
-    setGameState('choice');
-    setPrompt('');
-    setPromptType(null);
-  };
-
-  const handleGenerateChallenge = async () => {
-    setIsLoadingChallenge(true);
-    setError(null);
-    setIsGameStarted(true); // Ensure the card view is active
-    try {
-      const result = await generateGamePrompts({
-        gameType: 'challenge',
-        category: 'Live Stream Fun',
-        count: 1,
-      });
-      if (result.prompts && result.prompts.length > 0) {
-        setChallenge(result.prompts[0]);
-        setDuration(result.durationsInSeconds[0] || 120);
-        setPromptType('challenge');
-      } else {
-        setError('No challenges were generated. Please try again.');
-      }
-    } catch (err) {
-      console.error(err);
-      setError('Failed to generate a challenge. Please check the connection and try again.');
-    } finally {
-      setIsLoadingChallenge(false);
-    }
-  };
-
-
+function ChallengeBoard() {
   return (
-    <div className="relative h-[calc(100vh-4rem)] w-full flex items-center justify-center p-4">
-      {/* Background */}
-      <div className="absolute inset-0 z-0">
-        <Image
-          src="https://picsum.photos/seed/card-bg/1920/1080"
-          alt="Blurred background"
-          fill
-          className="object-cover blur-md"
-          data-ai-hint="moody interior"
-        />
-        <div className="absolute inset-0 bg-black/50" />
-      </div>
-
-      <div className="relative z-10 w-full max-w-sm flex flex-col gap-4">
-         <Tabs defaultValue="challenges" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 bg-white/10 backdrop-blur-lg text-white rounded-xl p-1">
-            <TabsTrigger value="challenges" className="data-[state=active]:bg-white data-[state=active]:text-black rounded-lg">Challenges</TabsTrigger>
-            <TabsTrigger value="truth-or-dare" className="data-[state=active]:bg-white data-[state=active]:text-black rounded-lg">Truth or Dare</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="challenges">
-             {!isGameStarted ? (
-                 <div className="relative h-[550px] w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl flex flex-col items-center justify-center text-center">
-                    <h2 className="text-3xl font-bold text-black font-headline mb-8">Ready for a Challenge?</h2>
-                    <Button size="lg" className="w-full" onClick={handleGenerateChallenge}>
-                      Start
-                    </Button>
-                </div>
-              ) : (
-                <ChallengeDisplayCard
-                    text={isLoadingChallenge ? '' : error ? error : challenge}
-                    type="challenge"
-                    variant="stacked"
-                    onClose={() => {
-                        setIsGameStarted(false);
-                        setChallenge('');
-                      }}
-                    timer={<SimpleTimerDisplay durationSeconds={duration} />}
-                >
-                    {isLoadingChallenge && <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />}
-                    {!isLoadingChallenge && (
-                        <>
-                            <Button
-                            className="flex-1"
-                            onClick={handleGenerateChallenge}
-                            disabled={isLoadingChallenge}
-                            variant="outline"
-                            >
-                            Next
-                            </Button>
-                            <Button asChild size="lg" className="flex-1" disabled={!challenge || !!error}>
-                               <Link href={`/broadcast/create?challenge=${encodeURIComponent(challenge)}&type=${promptType}&duration=${duration}`}>
-                                Go Live!
-                               </Link>
-                            </Button>
-                        </>
-                    )}
-                </ChallengeDisplayCard>
-            )}
-          </TabsContent>
-          <TabsContent value="truth-or-dare">
-             <div className="relative h-[550px]">
-              {gameState === 'choice' ? (
-                <div className="absolute w-full h-full bg-white rounded-3xl p-6 shadow-2xl flex flex-col items-center justify-center text-center">
-                  <h2 className="text-3xl font-bold text-black font-headline mb-8">Truth or Dare?</h2>
-                  <div className="w-full space-y-4">
-                    <Button size="lg" className="w-full" onClick={() => handleChoice('truth')}>
-                      Truth
-                    </Button>
-                    <Button size="lg" variant="secondary" className="w-full" onClick={() => handleChoice('dare')}>
-                      Dare
-                    </Button>
-                  </div>
-                </div>
-              ) : promptType && (
-                 <ChallengeDisplayCard 
-                    text={prompt} 
-                    type={promptType} 
-                    variant="stacked"
-                    timer={<SimpleTimerDisplay durationSeconds={duration} />}
-                 >
-                    <Button size="lg" variant="outline" className="flex-1" onClick={handleNextRound}>
-                      Next
-                    </Button>
-                    <Button asChild size="lg" className="flex-1" disabled={!prompt}>
-                       <Link href={`/broadcast/create?challenge=${encodeURIComponent(prompt)}&type=${promptType}&duration=${duration}`}>
-                         Go Live!
-                       </Link>
-                    </Button>
-                </ChallengeDisplayCard>
-              )}
+    <Card className="w-full max-w-md mx-auto bg-card/80 backdrop-blur-lg border-white/20">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2"><Users /> Public Challenges</CardTitle>
+        <CardDescription>Pick a challenge from the community to complete on your next stream.</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {mockChallenges.map(challenge => (
+          <div key={challenge.id} className="p-3 bg-background/80 rounded-lg">
+            <p className="text-sm font-medium">"{challenge.text}"</p>
+            <div className="flex items-center justify-between mt-2">
+              <div className="flex items-center gap-2">
+                <Avatar className="h-6 w-6">
+                  <AvatarImage src={challenge.avatar} />
+                  <AvatarFallback>{challenge.author.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <span className="text-xs text-muted-foreground">@{challenge.author}</span>
+              </div>
+              <Button size="sm" asChild>
+                 <a href={`/broadcast/create?challenge=${encodeURIComponent(challenge.text)}&type=challenge`}>
+                    Accept
+                 </a>
+              </Button>
             </div>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+}
+
+
+function ChallengesPageComponent() {
+  return (
+    <div className="relative min-h-[calc(100vh-4rem)] w-full flex flex-col items-center justify-center p-4 bg-black">
+      <div className="absolute inset-0 bg-grid-zinc-800/20 [mask-image:linear-gradient(to_bottom,white_5%,transparent_100%)] z-0"></div>
+      <div className="relative z-10 w-full">
+         <Tabs defaultValue="create" className="w-full max-w-md mx-auto">
+          <TabsList className="grid w-full grid-cols-2 bg-card/80 backdrop-blur-lg border-white/20">
+            <TabsTrigger value="create">Create</TabsTrigger>
+            <TabsTrigger value="browse">Browse</TabsTrigger>
+          </TabsList>
+          <TabsContent value="create" className="mt-4">
+            <ChallengeCreator />
+          </TabsContent>
+          <TabsContent value="browse" className="mt-4">
+            <ChallengeBoard />
           </TabsContent>
         </Tabs>
       </div>
     </div>
   );
+}
+
+export default function ChallengesPage() {
+    return (
+        <Suspense fallback={<div className="h-screen w-full bg-black" />}>
+            <ChallengesPageComponent />
+        </Suspense>
+    )
 }
