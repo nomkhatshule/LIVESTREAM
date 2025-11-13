@@ -49,6 +49,7 @@ function LivenetStudioUI() {
   const [reactions, setReactions] = useState<Reaction[]>([]);
   const [isGamePanelOpen, setIsGamePanelOpen] = useState(false);
   const [isChatVisible, setIsChatVisible] = useState(true);
+  const [isFlippingCamera, setIsFlippingCamera] = useState(false);
 
   // Stream SDK Hooks
   const { useParticipants, useCallCallingState, useCameraState, useMicrophoneState, useScreenShareState } = useCallStateHooks();
@@ -89,14 +90,19 @@ function LivenetStudioUI() {
   };
 
   const handleFlipCamera = async () => {
-    if (call && call.camera) {
+    if (isFlippingCamera || !call || !call.camera) return;
+    setIsFlippingCamera(true);
+    try {
         await call.camera.flip();
-    } else {
+    } catch (error: any) {
+        console.error("Error flipping camera:", error);
         toast({
-            title: 'Camera not ready',
-            description: 'The camera is still initializing.',
-            variant: 'destructive',
+            variant: "destructive",
+            title: "Camera Flip Failed",
+            description: error.message || "Could not switch cameras. Please try again."
         });
+    } finally {
+        setIsFlippingCamera(false);
     }
   };
 
@@ -253,10 +259,10 @@ function LivenetStudioUI() {
             cardSize={cardSize}
             isDragging={isDragging}
             onMouseDown={handleMouseDown}
-            onTouchStart={handleTouchStart}
+            onTouchStart={onTouchStart}
             onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-            onResizeStop={handleResizeStop}
+            onTouchEnd={onTouchEnd}
+            onResizeStop={onResizeStop}
             onSetCardSize={setCardSize}
             onGenerateNextChallenge={handleGenerateNextChallenge}
             broadcastDocRef={broadcastDocRef}
@@ -279,6 +285,7 @@ function LivenetStudioUI() {
             onToggleChat={() => setIsChatVisible(prev => !prev)}
             isChatVisible={isChatVisible}
             participants={participants}
+            isFlippingCamera={isFlippingCamera}
         />
         
         <InStreamGamesPanel 
@@ -298,3 +305,5 @@ function LivenetStudioUI() {
 }
 
 export default LivenetStudioUI;
+
+    
