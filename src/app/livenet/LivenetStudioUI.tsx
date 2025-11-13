@@ -29,10 +29,10 @@ import StreamControls from '@/components/livenet/StreamControls';
 import type { Reaction, BroadcastData, Comment, GiphyResult } from '@/lib/types';
 import { useGameFlow } from '@/hooks/useGameFlow';
 import { useChallengeCard } from '@/hooks/useChallengeCard';
-import GameFlowManager from './GameFlowManager';
-import ChallengeCardManager from './ChallengeCardManager';
+import GameFlowManager from '@/components/livenet/GameFlowManager';
+import ChallengeCardManager from '@/components/livenet/ChallengeCardManager';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import ChatPanel from './ChatPanel';
+import ChatPanel from '@/components/livenet/ChatPanel';
 
 
 function LivenetStudioUI() {
@@ -258,11 +258,11 @@ function LivenetStudioUI() {
             cardPosition={cardPosition}
             cardSize={cardSize}
             isDragging={isDragging}
-            onMouseDown={handleMouseDown}
+            onMouseDown={onMouseDown}
             onTouchStart={onTouchStart}
             onTouchMove={onTouchMove}
             onTouchEnd={onTouchEnd}
-            onResizeStop={handleResizeStop}
+            onResizeStop={onResizeStop}
             onSetCardSize={setCardSize}
             onGenerateNextChallenge={handleGenerateNextChallenge}
             broadcastDocRef={broadcastDocRef}
