@@ -3,10 +3,10 @@ import { headers } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { StreamChat } from 'stream-chat';
 import { getFirestore, doc, updateDoc } from 'firebase/firestore';
-import { initializeFirebase } from '@/firebase/index';
+import { initializeFirebaseForServer } from '@/firebase/server-init';
 
 // Initialize firebase to get the firestore instance.
-const { firestore: db } = initializeFirebase();
+const { firestore: db } = initializeFirebaseForServer();
 
 export async function POST(req: NextRequest) {
   const apiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY;
