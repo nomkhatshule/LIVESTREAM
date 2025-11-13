@@ -1,6 +1,4 @@
 
-'use server';
-
 import { db } from '@/firebase/server';
 import { headers } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
