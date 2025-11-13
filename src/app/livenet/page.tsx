@@ -14,7 +14,7 @@ import {
 } from '@stream-io/video-react-sdk';
 import '@stream-io/video-react-sdk/dist/css/styles.css';
 import { Loader2 } from 'lucide-react';
-import LivenetStudioUI from '@/components/livenet/LivenetStudioUI';
+import LivenetStudioUI from '@/app/livenet/LivenetStudioUI';
 
 // --- Wrapper Component for Initialization and Auth ---
 function LivenetWrapper() {

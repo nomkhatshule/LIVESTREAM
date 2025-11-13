@@ -260,9 +260,9 @@ function LivenetStudioUI() {
             isDragging={isDragging}
             onMouseDown={handleMouseDown}
             onTouchStart={onTouchStart}
-            onTouchMove={handleTouchMove}
+            onTouchMove={onTouchMove}
             onTouchEnd={onTouchEnd}
-            onResizeStop={onResizeStop}
+            onResizeStop={handleResizeStop}
             onSetCardSize={setCardSize}
             onGenerateNextChallenge={handleGenerateNextChallenge}
             broadcastDocRef={broadcastDocRef}
