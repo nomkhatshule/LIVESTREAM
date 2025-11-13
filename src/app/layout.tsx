@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   title: 'LIVENET',
   description: 'The future of live broadcasting.',
   icons: {
-    icon: '/favicon.ico',
+    icon: '/favicon.ico?v=2',
   },
 };
 
