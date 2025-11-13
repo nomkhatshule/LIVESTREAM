@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useRef } from 'react';
@@ -134,7 +135,7 @@ export default function ChatPanel({
                                     }
                                 }}
                                 className={cn(
-                                    "bg-transparent border-none placeholder:text-gray-400 text-white w-full min-h-[40px] h-10 resize-none py-2 pr-36 pl-4 focus-visible:ring-0 shadow-none",
+                                    "bg-transparent border-none placeholder:text-white text-white w-full min-h-[40px] h-10 resize-none py-2 pr-36 pl-4 focus-visible:ring-0 shadow-none",
                                 )}
                             />
                             <div className="absolute inset-y-0 right-1 flex items-center">
@@ -185,3 +186,5 @@ export default function ChatPanel({
         </div>
     );
 };
+
+    

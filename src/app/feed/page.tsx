@@ -457,7 +457,7 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
                                                     }
                                                 }}
                                                 className={cn(
-                                                    "bg-transparent border-none placeholder:text-gray-400 w-full min-h-[40px] h-10 resize-none py-2 pr-24 pl-4 focus-visible:ring-0",
+                                                    "bg-transparent border-none placeholder:text-white w-full min-h-[40px] h-10 resize-none py-2 pr-24 pl-4 focus-visible:ring-0",
                                                     (selectedGif || imageAttachment) ? "rounded-b-2xl rounded-t-none" : "rounded-2xl"
                                                 )}
                                                 disabled={isSending}
@@ -723,3 +723,6 @@ export default function HomePage() {
 }
 
 
+
+
+    
