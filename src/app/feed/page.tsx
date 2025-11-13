@@ -432,7 +432,7 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
                             <div className="pb-16 md:pb-4">
                                 <form onSubmit={handleSendMessage} className="relative flex w-full pointer-events-auto items-center gap-2 mt-2">
                                      <input type="file" ref={fileInputRef} onChange={handleFileSelect} className="hidden" accept="image/png, image/jpeg, image/gif" />
-                                    <div className="relative flex-1 bg-black/50 border border-white/20 rounded-2xl overflow-hidden flex flex-col">
+                                    <div className="relative flex-1 bg-transparent border border-white rounded-2xl overflow-hidden flex flex-col">
                                         {(selectedGif || imageAttachment) && (
                                             <div className='p-2'>
                                                 <div className="relative w-32 h-24">
@@ -721,4 +721,5 @@ export default function HomePage() {
         </Suspense>
     )
 }
+
 
