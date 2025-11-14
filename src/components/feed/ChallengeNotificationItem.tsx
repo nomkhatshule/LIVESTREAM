@@ -49,7 +49,7 @@ export default function ChallengeNotificationItem({ challenge }: { challenge: an
                         <AvatarImage src={challenge.fromUserAvatar} alt={challenge.fromUsername} />
                         <AvatarFallback>{challenge.fromUsername.charAt(0)}</AvatarFallback>
                     </Avatar>
-                    <div className={cn("absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full text-white bg-primary")}>
+                    <div className={cn("absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full text-black bg-primary")}>
                         <Swords className="h-3 w-3" />
                     </div>
                 </div>
