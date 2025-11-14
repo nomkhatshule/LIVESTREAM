@@ -4,13 +4,15 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useFirestore, useUser } from '@/firebase';
-import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, updateDoc, serverTimestamp, collection } from 'firebase/firestore';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Swords, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import type { UserProfile } from '@/firebase';
+import { useUserDocument } from '@/firebase';
 
 interface ChallengeReceivedCardProps {
   open: boolean;
@@ -22,41 +24,47 @@ export default function ChallengeReceivedCard({ open, onOpenChange, challenge }:
   const router = useRouter();
   const firestore = useFirestore();
   const { user } = useUser();
+  const { userDocument } = useUserDocument();
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
 
   if (!challenge) return null;
 
   const handleResponse = async (accepted: boolean) => {
-    if (!user || !challenge.id) return;
+    if (!user || !challenge.id || !userDocument) return;
     setIsProcessing(true);
 
     const challengeRef = doc(firestore, `users/${user.uid}/challenges`, challenge.id);
-    const notificationRef = collection(firestore, `users/${challenge.fromUserId}/notifications`);
+    const notificationCollectionRef = collection(firestore, `users/${challenge.fromUserId}/notifications`);
 
     try {
       if (accepted) {
         await updateDoc(challengeRef, { status: 'accepted' });
         // Can't send notification in a batch, so sending it non-blockingly
-        addDocumentNonBlocking(notificationRef, {
-            type: 'system', // A new type for system messages
-            actorName: 'LIVENET',
-            actorId: 'system',
-            entityInfo: `🚀 @${user.displayName} accepted your challenge and is going live!`,
+        addDocumentNonBlocking(notificationCollectionRef, {
+            userId: challenge.fromUserId,
+            type: 'comment', // Using 'comment' type for icon similarity. Can be customized.
+            actorId: user.uid,
+            actorName: userDocument.username || 'Someone',
+            actorAvatar: userDocument.profilePicture || '',
+            entityInfo: `🚀 accepted your challenge and is going live!`,
             isRead: false,
             timestamp: serverTimestamp()
         });
 
         toast({ title: 'Challenge Accepted!', description: 'Redirecting you to the studio...' });
         // Redirect to create broadcast page with challenge pre-filled
-        router.push(`/broadcast/create?challenge=${encodeURIComponent(challenge.text)}&type=challenge`);
+        const challengeType = challenge.type || 'challenge';
+        router.push(`/broadcast/create?challenge=${encodeURIComponent(challenge.text)}&type=${challengeType}`);
       } else {
         await updateDoc(challengeRef, { status: 'rejected' });
-        addDocumentNonBlocking(notificationRef, {
-            type: 'system',
-            actorName: 'LIVENET',
-            actorId: 'system',
-            entityInfo: `😅 @${user.displayName} declined your challenge for now.`,
+        addDocumentNonBlocking(notificationCollectionRef, {
+            userId: challenge.fromUserId,
+            type: 'comment',
+            actorId: user.uid,
+            actorName: userDocument.username || 'Someone',
+            actorAvatar: userDocument.profilePicture || '',
+            entityInfo: `😅 declined your challenge for now.`,
             isRead: false,
             timestamp: serverTimestamp()
         });
