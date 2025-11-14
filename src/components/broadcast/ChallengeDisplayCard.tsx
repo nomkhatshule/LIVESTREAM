@@ -38,7 +38,7 @@ export default function ChallengeDisplayCard({ text, type, size = 'large', varia
         "w-full max-w-[280px] sm:max-w-xs" // Smaller max-width on mobile
     )}>
       {/* Main Card */}
-      <div className="bg-[#fefabc] rounded-lg shadow-2xl flex flex-col items-center text-black p-3 sm:p-4 md:p-6 space-y-1 sm:space-y-2">
+      <div className="bg-[#fefabc] rounded-lg shadow-2xl flex flex-col items-center text-black p-3 sm:p-4 md:p-6 space-y-1 sm:space-y-2 h-full">
         {onClose && (
             <Button
               variant="ghost"
@@ -60,7 +60,7 @@ export default function ChallengeDisplayCard({ text, type, size = 'large', varia
             {timer}
         </div>
         
-        <div className="w-full flex flex-col items-center justify-center text-center px-1 sm:px-2 md:px-4 py-1 sm:py-2 my-1 sm:my-2">
+        <div className="w-full flex-grow flex flex-col items-center justify-center text-center px-1 sm:px-2 md:px-4 py-1 sm:py-2 my-1 sm:my-2">
             <h2 className={cn(
                 "font-bold font-headline",
                 size === 'large' ? 'text-base sm:text-lg md:text-xl' : 'text-sm sm:text-base md:text-lg'

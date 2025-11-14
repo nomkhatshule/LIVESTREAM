@@ -152,7 +152,7 @@ function LivenetStudioUI() {
   };
 
   // Custom Hooks for managing complex logic
-  const { showChallengeCoverCard, isChallengeVisible, isTimerFinished, handleChallengeSelect, handleStartStagedChallenge, handleCancelStagedChallenge, handleGenerateNextChallenge, setIsChallengeVisible } = useGameFlow(broadcastDocRef, broadcastData);
+  const { showChallengeCoverCard, isChallengeVisible, isTimerFinished, handleChallengeSelect, handleStartStagedChallenge, handleCancelStagedChallenge, handleCompleteChallenge, setIsChallengeVisible } = useGameFlow(broadcastDocRef, broadcastData);
   const { cardPosition, cardSize, isDragging, handleMouseDown, handleTouchStart, handleTouchMove, handleTouchEnd, handleResizeStop, setCardSize } = useChallengeCard(broadcastDocRef, broadcastData?.challengeCardPosition, broadcastData?.challengeCardSize);
   
   const handleReaction = (emoji: React.ReactNode) => {
@@ -259,12 +259,12 @@ function LivenetStudioUI() {
             cardSize={cardSize}
             isDragging={isDragging}
             onMouseDown={handleMouseDown}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
             onTouchEnd={handleTouchEnd}
             onResizeStop={handleResizeStop}
             onSetCardSize={setCardSize}
-            onGenerateNextChallenge={handleGenerateNextChallenge}
+            onCompleteChallenge={handleCompleteChallenge}
             broadcastDocRef={broadcastDocRef}
         />
 
@@ -305,5 +305,3 @@ function LivenetStudioUI() {
 }
 
 export default LivenetStudioUI;
-
-    
