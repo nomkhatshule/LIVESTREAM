@@ -1,9 +1,10 @@
+
 import { StreamChat } from 'stream-chat';
 import {NextResponse} from 'next/server';
 
 export async function POST(req: Request) {
   try {
-    const { userId } = await req.json();
+    const { userId, capabilities } = await req.json();
 
     const apiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY;
     const apiSecret = process.env.STREAM_API_SECRET;
@@ -19,8 +20,8 @@ export async function POST(req: Request) {
     // Initialize Stream client on the server
     const serverClient = StreamChat.getInstance(apiKey, apiSecret);
     
-    // Generate a token for the user
-    const token = serverClient.createToken(userId);
+    // Generate a token for the user with specific capabilities if provided
+    const token = serverClient.createToken(userId, undefined, undefined, capabilities);
     
     return NextResponse.json({ token });
 
