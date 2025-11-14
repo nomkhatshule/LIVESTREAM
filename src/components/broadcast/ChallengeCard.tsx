@@ -29,3 +29,5 @@ export default function ChallengeCard({ text, type, size, variant, onClose }: Ch
     </div>
   );
 }
+
+    
