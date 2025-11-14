@@ -3,11 +3,11 @@
 'use client';
 
 import { Suspense, useEffect, useState, useMemo, useRef } from 'react';
-import { useUser, useFirestore, useMemoFirebase, useUserDocument, useStorage } from '@/firebase';
+import { useUser, useFirestore, useMemoFirebase, useUserDocument } from '@/firebase';
 import { useCollection } from '@/firebase/firestore/use-collection';
-import { collection, query, where, writeBatch, doc, orderBy, serverTimestamp, getDocs } from 'firebase/firestore';
-import type { Broadcast, ChatMessage } from '@/lib/data';
-import { Clapperboard, Loader2, Mail, ChevronDownCircle, MessageCircleHeart, Film, Heart, MessageSquareMore, Gift, Search, Swords, Users, CornerUpLeft, ArrowUp, Play, X, Paperclip, Gamepad2, RefreshCw, Send } from 'lucide-react';
+import { collection, query, where, writeBatch, doc, orderBy, getDocs } from 'firebase/firestore';
+import type { Broadcast } from '@/lib/data';
+import { Clapperboard, Loader2, Mail, ChevronDownCircle, MessageCircleHeart, Film, RefreshCw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useStreamStore } from '@/lib/stream-store';
 import { Button } from '@/components/ui/button';
@@ -21,29 +21,19 @@ import InboxPanel from '@/components/feed/InboxPanel';
 import ActivityPanel from '@/components/feed/ActivityPanel';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useInView } from 'react-intersection-observer';
-import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
-import { addDocumentNonBlocking, deleteDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Textarea } from '@/components/ui/textarea';
-import AIChat from '@/components/broadcast/ai-chat';
-import ChallengeCard from '@/components/broadcast/ChallengeCard';
-import { GiphyResult } from '@/lib/types';
-import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
-import GifPicker from '@/components/inbox/GifPicker';
-import Image from 'next/image';
-import VideoPlayer from '@/components/broadcast/video-player';
-import { Separator } from '@/components/ui/separator';
 import { useStreamPrefetch } from '@/hooks/useStreamPrefetch';
+import FeedItemHeader from '@/components/feed/FeedItemHeader';
+import FeedItemActions from '@/components/feed/FeedItemActions';
+import FeedItemChat from '@/components/feed/FeedItemChat';
+import VideoPlayer from '@/components/broadcast/video-player';
+import Image from 'next/image';
 
 function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broadcast, onVisible: () => void, isActive: boolean }) {
     const { ref, inView } = useInView({ threshold: 0.7 });
     const { user } = useUser();
     const { userDocument } = useUserDocument();
-    const firestore = useFirestore();
-    const storage = useStorage();
-    const { toast } = useToast();
-
+    
     // PREFETCH HOOK - This will start fetching the stream token when the item is active
     const { prefetchedClient, prefetchedToken } = useStreamPrefetch(isActive ? user : null, broadcast);
 
@@ -52,231 +42,6 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
             onVisible();
         }
     }, [inView, onVisible]);
-
-    const [newMessage, setNewMessage] = useState('');
-    const [isChatVisible, setIsChatVisible] = useState(true);
-    const textareaRef = useRef<HTMLTextAreaElement>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
-    const [isChallengeVisible, setIsChallengeVisible] = useState(false);
-    const [isGifPickerOpen, setIsGifPickerOpen] = useState(false);
-    const [selectedGif, setSelectedGif] = useState<GiphyResult | null>(null);
-    const [isSending, setIsSending] = useState(false);
-    const [imageAttachment, setImageAttachment] = useState<{ file: File, url: string } | null>(null);
-
-    const messagesQuery = useMemoFirebase(() => {
-        if (!broadcast.id || !firestore) return null;
-        return query(
-            collection(firestore, `broadcasts/${broadcast.id}/messages`),
-            orderBy('timestamp', 'asc'),
-        );
-    }, [broadcast.id, firestore]);
-    const { data: comments } = useCollection<ChatMessage>(messagesQuery);
-    const reversedComments = useMemo(() => (comments || []).slice().reverse(), [comments]);
-
-    const likesCollectionRef = useMemoFirebase(() => {
-        if (!broadcast.id || !firestore) return null;
-        return collection(firestore, 'broadcasts', broadcast.id, 'likes');
-    }, [broadcast.id, firestore]);
-    const { data: likes } = useCollection(likesCollectionRef);
-
-    const currentUserFollowingRef = useMemoFirebase(() => {
-        if (!user) return null;
-        return collection(firestore, `users/${user.uid}/following`);
-    }, [user, firestore]);
-    const { data: currentUserFollowingList } = useCollection(currentUserFollowingRef);
-    const isFollowing = useMemo(() => {
-        if (!currentUserFollowingList) return false;
-        return currentUserFollowingList.some(follow => follow.id === broadcast.hostId);
-    }, [currentUserFollowingList, broadcast.hostId]);
-
-    const hasLiked = useMemo(() => {
-        if (!user || !likes) return false;
-        return likes.some(like => like.id === user.uid);
-    }, [user, likes]);
-
-    const handleSendMessage = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if ((!newMessage.trim() && !selectedGif && !imageAttachment) || !user || !userDocument) return;
-    
-        setIsSending(true);
-        let messageAttachment: ChatMessage['attachment'] | null = null;
-    
-        try {
-            if (imageAttachment) {
-                const imageFile = imageAttachment.file;
-                const filePath = `chat_images/${broadcast.id}/${Date.now()}-${imageFile.name}`;
-                const fileRef = storageRef(storage, filePath);
-                await uploadBytes(fileRef, imageFile);
-                const downloadURL = await getDownloadURL(fileRef);
-                messageAttachment = {
-                    type: 'image',
-                    imageUrl: downloadURL,
-                };
-            } else if (selectedGif) {
-                messageAttachment = {
-                    type: 'giphy',
-                    title: selectedGif.title,
-                    imageUrl: selectedGif.images.original.url,
-                    thumbUrl: selectedGif.images.fixed_width.url,
-                };
-            }
-    
-            let newComment: Partial<ChatMessage> & { timestamp: any } = {
-                userId: user.uid,
-                username: userDocument.username || "Anonymous",
-                userAvatar: userDocument.profilePicture || '',
-                message: newMessage,
-                timestamp: serverTimestamp(),
-            };
-    
-            if (messageAttachment) {
-                newComment.attachment = messageAttachment;
-            }
-            
-            const mentionMatch = newMessage.match(/^@(\w+)\s/);
-            if (mentionMatch && mentionMatch[1]) {
-                newComment.replyingTo = mentionMatch[1];
-            }
-    
-            const messagesCollectionRef = collection(firestore, 'broadcasts', broadcast.id, 'messages');
-            addDocumentNonBlocking(messagesCollectionRef, newComment);
-
-            if (user.uid !== broadcast.hostId) {
-                const hostNotificationsRef = collection(firestore, `users/${broadcast.hostId}/notifications`);
-                addDocumentNonBlocking(hostNotificationsRef, {
-                    userId: broadcast.hostId,
-                    type: 'comment',
-                    actorId: user.uid,
-                    actorName: userDocument.username || 'Someone',
-                    actorAvatar: userDocument.profilePicture || '',
-                    entityId: broadcast.id,
-                    entityInfo: `commented: "${newMessage.substring(0, 50)}${newMessage.length > 50 ? '...' : ''}"`,
-                    isRead: false,
-                    timestamp: serverTimestamp(),
-                });
-            }
-    
-            setNewMessage('');
-            setSelectedGif(null);
-            setImageAttachment(null);
-    
-        } catch (error) {
-            console.error("Error sending message:", error);
-            toast({ title: "Error", description: "Could not send message.", variant: "destructive" });
-        } finally {
-            setIsSending(false);
-        }
-    };
-    
-    const handleLike = () => {
-        if (!broadcast.isLive) {
-            toast({ title: 'Stream is offline', description: 'You can only like live streams.', variant: 'destructive' });
-            return;
-        }
-        if (!user || !userDocument) {
-            toast({ title: 'Login Required', description: 'You must be logged in to like a stream.', variant: 'destructive' });
-            return;
-        }
-        
-        const likeDocRef = doc(firestore, 'broadcasts', broadcast.id, 'likes', user.uid);
-        
-        if (hasLiked) {
-            deleteDocumentNonBlocking(likeDocRef);
-        } else {
-            setDocumentNonBlocking(likeDocRef, { userId: user.uid, timestamp: serverTimestamp() }, {});
-            if (user.uid !== broadcast.hostId) {
-                const hostNotificationsRef = collection(firestore, `users/${broadcast.hostId}/notifications`);
-                addDocumentNonBlocking(hostNotificationsRef, {
-                    userId: broadcast.hostId,
-                    type: 'like',
-                    actorId: user.uid,
-                    actorName: userDocument.username || 'Someone',
-                    actorAvatar: userDocument.profilePicture || '',
-                    entityId: broadcast.id,
-                    entityInfo: `liked your stream: "${broadcast.title}"`,
-                    isRead: false,
-                    timestamp: serverTimestamp(),
-                });
-            }
-        }
-    };
-    
-    const handleFollowToggle = async () => {
-        if (!user || !userDocument) {
-          toast({ title: 'Please log in', description: 'You need to be logged in to follow users.', variant: 'destructive' });
-          return;
-        }
-        if (user.uid === broadcast.hostId) return;
-
-        const batch = writeBatch(firestore);
-        const followingDocRef = doc(firestore, `users/${user.uid}/following`, broadcast.hostId);
-        const followerDocRef = doc(firestore, `users/${broadcast.hostId}/followers`, user.uid);
-
-        if (isFollowing) {
-            batch.delete(followingDocRef);
-            batch.delete(followerDocRef);
-            toast({ title: `Unfollowed ${broadcast.hostName}` });
-        } else {
-            const followData = { userId: user.uid, timestamp: serverTimestamp() };
-            batch.set(followingDocRef, followData);
-            batch.set(followerDocRef, followData);
-            
-            const notificationsCollectionRef = collection(firestore, `users/${broadcast.hostId}/notifications`);
-            const newNotifRef = doc(notificationsCollectionRef);
-            batch.set(newNotifRef, {
-                userId: broadcast.hostId,
-                type: 'follow',
-                actorId: user.uid,
-                actorName: userDocument.username || 'Someone',
-                actorAvatar: userDocument.profilePicture || '',
-                isRead: false,
-                timestamp: serverTimestamp(),
-            });
-
-            toast({ title: `Followed ${broadcast.hostName}` });
-        }
-        
-        try {
-            await batch.commit();
-        } catch (error) {
-            console.error("Follow/unfollow failed:", error);
-            toast({ title: 'Error', description: 'Could not update follow status.', variant: 'destructive' });
-        }
-    };
-
-    const handleReplyClick = (username: string) => {
-        setNewMessage(`@${username} `);
-        textareaRef.current?.focus();
-    }
-    
-    const handleGifSelect = (gif: GiphyResult) => {
-        setSelectedGif(gif);
-        setIsGifPickerOpen(false);
-        setImageAttachment(null);
-    }
-
-    const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (file) {
-            if (file.size > 2 * 1024 * 1024) { // 2MB limit
-                toast({ title: "File too large", description: "Please select an image under 2MB.", variant: "destructive" });
-                return;
-            }
-            if (!file.type.startsWith('image/')) {
-                toast({ title: "Invalid file type", description: "Please select an image file.", variant: "destructive" });
-                return;
-            }
-            setImageAttachment({ file, url: URL.createObjectURL(file) });
-            setSelectedGif(null);
-        }
-    };
-    
-    const handleGiftClick = () => {
-        toast({
-            title: "Coming Soon!",
-            description: "Gifting is not yet available, but we're working on it!",
-        });
-    }
 
     const broadcastContext = `The streamer is ${broadcast.hostName}. The stream is titled "${broadcast.title}" under the category "${broadcast.category}".`;
     
@@ -305,188 +70,9 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
             </div>
             
             <div className="absolute inset-0 flex flex-col justify-between p-3 md:p-4 text-white z-40 pointer-events-none">
-                 {isChallengeVisible && broadcast.activeChallenge && broadcast.activeChallengeType && (
-                    <ChallengeCard
-                        text={broadcast.activeChallenge}
-                        type={broadcast.activeChallengeType}
-                        size="small"
-                        variant="simple"
-                        onClose={() => setIsChallengeVisible(false)}
-                    />
-                )}
-                
-                {/* Top Info */}
-                <div className="bg-gradient-to-b from-black/50 to-transparent -m-3 md:-m-4 p-3 md:p-4 pt-8">
-                    <div className="flex items-start justify-between">
-                        <div className="flex items-start gap-3">
-                            <Link href={`/profile/${broadcast.hostId}`} className="pointer-events-auto">
-                                <Avatar className={cn("h-10 w-10 md:h-12 md:w-12 border-4 border-destructive", broadcast.isLive && "animate-breathing-prominent")}>
-                                    <AvatarImage src={broadcast.hostAvatar || 'https://picsum.photos/seed/placeholder-avatar/200'} alt={broadcast.hostName} />
-                                    <AvatarFallback>{broadcast.hostName?.charAt(0) || 'A'}</AvatarFallback>
-                                </Avatar>
-                            </Link>
-                            <div>
-                                <div className="flex items-center gap-2">
-                                    <Link href={`/profile/${broadcast.hostId}`} className="pointer-events-auto">
-                                        <p className="font-bold font-headline text-base md:text-lg hover:underline">{broadcast.hostName}</p>
-                                    </Link>
-                                    {user && user.uid !== broadcast.hostId && !isFollowing && (
-                                        <Button 
-                                            size="sm" 
-                                            className="h-7 rounded-full px-4 text-xs pointer-events-auto bg-transparent border-white text-white hover:bg-white hover:text-black" 
-                                            onClick={handleFollowToggle} 
-                                            variant='outline'
-                                        >
-                                            Follow
-                                        </Button>
-                                    )}
-                                </div>
-                                <p className="text-sm md:text-base font-normal mt-1">{broadcast.title}</p>
-                                <div className="flex items-center gap-2 text-xs mt-1">
-                                    <div className="flex items-center gap-1">
-                                        <Users className="h-3 w-3" />
-                                        <span>{broadcast.viewers?.toLocaleString() || 0}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                {/* Right Side Vertical Action Bar */}
-                 <div className="absolute top-1/2 right-0 -translate-y-1/2 z-40 flex flex-col items-center gap-y-4 md:gap-y-6 pointer-events-auto text-white p-2 md:p-4">
-                    <div className="flex flex-col items-center group">
-                        <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform" onClick={handleLike}>
-                          <Heart className={cn("h-7 w-7 drop-shadow-md", hasLiked && "fill-red-500 text-red-500")} strokeWidth={1.5} />
-                        </button>
-                        <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">{likes?.length || 0}</span>
-                    </div>
-                    <div className="flex flex-col items-center group">
-                        <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform" onClick={() => setIsChatVisible(!isChatVisible)}>
-                           <MessageSquareMore className="h-7 w-7 drop-shadow-md" strokeWidth={1.5} />
-                        </button>
-                        <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">{comments?.length || 0}</span>
-                    </div>
-                    <div className="flex flex-col items-center group pointer-events-auto">
-                        <Link href="/cards" className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform flex flex-col items-center">
-                           <Send className="h-7 w-7 drop-shadow-md" strokeWidth={1.5} />
-                           <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">Challenge</span>
-                        </Link>
-                    </div>
-                    <AIChat userAvatar={userDocument?.profilePicture} broadcastContext={broadcastContext}>
-                        <div className="flex flex-col items-center group">
-                            <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform">
-                               <Search className="h-7 w-7 drop-shadow-md" strokeWidth={1.5} />
-                            </button>
-                             <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">AI</span>
-                        </div>
-                    </AIChat>
-                    {broadcast.activeChallenge && (
-                         <div className="flex flex-col items-center group">
-                            <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform" onClick={() => setIsChallengeVisible(true)}>
-                               <Swords className="h-7 w-7 drop-shadow-md text-yellow-400" strokeWidth={1.5} />
-                            </button>
-                            <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">Challenge</span>
-                        </div>
-                    )}
-                </div>
-
-                {/* Bottom Chat Area */}
-                 {isChatVisible && (
-                    <div className="p-3 md:p-4 flex flex-col justify-end">
-                        <div className="w-full sm:max-w-sm md:max-w-md self-start flex-grow flex flex-col justify-end">
-                            <div className="h-80 w-full pointer-events-auto">
-                                <ScrollArea className="h-full pr-2">
-                                    <div className="flex flex-col-reverse">
-                                        {reversedComments.map((comment) => (
-                                            <div key={comment.id} className="group flex items-start text-sm text-white pb-1">
-                                                <Link href={`/profile/${comment.userId}`} className="pointer-events-auto flex-shrink-0">
-                                                    <Avatar className="h-6 w-6 border-2 border-secondary">
-                                                        <AvatarImage src={comment.userAvatar} alt={comment.username} />
-                                                        <AvatarFallback>{comment.username.charAt(0)}</AvatarFallback>
-                                                    </Avatar>
-                                                </Link>
-                                                <div className="flex-1 ml-2">
-                                                    <Link href={`/profile/${comment.userId}`} className="pointer-events-auto">
-                                                        <span className="font-bold font-headline text-primary mr-1.5 hover:underline text-xs">{comment.username}</span>
-                                                    </Link>
-                                                    {comment.replyingTo && <Link href={`/profile/${comment.replyingTo}`} className="text-accent font-semibold mr-1.5 hover:underline pointer-events-auto text-xs">@{comment.replyingTo}</Link>}
-                                                    
-                                                    {comment.attachment?.type === 'giphy' || comment.attachment?.type === 'image' ? (
-                                                        <div className='mt-1'>
-                                                            <Image src={comment.attachment.imageUrl} width={150} height={100} alt={comment.attachment.title || 'attachment'} className="rounded-md" />
-                                                            {comment.message && <p className="break-words mt-1 text-sm">{comment.message.replace(/^@\w+\s/, '')}</p>}
-                                                        </div>
-                                                    ) : (
-                                                        <span className="break-words text-sm">{comment.message.replace(/^@\w+\s/, '')}</span>
-                                                    )}
-                                                </div>
-                                                <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 pointer-events-auto" onClick={() => handleReplyClick(comment.username)}>
-                                                    <CornerUpLeft className="h-4 w-4" />
-                                                </Button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </ScrollArea>
-                            </div>
-                            <div className="pb-16 md:pb-4">
-                                <form onSubmit={handleSendMessage} className="relative flex w-full pointer-events-auto items-center gap-2 mt-2">
-                                     <input type="file" ref={fileInputRef} onChange={handleFileSelect} className="hidden" accept="image/png, image/jpeg, image/gif" />
-                                    <div className="relative flex-1 bg-transparent border border-white/50 rounded-2xl overflow-hidden flex flex-col">
-                                        {(selectedGif || imageAttachment) && (
-                                            <div className='p-2'>
-                                                <div className="relative w-32 h-24">
-                                                    <Image src={imageAttachment?.url || selectedGif?.images.fixed_width.url || ''} alt={imageAttachment?.file.name || selectedGif?.title || ''} fill className="object-cover rounded-md" />
-                                                    <Button variant="destructive" size="icon" className="absolute -top-2 -right-2 h-6 w-6 rounded-full" onClick={() => { setSelectedGif(null); setImageAttachment(null); }}>
-                                                        <X className="h-4 w-4" />
-                                                    </Button>
-                                                </div>
-                                                <Separator className='my-2 bg-white/20'/>
-                                            </div>
-                                        )}
-                                        <div className="relative flex items-center">
-                                            <Textarea
-                                                ref={textareaRef}
-                                                placeholder="Add a comment..."
-                                                value={newMessage}
-                                                onChange={(e) => setNewMessage(e.target.value)}
-                                                onKeyDown={(e) => {
-                                                    if (e.key === 'Enter' && !e.shiftKey) {
-                                                        e.preventDefault();
-                                                        handleSendMessage(e);
-                                                    }
-                                                }}
-                                                className={cn(
-                                                    "bg-transparent border-none placeholder:text-white w-full min-h-[40px] h-10 resize-none py-2 pr-24 pl-4 focus-visible:ring-0",
-                                                    (selectedGif || imageAttachment) ? "rounded-b-2xl rounded-t-none" : "rounded-2xl"
-                                                )}
-                                                disabled={isSending}
-                                            />
-                                            <div className="absolute bottom-1 right-1 flex items-center">
-                                                <Button size="icon" type="button" variant="ghost" className="rounded-full h-9 w-9 text-white" onClick={() => fileInputRef.current?.click()} disabled={isSending}>
-                                                    <Paperclip className="h-5 w-5" />
-                                                </Button>
-                                                <Popover open={isGifPickerOpen} onOpenChange={setIsGifPickerOpen}>
-                                                    <PopoverTrigger asChild>
-                                                        <Button size="icon" type="button" variant="ghost" className="rounded-full h-9 w-9 text-white" disabled={isSending}>
-                                                            <b className="text-xs">GIF</b>
-                                                        </Button>
-                                                    </PopoverTrigger>
-                                                    <PopoverContent className="w-screen sm:w-96 h-96 p-0 border-zinc-700 bg-zinc-900" side="top" align="end">
-                                                    <GifPicker onSendGif={handleGifSelect} />
-                                                    </PopoverContent>
-                                                </Popover>
-                                                <Button variant="ghost" size="icon" type="submit" className="text-white hover:bg-transparent hover:text-white h-9 w-9" disabled={isSending}>
-                                                    {isSending ? <Loader2 className="h-5 w-5 animate-spin" /> : <ArrowUp className="h-5 w-5" />}
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                )}
+                <FeedItemHeader broadcast={broadcast} />
+                <FeedItemActions broadcast={broadcast} broadcastContext={broadcastContext} />
+                <FeedItemChat broadcast={broadcast} />
             </div>
         </div>
     );
@@ -721,10 +307,3 @@ export default function HomePage() {
         </Suspense>
     )
 }
-
-
-
-
-    
-
-    
