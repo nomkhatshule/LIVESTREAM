@@ -76,7 +76,7 @@ function ChallengeCreator() {
                 <CardContent className="space-y-4">
                     <Textarea
                         placeholder="e.g., 'Try to beat my high score in GeoGuesser'"
-                        className="min-h-[120px] bg-white border-zinc-300 text-black placeholder:text-zinc-500 rounded-lg focus-visible:ring-1"
+                        className="min-h-[120px] bg-white border-stone-200 text-black placeholder:text-zinc-500 rounded-lg focus-visible:ring-1"
                         value={challengeText}
                         onChange={(e) => setChallengeText(e.target.value)}
                     />
