@@ -108,7 +108,7 @@ export default function ChallengeCardManager({
                                     onClick={() => onGenerateNextChallenge(broadcastData.activeChallengeType!)}
                                 >
                                     <Check className="mr-2 h-5 w-5" />
-                                    Continue
+                                    Complete
                                 </Button>
                             )}
                         </div>
