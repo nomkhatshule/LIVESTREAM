@@ -87,7 +87,7 @@ export default function ActivityPanel({ notifications, isLoading: areNotificatio
                                     ) : (
                                         <ActivityItem activity={item} />
                                     )}
-                                    {index < combinedActivity.length - 1 && <Separator className="bg-zinc-800 my-2" />}
+                                    {index < combinedActivity.length - 1 && <Separator className="bg-zinc-700 my-2" />}
                                </React.Fragment>
                             ))}
                         </div>
