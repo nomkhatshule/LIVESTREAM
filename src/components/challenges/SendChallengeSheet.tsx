@@ -111,7 +111,7 @@ export default function SendChallengeSheet({
                         searchBoxPlaceholder='Search for a friend...'
                     />
                     <div className="mt-auto pt-4 border-t">
-                        <Button variant="outline" className="w-full" onClick={handlePostToPublic}>
+                        <Button className="w-full bg-white text-black hover:bg-zinc-200" onClick={handlePostToPublic}>
                             Post to Public Challenge Board
                         </Button>
                     </div>
