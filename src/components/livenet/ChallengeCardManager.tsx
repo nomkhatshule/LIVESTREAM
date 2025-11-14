@@ -62,7 +62,7 @@ export default function ChallengeCardManager({
     
     return (
         <div 
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-20"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-auto z-20"
             style={{
               transform: `translate(calc(-50% + ${cardPosition.x}px), calc(-50% + ${cardPosition.y}px))`,
             }}
@@ -84,7 +84,7 @@ export default function ChallengeCardManager({
                 className="relative"
             >
                 <div 
-                  className={cn("pointer-events-auto h-full w-full", isDragging ? 'cursor-grabbing' : 'cursor-grab')}
+                  className={cn("h-full w-full", isDragging ? 'cursor-grabbing' : 'cursor-grab')}
                   onMouseDown={onMouseDown}
                   onTouchStart={onTouchStart}
                   onTouchMove={onTouchMove}
