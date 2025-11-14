@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "User": {
@@ -367,6 +368,21 @@
         "isRead",
         "timestamp"
       ]
+    },
+    "Challenge": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Challenge",
+      "type": "object",
+      "description": "Represents a challenge sent from one user to another.",
+      "properties": {
+        "fromUserId": { "type": "string" },
+        "fromUsername": { "type": "string" },
+        "fromUserAvatar": { "type": "string", "format": "uri" },
+        "text": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "accepted", "rejected", "completed"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["fromUserId", "fromUsername", "text", "status", "createdAt"]
     }
   },
   "auth": {
@@ -467,10 +483,16 @@
           },
           "description": "Sub-collection storing notifications for a specific user."
         }
+      },
+      {
+        "path": "/users/{userId}/challenges/{challengeId}",
+        "definition": {
+            "entityName": "Challenge",
+            "schema": { "$ref": "#/entities/Challenge" },
+            "description": "Sub-collection for challenges sent to a user."
+        }
       }
     ],
-    "reasoning": "This Firestore structure is designed for a scalable and feature-rich live streaming application. It uses a root `broadcasts` collection for discoverability and nests ephemeral or stream-specific data like chat, reactions, likes, and guests in sub-collections. User profiles are kept in a separate root collection to avoid data duplication and to house user-specific sub-collections like `following` and `followers`. Denormalization of host information on the `Broadcast` document optimizes for read-heavy client scenarios, reducing the need for extra lookups."
+    "reasoning": "This Firestore structure is designed for a scalable and feature-rich live streaming application. It uses a root `broadcasts` collection for discoverability and nests ephemeral or stream-specific data like chat, reactions, likes, and guests in sub-collections. User profiles are kept in a separate root collection to avoid data duplication and to house user-specific sub-collections like `following` and `followers`. The new `challenges` sub-collection under users is for the core social challenge loop."
   }
 }
-
-    

@@ -7,15 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Sparkles, Send, Users, Wand2, Search } from 'lucide-react';
+import { Sparkles, Users, Wand2 } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { UserSearch } from '@/components/search/user-search';
-import { useUser, useUserDocument } from '@/firebase';
+import { useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { generateGamePrompts } from '@/ai/flows/generate-game-prompts';
-import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { collection, serverTimestamp } from 'firebase/firestore';
-import { useFirestore } from '@/firebase';
+import SendChallengeSheet from '@/components/challenges/SendChallengeSheet';
 
 
 // Mock data for the challenge board
@@ -29,11 +26,10 @@ const mockChallenges = [
 
 function ChallengeCreator() {
     const { user } = useUser();
-    const { userDocument } = useUserDocument();
-    const firestore = useFirestore();
     const { toast } = useToast();
     const [challengeText, setChallengeText] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
+    const [isSendSheetOpen, setIsSendSheetOpen] = useState(false);
 
     const handleGenerateChallenge = async () => {
         setIsGenerating(true);
@@ -44,7 +40,7 @@ function ChallengeCreator() {
                 count: 1,
             });
             if (result.prompts.length > 0) {
-                setChallengeText(result.prompts[0]);
+                setChallengeText(result.prompts[0].prompt);
             }
         } catch (error) {
             console.error("AI challenge generation failed:", error);
@@ -54,50 +50,49 @@ function ChallengeCreator() {
         }
     };
     
-    // This is a placeholder for sending. Needs the recipient selection logic.
-    const handleSendChallenge = () => {
-        if (!user || !challengeText.trim()) {
-            toast({ variant: 'destructive', title: "Missing info", description: 'Please write a challenge before sending.'});
+    const handleSendClick = () => {
+        if (!challengeText.trim()) {
+            toast({ variant: 'destructive', title: "Challenge is empty", description: 'Please write a challenge before sending.'});
             return;
         }
-
-        // In a real implementation, you'd select a user to send this to.
-        // For now, we'll simulate sending it and adding it to a public pool (which isn't implemented yet).
-        
-        toast({ title: 'Challenge Sent!', description: 'Your challenge has been sent.' });
-
-        // Optionally, reset after sending
-        setChallengeText('');
+        setIsSendSheetOpen(true);
     };
 
     return (
-        <Card className="w-full max-w-md mx-auto bg-card/80 backdrop-blur-lg border-white/20">
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                    <Wand2 />
-                    Create a Challenge
-                </CardTitle>
-                <CardDescription>Write your own challenge or let the AI create one for you. Then, send it to a friend.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                <Textarea
-                    placeholder="e.g., 'Try to beat my high score in GeoGuesser'"
-                    className="min-h-[100px] bg-background/80"
-                    value={challengeText}
-                    onChange={(e) => setChallengeText(e.target.value)}
-                />
-                <div className="flex flex-col sm:flex-row gap-2">
-                    <Button variant="outline" onClick={handleGenerateChallenge} disabled={isGenerating} className="flex-1">
-                        {isGenerating ? <Sparkles className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-                        AI Game Master
-                    </Button>
-                    <Button onClick={handleSendChallenge} className="flex-1">
-                        <Send className="mr-2 h-4 w-4" />
-                        Send Challenge
-                    </Button>
-                </div>
-            </CardContent>
-        </Card>
+        <>
+            <SendChallengeSheet
+                open={isSendSheetOpen}
+                onOpenChange={setIsSendSheetOpen}
+                challengeText={challengeText}
+                onSend={() => setChallengeText('')} // Clear text after sending
+            />
+            <Card className="w-full max-w-md mx-auto bg-card/80 backdrop-blur-lg border-white/20">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Wand2 />
+                        Create a Challenge
+                    </CardTitle>
+                    <CardDescription>Write your own challenge or let the AI create one for you. Then, send it to a friend.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <Textarea
+                        placeholder="e.g., 'Try to beat my high score in GeoGuesser'"
+                        className="min-h-[100px] bg-background/80"
+                        value={challengeText}
+                        onChange={(e) => setChallengeText(e.target.value)}
+                    />
+                    <div className="flex flex-col sm:flex-row gap-2">
+                        <Button variant="outline" onClick={handleGenerateChallenge} disabled={isGenerating} className="flex-1">
+                            {isGenerating ? <Sparkles className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                            AI Game Master
+                        </Button>
+                        <Button onClick={handleSendClick} className="flex-1 bg-white text-black hover:bg-gray-200">
+                            Send Challenge
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
+        </>
     )
 }
 

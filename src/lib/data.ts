@@ -93,8 +93,10 @@ export type GenerateGamePromptsInput = z.infer<
 >;
 
 export const GenerateGamePromptsOutputSchema = z.object({
-  prompts: z.array(z.string()).describe('The list of generated prompts.'),
-  durationsInSeconds: z.array(z.number()).describe('The duration in seconds for each corresponding prompt.'),
+  prompts: z.array(z.object({
+    prompt: z.string().describe("The generated prompt text."),
+    duration: z.number().describe("The suggested duration in seconds for the prompt.")
+  })).describe('The list of generated prompts with their durations.'),
 });
 export type GenerateGamePromptsOutput = z.infer<
   typeof GenerateGamePromptsOutputSchema

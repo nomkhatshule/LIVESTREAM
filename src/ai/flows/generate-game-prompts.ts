@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI agent that generates prompts for games like Truth or Dare.
@@ -49,7 +50,26 @@ const generateGamePromptsFlow = ai.defineFlow(
     outputSchema: GenerateGamePromptsOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
-    return output!;
+    const result = await prompt(input);
+    const output = result.output;
+    if (!output) {
+      throw new Error('No output from prompt.');
+    }
+    // The schema now expects an array of objects.
+    // Let's ensure the output matches this, even if the LLM returns flat arrays.
+    if (
+      output.prompts &&
+      output.prompts.length > 0 &&
+      typeof output.prompts[0] === 'string'
+    ) {
+      return {
+        prompts: output.prompts.map((p, i) => ({
+          prompt: p,
+          duration: output.durationsInSeconds?.[i] || 60,
+        })),
+      };
+    }
+    // If it's already in the correct format, just return it.
+    return output as GenerateGamePromptsOutput;
   }
 );
