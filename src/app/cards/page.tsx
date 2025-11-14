@@ -15,6 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { generateGamePrompts } from '@/ai/flows/generate-game-prompts';
 import SendChallengeSheet from '@/components/challenges/SendChallengeSheet';
 import Link from 'next/link';
+import { Separator } from '@/components/ui/separator';
 
 
 // Mock data for the challenge board
@@ -103,6 +104,7 @@ function ChallengeBoard() {
         <CardTitle className="font-headline">Public Challenges</CardTitle>
         <CardDescription className="text-zinc-600">Pick a challenge from the community to complete on your next stream.</CardDescription>
       </CardHeader>
+       <Separator className="bg-black/20" />
       <CardContent className="p-0">
         <div className="space-y-0">
             {mockChallenges.map((challenge, index) => (
