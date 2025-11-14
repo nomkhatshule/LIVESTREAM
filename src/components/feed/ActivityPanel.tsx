@@ -80,13 +80,14 @@ export default function ActivityPanel({ notifications, isLoading: areNotificatio
                         </>
                     ) : combinedActivity.length > 0 ? (
                         <div className="space-y-2">
-                            {combinedActivity.map((item: any) => (
+                            {combinedActivity.map((item: any, index: number) => (
                                <React.Fragment key={item.id}>
                                     {item.itemType === 'challenge' ? (
                                         <ChallengeNotificationItem challenge={item} />
                                     ) : (
                                         <ActivityItem activity={item} />
                                     )}
+                                    {index < combinedActivity.length - 1 && <Separator className="bg-zinc-800 my-2" />}
                                </React.Fragment>
                             ))}
                         </div>
