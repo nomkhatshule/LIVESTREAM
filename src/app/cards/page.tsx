@@ -77,7 +77,7 @@ function ChallengeCreator() {
                 <CardContent className="space-y-4">
                     <Textarea
                         placeholder="e.g., 'Try to beat my high score in GeoGuesser'"
-                        className="min-h-[120px] bg-white border-stone-200 text-black placeholder:text-zinc-500 rounded-lg focus-visible:ring-1"
+                        className="min-h-[120px] bg-white border-stone-200 text-black placeholder:text-zinc-500 rounded-lg focus-visible:ring-1 focus-visible:ring-black/20"
                         value={challengeText}
                         onChange={(e) => setChallengeText(e.target.value)}
                     />
@@ -98,31 +98,33 @@ function ChallengeCreator() {
 
 function ChallengeBoard() {
   return (
-    <Card className="w-full max-w-md mx-auto bg-white text-black border-black/20">
+    <Card className="w-full max-w-md mx-auto bg-white text-black border-black/20 overflow-hidden">
       <CardHeader>
         <CardTitle className="font-headline">Public Challenges</CardTitle>
         <CardDescription className="text-zinc-600">Pick a challenge from the community to complete on your next stream.</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-3 p-0">
-        {mockChallenges.map((challenge, index) => (
-          <div key={challenge.id} className="p-4 bg-zinc-100 border-zinc-200 border-b last:border-b-0">
-            <p className="text-sm font-medium text-zinc-800">"{challenge.text}"</p>
-            <div className="flex items-center justify-between mt-2">
-              <div className="flex items-center gap-2">
-                <Avatar className="h-6 w-6">
-                  <AvatarImage src={challenge.avatar} />
-                  <AvatarFallback>{challenge.author.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <span className="text-xs text-zinc-500">@{challenge.author}</span>
-              </div>
-              <Button size="sm" className="bg-black text-white hover:bg-zinc-800" asChild>
-                 <a href={`/broadcast/create?challenge=${encodeURIComponent(challenge.text)}&type=challenge`}>
-                    Accept
-                 </a>
-              </Button>
+      <CardContent className="p-0">
+        <div className="space-y-0">
+            {mockChallenges.map((challenge, index) => (
+            <div key={challenge.id} className="p-4 border-b border-black/20 last:border-b-0">
+                <p className="text-sm font-medium text-zinc-800">"{challenge.text}"</p>
+                <div className="flex items-center justify-between mt-2">
+                <div className="flex items-center gap-2">
+                    <Avatar className="h-6 w-6">
+                    <AvatarImage src={challenge.avatar} />
+                    <AvatarFallback>{challenge.author.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <span className="text-xs text-zinc-500">@{challenge.author}</span>
+                </div>
+                <Button size="sm" className="bg-black text-white hover:bg-zinc-800" asChild>
+                    <a href={`/broadcast/create?challenge=${encodeURIComponent(challenge.text)}&type=challenge`}>
+                        Accept
+                    </a>
+                </Button>
+                </div>
             </div>
-          </div>
-        ))}
+            ))}
+        </div>
       </CardContent>
     </Card>
   );
