@@ -66,27 +66,27 @@ function ChallengeCreator() {
                 challengeText={challengeText}
                 onSend={() => setChallengeText('')} // Clear text after sending
             />
-            <Card className="w-full max-w-md mx-auto bg-card/80 backdrop-blur-lg border-white/20">
+            <Card className="w-full max-w-md mx-auto bg-white text-black border-black/20">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2 font-headline">
                         <Wand2 />
                         Create a Challenge
                     </CardTitle>
-                    <CardDescription>Write your own challenge or let the AI create one for you. Then, send it to a friend.</CardDescription>
+                    <CardDescription className="text-zinc-600">Write your own challenge or let the AI create one for you. Then, send it to a friend.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <Textarea
                         placeholder="e.g., 'Try to beat my high score in GeoGuesser'"
-                        className="min-h-[100px] bg-background/80"
+                        className="min-h-[100px] bg-zinc-100 border-zinc-300 text-black placeholder:text-zinc-500"
                         value={challengeText}
                         onChange={(e) => setChallengeText(e.target.value)}
                     />
                     <div className="flex flex-col sm:flex-row gap-2">
-                        <Button variant="outline" onClick={handleGenerateChallenge} disabled={isGenerating} className="flex-1">
+                        <Button variant="outline" onClick={handleGenerateChallenge} disabled={isGenerating} className="flex-1 text-black border-zinc-300 hover:bg-zinc-100">
                             {isGenerating ? <Sparkles className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
                             AI Game Master
                         </Button>
-                        <Button onClick={handleSendClick} className="flex-1 bg-white text-black hover:bg-gray-200">
+                        <Button onClick={handleSendClick} className="flex-1 bg-black text-white hover:bg-zinc-800">
                             Send Challenge
                         </Button>
                     </div>
@@ -98,24 +98,24 @@ function ChallengeCreator() {
 
 function ChallengeBoard() {
   return (
-    <Card className="w-full max-w-md mx-auto bg-card/80 backdrop-blur-lg border-white/20">
+    <Card className="w-full max-w-md mx-auto bg-white text-black border-black/20">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 font-headline"><Users /> Public Challenges</CardTitle>
-        <CardDescription>Pick a challenge from the community to complete on your next stream.</CardDescription>
+        <CardDescription className="text-zinc-600">Pick a challenge from the community to complete on your next stream.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
         {mockChallenges.map(challenge => (
-          <div key={challenge.id} className="p-3 bg-background/80 rounded-lg">
-            <p className="text-sm font-medium">"{challenge.text}"</p>
+          <div key={challenge.id} className="p-3 bg-zinc-100 rounded-lg border border-zinc-200">
+            <p className="text-sm font-medium text-zinc-800">"{challenge.text}"</p>
             <div className="flex items-center justify-between mt-2">
               <div className="flex items-center gap-2">
                 <Avatar className="h-6 w-6">
                   <AvatarImage src={challenge.avatar} />
                   <AvatarFallback>{challenge.author.charAt(0)}</AvatarFallback>
                 </Avatar>
-                <span className="text-xs text-muted-foreground">@{challenge.author}</span>
+                <span className="text-xs text-zinc-500">@{challenge.author}</span>
               </div>
-              <Button size="sm" asChild>
+              <Button size="sm" className="bg-black text-white hover:bg-zinc-800" asChild>
                  <a href={`/broadcast/create?challenge=${encodeURIComponent(challenge.text)}&type=challenge`}>
                     Accept
                  </a>
@@ -135,9 +135,9 @@ function ChallengesPageComponent() {
       <div className="absolute inset-0 bg-grid-zinc-800/20 [mask-image:linear-gradient(to_bottom,white_5%,transparent_100%)] z-0"></div>
       <div className="relative z-10 w-full">
          <Tabs defaultValue="create" className="w-full max-w-md mx-auto">
-          <TabsList className="grid w-full grid-cols-2 bg-card/80 backdrop-blur-lg border-white/20">
-            <TabsTrigger value="create">Create</TabsTrigger>
-            <TabsTrigger value="browse">Browse</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 bg-zinc-200 text-zinc-600 border border-zinc-300">
+            <TabsTrigger value="create" className="data-[state=active]:bg-white data-[state=active]:text-black">Create</TabsTrigger>
+            <TabsTrigger value="browse" className="data-[state=active]:bg-white data-[state=active]:text-black">Browse</TabsTrigger>
           </TabsList>
           <TabsContent value="create" className="mt-4">
             <ChallengeCreator />
