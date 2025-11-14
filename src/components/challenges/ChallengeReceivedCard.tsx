@@ -92,7 +92,7 @@ export default function ChallengeReceivedCard({ open, onOpenChange, challenge }:
                 <Swords className="h-8 w-8 text-primary" />
             </div>
 
-          <h2 className="text-2xl font-bold font-headline mb-2">A Challenger Appears!</h2>
+          <h2 className="text-2xl font-bold font-headline mb-2">Challenge Instructions</h2>
           
           <div className="flex items-center gap-2 mb-6">
             <Avatar className="h-6 w-6">
