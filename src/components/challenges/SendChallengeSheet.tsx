@@ -93,7 +93,7 @@ export default function SendChallengeSheet({
       <SheetContent side="bottom" className="rounded-t-2xl max-h-[85vh] bg-black text-white border-zinc-700">
         <SheetHeader>
           <SheetTitle>Send Challenge To...</SheetTitle>
-          <SheetDescription className="text-zinc-400">
+          <SheetDescription className="text-stone-200">
             Select a friend to send this challenge to, or post it publicly.
           </SheetDescription>
         </SheetHeader>
