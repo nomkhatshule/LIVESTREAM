@@ -101,15 +101,6 @@ export default function ChallengeCardManager({
                         ) : null}
                     >
                         <div className="flex w-full gap-2">
-                            <Button 
-                                size="lg" 
-                                variant="outline" 
-                                className="w-full bg-black/80 text-white" 
-                                onClick={() => onGenerateNextChallenge(broadcastData.activeChallengeType!)}
-                            >
-                                <Undo2 className="mr-2 h-5 w-5" />
-                                Skip
-                            </Button>
                             {isTimerFinished && (
                                <Button 
                                     size="lg" 
