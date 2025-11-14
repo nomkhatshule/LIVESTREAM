@@ -68,7 +68,7 @@ function ChallengeCreator() {
                 challengeText={challengeText}
                 onSend={() => setChallengeText('')} // Clear text after sending
             />
-            <Card className="w-full max-w-md mx-auto bg-white text-black border-black/20 rounded-none">
+            <Card className="w-full max-w-md mx-auto bg-white text-black border-black/20 rounded-lg">
                 <CardHeader className="text-center">
                     <CardTitle className="font-bold font-headline">
                         Create a Challenge
@@ -99,7 +99,7 @@ function ChallengeCreator() {
 
 function ChallengeBoard() {
   return (
-    <Card className="w-full max-w-md mx-auto bg-white text-black border-black/20 overflow-hidden rounded-none">
+    <Card className="w-full max-w-md mx-auto bg-white text-black border-black/20 overflow-hidden rounded-lg">
       <CardHeader>
         <CardTitle className="font-headline">Public Challenges</CardTitle>
         <CardDescription className="text-zinc-600">Pick a challenge from the community to complete on your next stream.</CardDescription>
