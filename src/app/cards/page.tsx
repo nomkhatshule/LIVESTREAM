@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo, Suspense } from 'react';
@@ -102,9 +103,9 @@ function ChallengeBoard() {
         <CardTitle className="font-headline">Public Challenges</CardTitle>
         <CardDescription className="text-zinc-600">Pick a challenge from the community to complete on your next stream.</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-3">
-        {mockChallenges.map(challenge => (
-          <div key={challenge.id} className="p-3 bg-zinc-100 rounded-md border border-zinc-200">
+      <CardContent className="space-y-3 p-0">
+        {mockChallenges.map((challenge, index) => (
+          <div key={challenge.id} className="p-4 bg-zinc-100 border-zinc-200 border-b last:border-b-0">
             <p className="text-sm font-medium text-zinc-800">"{challenge.text}"</p>
             <div className="flex items-center justify-between mt-2">
               <div className="flex items-center gap-2">
