@@ -82,7 +82,7 @@ function ChallengeCreator() {
                         onChange={(e) => setChallengeText(e.target.value)}
                     />
                     <div className="flex flex-col sm:flex-row gap-2">
-                        <Button onClick={handleGenerateChallenge} disabled={isGenerating} className="flex-1 bg-[#A050E6] text-white hover:bg-[#A050E6]/90">
+                        <Button onClick={handleGenerateChallenge} disabled={isGenerating} variant="outline" className="flex-1 bg-white text-black border-black hover:bg-zinc-100">
                             
                             Game Master
                         </Button>
