@@ -71,7 +71,7 @@ function ChallengeCreator() {
                     <CardTitle className="font-headline">
                         Create a Challenge
                     </CardTitle>
-                    <CardDescription className="text-zinc-600">Create a challenge, then send it to a friend.</CardDescription>
+                    <CardDescription className="text-zinc-600">Create and send a challenge to a friend.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <Textarea
