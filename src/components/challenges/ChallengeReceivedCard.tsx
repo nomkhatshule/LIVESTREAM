@@ -48,7 +48,7 @@ export default function ChallengeReceivedCard({ open, onOpenChange, challenge }:
             actorId: user.uid,
             actorName: userDocument.username || 'Someone',
             actorAvatar: userDocument.profilePicture || '',
-            entityInfo: `🚀 accepted your challenge and is going live!`,
+            entityInfo: `🚀 accepted your challenge: "${challenge.text}"`,
             isRead: false,
             timestamp: serverTimestamp()
         });
@@ -65,7 +65,7 @@ export default function ChallengeReceivedCard({ open, onOpenChange, challenge }:
             actorId: user.uid,
             actorName: userDocument.username || 'Someone',
             actorAvatar: userDocument.profilePicture || '',
-            entityInfo: `😅 declined your challenge for now.`,
+            entityInfo: `😅 declined your challenge: "${challenge.text}"`,
             isRead: false,
             timestamp: serverTimestamp()
         });
