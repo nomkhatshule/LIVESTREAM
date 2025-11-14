@@ -35,10 +35,10 @@ export default function ChallengeDisplayCard({ text, type, size = 'large', varia
   return (
     <div className={cn(
         "relative transform -rotate-3 transition-transform hover:rotate-0 hover:scale-105",
-         "w-full"
+         "w-full max-w-xs"
     )}>
       {/* Main Card */}
-      <div className="bg-[#fefabc] rounded-lg shadow-2xl flex flex-col items-center text-black p-6">
+      <div className="bg-[#fefabc] rounded-lg shadow-2xl flex flex-col items-center text-black p-4 md:p-6 space-y-2">
         {onClose && (
             <Button
               variant="ghost"
@@ -51,7 +51,7 @@ export default function ChallengeDisplayCard({ text, type, size = 'large', varia
         )}
         
         <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-             <Badge className={cn("text-sm", badgeInfo.className)}>
+             <Badge className={cn("text-xs md:text-sm", badgeInfo.className)}>
                 {badgeInfo.text}
             </Badge>
         </div>
@@ -60,10 +60,10 @@ export default function ChallengeDisplayCard({ text, type, size = 'large', varia
             {timer}
         </div>
         
-        <div className="w-full flex flex-col items-center justify-center text-center px-4 py-2 my-4">
+        <div className="w-full flex flex-col items-center justify-center text-center px-2 md:px-4 py-2 my-2 md:my-4">
             <h2 className={cn(
                 "font-bold font-headline",
-                size === 'large' ? 'text-xl' : 'text-lg'
+                size === 'large' ? 'text-lg md:text-xl' : 'text-base md:text-lg'
             )}>{text}</h2>
         </div>
         
