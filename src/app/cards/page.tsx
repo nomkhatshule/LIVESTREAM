@@ -83,7 +83,7 @@ function ChallengeCreator() {
                     <div className="flex flex-col sm:flex-row gap-2">
                         <Button onClick={handleGenerateChallenge} disabled={isGenerating} className="flex-1 bg-[#A050E6] text-white hover:bg-[#A050E6]/90">
                             {isGenerating && <Sparkles className="mr-2 h-4 w-4 animate-spin" />}
-                            AI Game Master
+                            Game Master
                         </Button>
                         <Button onClick={handleSendClick} className="flex-1 bg-black text-white hover:bg-zinc-800">
                             Send Challenge
