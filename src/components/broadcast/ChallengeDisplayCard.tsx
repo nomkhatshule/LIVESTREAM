@@ -11,7 +11,7 @@ interface ChallengeDisplayCardProps {
   text: string;
   type: 'truth' | 'dare' | 'challenge';
   size?: 'large' | 'small';
-  variant?: 'stacked' | 'simple'; // This prop is no longer used for styling but kept for compatibility
+  variant?: 'stacked' | 'simple';
   children?: React.ReactNode; // For action buttons
   onClose?: () => void;
   timer?: React.ReactNode;
@@ -34,11 +34,11 @@ export default function ChallengeDisplayCard({ text, type, size = 'large', varia
 
   return (
     <div className={cn(
-        "relative w-full transform -rotate-3 transition-transform hover:rotate-0 hover:scale-105",
-        size === 'large' ? 'max-w-[280px] aspect-square' : 'max-w-[220px] aspect-square'
+        "relative transform -rotate-3 transition-transform hover:rotate-0 hover:scale-105",
+         size === 'large' ? 'w-72' : 'w-56' // Set a base width instead of max-w and aspect ratio
     )}>
       {/* Main Card */}
-      <div className="absolute top-0 left-0 w-full h-full bg-[#fefabc] rounded-lg p-6 shadow-2xl flex flex-col items-center justify-between text-black">
+      <div className="absolute top-0 left-0 w-full h-full bg-[#fefabc] rounded-lg shadow-2xl flex flex-col items-center justify-between text-black p-6">
         {onClose && (
             <Button
               variant="ghost"
@@ -60,7 +60,7 @@ export default function ChallengeDisplayCard({ text, type, size = 'large', varia
             {timer}
         </div>
         
-        <div className="flex-grow w-full flex flex-col items-center justify-center text-center px-4">
+        <div className="flex-grow w-full flex flex-col items-center justify-center text-center px-4 py-2">
             <h2 className={cn(
                 "font-bold font-headline",
                 size === 'large' ? 'text-xl' : 'text-lg'
@@ -68,7 +68,7 @@ export default function ChallengeDisplayCard({ text, type, size = 'large', varia
         </div>
         
         {children && (
-            <div className="w-full flex flex-row justify-between items-center gap-x-2">
+            <div className="w-full flex flex-row justify-between items-center gap-x-2 pt-2">
                 {children}
             </div>
         )}
