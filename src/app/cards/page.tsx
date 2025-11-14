@@ -137,7 +137,7 @@ function ChallengesPageComponent() {
   const router = useRouter();
   return (
     <div className="relative min-h-[calc(100vh-4rem)] w-full flex flex-col items-center justify-center p-4 bg-black">
-       <Button variant="outline" asChild className="absolute top-8 left-8 bg-transparent text-white border-zinc-700 hover:bg-zinc-900 hover:text-white">
+       <Button variant="outline" asChild className="absolute top-8 left-8 bg-transparent text-white border-zinc-700 hover:bg-zinc-900 hover:text-white z-20">
           <Link href="/feed">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Go to Feed
