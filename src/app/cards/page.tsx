@@ -76,13 +76,13 @@ function ChallengeCreator() {
                 <CardContent className="space-y-4">
                     <Textarea
                         placeholder="e.g., 'Try to beat my high score in GeoGuesser'"
-                        className="min-h-[120px] bg-white border-zinc-300 text-black placeholder:text-zinc-500 rounded-lg"
+                        className="min-h-[120px] bg-white border-zinc-300 text-black placeholder:text-zinc-500 rounded-lg focus-visible:ring-1"
                         value={challengeText}
                         onChange={(e) => setChallengeText(e.target.value)}
                     />
                     <div className="flex flex-col sm:flex-row gap-2">
                         <Button onClick={handleGenerateChallenge} disabled={isGenerating} className="flex-1 bg-[#A050E6] text-white hover:bg-[#A050E6]/90">
-                            {isGenerating && <Sparkles className="mr-2 h-4 w-4 animate-spin" />}
+                            
                             Game Master
                         </Button>
                         <Button onClick={handleSendClick} className="flex-1 bg-black text-white hover:bg-zinc-800">
