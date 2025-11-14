@@ -68,7 +68,7 @@ function ChallengeCreator() {
             />
             <Card className="w-full max-w-md mx-auto bg-white text-black border-black/20">
                 <CardHeader className="text-center">
-                    <CardTitle className="font-headline">
+                    <CardTitle className="font-bold font-headline">
                         Create a Challenge
                     </CardTitle>
                     <CardDescription className="text-zinc-600">Create and send a challenge to a friend.</CardDescription>
@@ -134,9 +134,9 @@ function ChallengesPageComponent() {
       <div className="absolute inset-0 bg-grid-zinc-800/20 [mask-image:linear-gradient(to_bottom,white_5%,transparent_100%)] z-0"></div>
       <div className="relative z-10 w-full">
          <Tabs defaultValue="create" className="w-full max-w-md mx-auto">
-          <TabsList className="grid w-full grid-cols-2 bg-zinc-200 text-zinc-600 border border-zinc-300">
-            <TabsTrigger value="create" className="data-[state=active]:bg-white data-[state=active]:text-black">Create</TabsTrigger>
-            <TabsTrigger value="browse" className="data-[state=active]:bg-white data-[state=active]:text-black">Browse</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 bg-zinc-200 text-black border border-zinc-300">
+            <TabsTrigger value="create" className="data-[state=active]:bg-black data-[state=active]:text-white">Create</TabsTrigger>
+            <TabsTrigger value="browse" className="data-[state=active]:bg-black data-[state=active]:text-white">Browse</TabsTrigger>
           </TabsList>
           <TabsContent value="create" className="mt-4">
             <ChallengeCreator />
