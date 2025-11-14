@@ -68,7 +68,7 @@ function ChallengeCreator() {
             />
             <Card className="w-full max-w-md mx-auto bg-card/80 backdrop-blur-lg border-white/20">
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
+                    <CardTitle className="flex items-center gap-2 font-headline">
                         <Wand2 />
                         Create a Challenge
                     </CardTitle>
@@ -100,7 +100,7 @@ function ChallengeBoard() {
   return (
     <Card className="w-full max-w-md mx-auto bg-card/80 backdrop-blur-lg border-white/20">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2"><Users /> Public Challenges</CardTitle>
+        <CardTitle className="flex items-center gap-2 font-headline"><Users /> Public Challenges</CardTitle>
         <CardDescription>Pick a challenge from the community to complete on your next stream.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
