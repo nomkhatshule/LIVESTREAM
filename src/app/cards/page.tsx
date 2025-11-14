@@ -69,8 +69,8 @@ function ChallengeCreator() {
                 onSend={() => setChallengeText('')} // Clear text after sending
             />
             <Card className="w-full max-w-md mx-auto bg-white text-black border-black/20 rounded-lg">
-                <CardHeader className="text-center">
-                    <CardTitle className="font-bold font-headline">
+                <CardHeader>
+                    <CardTitle className="font-bold font-headline text-lg">
                         Create a Challenge
                     </CardTitle>
                 </CardHeader>
