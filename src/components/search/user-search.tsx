@@ -134,7 +134,7 @@ export function UserSearch({ children, onSelectUser, showSeparator = true, searc
           className="mb-1"
           classNames={{
             root: 'relative w-full',
-            input: 'w-full h-9 pl-8 pr-4 rounded-md border border-white bg-transparent text-white text-sm ring-offset-background placeholder:text-white/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+            input: 'w-full h-9 pl-8 pr-4 rounded-md border border-white bg-transparent text-white text-sm ring-offset-background placeholder:text-white/70 focus-visible:outline-none',
             submitIcon: 'hidden',
             resetIcon: 'hidden',
             loadingIndicator: 'absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin',
