@@ -10,6 +10,8 @@ import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebas
 import { collection, query, orderBy, where } from 'firebase/firestore';
 import { useMemo, useState } from "react";
 import ChallengeNotificationItem from "./ChallengeNotificationItem";
+import { Separator } from "../ui/separator";
+import React from "react";
 
 interface ActivityPanelProps {
     notifications: Notification[];
@@ -68,7 +70,7 @@ export default function ActivityPanel({ notifications, isLoading: areNotificatio
                 </SheetDescription>
             </SheetHeader>
             <ScrollArea className="h-[calc(100%-4rem)] -mx-6">
-                <div className="px-6 py-4 space-y-1">
+                <div className="px-6 py-4">
                     {isLoading ? (
                         <>
                             <ActivitySkeleton />
@@ -76,12 +78,16 @@ export default function ActivityPanel({ notifications, isLoading: areNotificatio
                             <ActivitySkeleton />
                         </>
                     ) : combinedActivity.length > 0 ? (
-                        combinedActivity.map((item: any) => {
-                            if (item.itemType === 'challenge') {
-                                return <ChallengeNotificationItem key={`challenge-${item.id}`} challenge={item} />;
-                            }
-                            return <ActivityItem key={`notification-${item.id}`} activity={item} />;
-                        })
+                        combinedActivity.map((item: any, index: number) => (
+                           <React.Fragment key={item.id}>
+                                {item.itemType === 'challenge' ? (
+                                    <ChallengeNotificationItem challenge={item} />
+                                ) : (
+                                    <ActivityItem activity={item} />
+                                )}
+                                {index < combinedActivity.length - 1 && <Separator className="my-2 bg-zinc-800" />}
+                           </React.Fragment>
+                        ))
                     ) : (
                         <div className="flex flex-col items-center justify-center h-full text-center text-zinc-500 pt-24">
                            <MessageCircleHeart className="h-12 w-12 mb-4" />
