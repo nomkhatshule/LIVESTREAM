@@ -67,9 +67,8 @@ function ChallengeCreator() {
                 onSend={() => setChallengeText('')} // Clear text after sending
             />
             <Card className="w-full max-w-md mx-auto bg-white text-black border-black/20">
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2 font-headline">
-                        <Wand2 />
+                <CardHeader className="text-center">
+                    <CardTitle className="font-headline">
                         Create a Challenge
                     </CardTitle>
                     <CardDescription className="text-zinc-600">Write your own challenge or let the AI create one for you. Then, send it to a friend.</CardDescription>
