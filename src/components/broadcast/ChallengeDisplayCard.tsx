@@ -11,7 +11,7 @@ interface ChallengeDisplayCardProps {
   text: string;
   type: 'truth' | 'dare' | 'challenge';
   size?: 'large' | 'small';
-  variant?: 'stacked' | 'simple'; // New prop
+  variant?: 'stacked' | 'simple'; // This prop is no longer used for styling but kept for compatibility
   children?: React.ReactNode; // For action buttons
   onClose?: () => void;
   timer?: React.ReactNode;
@@ -21,12 +21,12 @@ export default function ChallengeDisplayCard({ text, type, size = 'large', varia
   const getBadgeInfo = () => {
     switch (type) {
       case 'truth':
-        return { text: 'TRUTH', className: 'bg-primary text-primary-foreground' };
+        return { text: 'TRUTH', className: 'bg-pink-500 text-white' };
       case 'dare':
-        return { text: 'DARE', className: 'bg-destructive text-destructive-foreground' };
+        return { text: 'DARE', className: 'bg-purple-600 text-white' };
       case 'challenge':
       default:
-        return { text: 'CHALLENGE', className: 'bg-primary text-primary-foreground' };
+        return { text: 'CHALLENGE', className: 'bg-blue-500 text-white' };
     }
   };
 
@@ -34,47 +34,40 @@ export default function ChallengeDisplayCard({ text, type, size = 'large', varia
 
   return (
     <div className={cn(
-        "relative w-full",
-        size === 'large' ? 'max-w-sm h-[550px]' : 'max-w-xs h-[480px]'
+        "relative w-full transform -rotate-3 transition-transform hover:rotate-0 hover:scale-105",
+        size === 'large' ? 'max-w-xs aspect-square' : 'max-w-[280px] aspect-square'
     )}>
-      {variant === 'stacked' && (
-        <>
-          <div className="absolute top-0 left-0 w-full h-full bg-white/80 rounded-3xl p-4 shadow-2xl transform -rotate-6 scale-95" />
-          <div className="absolute top-0 left-0 w-full h-full bg-white/90 rounded-3xl p-4 shadow-2xl transform rotate-3 scale-95" />
-        </>
-      )}
       {/* Main Card */}
-      <div className="absolute top-0 left-0 w-full h-full bg-white rounded-3xl p-6 shadow-2xl flex flex-col items-center justify-center">
+      <div className="absolute top-0 left-0 w-full h-full bg-[#fefabc] rounded-lg p-6 shadow-2xl flex flex-col items-center justify-between text-black">
         {onClose && (
             <Button
               variant="ghost"
               size="icon"
-              className="absolute top-2 right-2 h-10 w-10 text-muted-foreground rounded-full hover:bg-black/10"
+              className="absolute top-1 right-1 h-8 w-8 text-gray-500 rounded-full hover:bg-black/10"
               onClick={onClose}
             >
-              <X className="h-6 w-6" />
+              <X className="h-5 w-5" />
             </Button>
         )}
-        <div className="relative mb-4 w-full h-12">
-            {timer && (
-                <div className="absolute top-0 left-0">
-                    {timer}
-                </div>
-            )}
-            <div className="absolute inset-x-0 top-0 flex justify-center">
-                <Badge className={cn("text-lg", badgeInfo.className)}>
-                    {badgeInfo.text}
-                </Badge>
-            </div>
+        <div className="relative mt-4 w-full h-8 flex justify-center">
+            {timer}
         </div>
-        <div className="flex-grow w-full flex flex-col items-center justify-center text-center">
+        
+        <div className="flex-grow w-full flex flex-col items-center justify-center text-center px-4">
             <h2 className={cn(
-                "font-bold text-black font-headline",
-                size === 'large' ? 'text-2xl' : 'text-2xl'
+                "font-bold font-headline",
+                size === 'large' ? 'text-2xl' : 'text-xl'
             )}>{text}</h2>
         </div>
+
+        <div className="mb-2">
+             <Badge className={cn("text-sm", badgeInfo.className)}>
+                {badgeInfo.text}
+            </Badge>
+        </div>
+        
         {children && (
-            <div className="mt-auto pt-4 w-full flex flex-row justify-between items-center gap-x-2">
+            <div className="w-full flex flex-row justify-between items-center gap-x-2">
                 {children}
             </div>
         )}
@@ -82,5 +75,3 @@ export default function ChallengeDisplayCard({ text, type, size = 'large', varia
     </div>
   );
 }
-
-    
