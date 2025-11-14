@@ -99,7 +99,7 @@ function ChallengeBoard() {
   return (
     <Card className="w-full max-w-md mx-auto bg-white text-black border-black/20">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 font-headline"><Users /> Public Challenges</CardTitle>
+        <CardTitle className="font-headline">Public Challenges</CardTitle>
         <CardDescription className="text-zinc-600">Pick a challenge from the community to complete on your next stream.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
