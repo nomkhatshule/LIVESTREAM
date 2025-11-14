@@ -8,7 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useParams } from 'next/navigation';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useUserDocument } from '@/firebase';
 import { Button } from '@/components/ui/button';
-import { doc, writeBatch, serverTimestamp, where, query, orderBy, limit, collection, getCountFromServer, onSnapshot } from 'firebase/firestore';
+import { doc, writeBatch, serverTimestamp, where, query, orderBy, limit, collection, getCountFromServer } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { useMemo, useState, useEffect } from 'react';
 import { UserPlus, UserCheck, MessageSquare, Heart, Eye, Gem, Gift, Video, Settings, X } from 'lucide-react';
@@ -82,44 +82,30 @@ export default function UserProfilePage() {
     }
 
     let isMounted = true;
-    let currentTotalLikes = 0;
-
-    const listeners = userBroadcasts.map(broadcast => {
-        const likesColRef = collection(firestore, 'broadcasts', broadcast.id, 'likes');
-        
-        return onSnapshot(likesColRef, (snapshot) => {
-            if (isMounted) {
-                // This is a simplified approach. For a very high number of broadcasts,
-                // you might need a more sophisticated aggregation strategy.
-                // However, for most user profiles, this is efficient enough.
-                setTotalLikes(prevTotal => {
-                    // To avoid double-counting, we'd need to track previous size.
-                    // A simpler way for real-time is often server-side aggregation (e.g., Cloud Functions).
-                    // For client-side, we can refetch all counts, which is what we'll simulate here.
-                    // This is NOT the most performant way but avoids complex state management.
-                    return prevTotal + snapshot.size; // This is a simplification and might lead to drift
-                });
-            }
-        });
-    });
     
-    // A more accurate but less real-time initial count
+    // A more accurate and stable one-time fetch for total likes.
     const fetchAllLikes = async () => {
+        if (userBroadcasts.length === 0) {
+            if (isMounted) setTotalLikes(0);
+            return;
+        }
+
         const counts = await Promise.all(userBroadcasts.map(async broadcast => {
             const likesColRef = collection(firestore, 'broadcasts', broadcast.id, 'likes');
             const snapshot = await getCountFromServer(likesColRef);
             return snapshot.data().count;
         }));
-        if(isMounted) {
-            setTotalLikes(counts.reduce((sum, count) => sum + count, 0));
+
+        if (isMounted) {
+            const total = counts.reduce((sum, count) => sum + count, 0);
+            setTotalLikes(total);
         }
-    }
+    };
     
     fetchAllLikes();
 
     return () => {
       isMounted = false;
-      listeners.forEach(unsubscribe => unsubscribe());
     };
   }, [userBroadcasts, firestore]);
 
