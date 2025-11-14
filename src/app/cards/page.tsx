@@ -104,7 +104,7 @@ function ChallengeBoard() {
       </CardHeader>
       <CardContent className="space-y-3">
         {mockChallenges.map(challenge => (
-          <div key={challenge.id} className="p-3 bg-zinc-100 rounded-lg border border-zinc-200">
+          <div key={challenge.id} className="p-3 bg-zinc-100 rounded-md border border-zinc-200">
             <p className="text-sm font-medium text-zinc-800">"{challenge.text}"</p>
             <div className="flex items-center justify-between mt-2">
               <div className="flex items-center gap-2">
