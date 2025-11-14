@@ -128,13 +128,13 @@ export function UserSearch({ children, onSelectUser, showSeparator = true, searc
   return (
     <InstantSearch searchClient={searchClient} indexName="users">
       <div className="relative p-2">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white z-10" />
         <SearchBox
           placeholder={searchBoxPlaceholder}
           className="mb-1"
           classNames={{
             root: 'relative w-full',
-            input: 'w-full h-9 pl-8 pr-4 rounded-md border bg-background/50 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+            input: 'w-full h-9 pl-8 pr-4 rounded-md border border-white bg-transparent text-white text-sm ring-offset-background placeholder:text-white/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
             submitIcon: 'hidden',
             resetIcon: 'hidden',
             loadingIndicator: 'absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin',

@@ -90,10 +90,10 @@ export default function SendChallengeSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="rounded-t-2xl max-h-[85vh]">
+      <SheetContent side="bottom" className="rounded-t-2xl max-h-[85vh] bg-black text-white border-zinc-700">
         <SheetHeader>
           <SheetTitle>Send Challenge To...</SheetTitle>
-          <SheetDescription>
+          <SheetDescription className="text-zinc-400">
             Select a friend to send this challenge to, or post it publicly.
           </SheetDescription>
         </SheetHeader>
@@ -110,7 +110,7 @@ export default function SendChallengeSheet({
                         showSeparator={false}
                         searchBoxPlaceholder='Search for a friend...'
                     />
-                    <div className="mt-auto pt-4 border-t">
+                    <div className="mt-auto pt-4 border-t border-zinc-700">
                         <Button className="w-full bg-white text-black hover:bg-zinc-200" onClick={handlePostToPublic}>
                             Post to Public Challenge Board
                         </Button>
