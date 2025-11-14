@@ -35,10 +35,10 @@ export default function ChallengeDisplayCard({ text, type, size = 'large', varia
   return (
     <div className={cn(
         "relative transform -rotate-3 transition-transform hover:rotate-0 hover:scale-105",
-         size === 'large' ? 'w-72' : 'w-56' // Set a base width instead of max-w and aspect ratio
+         "w-full"
     )}>
       {/* Main Card */}
-      <div className="absolute top-0 left-0 w-full h-full bg-[#fefabc] rounded-lg shadow-2xl flex flex-col items-center justify-between text-black p-6">
+      <div className="bg-[#fefabc] rounded-lg shadow-2xl flex flex-col items-center text-black p-6">
         {onClose && (
             <Button
               variant="ghost"
@@ -60,7 +60,7 @@ export default function ChallengeDisplayCard({ text, type, size = 'large', varia
             {timer}
         </div>
         
-        <div className="flex-grow w-full flex flex-col items-center justify-center text-center px-4 py-2">
+        <div className="w-full flex flex-col items-center justify-center text-center px-4 py-2 my-4">
             <h2 className={cn(
                 "font-bold font-headline",
                 size === 'large' ? 'text-xl' : 'text-lg'
