@@ -26,7 +26,7 @@ export default function ChallengeDisplayCard({ text, type, size = 'large', varia
         return { text: 'DARE', className: 'bg-purple-600 text-white' };
       case 'challenge':
       default:
-        return { text: 'CHALLENGE', className: 'bg-blue-500 text-white' };
+        return { text: 'CHALLENGE', className: 'bg-black text-white' };
     }
   };
 
@@ -49,6 +49,13 @@ export default function ChallengeDisplayCard({ text, type, size = 'large', varia
               <X className="h-5 w-5" />
             </Button>
         )}
+        
+        <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+             <Badge className={cn("text-sm", badgeInfo.className)}>
+                {badgeInfo.text}
+            </Badge>
+        </div>
+
         <div className="relative mt-4 w-full h-8 flex justify-center">
             {timer}
         </div>
@@ -58,12 +65,6 @@ export default function ChallengeDisplayCard({ text, type, size = 'large', varia
                 "font-bold font-headline",
                 size === 'large' ? 'text-2xl' : 'text-xl'
             )}>{text}</h2>
-        </div>
-
-        <div className="mb-2">
-             <Badge className={cn("text-sm", badgeInfo.className)}>
-                {badgeInfo.text}
-            </Badge>
         </div>
         
         {children && (
