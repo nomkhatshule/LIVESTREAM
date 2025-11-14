@@ -35,7 +35,7 @@ export default function ChallengeDisplayCard({ text, type, size = 'large', varia
   return (
     <div className={cn(
         "relative w-full transform -rotate-3 transition-transform hover:rotate-0 hover:scale-105",
-        size === 'large' ? 'max-w-xs aspect-square' : 'max-w-[280px] aspect-square'
+        size === 'large' ? 'max-w-[280px] aspect-square' : 'max-w-[220px] aspect-square'
     )}>
       {/* Main Card */}
       <div className="absolute top-0 left-0 w-full h-full bg-[#fefabc] rounded-lg p-6 shadow-2xl flex flex-col items-center justify-between text-black">
@@ -63,7 +63,7 @@ export default function ChallengeDisplayCard({ text, type, size = 'large', varia
         <div className="flex-grow w-full flex flex-col items-center justify-center text-center px-4">
             <h2 className={cn(
                 "font-bold font-headline",
-                size === 'large' ? 'text-2xl' : 'text-xl'
+                size === 'large' ? 'text-xl' : 'text-lg'
             )}>{text}</h2>
         </div>
         
