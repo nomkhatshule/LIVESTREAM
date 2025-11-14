@@ -3,17 +3,18 @@
 'use client';
 
 import { useState, useMemo, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Sparkles, Users, Wand2 } from 'lucide-react';
+import { Sparkles, Users, Wand2, ArrowLeft } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { generateGamePrompts } from '@/ai/flows/generate-game-prompts';
 import SendChallengeSheet from '@/components/challenges/SendChallengeSheet';
+import Link from 'next/link';
 
 
 // Mock data for the challenge board
@@ -77,7 +78,7 @@ function ChallengeCreator() {
                 <CardContent className="space-y-4">
                     <Textarea
                         placeholder="e.g., 'Try to beat my high score in GeoGuesser'"
-                        className="min-h-[120px] bg-white border-stone-200 text-black placeholder:text-zinc-500 rounded-lg focus-visible:ring-1 focus-visible:ring-black/20"
+                        className="min-h-[120px] bg-white border-stone-200 text-black placeholder:text-zinc-500 rounded-lg"
                         value={challengeText}
                         onChange={(e) => setChallengeText(e.target.value)}
                     />
@@ -132,8 +133,15 @@ function ChallengeBoard() {
 
 
 function ChallengesPageComponent() {
+  const router = useRouter();
   return (
     <div className="relative min-h-[calc(100vh-4rem)] w-full flex flex-col items-center justify-center p-4 bg-black">
+       <Button variant="outline" asChild className="absolute top-8 left-8 bg-transparent text-white border-zinc-700 hover:bg-zinc-900 hover:text-white">
+          <Link href="/feed">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Go to Feed
+          </Link>
+        </Button>
       <div className="absolute inset-0 bg-grid-zinc-800/20 [mask-image:linear-gradient(to_bottom,white_5%,transparent_100%)] z-0"></div>
       <div className="relative z-10 w-full">
          <Tabs defaultValue="create" className="w-full max-w-md mx-auto">
