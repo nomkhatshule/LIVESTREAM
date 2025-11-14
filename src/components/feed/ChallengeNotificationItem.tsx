@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { Swords, Check, X } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import ChallengeReceivedCard from '../challenges/ChallengeReceivedCard';
+import Link from 'next/link';
 
 export default function ChallengeNotificationItem({ challenge }: { challenge: any }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -28,6 +29,10 @@ export default function ChallengeNotificationItem({ challenge }: { challenge: an
     
     const isPending = challenge.status === 'pending';
 
+    const challengeText = challenge.status === 'pending'
+    ? 'challenged you!'
+    : `challenge was ${challenge.status}.`
+
     return (
         <>
             <ChallengeReceivedCard
@@ -35,36 +40,39 @@ export default function ChallengeNotificationItem({ challenge }: { challenge: an
                 onOpenChange={setIsModalOpen}
                 challenge={challenge}
             />
-            <div className={cn(
-                "w-full text-left p-4 rounded-lg border transition-colors",
-                isPending ? "bg-zinc-800/50 border-primary/50 cursor-pointer hover:bg-zinc-800" : "bg-zinc-900/50 border-zinc-800 opacity-70"
-            )}
-             onClick={() => isPending && setIsModalOpen(true)}
-            >
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                         <div className="relative flex-shrink-0">
-                            <Avatar className="h-10 w-10">
-                                <AvatarImage src={challenge.fromUserAvatar} alt={challenge.fromUsername} />
-                                <AvatarFallback>{challenge.fromUsername.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                             <div className={cn("absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full text-white bg-primary")}>
-                                <Swords className="h-3 w-3" />
-                            </div>
-                        </div>
-                        <div className="text-sm">
-                            <p className="text-zinc-300">
-                                <span className="font-bold text-white">@{challenge.fromUsername}</span>
-                                {' '}challenged you!
-                            </p>
-                            <p className="mt-1 text-xs text-zinc-500">{timestamp}</p>
-                        </div>
+             <div className="flex items-start gap-3 p-3 transition-colors hover:bg-zinc-900/50 rounded-lg">
+                <div 
+                    className="relative flex-shrink-0"
+                    onClick={() => isPending && setIsModalOpen(true)}
+                >
+                    <Avatar className="h-10 w-10">
+                        <AvatarImage src={challenge.fromUserAvatar} alt={challenge.fromUsername} />
+                        <AvatarFallback>{challenge.fromUsername.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className={cn("absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full text-white bg-primary")}>
+                        <Swords className="h-3 w-3" />
                     </div>
-                     {statusIndicator() || (
-                        <Button size="sm" variant="outline" className="bg-transparent border-zinc-700 hover:bg-zinc-800 hover:text-white">View</Button>
-                    )}
                 </div>
-            </div>
+                <div className="flex-1 text-sm">
+                    <p className="text-zinc-300">
+                        <Link href={`/profile/${challenge.fromUserId}`} className="font-bold text-white hover:underline">
+                            @{challenge.fromUsername}
+                        </Link>
+                        {' '}{challengeText}
+                    </p>
+                     <blockquote 
+                        className={cn(
+                            "mt-1 border-l-2 pl-2 text-zinc-400 italic",
+                            isPending ? "cursor-pointer hover:border-primary" : "border-zinc-700"
+                         )}
+                         onClick={() => isPending && setIsModalOpen(true)}
+                     >
+                        "{challenge.text}"
+                    </blockquote>
+                    <p className="mt-1 text-xs text-zinc-500">{timestamp}</p>
+                </div>
+                {!isPending && statusIndicator()}
+             </div>
         </>
     );
 }
