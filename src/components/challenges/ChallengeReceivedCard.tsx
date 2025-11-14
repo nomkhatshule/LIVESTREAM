@@ -5,7 +5,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useFirestore, useUser } from '@/firebase';
 import { doc, updateDoc, serverTimestamp, collection } from 'firebase/firestore';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Swords, Loader2 } from 'lucide-react';
@@ -82,6 +83,10 @@ export default function ChallengeReceivedCard({ open, onOpenChange, challenge }:
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-zinc-900 border-zinc-700 text-white max-w-sm p-8 rounded-2xl shadow-2xl">
+        <VisuallyHidden>
+          <DialogTitle>Challenge Received</DialogTitle>
+          <DialogDescription>A challenge from user {challenge.fromUsername}. The challenge is: "{challenge.text}". You can accept and go live, or decline.</DialogDescription>
+        </VisuallyHidden>
         <div className="flex flex-col items-center text-center">
             <div className="p-4 bg-zinc-800 rounded-full mb-4 border-2 border-primary">
                 <Swords className="h-8 w-8 text-primary" />
