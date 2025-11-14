@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { Resizable } from 're-resizable';
@@ -23,7 +24,7 @@ interface ChallengeCardManagerProps {
     onTouchEnd: () => void;
     onResizeStop: (e: any, direction: any, ref: any, d: any) => void;
     onSetCardSize: (size: { width: number, height: number }) => void;
-    onGenerateNextChallenge: (gameType: 'truth' | 'dare' | 'challenge') => void;
+    onCompleteChallenge: () => void;
     broadcastDocRef: DocumentReference | null;
 }
 
@@ -40,7 +41,7 @@ export default function ChallengeCardManager({
     onTouchEnd,
     onResizeStop,
     onSetCardSize,
-    onGenerateNextChallenge,
+    onCompleteChallenge,
     broadcastDocRef,
 }: ChallengeCardManagerProps) {
 
@@ -101,16 +102,14 @@ export default function ChallengeCardManager({
                         ) : null}
                     >
                         <div className="flex w-full gap-2">
-                            {isTimerFinished && (
-                               <Button 
-                                    size="lg" 
-                                    className="w-full"
-                                    onClick={() => onGenerateNextChallenge(broadcastData.activeChallengeType!)}
-                                >
-                                    <Check className="mr-2 h-5 w-5" />
-                                    Complete
-                                </Button>
-                            )}
+                           <Button 
+                                size="lg" 
+                                className="w-full bg-black/90 text-white border-2 border-black hover:bg-black"
+                                onClick={onCompleteChallenge}
+                            >
+                                <Check className="mr-2 h-5 w-5" />
+                                Complete
+                            </Button>
                         </div>
                     </ChallengeDisplayCard>
                 </div>

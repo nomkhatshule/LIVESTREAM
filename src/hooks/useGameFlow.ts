@@ -3,12 +3,16 @@
 
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { doc, updateDoc, serverTimestamp, DocumentReference } from 'firebase/firestore';
+import { doc, updateDoc, serverTimestamp, DocumentReference, collection } from 'firebase/firestore';
 import { generateGamePrompts } from '@/ai/flows/generate-game-prompts';
 import type { BroadcastData, StagedChallenge } from '@/lib/types';
+import { useUser, useUserDocument } from '@/firebase';
+import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 export function useGameFlow(broadcastDocRef: DocumentReference | null, broadcastData: BroadcastData | null) {
     const { toast } = useToast();
+    const { user } = useUser();
+    const { userDocument } = useUserDocument();
     const [stagedChallenge, setStagedChallenge] = useState<StagedChallenge | null>(null);
     const [showChallengeCoverCard, setShowChallengeCoverCard] = useState(false);
     const [isChallengeVisible, setIsChallengeVisible] = useState(true);
@@ -70,6 +74,46 @@ export function useGameFlow(broadcastDocRef: DocumentReference | null, broadcast
         setStagedChallenge(null);
     };
 
+    const handleCompleteChallenge = async () => {
+        if (!broadcastDocRef || !broadcastData || !user || !userDocument) return;
+
+        // Send notification to the sender
+        if (broadcastData.challengeSenderId && broadcastData.challengeSenderId !== user.uid) {
+            const senderNotificationsRef = collection(broadcastDocRef.firestore, `users/${broadcastData.challengeSenderId}/notifications`);
+            addDocumentNonBlocking(senderNotificationsRef, {
+                userId: broadcastData.challengeSenderId,
+                type: 'comment', // Reusing for icon similarity
+                actorId: user.uid,
+                actorName: userDocument.username || 'Someone',
+                actorAvatar: userDocument.profilePicture || '',
+                entityInfo: `✅ completed your challenge: "${broadcastData.activeChallenge}"`,
+                isRead: false,
+                timestamp: serverTimestamp(),
+            });
+        }
+        
+        // Also update the original challenge document if it exists.
+        if (broadcastData.challengeSenderId) {
+             // We need to find the challenge ID - this is a simplification. 
+             // In a real app, we'd store the challengeId on the broadcast document.
+             // For now, we will assume this is sufficient for the notification.
+        }
+
+        // Clear the challenge from the broadcast
+        await updateDoc(broadcastDocRef, {
+            activeChallenge: null,
+            activeChallengeType: null,
+            challengeStartTime: null,
+            challengeDurationSeconds: null,
+            challengeSenderId: null,
+            challengeSenderName: null,
+            challengeSenderAvatar: null,
+        });
+
+        toast({ title: 'Challenge Completed!' });
+        setIsChallengeVisible(false);
+    };
+
     const handleGenerateNextChallenge = async (gameType: 'truth' | 'dare' | 'challenge') => {
         if (!broadcastDocRef) return;
         try {
@@ -79,11 +123,11 @@ export function useGameFlow(broadcastDocRef: DocumentReference | null, broadcast
                 count: 1,
             });
 
-            if (result.prompts && result.prompts.length > 0) {
+            if (result.prompts && result.prompts.length > 0 && result.prompts[0].prompt && result.prompts[0].duration) {
                 await updateDoc(broadcastDocRef, {
-                    activeChallenge: result.prompts[0],
+                    activeChallenge: result.prompts[0].prompt,
                     activeChallengeType: gameType,
-                    challengeDurationSeconds: result.durationsInSeconds[0] || 120,
+                    challengeDurationSeconds: result.prompts[0].duration,
                     challengeStartTime: serverTimestamp(),
                 });
             } else {
@@ -104,8 +148,7 @@ export function useGameFlow(broadcastDocRef: DocumentReference | null, broadcast
         handleStartStagedChallenge,
         handleCancelStagedChallenge,
         handleGenerateNextChallenge,
+        handleCompleteChallenge,
         setIsChallengeVisible,
     };
 }
-
-    

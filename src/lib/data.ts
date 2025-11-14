@@ -32,6 +32,7 @@ export type Broadcast = {
   challengeDurationSeconds?: number;
   challengeCardPosition?: { x: number, y: number };
   challengeCardSize?: { width: number, height: number };
+  challengeSenderId?: string;
 };
 
 export type Category = {
