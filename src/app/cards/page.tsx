@@ -68,7 +68,7 @@ function ChallengeCreator() {
                 challengeText={challengeText}
                 onSend={() => setChallengeText('')} // Clear text after sending
             />
-            <Card className="w-full max-w-md mx-auto bg-white text-black border-black/20">
+            <Card className="w-full max-w-md mx-auto bg-white text-black border-black/20 rounded-none">
                 <CardHeader className="text-center">
                     <CardTitle className="font-bold font-headline">
                         Create a Challenge
@@ -78,7 +78,7 @@ function ChallengeCreator() {
                 <CardContent className="space-y-4">
                     <Textarea
                         placeholder="e.g., 'Try to beat my high score in GeoGuesser'"
-                        className="min-h-[120px] bg-white border-stone-200 text-black placeholder:text-zinc-500 rounded-lg"
+                        className="min-h-[120px] bg-white border-stone-200 text-black placeholder:text-zinc-500 rounded-lg focus-visible:ring-0"
                         value={challengeText}
                         onChange={(e) => setChallengeText(e.target.value)}
                     />
@@ -99,7 +99,7 @@ function ChallengeCreator() {
 
 function ChallengeBoard() {
   return (
-    <Card className="w-full max-w-md mx-auto bg-white text-black border-black/20 overflow-hidden">
+    <Card className="w-full max-w-md mx-auto bg-white text-black border-black/20 overflow-hidden rounded-none">
       <CardHeader>
         <CardTitle className="font-headline">Public Challenges</CardTitle>
         <CardDescription className="text-zinc-600">Pick a challenge from the community to complete on your next stream.</CardDescription>
