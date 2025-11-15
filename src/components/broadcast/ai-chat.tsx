@@ -1,11 +1,10 @@
-
 'use client';
 
 import { useState, useRef, useEffect, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, ArrowUp, Bot, Loader2, Globe, Search, User, Calendar, Newspaper } from 'lucide-react';
+import { Send, ArrowUp, Bot, Loader2, Globe, Search, User, Calendar, Newspaper, Camera } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
 import {
@@ -34,6 +33,7 @@ type UserMessage = {
   sender: 'user';
   text: string;
   timestamp: string;
+  imagePreview?: string;
 };
 
 
@@ -94,7 +94,7 @@ export default function AIChat({
     {
       sender: 'ai',
       text: {
-        openingStatement: "Hi there! I'm your in-stream assistant. Ask me anything about what's happening in the stream. Toggle the globe icon to enable web search for real-time questions.",
+        openingStatement: "Hi there! I'm your in-stream assistant. Ask me anything about what's happening, or use the camera icon to ask a question about the current video frame.",
         body: ""
       },
       timestamp: format(new Date(), 'HH:mm'),
@@ -103,6 +103,7 @@ export default function AIChat({
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isWebSearchActive, setIsWebSearchActive] = useState(false);
+  const [frameDataUri, setFrameDataUri] = useState<string | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   const handleSendMessage = async (e: React.FormEvent) => {
@@ -113,11 +114,14 @@ export default function AIChat({
       sender: 'user',
       text: input,
       timestamp: format(new Date(), 'HH:mm'),
+      imagePreview: frameDataUri || undefined,
     };
 
     setMessages(prev => [...prev, userMessage]);
     const currentInput = input;
+    const currentFrame = frameDataUri;
     setInput('');
+    setFrameDataUri(null);
     setIsLoading(true);
 
     try {
@@ -125,6 +129,7 @@ export default function AIChat({
             query: currentInput,
             broadcastContext: broadcastContext,
             useWebSearch: isWebSearchActive,
+            videoFrame: currentFrame || undefined,
         });
 
         const aiResponse: AssistantMessage = {
@@ -150,8 +155,26 @@ export default function AIChat({
     }
   };
 
+  const handleScanFrame = () => {
+    const videoElement = document.querySelector('.str-video__video') as HTMLVideoElement;
+    if (!videoElement) {
+        alert('Could not find the video stream to capture.');
+        return;
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = videoElement.videoWidth;
+    canvas.height = videoElement.videoHeight;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+        ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+        const dataUri = canvas.toDataURL('image/jpeg');
+        setFrameDataUri(dataUri);
+    }
+  };
+
+
   useEffect(() => {
-    // Auto-scroll to the bottom when new messages are added
     if (scrollAreaRef.current) {
       const viewport = scrollAreaRef.current.querySelector(
         '[data-radix-scroll-area-viewport]'
@@ -163,7 +186,11 @@ export default function AIChat({
   }, [messages]);
 
   return (
-    <Sheet>
+    <Sheet onOpenChange={(isOpen) => {
+        if (!isOpen) {
+            setFrameDataUri(null); // Clear frame on close
+        }
+    }}>
       <SheetTrigger asChild>{children}</SheetTrigger>
       <SheetContent
         side="bottom"
@@ -174,7 +201,7 @@ export default function AIChat({
              {isWebSearchActive ? 'Web Search Enabled' : 'Your AI Stream Assistant'}
           </SheetTitle>
           <SheetDescription className="text-gray-500">
-             {isWebSearchActive ? 'Powered by Tavily' : 'Ask me anything about the stream.'}
+             {frameDataUri ? "Image captured! Ask a question about it." : "Ask me anything about the stream or scan a frame."}
           </SheetDescription>
         </SheetHeader>
 
@@ -204,7 +231,12 @@ export default function AIChat({
                         : 'text-black'
                     )}>
                       {msg.sender === 'user' ? (
-                          <p className="text-sm">{msg.text}</p>
+                          <div className="space-y-2">
+                            {msg.imagePreview && (
+                              <Image src={msg.imagePreview} alt="Scanned frame" width={150} height={100} className="rounded-lg" />
+                            )}
+                            <p className="text-sm">{msg.text}</p>
+                          </div>
                       ) : ( // msg.sender === 'ai'
                           <div className="space-y-2 text-sm prose prose-sm max-w-full">
                             <p>{msg.text.openingStatement}</p>
@@ -266,7 +298,7 @@ export default function AIChat({
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 placeholder={isWebSearchActive ? "Ask a real-time question..." : "Ask about the stream..."}
-                className="flex-1 bg-gray-100 text-black border-gray-300 placeholder:text-gray-500 rounded-full pr-20 focus-visible:ring-0 focus-visible:ring-offset-0"
+                className="flex-1 bg-gray-100 text-black border-gray-300 placeholder:text-gray-500 rounded-full pr-32 focus-visible:ring-0 focus-visible:ring-offset-0"
                 disabled={isLoading}
               />
               <div className="absolute inset-y-0 right-1 flex items-center">
@@ -279,6 +311,16 @@ export default function AIChat({
                     disabled={isLoading}
                 >
                     <Globe className="h-full w-full" />
+                </Button>
+                <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    className={cn("text-gray-500 hover:bg-gray-200 rounded-full p-2 h-auto aspect-square", frameDataUri && "bg-blue-100 text-blue-600 hover:bg-blue-200")}
+                    onClick={handleScanFrame}
+                    disabled={isLoading}
+                >
+                    <Camera className="h-full w-full" />
                 </Button>
                 <Button
                     type="submit"

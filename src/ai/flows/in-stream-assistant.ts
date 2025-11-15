@@ -1,7 +1,7 @@
 
 'use server';
 /**
- * @fileOverview An AI stream assistant powered by Genkit and Gemini that can use Tavily for web search.
+ * @fileOverview An AI stream assistant powered by Genkit and Gemini that can use Tavily for web search and analyze video frames.
  *
  * - askAssistant - A function that takes a user's query and broadcast context to get a a response from an AI assistant.
  * - AskAssistantInput - The input type for the askAssistant function.
@@ -24,6 +24,7 @@ const AskAssistantInputSchema = z.object({
       'A summary of the current broadcast including title, category, and host.'
     ),
   useWebSearch: z.boolean().optional().describe('Whether to use the web search tool for the query. If true, the model should use the provided webSearch tool.'),
+  videoFrame: z.string().optional().describe("A video frame from the stream as a data URI. Format: 'data:image/jpeg;base64,...'"),
 });
 export type AskAssistantInput = z.infer<typeof AskAssistantInputSchema>;
 
@@ -83,11 +84,19 @@ const prompt = ai.definePrompt({
 Here is the context for the current stream: {{{broadcastContext}}}.
 The user's question is: "{{{query}}}"
 
-Your entire public response must adhere to the following rules:
+{{#if videoFrame}}
+You have been provided with a frame from the live video. Your primary task is to analyze this image to answer the user's question.
+{{/if}}
 
+Your entire public response must adhere to the following rules:
+- **Vision Analysis**: If a video frame is provided, base your answer on a visual analysis of that frame. Describe what you see to answer the user's question.
 - **Web Search**: If the user's request requires real-time information (e.g., "latest news", "stock prices", "who won the game") and the 'useWebSearch' flag is true, you MUST use the 'webSearch' tool.
 - **Strict Grounding**: When the 'webSearch' tool is used, your response MUST be based **exclusively** on the information provided by the tool. DO NOT use any of your own pre-existing knowledge. Your job is to be a reliable summarizer of the real-time data.
-- **Citations**: After using 'webSearch', populate the 'sources' array in the output with the relevant metadata for each web source used. You must extract the 'title', 'url', 'image', 'publisher', 'author', 'publishDate', and 'faviconUrl' (as publisherLogoUrl) if they are available in the search result data. Do NOT add "(Source: ...)" citations in the body text.`,
+- **Citations**: After using 'webSearch', populate the 'sources' array in the output with the relevant metadata for each web source used. You must extract the 'title', 'url', 'image', 'publisher', 'author', 'publishDate', and 'faviconUrl' (as publisherLogoUrl) if they are available in the search result data. Do NOT add "(Source: ...)" citations in the body text.
+{{#if videoFrame}}
+Here is the video frame: {{media url=videoFrame}}
+{{/if}}
+`,
 });
 
 const askAssistantFlow = ai.defineFlow(
