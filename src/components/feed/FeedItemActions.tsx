@@ -121,7 +121,7 @@ export default function FeedItemActions({ broadcast, broadcastContext, isChatVis
                 {broadcast.activeChallenge ? (
                     <div className="flex flex-col items-center group">
                         <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform" onClick={() => setIsChallengeVisible(prev => !prev)}>
-                            <Swords className="h-7 w-7 drop-shadow-md" strokeWidth={1.5} />
+                            <Swords className="h-7 w-7 drop-shadow-md text-yellow-400" strokeWidth={1.5} />
                         </button>
                         <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">Challenge</span>
                     </div>
