@@ -6,7 +6,7 @@ import { Suspense, useEffect, useState, useMemo, useRef } from 'react';
 import { useUser, useFirestore, useMemoFirebase, useUserDocument } from '@/firebase';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { collection, query, where, writeBatch, doc, orderBy, getDocs } from 'firebase/firestore';
-import type { Broadcast } from '@/lib/data';
+import type { Broadcast, ChatMessage } from '@/lib/data';
 import { Clapperboard, Loader2, Mail, ChevronDownCircle, MessageCircleHeart, Film, RefreshCw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useStreamStore } from '@/lib/stream-store';
@@ -32,10 +32,19 @@ import Image from 'next/image';
 function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broadcast, onVisible: () => void, isActive: boolean }) {
     const { ref, inView } = useInView({ threshold: 0.7 });
     const { user } = useUser();
-    const { userDocument } = useUserDocument();
+    const firestore = useFirestore();
+    const [isChatVisible, setIsChatVisible] = useState(true);
     
     // PREFETCH HOOK - This will start fetching the stream token when the item is active
     const { prefetchedClient, prefetchedToken } = useStreamPrefetch(isActive ? user : null, broadcast);
+
+    const messagesQuery = useMemoFirebase(() => {
+        if (!broadcast.id || !firestore) return null;
+        return query(
+            collection(firestore, `broadcasts/${broadcast.id}/messages`)
+        );
+    }, [broadcast.id, firestore]);
+    const { data: comments } = useCollection<ChatMessage>(messagesQuery);
 
     useEffect(() => {
         if (inView) {
@@ -71,8 +80,14 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
             
             <div className="absolute inset-0 flex flex-col justify-between p-3 md:p-4 text-white z-40 pointer-events-none">
                 <FeedItemHeader broadcast={broadcast} />
-                <FeedItemActions broadcast={broadcast} broadcastContext={broadcastContext} />
-                <FeedItemChat broadcast={broadcast} />
+                <FeedItemActions 
+                    broadcast={broadcast} 
+                    broadcastContext={broadcastContext}
+                    isChatVisible={isChatVisible}
+                    setIsChatVisible={setIsChatVisible}
+                    commentsCount={comments?.length || 0}
+                />
+                <FeedItemChat broadcast={broadcast} isChatVisible={isChatVisible} />
             </div>
         </div>
     );

@@ -7,7 +7,6 @@ import Image from 'next/image';
 import { useUser, useUserDocument, useFirestore, useMemoFirebase, useStorage } from '@/firebase';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { collection, doc, orderBy, serverTimestamp, query } from 'firebase/firestore';
-import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useToast } from '@/hooks/use-toast';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import type { Broadcast, ChatMessage } from '@/lib/data';
@@ -15,21 +14,21 @@ import type { GiphyResult } from '@/lib/types';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { CornerUpLeft, MessageSquareMore } from 'lucide-react';
+import { CornerUpLeft } from 'lucide-react';
 import ChatInputForm from '../chat/ChatInputForm';
 
 interface FeedItemChatProps {
     broadcast: Broadcast;
+    isChatVisible: boolean;
 }
 
-export default function FeedItemChat({ broadcast }: FeedItemChatProps) {
+export default function FeedItemChat({ broadcast, isChatVisible }: FeedItemChatProps) {
     const { user } = useUser();
     const { userDocument } = useUserDocument();
     const firestore = useFirestore();
     const storage = useStorage();
     const { toast } = useToast();
 
-    const [isChatVisible, setIsChatVisible] = useState(true);
     const [replyingTo, setReplyingTo] = useState<string | null>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -105,65 +104,56 @@ export default function FeedItemChat({ broadcast }: FeedItemChatProps) {
         textareaRef.current?.focus();
     }
 
+    if (!isChatVisible) {
+        return null;
+    }
+
     return (
-        <>
-            <div className="absolute top-1/2 right-0 -translate-y-1/2 z-40 flex flex-col items-center gap-y-4 md:gap-y-6 pointer-events-auto text-white p-2 md:p-4">
-                 <div className="flex flex-col items-center group" style={{marginTop: '4.5rem'}}>
-                    <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform" onClick={() => setIsChatVisible(!isChatVisible)}>
-                       <MessageSquareMore className="h-7 w-7 drop-shadow-md" strokeWidth={1.5} />
-                    </button>
-                    <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">{comments?.length || 0}</span>
+        <div className="p-3 md:p-4 flex flex-col justify-end">
+            <div className="w-full sm:max-w-sm md:max-w-md self-start flex-grow flex flex-col justify-end">
+                <div className="h-80 w-full pointer-events-auto">
+                    <ScrollArea className="h-full pr-2">
+                        <div className="flex flex-col-reverse">
+                            {reversedComments.map((comment) => (
+                                <div key={comment.id} className="group flex items-start text-sm text-white pb-1">
+                                    <Link href={`/profile/${comment.userId}`} className="pointer-events-auto flex-shrink-0">
+                                        <Avatar className="h-6 w-6 border-2 border-secondary">
+                                            <AvatarImage src={comment.userAvatar} alt={comment.username} />
+                                            <AvatarFallback>{comment.username.charAt(0)}</AvatarFallback>
+                                        </Avatar>
+                                    </Link>
+                                    <div className="flex-1 ml-2">
+                                        <Link href={`/profile/${comment.userId}`} className="pointer-events-auto">
+                                            <span className="font-bold font-headline text-primary mr-1.5 hover:underline text-xs">{comment.username}</span>
+                                        </Link>
+                                        {comment.replyingTo && <Link href={`/profile/${comment.replyingTo}`} className="text-accent font-semibold mr-1.5 hover:underline pointer-events-auto text-xs">@{comment.replyingTo}</Link>}
+                                        
+                                        {comment.attachment?.type === 'giphy' || comment.attachment?.type === 'image' ? (
+                                            <div className='mt-1'>
+                                                <Image src={comment.attachment.imageUrl} width={150} height={100} alt={comment.attachment.title || 'attachment'} className="rounded-md" />
+                                                {comment.message && <p className="break-words mt-1 text-sm">{comment.message.replace(/^@\w+\s/, '')}</p>}
+                                            </div>
+                                        ) : (
+                                            <span className="break-words text-sm">{comment.message.replace(/^@\w+\s/, '')}</span>
+                                        )}
+                                    </div>
+                                    <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 pointer-events-auto" onClick={() => handleReplyClick(comment.username)}>
+                                        <CornerUpLeft className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            ))}
+                        </div>
+                    </ScrollArea>
+                </div>
+                <div className="pb-16 md:pb-4 pointer-events-auto">
+                   <ChatInputForm 
+                        onSubmit={handleSendMessage} 
+                        inputRef={textareaRef}
+                        replyingTo={replyingTo}
+                        onCancelReply={() => setReplyingTo(null)}
+                   />
                 </div>
             </div>
-
-            {isChatVisible && (
-                <div className="p-3 md:p-4 flex flex-col justify-end">
-                    <div className="w-full sm:max-w-sm md:max-w-md self-start flex-grow flex flex-col justify-end">
-                        <div className="h-80 w-full pointer-events-auto">
-                            <ScrollArea className="h-full pr-2">
-                                <div className="flex flex-col-reverse">
-                                    {reversedComments.map((comment) => (
-                                        <div key={comment.id} className="group flex items-start text-sm text-white pb-1">
-                                            <Link href={`/profile/${comment.userId}`} className="pointer-events-auto flex-shrink-0">
-                                                <Avatar className="h-6 w-6 border-2 border-secondary">
-                                                    <AvatarImage src={comment.userAvatar} alt={comment.username} />
-                                                    <AvatarFallback>{comment.username.charAt(0)}</AvatarFallback>
-                                                </Avatar>
-                                            </Link>
-                                            <div className="flex-1 ml-2">
-                                                <Link href={`/profile/${comment.userId}`} className="pointer-events-auto">
-                                                    <span className="font-bold font-headline text-primary mr-1.5 hover:underline text-xs">{comment.username}</span>
-                                                </Link>
-                                                {comment.replyingTo && <Link href={`/profile/${comment.replyingTo}`} className="text-accent font-semibold mr-1.5 hover:underline pointer-events-auto text-xs">@{comment.replyingTo}</Link>}
-                                                
-                                                {comment.attachment?.type === 'giphy' || comment.attachment?.type === 'image' ? (
-                                                    <div className='mt-1'>
-                                                        <Image src={comment.attachment.imageUrl} width={150} height={100} alt={comment.attachment.title || 'attachment'} className="rounded-md" />
-                                                        {comment.message && <p className="break-words mt-1 text-sm">{comment.message.replace(/^@\w+\s/, '')}</p>}
-                                                    </div>
-                                                ) : (
-                                                    <span className="break-words text-sm">{comment.message.replace(/^@\w+\s/, '')}</span>
-                                                )}
-                                            </div>
-                                            <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 pointer-events-auto" onClick={() => handleReplyClick(comment.username)}>
-                                                <CornerUpLeft className="h-4 w-4" />
-                                            </Button>
-                                        </div>
-                                    ))}
-                                </div>
-                            </ScrollArea>
-                        </div>
-                        <div className="pb-16 md:pb-4 pointer-events-auto">
-                           <ChatInputForm 
-                                onSubmit={handleSendMessage} 
-                                inputRef={textareaRef}
-                                replyingTo={replyingTo}
-                                onCancelReply={() => setReplyingTo(null)}
-                           />
-                        </div>
-                    </div>
-                </div>
-            )}
-        </>
+        </div>
     );
 }
