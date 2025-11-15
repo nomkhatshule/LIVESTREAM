@@ -83,7 +83,7 @@ export default function FeedItemActions({ broadcast, broadcastContext, isChatVis
                 <div
                     className="absolute top-1/2 left-1/2 pointer-events-none z-20 transform -rotate-3 transition-transform hover:rotate-0 hover:scale-105"
                     style={{
-                        transform: `translate(calc(-50% + ${cardPosition.x}px), calc(-50% + ${cardPosition.y}px)) scale(1) rotate(-3deg)`,
+                        transform: `translate(calc(-50% + ${cardPosition.x}px), calc(-50% + ${cardPosition.y}px)) scale(1.1) rotate(-3deg)`,
                         width: `${cardSize.width}px`,
                         height: `${cardSize.height}px`,
                     }}
@@ -128,7 +128,7 @@ export default function FeedItemActions({ broadcast, broadcastContext, isChatVis
                 ) : (
                     <div className="flex flex-col items-center group pointer-events-auto">
                         <Link href="/cards" className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform flex flex-col items-center">
-                            <Send className="h-7 w-7 drop-shadow-md" strokeWidth={1.5} />
+                            <Send className="h-6 w-6 drop-shadow-md" strokeWidth={1.5} />
                             <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">Challenge</span>
                         </Link>
                     </div>
