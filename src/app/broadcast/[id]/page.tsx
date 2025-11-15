@@ -41,6 +41,7 @@ export default function BroadcastPage() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [newMessage, setNewMessage] = useState('');
   const [isChatVisible, setIsChatVisible] = useState(true);
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
 
   const broadcastDocRef = useMemoFirebase(() => {
     if (!id || !firestore) return undefined;
@@ -96,17 +97,17 @@ export default function BroadcastPage() {
     if (newMessage.trim() === '' || !user || !broadcast || !userDocument) return;
 
     const messagesCollection = collection(firestore, `broadcasts/${broadcast.id}/messages`);
+    const messageToSend = replyingTo ? `@${replyingTo} ${newMessage}` : newMessage;
     const newComment: Omit<ChatMessage, 'id' | 'timestamp'> & {timestamp: any; replyingTo?: string;} = {
         userId: user.uid,
         username: userDocument.username || 'Anonymous',
         userAvatar: userDocument.profilePicture || '',
-        message: newMessage,
+        message: messageToSend.replace(/^@\w+\s/, ''),
         timestamp: serverTimestamp(),
     };
     
-    const mentionMatch = newMessage.match(/^@(\w+)\s/);
-    if (mentionMatch) {
-      newComment.replyingTo = mentionMatch[1];
+    if (replyingTo) {
+      newComment.replyingTo = replyingTo;
     }
     
     addDocumentNonBlocking(messagesCollection, newComment);
@@ -127,6 +128,7 @@ export default function BroadcastPage() {
     }
 
     setNewMessage('');
+    setReplyingTo(null);
   }
 
   const handleLike = () => {
@@ -168,7 +170,7 @@ export default function BroadcastPage() {
   };
   
   const handleReplyClick = (username: string) => {
-    setNewMessage(`@${username} `);
+    setReplyingTo(username);
     textareaRef.current?.focus();
 }
 
@@ -253,7 +255,7 @@ export default function BroadcastPage() {
                               <Link href={`/profile/${comment.userId}`} className="pointer-events-auto">
                                 <span className="font-bold font-headline text-primary mr-1.5 hover:underline">{comment.username}:</span>
                               </Link>
-                              {comment.replyingTo && <Link href={`/profile/${comment.replyingTo}`} className="text-accent font-semibold mr-1.5 hover:underline pointer-events-auto">@{comment.replyingTo}</Link>}
+                              {comment.replyingTo && <Link href={`/profile/${comment.userId}`} className="text-accent font-semibold mr-1.5 hover:underline pointer-events-auto">@{comment.replyingTo}</Link>}
                               <p className="break-words inline">{comment.message.replace(/^@\w+\s/, '')}</p>
                             </div>
                             <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 pointer-events-auto" onClick={() => handleReplyClick(comment.username)}>
@@ -268,7 +270,7 @@ export default function BroadcastPage() {
                   <form onSubmit={handleSendMessage} className="relative w-full pointer-events-auto items-center gap-2 mt-2">
                         <Textarea
                             ref={textareaRef}
-                            placeholder="Add a comment..."
+                            placeholder={replyingTo ? `Replying to @${replyingTo}...` : "Add a comment..."}
                             value={newMessage}
                             onChange={(e) => setNewMessage(e.target.value)}
                              onKeyDown={(e) => {

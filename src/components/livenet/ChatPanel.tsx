@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import type { Comment, GiphyResult } from '@/lib/types';
-import { CornerUpLeft, Heart, ThumbsUp } from 'lucide-react';
+import { CornerUpLeft, Heart, ThumbsUp, X } from 'lucide-react';
 import Image from 'next/image';
 import { useRef, useState } from 'react';
 import ChatInputForm from '../chat/ChatInputForm';
@@ -86,11 +86,13 @@ export default function ChatPanel({
                 </ScrollArea>
             </div>
              <div className="pt-2 pb-20 md:pb-2 pointer-events-auto">
-                <ChatInputForm 
+                 <ChatInputForm
                     onSubmit={handleSendMessage}
                     quickReactions={reactions}
                     onReaction={onReaction}
                     inputRef={textareaRef}
+                    replyingTo={replyingTo}
+                    onCancelReply={() => setReplyingTo(null)}
                 />
              </div>
         </div>

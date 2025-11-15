@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo, useRef } from 'react';
@@ -126,7 +127,7 @@ export default function FeedItemChat({ broadcast, isChatVisible }: FeedItemChatP
                                         <Link href={`/profile/${comment.userId}`} className="pointer-events-auto">
                                             <span className="font-bold font-headline text-primary mr-1.5 hover:underline text-xs">{comment.username}</span>
                                         </Link>
-                                        {comment.replyingTo && <Link href={`/profile/${comment.replyingTo}`} className="text-accent font-semibold mr-1.5 hover:underline pointer-events-auto text-xs">@{comment.replyingTo}</Link>}
+                                        {comment.replyingTo && <Link href={`/profile/${comment.userId}`} className="text-accent font-semibold mr-1.5 hover:underline pointer-events-auto text-xs">@{comment.replyingTo}</Link>}
                                         
                                         {comment.attachment?.type === 'giphy' || comment.attachment?.type === 'image' ? (
                                             <div className='mt-1'>
@@ -157,3 +158,4 @@ export default function FeedItemChat({ broadcast, isChatVisible }: FeedItemChatP
         </div>
     );
 }
+
