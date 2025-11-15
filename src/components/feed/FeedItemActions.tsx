@@ -10,9 +10,10 @@ import { useToast } from '@/hooks/use-toast';
 import { addDocumentNonBlocking, deleteDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { cn } from '@/lib/utils';
 import AIChat from '@/components/broadcast/ai-chat';
-import ChallengeCard from '@/components/broadcast/ChallengeCard';
 import { Heart, MessageSquareMore, Search, Send, Swords } from 'lucide-react';
-import type { Broadcast, ChatMessage } from '@/lib/data';
+import type { Broadcast } from '@/lib/data';
+import ChallengeDisplayCard from '../broadcast/ChallengeDisplayCard';
+import CountdownTimer from '../broadcast/CountdownTimer';
 
 interface FeedItemActionsProps {
     broadcast: Broadcast;
@@ -27,7 +28,6 @@ export default function FeedItemActions({ broadcast, broadcastContext, isChatVis
     const { userDocument } = useUserDocument();
     const firestore = useFirestore();
     const { toast } = useToast();
-    const [isChallengeVisible, setIsChallengeVisible] = useState(false);
 
     const likesCollectionRef = useMemoFirebase(() => {
         if (!broadcast.id || !firestore) return null;
@@ -72,17 +72,32 @@ export default function FeedItemActions({ broadcast, broadcastContext, isChatVis
             }
         }
     };
+
+    const cardPosition = broadcast.challengeCardPosition || { x: 0, y: 0 };
+    const cardSize = broadcast.challengeCardSize || { width: 320, height: 460 };
     
     return (
         <>
-             {isChallengeVisible && broadcast.activeChallenge && broadcast.activeChallengeType && (
-                <ChallengeCard
-                    text={broadcast.activeChallenge}
-                    type={broadcast.activeChallengeType}
-                    size="small"
-                    variant="simple"
-                    onClose={() => setIsChallengeVisible(false)}
-                />
+            {broadcast.activeChallenge && broadcast.activeChallengeType && (
+                <div
+                    className="absolute top-1/2 left-1/2 pointer-events-none z-20"
+                    style={{
+                        transform: `translate(calc(-50% + ${cardPosition.x}px), calc(-50% + ${cardPosition.y}px)) scale(0.6)`,
+                        width: `${cardSize.width}px`,
+                        height: `${cardSize.height}px`,
+                    }}
+                >
+                    <ChallengeDisplayCard 
+                        text={broadcast.activeChallenge}
+                        type={broadcast.activeChallengeType}
+                        timer={broadcast.challengeStartTime && broadcast.challengeDurationSeconds ? (
+                            <CountdownTimer 
+                                startTime={broadcast.challengeStartTime} 
+                                durationSeconds={broadcast.challengeDurationSeconds} 
+                            />
+                        ) : null}
+                    />
+                </div>
             )}
             <div className="absolute top-1/2 right-0 -translate-y-1/2 z-40 flex flex-col items-center gap-y-4 md:gap-y-6 pointer-events-auto text-white p-2 md:p-4">
                 {/* 1. Like Button */}
@@ -118,16 +133,6 @@ export default function FeedItemActions({ broadcast, broadcastContext, isChatVis
                             <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">AI</span>
                     </div>
                 </AIChat>
-                
-                {/* Conditional Active Challenge Icon */}
-                {broadcast.activeChallenge && (
-                    <div className="flex flex-col items-center group">
-                        <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform" onClick={() => setIsChallengeVisible(true)}>
-                            <Swords className="h-7 w-7 drop-shadow-md text-yellow-400" strokeWidth={1.5} />
-                        </button>
-                        <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">Challenge</span>
-                    </div>
-                )}
             </div>
         </>
     );

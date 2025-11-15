@@ -13,7 +13,7 @@ interface ChallengeCardProps {
   type: 'truth' | 'dare' | 'challenge';
   size?: 'large' | 'small';
   variant?: 'stacked' | 'simple';
-  onClose: () => void;
+  onClose?: () => void;
 }
 
 export default function ChallengeCard({ text, type, size, variant, onClose }: ChallengeCardProps) {
@@ -30,5 +30,3 @@ export default function ChallengeCard({ text, type, size, variant, onClose }: Ch
     </div>
   );
 }
-
-    
