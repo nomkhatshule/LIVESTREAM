@@ -27,7 +27,6 @@ export default function FeedItemChat({ broadcast, isChatVisible }: FeedItemChatP
     const { user } = useUser();
     const { userDocument } = useUserDocument();
     const firestore = useFirestore();
-    const storage = useStorage();
     const { toast } = useToast();
 
     const [replyingTo, setReplyingTo] = useState<string | null>(null);
@@ -51,16 +50,9 @@ export default function FeedItemChat({ broadcast, isChatVisible }: FeedItemChatP
     
         try {
             if (attachment) {
-                if ('file' in attachment) {
-                    const imageFile = attachment.file;
-                    const filePath = `chat_images/${broadcast.id}/${Date.now()}-${imageFile.name}`;
-                    const fileRef = storageRef(storage, filePath);
-                    await uploadBytes(fileRef, imageFile);
-                    const downloadURL = await getDownloadURL(fileRef);
-                    messageAttachment = { type: 'image', imageUrl: downloadURL };
-                } else {
-                    messageAttachment = { type: 'giphy', title: attachment.title, imageUrl: attachment.images.original.url, thumbUrl: attachment.images.fixed_width.url };
-                }
+                // This part would require firebase storage setup
+                toast({ title: "Attachments coming soon!", description: "Image/GIF attachments are not fully implemented yet."})
+                return;
             }
     
             const newComment: Partial<ChatMessage> & { timestamp: any } = {
@@ -137,10 +129,10 @@ export default function FeedItemChat({ broadcast, isChatVisible }: FeedItemChatP
                                         ) : (
                                             <span className="break-words text-sm">{comment.message.replace(/^@\w+\s/, '')}</span>
                                         )}
+                                        <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 pointer-events-auto inline-flex" onClick={() => handleReplyClick(comment.username)}>
+                                          <CornerUpLeft className="h-4 w-4 ml-1" />
+                                        </Button>
                                     </div>
-                                    <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 pointer-events-auto" onClick={() => handleReplyClick(comment.username)}>
-                                        <CornerUpLeft className="h-4 w-4" />
-                                    </Button>
                                 </div>
                             ))}
                         </div>
@@ -158,4 +150,3 @@ export default function FeedItemChat({ broadcast, isChatVisible }: FeedItemChatP
         </div>
     );
 }
-

@@ -76,10 +76,10 @@ export default function ChatPanel({
                                     ) : (
                                         <p className="break-words inline">{comment.message.replace(/^@\w+\s/, '')}</p>
                                     )}
+                                    <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 inline-flex" onClick={() => onReply(comment.username)}>
+                                        <CornerUpLeft className="h-4 w-4 ml-1" />
+                                    </Button>
                                 </div>
-                                <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => onReply(comment.username)}>
-                                    <CornerUpLeft className="h-4 w-4" />
-                                </Button>
                             </div>
                         ))}
                     </div>

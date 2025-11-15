@@ -257,10 +257,10 @@ export default function BroadcastPage() {
                               </Link>
                               {comment.replyingTo && <Link href={`/profile/${comment.userId}`} className="text-accent font-semibold mr-1.5 hover:underline pointer-events-auto">@{comment.replyingTo}</Link>}
                               <p className="break-words inline">{comment.message.replace(/^@\w+\s/, '')}</p>
+                               <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 pointer-events-auto inline-flex" onClick={() => handleReplyClick(comment.username)}>
+                                  <CornerUpLeft className="h-4 w-4 ml-1" />
+                              </Button>
                             </div>
-                            <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 pointer-events-auto" onClick={() => handleReplyClick(comment.username)}>
-                                <CornerUpLeft className="h-4 w-4" />
-                            </Button>
                         </div>
                         ))}
                     </div>
