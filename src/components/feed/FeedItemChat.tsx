@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useUser, useUserDocument, useFirestore, useMemoFirebase, useStorage } from '@/firebase';
 import { useCollection } from '@/firebase/firestore/use-collection';
-import { collection, doc, orderBy, serverTimestamp } from 'firebase/firestore';
+import { collection, doc, orderBy, serverTimestamp, query } from 'firebase/firestore';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useToast } from '@/hooks/use-toast';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
