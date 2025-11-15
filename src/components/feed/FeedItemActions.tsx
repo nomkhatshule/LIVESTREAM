@@ -83,7 +83,7 @@ export default function FeedItemActions({ broadcast, broadcastContext, isChatVis
                 <div
                     className="absolute top-1/2 left-1/2 pointer-events-none z-20"
                     style={{
-                        transform: `translate(calc(-50% + ${cardPosition.x}px), calc(-50% + ${cardPosition.y}px)) scale(0.6)`,
+                        transform: `translate(calc(-50% + ${cardPosition.x}px), calc(-50% + ${cardPosition.y}px)) scale(0.8)`,
                         width: `${cardSize.width}px`,
                         height: `${cardSize.height}px`,
                     }}
