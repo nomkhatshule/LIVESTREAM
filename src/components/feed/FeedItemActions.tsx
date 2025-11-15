@@ -81,9 +81,9 @@ export default function FeedItemActions({ broadcast, broadcastContext, isChatVis
         <>
             {broadcast.activeChallenge && broadcast.activeChallengeType && isChallengeVisible && (
                 <div
-                    className="absolute top-1/2 left-1/2 pointer-events-none z-20"
+                    className="absolute top-1/2 left-1/2 pointer-events-none z-20 transform -rotate-3 transition-transform hover:rotate-0 hover:scale-105"
                     style={{
-                        transform: `translate(calc(-50% + ${cardPosition.x}px), calc(-50% + ${cardPosition.y}px)) scale(0.8)`,
+                        transform: `translate(calc(-50% + ${cardPosition.x}px), calc(-50% + ${cardPosition.y}px)) scale(1) rotate(-3deg)`,
                         width: `${cardSize.width}px`,
                         height: `${cardSize.height}px`,
                     }}
