@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, useEffect, type ReactNode } from 'react';
@@ -156,6 +157,11 @@ export default function AIChat({
   };
 
   const handleScanFrame = () => {
+    if (frameDataUri) {
+        setFrameDataUri(null);
+        return;
+    }
+
     const videoElement = document.querySelector('.str-video__video') as HTMLVideoElement;
     if (!videoElement) {
         alert('Could not find the video stream to capture.');
