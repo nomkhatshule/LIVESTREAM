@@ -28,6 +28,7 @@ export default function FeedItemActions({ broadcast, broadcastContext, isChatVis
     const { userDocument } = useUserDocument();
     const firestore = useFirestore();
     const { toast } = useToast();
+    const [isChallengeVisible, setIsChallengeVisible] = useState(true);
 
     const likesCollectionRef = useMemoFirebase(() => {
         if (!broadcast.id || !firestore) return null;
@@ -78,7 +79,7 @@ export default function FeedItemActions({ broadcast, broadcastContext, isChatVis
     
     return (
         <>
-            {broadcast.activeChallenge && broadcast.activeChallengeType && (
+            {broadcast.activeChallenge && broadcast.activeChallengeType && isChallengeVisible && (
                 <div
                     className="absolute top-1/2 left-1/2 pointer-events-none z-20"
                     style={{
@@ -115,15 +116,24 @@ export default function FeedItemActions({ broadcast, broadcastContext, isChatVis
                     </button>
                     <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">{commentsCount}</span>
                 </div>
-                
-                {/* 3. Challenge Button */}
-                <div className="flex flex-col items-center group pointer-events-auto">
-                    <Link href="/cards" className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform flex flex-col items-center">
-                        <Send className="h-7 w-7 drop-shadow-md" strokeWidth={1.5} />
-                        <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">Challenge</span>
-                    </Link>
-                </div>
 
+                {/* 3. Challenge Actions */}
+                {broadcast.activeChallenge ? (
+                    <div className="flex flex-col items-center group">
+                        <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform" onClick={() => setIsChallengeVisible(prev => !prev)}>
+                            <Swords className="h-7 w-7 drop-shadow-md" strokeWidth={1.5} />
+                        </button>
+                        <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">Challenge</span>
+                    </div>
+                ) : (
+                    <div className="flex flex-col items-center group pointer-events-auto">
+                        <Link href="/cards" className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform flex flex-col items-center">
+                            <Send className="h-7 w-7 drop-shadow-md" strokeWidth={1.5} />
+                            <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">Challenge</span>
+                        </Link>
+                    </div>
+                )}
+                
                 {/* 4. AI Button */}
                 <AIChat userAvatar={userDocument?.profilePicture} broadcastContext={broadcastContext}>
                     <div className="flex flex-col items-center group">
