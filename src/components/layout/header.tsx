@@ -35,6 +35,8 @@ export default function Header() {
     '/login',
     '/signup',
     '/landing',
+    '/terms-of-service',
+    '/privacy-policy',
   ];
 
   if (noHeaderPaths.some(p => pathname.startsWith(p))) {
