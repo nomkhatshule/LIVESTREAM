@@ -16,7 +16,7 @@ export default function LandingHeader() {
         
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-2">
-          <button className="px-4 py-1.5 rounded-full text-sm tracking-tight transition-all duration-300 hover:scale-105 active:scale-95 bg-white/20 backdrop-blur-md text-white shadow-lg">
+          <button className="px-4 py-1.5 rounded-full text-sm tracking-tight transition-all duration-300 hover:scale-105 active:scale-95 text-white/80 hover:bg-white/10">
             Features
           </button>
           <Link href="#demo" className="px-4 py-1.5 rounded-full text-sm tracking-tight transition-all duration-300 hover:scale-105 active:scale-95 text-white/80 hover:bg-white/10">
