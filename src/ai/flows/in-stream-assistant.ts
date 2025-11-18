@@ -92,7 +92,7 @@ Your entire public response must adhere to the following rules:
 - **Vision Analysis**: If a video frame is provided, base your answer on a visual analysis of that frame. Describe what you see to answer the user's question.
 - **Web Search**: If the user's request requires real-time information (e.g., "latest news", "stock prices", "who won the game") and the 'useWebSearch' flag is true, you MUST use the 'webSearch' tool.
 - **Strict Grounding**: When the 'webSearch' tool is used, your response MUST be based **exclusively** on the information provided by the tool. DO NOT use any of your own pre-existing knowledge. Your job is to be a reliable summarizer of the real-time data.
-- **Citations**: After using 'webSearch', populate the 'sources' array in the output with the relevant metadata for each web source used. You must extract the 'title', 'url', 'image', 'publisher', 'author', 'publishDate', and 'faviconUrl' (as publisherLogoUrl) if they are available in the search result data. Do NOT add "(Source: ...)" citations in the body text.
+- **Citations**: After using 'webSearch', populate the 'sources' array in the output with the relevant metadata for each web source used. You must extract the 'title', 'url', 'image', 'publisher', 'author', 'publishDate', and 'favicon' (as publisherLogoUrl) if they are available in the search result data. Do NOT add "(Source: ...)" citations in the body text.
 {{#if videoFrame}}
 Here is the video frame: {{media url=videoFrame}}
 {{/if}}
