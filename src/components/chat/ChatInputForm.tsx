@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Separator } from '@/components/ui/separator';
 import GifPicker, { type GiphyResult } from '@/components/inbox/GifPicker';
-import { ArrowUp, Paperclip, Smile, X, Loader2 } from 'lucide-react';
+import { ArrowUp, Paperclip, Smile, X, Loader2, Image as ImageIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
@@ -19,9 +19,10 @@ interface ChatInputFormProps {
     onReaction?: (emoji: React.ReactNode) => void;
     replyingTo?: string | null;
     onCancelReply?: () => void;
+    attachmentIconType?: 'paperclip' | 'image';
 }
 
-export default function ChatInputForm({ onSubmit, inputRef, quickReactions, onReaction, replyingTo, onCancelReply }: ChatInputFormProps) {
+export default function ChatInputForm({ onSubmit, inputRef, quickReactions, onReaction, replyingTo, onCancelReply, attachmentIconType = 'paperclip' }: ChatInputFormProps) {
     const [newMessage, setNewMessage] = useState('');
     const [isGifPickerOpen, setIsGifPickerOpen] = useState(false);
     const [selectedGif, setSelectedGif] = useState<GiphyResult | null>(null);
@@ -69,6 +70,8 @@ export default function ChatInputForm({ onSubmit, inputRef, quickReactions, onRe
         setImageAttachment(null);
     }
     
+    const AttachmentIcon = attachmentIconType === 'image' ? ImageIcon : Paperclip;
+
     return (
          <form onSubmit={handleFormSubmit} className="relative flex w-full items-center gap-2">
             <div className="relative flex-1 bg-transparent border border-white/50 rounded-2xl overflow-hidden flex flex-col">
@@ -129,7 +132,7 @@ export default function ChatInputForm({ onSubmit, inputRef, quickReactions, onRe
                             </Popover>
                         )}
                          <Button size="icon" type="button" variant="ghost" className="rounded-full h-9 w-9 text-white" onClick={() => fileInputRef.current?.click()} disabled={isSending}>
-                            <Paperclip className="h-5 w-5" />
+                            <AttachmentIcon className="h-5 w-5" />
                         </Button>
                         <Popover open={isGifPickerOpen} onOpenChange={setIsGifPickerOpen}>
                             <PopoverTrigger asChild>
@@ -150,4 +153,3 @@ export default function ChatInputForm({ onSubmit, inputRef, quickReactions, onRe
         </form>
     );
 }
-

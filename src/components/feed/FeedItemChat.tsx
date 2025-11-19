@@ -161,6 +161,7 @@ export default function FeedItemChat({ broadcast, isChatVisible }: FeedItemChatP
                         inputRef={textareaRef}
                         replyingTo={replyingTo}
                         onCancelReply={() => setReplyingTo(null)}
+                        attachmentIconType='image'
                    />
                 </div>
             </div>
