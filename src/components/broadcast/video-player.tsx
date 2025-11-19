@@ -25,6 +25,7 @@ interface VideoPlayerProps {
   isHost?: boolean;
   prefetchedClient?: StreamVideoClient | null;
   prefetchedToken?: string | null;
+  onParticipantCountChange?: (count: number) => void;
 }
 
 // --- HOST-SPECIFIC PLAYER ---
@@ -77,7 +78,7 @@ function HostVideoPlayer({ broadcast }: { broadcast: BroadcastData }) {
 // --- VIEWER-SPECIFIC PLAYER ---
 // This component is self-contained and used on the /feed page.
 // It manages its own StreamVideoClient and StreamCall.
-function ViewerVideoPlayer({ broadcast, prefetchedClient, prefetchedToken }: VideoPlayerProps) {
+function ViewerVideoPlayer({ broadcast, prefetchedClient, prefetchedToken, onParticipantCountChange }: VideoPlayerProps) {
   const [call, setCall] = useState<Call | null>(null);
 
   useEffect(() => {
@@ -111,17 +112,23 @@ function ViewerVideoPlayer({ broadcast, prefetchedClient, prefetchedToken }: Vid
   return (
     <StreamVideo client={prefetchedClient} key={prefetchedClient.userID}>
       <StreamCall call={call}>
-        <ViewerStreamContent broadcast={broadcast} />
+        <ViewerStreamContent broadcast={broadcast} onParticipantCountChange={onParticipantCountChange} />
       </StreamCall>
     </StreamVideo>
   );
 }
 
 // Helper component for Viewer player UI
-function ViewerStreamContent({ broadcast }: { broadcast: BroadcastData }) {
+function ViewerStreamContent({ broadcast, onParticipantCountChange }: { broadcast: BroadcastData; onParticipantCountChange?: (count: number) => void; }) {
   const { useParticipants } = useCallStateHooks();
   const participants = useParticipants();
   const hostParticipant = participants.find(p => p.userId === broadcast.hostId);
+  
+  useEffect(() => {
+    // Exclude the host from the viewer count
+    const viewerCount = Math.max(0, participants.length -1);
+    onParticipantCountChange?.(viewerCount);
+  }, [participants, onParticipantCountChange]);
 
   if (!hostParticipant) {
     return (
@@ -155,12 +162,12 @@ function ViewerStreamContent({ broadcast }: { broadcast: BroadcastData }) {
 
 // --- Main Exported Component ---
 // This now acts as a router, deciding which player to render based on the isHost prop.
-export default function VideoPlayer({ broadcast, isHost = false, prefetchedClient, prefetchedToken }: VideoPlayerProps) {
+export default function VideoPlayer({ broadcast, isHost = false, prefetchedClient, prefetchedToken, onParticipantCountChange }: VideoPlayerProps) {
     if (isHost) {
         // The host player is simple because it expects to be inside a provider already
         return <HostVideoPlayer broadcast={broadcast} />;
     } else {
         // The viewer player is more complex as it manages its own providers
-        return <ViewerVideoPlayer broadcast={broadcast} prefetchedClient={prefetchedClient} prefetchedToken={prefetchedToken}/>;
+        return <ViewerVideoPlayer broadcast={broadcast} prefetchedClient={prefetchedClient} prefetchedToken={prefetchedToken} onParticipantCountChange={onParticipantCountChange}/>;
     }
 }

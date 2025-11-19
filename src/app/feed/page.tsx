@@ -34,6 +34,7 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
     const { user } = useUser();
     const firestore = useFirestore();
     const [isChatVisible, setIsChatVisible] = useState(true);
+    const [participantCount, setParticipantCount] = useState(broadcast.viewers || 0);
     
     // PREFETCH HOOK - This will start fetching the stream token when the item is active
     const { prefetchedClient, prefetchedToken } = useStreamPrefetch(isActive ? user : null, broadcast);
@@ -64,6 +65,7 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
                         isHost={false}
                         prefetchedClient={prefetchedClient}
                         prefetchedToken={prefetchedToken}
+                        onParticipantCountChange={setParticipantCount}
                     />
                 ) : (
                     <div className="absolute inset-0 z-10 flex items-center justify-center">
@@ -79,7 +81,7 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
             </div>
             
             <div className="absolute inset-0 flex flex-col justify-between p-3 md:p-4 text-white z-40 pointer-events-none">
-                <FeedItemHeader broadcast={broadcast} />
+                <FeedItemHeader broadcast={broadcast} viewerCount={participantCount} />
                 <FeedItemActions 
                     broadcast={broadcast} 
                     broadcastContext={broadcastContext}

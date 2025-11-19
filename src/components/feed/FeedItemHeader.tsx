@@ -15,9 +15,10 @@ import { Users } from 'lucide-react';
 
 interface FeedItemHeaderProps {
     broadcast: Broadcast;
+    viewerCount: number;
 }
 
-export default function FeedItemHeader({ broadcast }: FeedItemHeaderProps) {
+export default function FeedItemHeader({ broadcast, viewerCount }: FeedItemHeaderProps) {
     const { user } = useUser();
     const { userDocument } = useUserDocument();
     const firestore = useFirestore();
@@ -107,7 +108,7 @@ export default function FeedItemHeader({ broadcast }: FeedItemHeaderProps) {
                         <div className="flex items-center gap-2 text-xs mt-1">
                             <div className="flex items-center gap-1">
                                 <Users className="h-3 w-3" />
-                                <span>{broadcast.viewers?.toLocaleString() || 0}</span>
+                                <span>{viewerCount.toLocaleString() || 0}</span>
                             </div>
                         </div>
                     </div>
