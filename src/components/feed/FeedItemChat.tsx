@@ -8,6 +8,7 @@ import Image from 'next/image';
 import { useUser, useUserDocument, useFirestore, useMemoFirebase, useStorage } from '@/firebase';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { collection, doc, orderBy, serverTimestamp, query } from 'firebase/firestore';
+import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useToast } from '@/hooks/use-toast';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import type { Broadcast, ChatMessage } from '@/lib/data';
@@ -27,6 +28,7 @@ export default function FeedItemChat({ broadcast, isChatVisible }: FeedItemChatP
     const { user } = useUser();
     const { userDocument } = useUserDocument();
     const firestore = useFirestore();
+    const storage = useStorage();
     const { toast } = useToast();
 
     const [replyingTo, setReplyingTo] = useState<string | null>(null);
@@ -50,9 +52,24 @@ export default function FeedItemChat({ broadcast, isChatVisible }: FeedItemChatP
     
         try {
             if (attachment) {
-                // This part would require firebase storage setup
-                toast({ title: "Attachments coming soon!", description: "Image/GIF attachments are not fully implemented yet."})
-                return;
+                 if ('file' in attachment) { // Image attachment
+                    const imageFile = attachment.file;
+                    const filePath = `chat_images/${broadcast.id}/${Date.now()}-${imageFile.name}`;
+                    const fileRef = storageRef(storage, filePath);
+                    await uploadBytes(fileRef, imageFile);
+                    const downloadURL = await getDownloadURL(fileRef);
+                    messageAttachment = {
+                        type: 'image',
+                        imageUrl: downloadURL,
+                    };
+                } else { // Giphy attachment
+                    messageAttachment = {
+                        type: 'giphy',
+                        title: attachment.title,
+                        imageUrl: attachment.images.original.url,
+                        thumbUrl: attachment.images.fixed_width.url,
+                    };
+                }
             }
     
             const newComment: Partial<ChatMessage> & { timestamp: any } = {
