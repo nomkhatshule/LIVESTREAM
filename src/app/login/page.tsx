@@ -10,11 +10,16 @@ import {
 } from '@/components/ui/card';
 import AuthForm from '@/components/auth/auth-form';
 import Image from 'next/image';
+import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 
-export default function AuthPage() {
+function AuthPageContent() {
+  const searchParams = useSearchParams();
+  const authType = searchParams.get('type') === 'signup' ? 'signup' : 'login';
+
   return (
     <div className="relative flex min-h-[calc(100vh-4rem)] items-center justify-center p-4">
-       <Image
+      <Image
         src="https://cdn.pixabay.com/photo/2025/06/26/04/23/colloseum-9681139_1280.png"
         alt="Background"
         fill
@@ -37,13 +42,33 @@ export default function AuthPage() {
         <CardContent>
           <AuthForm />
           <div className="mt-4 text-center text-sm">
-            Need an account?{' '}
-            <Link href="/signup" className="underline">
-              Sign up
-            </Link>
+            {authType === 'login' ? (
+              <>
+                Need an account?{' '}
+                <Link href="/signup" className="underline">
+                  Sign up
+                </Link>
+              </>
+            ) : (
+              <>
+                Already have an account?{' '}
+                <Link href="/login" className="underline">
+                  Log in
+                </Link>
+              </>
+            )}
           </div>
         </CardContent>
       </Card>
     </div>
   );
+}
+
+
+export default function AuthPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <AuthPageContent />
+    </Suspense>
+  )
 }
