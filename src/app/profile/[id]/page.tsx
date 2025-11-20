@@ -292,9 +292,9 @@ export default function UserProfilePage() {
                 )}
               </div>
             <TabsList className="grid w-full grid-cols-3 rounded-none border-t">
-              <TabsTrigger value="highlights">Highlights</TabsTrigger>
-              <TabsTrigger value="challenges">Challenges</TabsTrigger>
-              <TabsTrigger value="gifts">Gifts</TabsTrigger>
+              <TabsTrigger value="highlights" className="text-white">Highlights</TabsTrigger>
+              <TabsTrigger value="challenges" className="text-white">Challenges</TabsTrigger>
+              <TabsTrigger value="gifts" className="text-white">Gifts</TabsTrigger>
             </TabsList>
           </Card>
 
