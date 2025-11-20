@@ -3,11 +3,11 @@
 'use client';
 
 import { Suspense, useEffect, useState, useMemo, useRef } from 'react';
-import { useUser, useFirestore, useMemoFirebase, useUserDocument } from '@/firebase';
+import { useUser, useFirestore, useMemoFirebase, useUserDocument, useAuth } from '@/firebase';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { collection, query, where, writeBatch, doc, orderBy, getDocs } from 'firebase/firestore';
 import type { Broadcast, ChatMessage } from '@/lib/data';
-import { Clapperboard, Loader2, Mail, ChevronDownCircle, MessageCircleHeart, Film, RefreshCw } from 'lucide-react';
+import { Clapperboard, Loader2, Mail, ChevronDownCircle, MessageCircleHeart, Film, RefreshCw, LogOut } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useStreamStore } from '@/lib/stream-store';
 import { Button } from '@/components/ui/button';
@@ -28,6 +28,7 @@ import FeedItemActions from '@/components/feed/FeedItemActions';
 import FeedItemChat from '@/components/feed/FeedItemChat';
 import VideoPlayer from '@/components/broadcast/video-player';
 import Image from 'next/image';
+import { signOut } from 'firebase/auth';
 
 function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broadcast, onVisible: () => void, isActive: boolean }) {
     const { ref, inView } = useInView({ threshold: 0.7 });
@@ -99,6 +100,7 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
 function HomePageContent() {
     const router = useRouter();
     const { user, isUserLoading } = useUser();
+    const auth = useAuth();
     const { userDocument, isDocLoading: isUserDocLoading } = useUserDocument();
     const firestore = useFirestore();
     const { activeBroadcast, setActiveBroadcast } = useStreamStore();
@@ -125,6 +127,12 @@ function HomePageContent() {
         if (!notifications) return 0;
         return notifications.filter(n => !n.isRead).length;
     }, [notifications]);
+    
+    const handleLogout = () => {
+        signOut(auth).then(() => {
+          router.push('/landing');
+        });
+    };
 
     useEffect(() => {
         if (!isUserLoading && !user) {
@@ -275,6 +283,11 @@ function HomePageContent() {
                                     </Avatar>
                                     <span>My Profile</span>
                                 </Link>
+                            </DropdownMenuItem>
+                             <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:bg-destructive/20 focus:text-destructive">
+                                <LogOut className="mr-2 h-4 w-4" />
+                                <span>Log Out</span>
                             </DropdownMenuItem>
                         </UserSearch>
                     </DropdownMenuContent>
