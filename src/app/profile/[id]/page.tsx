@@ -389,9 +389,9 @@ export default function UserProfilePage() {
            <TabsContent value="gifts">
             <Card className="sm:rounded-lg">
                 <CardContent className="p-6">
-                    <div className="text-center py-16 text-muted-foreground">
+                    <div className="text-center py-16 text-zinc-400">
                         <Gift className="h-12 w-12 mx-auto mb-4" />
-                        <h3 className="text-lg font-semibold">Coming Soon!</h3>
+                        <h3 className="text-lg font-semibold text-white">Coming Soon!</h3>
                         <p className="text-sm">This feature is under construction. Check back later to see all the gifts this creator has received.</p>
                     </div>
                 </CardContent>
@@ -444,5 +444,7 @@ function ProfileSkeleton() {
     </div>
   );
 }
+
+    
 
     
