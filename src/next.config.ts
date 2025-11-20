@@ -15,7 +15,8 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: '**',
       },
-    ]
+    ],
+    unoptimized: true,
   },
   webpack: (config, { isServer }) => {
     // This is to solve a bug with the Stream SDK.
@@ -23,6 +24,19 @@ const nextConfig: NextConfig = {
     if (isServer) {
       config.externals.push('@stream-io/video-react-sdk');
     }
+
+    // Exclude .ico files from the default image loaders to prevent build errors.
+    config.module.rules.push({
+      test: /\.ico$/,
+      use: {
+        loader: 'file-loader',
+        options: {
+          name: '[name].[ext]',
+          outputPath: 'static/media', // or any other path
+        },
+      },
+    });
+
     return config;
   },
 };
