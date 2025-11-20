@@ -6,6 +6,7 @@ import { FirebaseApp } from 'firebase/app';
 import { Firestore } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseStorage } from 'firebase/storage';
+import { Analytics } from 'firebase/analytics';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
 
 interface FirebaseProviderProps {
@@ -14,6 +15,7 @@ interface FirebaseProviderProps {
   firestore: Firestore;
   auth: Auth;
   storage: FirebaseStorage;
+  analytics: Analytics | null;
 }
 
 // Internal state for user authentication
@@ -30,6 +32,7 @@ export interface FirebaseContextState {
   firestore: Firestore | null;
   auth: Auth | null; // The Auth service instance
   storage: FirebaseStorage | null;
+  analytics: Analytics | null;
   // User authentication state
   user: User | null;
   isUserLoading: boolean; // True during initial auth check
@@ -42,6 +45,7 @@ export interface FirebaseServicesAndUser {
   firestore: Firestore;
   auth: Auth;
   storage: FirebaseStorage;
+  analytics: Analytics | null;
   user: User | null;
   isUserLoading: boolean;
   userError: Error | null;
@@ -66,6 +70,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   firestore,
   auth,
   storage,
+  analytics,
 }) => {
   const [userAuthState, setUserAuthState] = useState<UserAuthState>({
     user: null,
@@ -104,11 +109,12 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       firestore: servicesAvailable ? firestore : null,
       auth: servicesAvailable ? auth : null,
       storage: servicesAvailable ? storage : null,
+      analytics: servicesAvailable ? analytics : null,
       user: userAuthState.user,
       isUserLoading: userAuthState.isUserLoading,
       userError: userAuthState.userError,
     };
-  }, [firebaseApp, firestore, auth, storage, userAuthState]);
+  }, [firebaseApp, firestore, auth, storage, analytics, userAuthState]);
 
   return (
     <FirebaseContext.Provider value={contextValue}>
@@ -138,6 +144,7 @@ export const useFirebase = (): FirebaseServicesAndUser => {
     firestore: context.firestore,
     auth: context.auth,
     storage: context.storage,
+    analytics: context.analytics,
     user: context.user,
     isUserLoading: context.isUserLoading,
     userError: context.userError,
@@ -166,6 +173,12 @@ export const useFirebaseApp = (): FirebaseApp => {
 export const useStorage = (): FirebaseStorage => {
     const { storage } = useFirebase();
     return storage;
+}
+
+/** Hook to access Firebase Analytics instance. */
+export const useAnalytics = (): Analytics | null => {
+    const { analytics } = useFirebase();
+    return analytics;
 }
 
 type MemoFirebase <T> = T & {__memo?: boolean};
