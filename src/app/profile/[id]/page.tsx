@@ -292,9 +292,9 @@ export default function UserProfilePage() {
                 )}
               </div>
             <TabsList className="grid w-full grid-cols-3 rounded-none border-t">
-              <TabsTrigger value="highlights" className="text-white">Highlights</TabsTrigger>
-              <TabsTrigger value="challenges" className="text-white">Challenges</TabsTrigger>
-              <TabsTrigger value="gifts" className="text-white">Gifts</TabsTrigger>
+              <TabsTrigger value="highlights" className="text-white data-[state=active]:font-bold">Highlights</TabsTrigger>
+              <TabsTrigger value="challenges" className="text-white data-[state=active]:font-bold">Challenges</TabsTrigger>
+              <TabsTrigger value="gifts" className="text-white data-[state=active]:font-bold">Gifts</TabsTrigger>
             </TabsList>
           </Card>
 
@@ -444,3 +444,5 @@ function ProfileSkeleton() {
     </div>
   );
 }
+
+    
