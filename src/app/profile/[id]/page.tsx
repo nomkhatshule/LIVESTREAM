@@ -344,13 +344,11 @@ export default function UserProfilePage() {
             <Card className="sm:rounded-lg bg-zinc-900/50 border-zinc-800">
                 <CardContent className="p-4 sm:p-6">
                     {mockCompletedChallenges && mockCompletedChallenges.length > 0 ? (
-                    <div className="columns-2 sm:columns-3 gap-4 space-y-4">
-                        {mockCompletedChallenges.map((challenge, i) => (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        {mockCompletedChallenges.map((challenge) => (
                         <div 
                             key={challenge.id} 
-                            className={cn(
-                                "p-4 bg-[#fefabc] rounded-lg shadow-lg text-black break-inside-avoid-column transition-transform duration-300 hover:rotate-0 hover:scale-105"
-                            )}
+                            className="p-4 bg-[#fefabc] rounded-lg shadow-lg text-black flex flex-col"
                         >
                             <div className="flex items-center gap-2 mb-2">
                                 <Avatar className="h-6 w-6">
@@ -359,7 +357,7 @@ export default function UserProfilePage() {
                                 </Avatar>
                                 <span className="text-xs text-zinc-600 font-semibold">@{challenge.fromUsername}</span>
                             </div>
-                            <p className="text-base font-bold font-headline mb-2">"{challenge.text}"</p>
+                            <p className="text-base font-bold font-headline mb-2 flex-grow">"{challenge.text}"</p>
                             <p className="text-right text-xs text-zinc-500 mt-2">{formatDistanceToNow(challenge.completedAt, { addSuffix: true })}</p>
                             <div className="mt-3 pt-2 border-t border-black/10 flex items-center justify-between text-xs text-zinc-700 font-medium">
                                 <div className="flex items-center gap-1">
