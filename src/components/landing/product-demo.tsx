@@ -98,7 +98,7 @@ export default function ProductDemo() {
                 alignment="right"
               />
                <FeatureDescription
-                title="Challenge Now"
+                title="send challenge"
                 description="Play Truth or Dare, or complete wild challenges with your followers."
                 alignment="right"
               />
