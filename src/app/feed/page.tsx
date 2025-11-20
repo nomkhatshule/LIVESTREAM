@@ -285,7 +285,7 @@ function HomePageContent() {
                                 </Link>
                             </DropdownMenuItem>
                              <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:bg-destructive/20 focus:text-destructive">
+                            <DropdownMenuItem onClick={handleLogout}>
                                 <LogOut className="mr-2 h-4 w-4" />
                                 <span>Log Out</span>
                             </DropdownMenuItem>
