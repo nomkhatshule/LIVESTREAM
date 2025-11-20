@@ -349,11 +349,7 @@ export default function UserProfilePage() {
                         <div 
                             key={challenge.id} 
                             className={cn(
-                                "p-4 bg-[#fefabc] rounded-lg shadow-lg text-black break-inside-avoid-column transition-transform duration-300 hover:rotate-0 hover:scale-105",
-                                i % 4 === 0 && "rotate-1",
-                                i % 4 === 1 && "-rotate-2",
-                                i % 4 === 2 && "rotate-2",
-                                i % 4 === 3 && "-rotate-1"
+                                "p-4 bg-[#fefabc] rounded-lg shadow-lg text-black break-inside-avoid-column transition-transform duration-300 hover:rotate-0 hover:scale-105"
                             )}
                         >
                             <p className="text-base font-bold font-headline mb-2">"{challenge.text}"</p>
@@ -367,6 +363,16 @@ export default function UserProfilePage() {
                                 </div>
                             </div>
                              <p className="text-right text-xs text-zinc-500 mt-2">{formatDistanceToNow(challenge.completedAt, { addSuffix: true })}</p>
+                            <div className="mt-3 pt-2 border-t border-black/10 flex items-center justify-end gap-4 text-xs text-zinc-700 font-medium">
+                                <div className="flex items-center gap-1">
+                                    <Heart className="h-4 w-4 text-red-500" />
+                                    <span>{challenge.likes.toLocaleString()}</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                    <Eye className="h-4 w-4" />
+                                    <span>{challenge.views.toLocaleString()}</span>
+                                </div>
+                            </div>
                         </div>
                         ))}
                     </div>

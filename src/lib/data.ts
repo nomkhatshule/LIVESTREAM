@@ -86,6 +86,8 @@ export type CompletedChallenge = {
     fromUsername: string;
     fromUserAvatar: string;
     completedAt: Date;
+    likes: number;
+    views: number;
 }
 
 // Schema for Genkit Flow: generateGamePrompts
@@ -137,12 +139,12 @@ export const mockHighlights = [
 ];
 
 export const mockCompletedChallenges: CompletedChallenge[] = [
-    { id: '1', text: "Bake a cake that looks like your favorite emoji.", fromUserId: 'user2', fromUsername: 'PastryPro', fromUserAvatar: "https://picsum.photos/seed/baker/100", completedAt: new Date(Date.now() - 86400000 * 1) },
-    { id: '2', text: "Learn and perform the first 15 seconds of a viral TikTok dance.", fromUserId: 'user3', fromUsername: 'DanceMachine', fromUserAvatar: "https://picsum.photos/seed/dancer/100", completedAt: new Date(Date.now() - 86400000 * 3) },
-    { id: '3', text: "Try to draw a perfect circle freehand.", fromUserId: 'user4', fromUsername: 'SteadyHand', fromUserAvatar: "https://picsum.photos/seed/artist/100", completedAt: new Date(Date.now() - 86400000 * 5) },
-    { id: '4', text: "Build a fort in your living room and stream from it.", fromUserId: 'user5', fromUsername: 'FortMaster', fromUserAvatar: "https://picsum.photos/seed/builder/100", completedAt: new Date(Date.now() - 86400000 * 7) },
-    { id: '5', text: "Write a 30-second jingle for LIVENET.", fromUserId: 'user6', fromUsername: 'JingleMaster', fromUserAvatar: "https://picsum.photos/seed/jingle/100", completedAt: new Date(Date.now() - 86400000 * 8) },
-    { id: '6', text: "Speak only in questions for 5 minutes straight.", fromUserId: 'user7', fromUsername: 'QuestionQueen', fromUserAvatar: "https://picsum.photos/seed/question/100", completedAt: new Date(Date.now() - 86400000 * 10) },
+    { id: '1', text: "Bake a cake that looks like your favorite emoji.", fromUserId: 'user2', fromUsername: 'PastryPro', fromUserAvatar: "https://picsum.photos/seed/baker/100", completedAt: new Date(Date.now() - 86400000 * 1), likes: 1200, views: 15000 },
+    { id: '2', text: "Learn and perform the first 15 seconds of a viral TikTok dance.", fromUserId: 'user3', fromUsername: 'DanceMachine', fromUserAvatar: "https://picsum.photos/seed/dancer/100", completedAt: new Date(Date.now() - 86400000 * 3), likes: 850, views: 22000 },
+    { id: '3', text: "Try to draw a perfect circle freehand.", fromUserId: 'user4', fromUsername: 'SteadyHand', fromUserAvatar: "https://picsum.photos/seed/artist/100", completedAt: new Date(Date.now() - 86400000 * 5), likes: 450, views: 8000 },
+    { id: '4', text: "Build a fort in your living room and stream from it.", fromUserId: 'user5', fromUsername: 'FortMaster', fromUserAvatar: "https://picsum.photos/seed/builder/100", completedAt: new Date(Date.now() - 86400000 * 7), likes: 2500, views: 40000 },
+    { id: '5', text: "Write a 30-second jingle for LIVENET.", fromUserId: 'user6', fromUsername: 'JingleMaster', fromUserAvatar: "https://picsum.photos/seed/jingle/100", completedAt: new Date(Date.now() - 86400000 * 8), likes: 1800, views: 12000 },
+    { id: '6', text: "Speak only in questions for 5 minutes straight.", fromUserId: 'user7', fromUsername: 'QuestionQueen', fromUserAvatar: "https://picsum.photos/seed/question/100", completedAt: new Date(Date.now() - 86400000 * 10), likes: 950, views: 11000 },
 ];
 
 
