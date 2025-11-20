@@ -25,6 +25,7 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <head>
         <link rel="stylesheet" href="https://use.typekit.net/try0cjy.css" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
       </head>
       <body className={cn('min-h-screen bg-background font-body antialiased')}>
         <FirebaseClientProvider>
