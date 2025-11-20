@@ -355,7 +355,7 @@ export default function UserProfilePage() {
                                 <AvatarImage src={challenge.fromUserAvatar} />
                                 <AvatarFallback>{challenge.fromUsername.charAt(0)}</AvatarFallback>
                                 </Avatar>
-                                <span className="text-xs text-zinc-600 font-semibold">@{challenge.fromUsername}</span>
+                                <span className="text-xs text-white font-semibold">@{challenge.fromUsername}</span>
                             </div>
                             <p className="text-base font-bold font-headline mb-2 flex-grow">"{challenge.text}"</p>
                             <p className="text-right text-xs text-zinc-500 mt-2">{formatDistanceToNow(challenge.completedAt, { addSuffix: true })}</p>
