@@ -363,9 +363,9 @@ export default function UserProfilePage() {
                                 </div>
                             </div>
                              <p className="text-right text-xs text-zinc-500 mt-2">{formatDistanceToNow(challenge.completedAt, { addSuffix: true })}</p>
-                            <div className="mt-3 pt-2 border-t border-black/10 flex items-center justify-end gap-4 text-xs text-zinc-700 font-medium">
+                            <div className="mt-3 pt-2 border-t border-black/10 flex items-center justify-between text-xs text-zinc-700 font-medium">
                                 <div className="flex items-center gap-1">
-                                    <Heart className="h-4 w-4 text-red-500" />
+                                    <Heart className="h-4 w-4 text-red-500 fill-red-500" />
                                     <span>{challenge.likes.toLocaleString()}</span>
                                 </div>
                                 <div className="flex items-center gap-1">
