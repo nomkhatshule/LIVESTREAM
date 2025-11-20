@@ -14,7 +14,7 @@ import { UserPlus, UserCheck, MessageSquare, Heart, Eye, Gem, Gift, Video, Setti
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Link from 'next/link';
 import Image from 'next/image';
-import { mockGifts, type Highlight, mockCompletedChallenges } from '@/lib/data';
+import { mockGifts, type Highlight, type CompletedChallenge } from '@/lib/data';
 import { Badge } from '@/components/ui/badge';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import SettingsModal from '@/components/profile/SettingsModal';
@@ -61,6 +61,17 @@ export default function UserProfilePage() {
         );
     }, [profileUserId, firestore]);
     const { data: highlights, isLoading: areHighlightsLoading } = useCollection<Highlight>(highlightsQuery);
+
+    const completedChallengesQuery = useMemoFirebase(() => {
+        if (!profileUserId) return null;
+        return query(
+            collection(firestore, `users/${profileUserId}/challenges`),
+            where('status', '==', 'completed'),
+            orderBy('completedAt', 'desc')
+        );
+    }, [profileUserId, firestore]);
+    const { data: completedChallenges, isLoading: areChallengesLoading } = useCollection<CompletedChallenge>(completedChallengesQuery);
+
 
   // --- Likes Logic ---
   const userBroadcastsQuery = useMemoFirebase(() => {
@@ -161,7 +172,7 @@ export default function UserProfilePage() {
   };
   
   const isOwnProfile = currentUser?.uid === profileUserId;
-  const isLoading = isDocLoading || isCurrentUserFollowingLoading || isFollowersLoading || isFollowingLoading || areBroadcastsLoading || areHighlightsLoading;
+  const isLoading = isDocLoading || isCurrentUserFollowingLoading || isFollowersLoading || isFollowingLoading || areBroadcastsLoading || areHighlightsLoading || areChallengesLoading;
 
   if (isLoading) {
     return <ProfileSkeleton />;
@@ -343,12 +354,16 @@ export default function UserProfilePage() {
           <TabsContent value="challenges">
             <Card className="sm:rounded-lg bg-zinc-900/50 border-zinc-800">
                 <CardContent className="p-0">
-                    {mockCompletedChallenges && mockCompletedChallenges.length > 0 ? (
+                    {areChallengesLoading ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-0">
+                            {[...Array(6)].map((_, i) => <Skeleton key={i} className="aspect-[1/1]"/>)}
+                        </div>
+                    ) : completedChallenges && completedChallenges.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-0">
-                        {mockCompletedChallenges.map((challenge) => (
+                        {completedChallenges.map((challenge) => (
                         <div 
                             key={challenge.id} 
-                            className="p-4 bg-[#fefabc] text-black flex flex-col border border-zinc-800/50"
+                            className="p-4 bg-[#fefabc] text-black flex flex-col border border-zinc-800/50 rounded-lg"
                         >
                             <div className="flex items-center gap-2 mb-2">
                                 <Avatar className="h-6 w-6">
@@ -358,15 +373,15 @@ export default function UserProfilePage() {
                                 <span className="text-xs font-semibold text-black">@{challenge.fromUsername}</span>
                             </div>
                             <p className="text-base font-bold font-headline mb-2 flex-grow">"{challenge.text}"</p>
-                            <p className="text-right text-xs text-black mt-2">{formatDistanceToNow(challenge.completedAt, { addSuffix: true })}</p>
+                            <p className="text-right text-xs text-black mt-2">{challenge.completedAt ? formatDistanceToNow(challenge.completedAt.toDate(), { addSuffix: true }) : ''}</p>
                             <div className="mt-3 pt-2 border-t border-black/10 flex items-center justify-between text-xs font-medium">
                                 <div className="flex items-center gap-1 text-black">
                                     <Heart className="h-4 w-4 text-red-500 fill-red-500" />
-                                    <span className="text-black">{challenge.likes.toLocaleString()}</span>
+                                    <span className="text-black">{(challenge.likes || 0).toLocaleString()}</span>
                                 </div>
                                 <div className="flex items-center gap-1 text-black">
                                     <Eye className="h-4 w-4" />
-                                    <span className="text-black">{challenge.views.toLocaleString()}</span>
+                                    <span className="text-black">{(challenge.views || 0).toLocaleString()}</span>
                                 </div>
                             </div>
                         </div>
@@ -444,6 +459,8 @@ function ProfileSkeleton() {
     </div>
   );
 }
+
+    
 
     
 

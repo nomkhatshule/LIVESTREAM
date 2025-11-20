@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { doc, updateDoc, serverTimestamp, DocumentReference, collection } from 'firebase/firestore';
+import { doc, updateDoc, serverTimestamp, DocumentReference, collection, getDocs } from 'firebase/firestore';
 import { generateGamePrompts } from '@/ai/flows/generate-game-prompts';
 import type { BroadcastData, StagedChallenge } from '@/lib/types';
 import { useUser, useUserDocument } from '@/firebase';
@@ -76,6 +76,14 @@ export function useGameFlow(broadcastDocRef: DocumentReference | null, broadcast
 
     const handleCompleteChallenge = async () => {
         if (!broadcastDocRef || !broadcastData || !user || !userDocument) return;
+        
+        const likesCollectionRef = collection(broadcastDocRef.firestore, broadcastDocRef.path, 'likes');
+        const likesSnapshot = await getDocs(likesCollectionRef);
+        const currentLikes = likesSnapshot.size;
+        
+        // This is a simplification; a real app would get viewer count from a different source
+        const currentViews = broadcastData.viewerCount || 0; 
+
 
         // Send notification to the sender
         if (broadcastData.challengeSenderId && broadcastData.challengeSenderId !== user.uid) {
@@ -94,9 +102,9 @@ export function useGameFlow(broadcastDocRef: DocumentReference | null, broadcast
         
         // Also update the original challenge document if it exists.
         if (broadcastData.challengeSenderId) {
-             // We need to find the challenge ID - this is a simplification. 
-             // In a real app, we'd store the challengeId on the broadcast document.
-             // For now, we will assume this is sufficient for the notification.
+             // In a real app, we'd store the challengeId on the broadcast document
+             // and use it to update the original challenge.
+             // For now, we update the broadcast and send a notification.
         }
 
         // Clear the challenge from the broadcast
@@ -152,3 +160,5 @@ export function useGameFlow(broadcastDocRef: DocumentReference | null, broadcast
         setIsChallengeVisible,
     };
 }
+
+    
