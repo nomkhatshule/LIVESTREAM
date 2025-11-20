@@ -127,6 +127,14 @@ export const mockHighlights = [
     { id: 9, imageUrl: 'https://picsum.photos/seed/highlight9/300/533', views: 4200 },
 ];
 
+export const mockCompletedChallenges = [
+    { id: 1, text: "Bake a cake that looks like your favorite emoji.", views: 12500, thumbnailUrl: "https://picsum.photos/seed/challenge1/400/225", completedAt: new Date(Date.now() - 86400000 * 1) },
+    { id: 2, text: "Learn and perform the first 15 seconds of a viral TikTok dance.", views: 8900, thumbnailUrl: "https://picsum.photos/seed/challenge2/400/225", completedAt: new Date(Date.now() - 86400000 * 3) },
+    { id: 3, text: "Try to draw a perfect circle freehand.", views: 1200, thumbnailUrl: "https://picsum.photos/seed/challenge3/400/225", completedAt: new Date(Date.now() - 86400000 * 5) },
+    { id: 4, text: "Build a fort in your living room and stream from it.", views: 5430, thumbnailUrl: "https://picsum.photos/seed/challenge4/400/225", completedAt: new Date(Date.now() - 86400000 * 7) },
+];
+
+
 export const mockGifts = [
     {
         id: 1,

@@ -1,5 +1,4 @@
 
-
 'use client';
 import { useUserDocumentById, UserProfile } from '@/firebase/firestore/use-user-document';
 import { Card, CardContent } from '@/components/ui/card';
@@ -11,11 +10,11 @@ import { Button } from '@/components/ui/button';
 import { doc, writeBatch, serverTimestamp, where, query, orderBy, limit, collection, getCountFromServer } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { useMemo, useState, useEffect } from 'react';
-import { UserPlus, UserCheck, MessageSquare, Heart, Eye, Gem, Gift, Video, Settings, X } from 'lucide-react';
+import { UserPlus, UserCheck, MessageSquare, Heart, Eye, Gem, Gift, Video, Settings, X, Swords } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Link from 'next/link';
 import Image from 'next/image';
-import { mockGifts, type Highlight } from '@/lib/data';
+import { mockGifts, type Highlight, mockCompletedChallenges } from '@/lib/data';
 import { Badge } from '@/components/ui/badge';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import SettingsModal from '@/components/profile/SettingsModal';
@@ -23,14 +22,8 @@ import EditProfileModal from '@/components/profile/EditProfileModal';
 import AccountModal from '@/components/profile/AccountModal';
 import { Dialog, DialogContent, DialogClose, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+import { formatDistanceToNow } from 'date-fns';
 
-
-// Mock data for recent activity - in a real app this would be a Firestore query
-const mockActivity = [
-    { id: 1, broadcastTitle: "Final Boss Takedown!", message: "Let's gooooo! You got this! 🚀", timestamp: "2 hours ago", broadcastId: "broadcast-1" },
-    { id:2, broadcastTitle: "Live DJ Set - Deep House", message: "This track is fire! 🔥", timestamp: "1 day ago", broadcastId: "broadcast-2" },
-    { id:3, broadcastTitle: "Making Ramen from Scratch", message: "What kind of broth is that? Looks delicious!", timestamp: "3 days ago", broadcastId: "broadcast-3" },
-]
 
 export default function UserProfilePage() {
   const params = useParams();
@@ -299,8 +292,8 @@ export default function UserProfilePage() {
               </div>
             <TabsList className="grid w-full grid-cols-3 rounded-none border-t">
               <TabsTrigger value="highlights">Highlights</TabsTrigger>
+              <TabsTrigger value="challenges">Challenges</TabsTrigger>
               <TabsTrigger value="gifts">Gifts</TabsTrigger>
-              <TabsTrigger value="activity">Activity</TabsTrigger>
             </TabsList>
           </Card>
 
@@ -346,6 +339,50 @@ export default function UserProfilePage() {
                   </div>
             )}
           </TabsContent>
+          <TabsContent value="challenges">
+             <Card className="sm:rounded-lg">
+                <CardContent className="p-4">
+                     {mockCompletedChallenges && mockCompletedChallenges.length > 0 ? (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {mockCompletedChallenges.map(challenge => (
+                            <div key={challenge.id} className="relative group overflow-hidden rounded-lg border bg-card">
+                                <Image 
+                                    src={challenge.thumbnailUrl}
+                                    alt={challenge.text}
+                                    width={400}
+                                    height={225}
+                                    className="object-cover w-full aspect-video transition-transform group-hover:scale-105"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                                <div className="absolute bottom-0 left-0 p-3 text-white">
+                                    <p className="text-sm font-bold leading-tight line-clamp-2">{challenge.text}</p>
+                                    <div className="flex items-center gap-4 text-xs mt-2 text-white/80">
+                                        <div className="flex items-center gap-1">
+                                            <Eye className="h-3 w-3" />
+                                            <span>{challenge.views.toLocaleString()} views</span>
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                            <span>{formatDistanceToNow(challenge.completedAt, { addSuffix: true })}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                          ))}
+                      </div>
+                    ) : (
+                        <div className="text-center py-16 text-muted-foreground">
+                            <Swords className="h-12 w-12 mx-auto mb-4" />
+                            <h3 className="text-lg font-semibold">No Challenges Completed</h3>
+                            {isOwnProfile ? (
+                              <p>Accept a challenge from your feed to get started!</p>
+                            ) : (
+                              <p>This user hasn't completed any challenges yet.</p>
+                            )}
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+          </TabsContent>
            <TabsContent value="gifts">
             <Card className="sm:rounded-lg">
                 <CardContent className="p-6">
@@ -355,31 +392,6 @@ export default function UserProfilePage() {
                         <p className="text-sm">This feature is under construction. Check back later to see all the gifts this creator has received.</p>
                     </div>
                 </CardContent>
-            </Card>
-          </TabsContent>
-          <TabsContent value="activity">
-            <Card className="sm:rounded-lg">
-              <CardContent className="p-6 space-y-6">
-                {mockActivity.map(activity => (
-                  <div key={activity.id} className="flex items-start gap-4">
-                    <div className="bg-secondary p-3 rounded-full flex-shrink-0">
-                      <MessageSquare className="h-5 w-5 text-secondary-foreground" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm text-muted-foreground">
-                        Commented on <Link href={`/broadcast/${activity.broadcastId}`} className="font-semibold text-foreground hover:underline">{activity.broadcastTitle}</Link>
-                      </p>
-                      <p className="p-3 bg-muted/50 rounded-lg mt-1 italic">"{activity.message}"</p>
-                       <p className="text-xs text-muted-foreground mt-1.5">{activity.timestamp}</p>
-                    </div>
-                  </div>
-                ))}
-                {mockActivity.length === 0 && (
-                  <div className="text-center py-12 text-muted-foreground">
-                    <p>No recent activity.</p>
-                  </div>
-                )}
-              </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
@@ -429,5 +441,3 @@ function ProfileSkeleton() {
     </div>
   );
 }
-
-    
