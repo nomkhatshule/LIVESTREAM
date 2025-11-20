@@ -79,6 +79,15 @@ export type Highlight = {
     userId: string;
 }
 
+export type CompletedChallenge = {
+    id: string;
+    text: string;
+    fromUserId: string;
+    fromUsername: string;
+    fromUserAvatar: string;
+    completedAt: Date;
+}
+
 // Schema for Genkit Flow: generateGamePrompts
 export const GenerateGamePromptsInputSchema = z.object({
   gameType: z
@@ -127,11 +136,13 @@ export const mockHighlights = [
     { id: 9, imageUrl: 'https://picsum.photos/seed/highlight9/300/533', views: 4200 },
 ];
 
-export const mockCompletedChallenges = [
-    { id: 1, text: "Bake a cake that looks like your favorite emoji.", views: 12500, thumbnailUrl: "https://picsum.photos/seed/challenge1/400/225", completedAt: new Date(Date.now() - 86400000 * 1) },
-    { id: 2, text: "Learn and perform the first 15 seconds of a viral TikTok dance.", views: 8900, thumbnailUrl: "https://picsum.photos/seed/challenge2/400/225", completedAt: new Date(Date.now() - 86400000 * 3) },
-    { id: 3, text: "Try to draw a perfect circle freehand.", views: 1200, thumbnailUrl: "https://picsum.photos/seed/challenge3/400/225", completedAt: new Date(Date.now() - 86400000 * 5) },
-    { id: 4, text: "Build a fort in your living room and stream from it.", views: 5430, thumbnailUrl: "https://picsum.photos/seed/challenge4/400/225", completedAt: new Date(Date.now() - 86400000 * 7) },
+export const mockCompletedChallenges: CompletedChallenge[] = [
+    { id: '1', text: "Bake a cake that looks like your favorite emoji.", fromUserId: 'user2', fromUsername: 'PastryPro', fromUserAvatar: "https://picsum.photos/seed/baker/100", completedAt: new Date(Date.now() - 86400000 * 1) },
+    { id: '2', text: "Learn and perform the first 15 seconds of a viral TikTok dance.", fromUserId: 'user3', fromUsername: 'DanceMachine', fromUserAvatar: "https://picsum.photos/seed/dancer/100", completedAt: new Date(Date.now() - 86400000 * 3) },
+    { id: '3', text: "Try to draw a perfect circle freehand.", fromUserId: 'user4', fromUsername: 'SteadyHand', fromUserAvatar: "https://picsum.photos/seed/artist/100", completedAt: new Date(Date.now() - 86400000 * 5) },
+    { id: '4', text: "Build a fort in your living room and stream from it.", fromUserId: 'user5', fromUsername: 'FortMaster', fromUserAvatar: "https://picsum.photos/seed/builder/100", completedAt: new Date(Date.now() - 86400000 * 7) },
+    { id: '5', text: "Write a 30-second jingle for LIVENET.", fromUserId: 'user6', fromUsername: 'JingleMaster', fromUserAvatar: "https://picsum.photos/seed/jingle/100", completedAt: new Date(Date.now() - 86400000 * 8) },
+    { id: '6', text: "Speak only in questions for 5 minutes straight.", fromUserId: 'user7', fromUsername: 'QuestionQueen', fromUserAvatar: "https://picsum.photos/seed/question/100", completedAt: new Date(Date.now() - 86400000 * 10) },
 ];
 
 

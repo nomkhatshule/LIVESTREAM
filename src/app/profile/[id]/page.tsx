@@ -23,6 +23,7 @@ import AccountModal from '@/components/profile/AccountModal';
 import { Dialog, DialogContent, DialogClose, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { formatDistanceToNow } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 
 export default function UserProfilePage() {
@@ -340,35 +341,35 @@ export default function UserProfilePage() {
             )}
           </TabsContent>
           <TabsContent value="challenges">
-             <Card className="sm:rounded-lg">
-                <CardContent className="p-4">
-                     {mockCompletedChallenges && mockCompletedChallenges.length > 0 ? (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                          {mockCompletedChallenges.map(challenge => (
-                            <div key={challenge.id} className="relative group overflow-hidden rounded-lg border bg-card">
-                                <Image 
-                                    src={challenge.thumbnailUrl}
-                                    alt={challenge.text}
-                                    width={400}
-                                    height={225}
-                                    className="object-cover w-full aspect-video transition-transform group-hover:scale-105"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                                <div className="absolute bottom-0 left-0 p-3 text-white">
-                                    <p className="text-sm font-bold leading-tight line-clamp-2">{challenge.text}</p>
-                                    <div className="flex items-center gap-4 text-xs mt-2 text-white/80">
-                                        <div className="flex items-center gap-1">
-                                            <Eye className="h-3 w-3" />
-                                            <span>{challenge.views.toLocaleString()} views</span>
-                                        </div>
-                                        <div className="flex items-center gap-1">
-                                            <span>{formatDistanceToNow(challenge.completedAt, { addSuffix: true })}</span>
-                                        </div>
-                                    </div>
+            <Card className="sm:rounded-lg bg-zinc-900/50 border-zinc-800">
+                <CardContent className="p-4 sm:p-6">
+                    {mockCompletedChallenges && mockCompletedChallenges.length > 0 ? (
+                    <div className="columns-2 sm:columns-3 gap-4 space-y-4">
+                        {mockCompletedChallenges.map((challenge, i) => (
+                        <div 
+                            key={challenge.id} 
+                            className={cn(
+                                "p-4 bg-[#fefabc] rounded-lg shadow-lg text-black break-inside-avoid-column transition-transform duration-300 hover:rotate-0 hover:scale-105",
+                                i % 4 === 0 && "rotate-1",
+                                i % 4 === 1 && "-rotate-2",
+                                i % 4 === 2 && "rotate-2",
+                                i % 4 === 3 && "-rotate-1"
+                            )}
+                        >
+                            <p className="text-base font-bold font-headline mb-2">"{challenge.text}"</p>
+                            <div className="flex items-center justify-between text-xs text-zinc-600">
+                                <div className="flex items-center gap-1.5">
+                                    <Avatar className="h-5 w-5">
+                                        <AvatarImage src={challenge.fromUserAvatar} />
+                                        <AvatarFallback>{challenge.fromUsername.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <span>@{challenge.fromUsername}</span>
                                 </div>
                             </div>
-                          ))}
-                      </div>
+                             <p className="text-right text-xs text-zinc-500 mt-2">{formatDistanceToNow(challenge.completedAt, { addSuffix: true })}</p>
+                        </div>
+                        ))}
+                    </div>
                     ) : (
                         <div className="text-center py-16 text-muted-foreground">
                             <Swords className="h-12 w-12 mx-auto mb-4" />
