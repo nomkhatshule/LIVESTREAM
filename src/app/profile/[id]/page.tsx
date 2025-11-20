@@ -352,17 +352,15 @@ export default function UserProfilePage() {
                                 "p-4 bg-[#fefabc] rounded-lg shadow-lg text-black break-inside-avoid-column transition-transform duration-300 hover:rotate-0 hover:scale-105"
                             )}
                         >
-                            <p className="text-base font-bold font-headline mb-2">"{challenge.text}"</p>
-                            <div className="flex items-center justify-between text-xs text-zinc-600">
-                                <div className="flex items-center gap-1.5">
-                                    <Avatar className="h-5 w-5">
-                                        <AvatarImage src={challenge.fromUserAvatar} />
-                                        <AvatarFallback>{challenge.fromUsername.charAt(0)}</AvatarFallback>
-                                    </Avatar>
-                                    <span>@{challenge.fromUsername}</span>
-                                </div>
+                            <div className="flex items-center gap-2 mb-2">
+                                <Avatar className="h-6 w-6">
+                                <AvatarImage src={challenge.fromUserAvatar} />
+                                <AvatarFallback>{challenge.fromUsername.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <span className="text-xs text-zinc-600 font-semibold">@{challenge.fromUsername}</span>
                             </div>
-                             <p className="text-right text-xs text-zinc-500 mt-2">{formatDistanceToNow(challenge.completedAt, { addSuffix: true })}</p>
+                            <p className="text-base font-bold font-headline mb-2">"{challenge.text}"</p>
+                            <p className="text-right text-xs text-zinc-500 mt-2">{formatDistanceToNow(challenge.completedAt, { addSuffix: true })}</p>
                             <div className="mt-3 pt-2 border-t border-black/10 flex items-center justify-between text-xs text-zinc-700 font-medium">
                                 <div className="flex items-center gap-1">
                                     <Heart className="h-4 w-4 text-red-500 fill-red-500" />
