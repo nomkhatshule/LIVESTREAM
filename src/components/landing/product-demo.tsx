@@ -110,15 +110,16 @@ export default function ProductDemo() {
                <ConnectorLine className="self-end" />
             </div>
 
-            <div className="relative w-[280px] h-[560px] md:w-[320px] md:h-[640px] bg-zinc-700 rounded-[40px] border-[10px] border-zinc-700 shadow-2xl z-20 my-8 md:my-0">
-                 <div className="relative w-full h-full bg-black rounded-[32px] overflow-hidden p-1 border-2 border-black">
+             <div className="relative w-[280px] h-[560px] md:w-[320px] md:h-[640px] bg-black rounded-[40px] border-4 border-zinc-700 shadow-2xl z-20 my-8 md:my-0">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-black rounded-b-xl z-30"></div>
+                <div className="relative w-full h-full bg-black rounded-[36px] overflow-hidden">
                     {/* Video Background */}
                     <video
                         autoPlay
                         loop
                         muted
                         playsInline
-                        className="absolute top-0 left-0 w-full h-full object-cover rounded-[28px]"
+                        className="absolute top-0 left-0 w-full h-full object-cover"
                         poster="https://cdn.midjourney.com/a857a58a-3511-4355-901c-6d9b54178577/0_0.png"
                     >
                         <source src="https://cdn.pixabay.com/video/2016/08/22/4727-179738642_tiny.mp4" type="video/mp4" />
