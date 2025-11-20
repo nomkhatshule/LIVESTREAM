@@ -11,9 +11,6 @@ import Footer from '@/components/layout/footer';
 export const metadata: Metadata = {
   title: 'LIVENET',
   description: 'The future of live broadcasting.',
-  icons: {
-    icon: '/favicon.ico',
-  },
 };
 
 export default function RootLayout({
