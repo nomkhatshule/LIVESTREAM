@@ -344,7 +344,7 @@ export default function UserProfilePage() {
             <Card className="sm:rounded-lg bg-zinc-900/50 border-zinc-800">
                 <CardContent className="p-4 sm:p-6">
                     {mockCompletedChallenges && mockCompletedChallenges.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                         {mockCompletedChallenges.map((challenge) => (
                         <div 
                             key={challenge.id} 
@@ -355,16 +355,16 @@ export default function UserProfilePage() {
                                 <AvatarImage src={challenge.fromUserAvatar} />
                                 <AvatarFallback>{challenge.fromUsername.charAt(0)}</AvatarFallback>
                                 </Avatar>
-                                <span className="text-xs text-black font-semibold">@{challenge.fromUsername}</span>
+                                <span className="text-xs font-semibold text-black">@{challenge.fromUsername}</span>
                             </div>
                             <p className="text-base font-bold font-headline mb-2 flex-grow">"{challenge.text}"</p>
                             <p className="text-right text-xs text-black mt-2">{formatDistanceToNow(challenge.completedAt, { addSuffix: true })}</p>
-                            <div className="mt-3 pt-2 border-t border-black/10 flex items-center justify-between text-xs text-black font-medium">
-                                <div className="flex items-center gap-1">
+                            <div className="mt-3 pt-2 border-t border-black/10 flex items-center justify-between text-xs font-medium">
+                                <div className="flex items-center gap-1 text-black">
                                     <Heart className="h-4 w-4 text-red-500 fill-red-500" />
                                     <span>{challenge.likes.toLocaleString()}</span>
                                 </div>
-                                <div className="flex items-center gap-1">
+                                <div className="flex items-center gap-1 text-black">
                                     <Eye className="h-4 w-4" />
                                     <span>{challenge.views.toLocaleString()}</span>
                                 </div>
