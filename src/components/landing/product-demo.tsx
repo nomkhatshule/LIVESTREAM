@@ -98,7 +98,7 @@ export default function ProductDemo() {
                 alignment="right"
               />
                <FeatureDescription
-                title="Find Truth or Dare Cards"
+                title="Challenge Now"
                 description="Play Truth or Dare, or complete wild challenges with your followers."
                 alignment="right"
               />
