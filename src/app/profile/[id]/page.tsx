@@ -342,13 +342,13 @@ export default function UserProfilePage() {
           </TabsContent>
           <TabsContent value="challenges">
             <Card className="sm:rounded-lg bg-zinc-900/50 border-zinc-800">
-                <CardContent className="p-4 sm:p-6">
+                <CardContent className="p-0">
                     {mockCompletedChallenges && mockCompletedChallenges.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-0">
                         {mockCompletedChallenges.map((challenge) => (
                         <div 
                             key={challenge.id} 
-                            className="p-4 bg-[#fefabc] rounded-lg shadow-lg text-black flex flex-col"
+                            className="p-4 bg-[#fefabc] text-black flex flex-col border border-zinc-800/50"
                         >
                             <div className="flex items-center gap-2 mb-2">
                                 <Avatar className="h-6 w-6">
@@ -362,11 +362,11 @@ export default function UserProfilePage() {
                             <div className="mt-3 pt-2 border-t border-black/10 flex items-center justify-between text-xs font-medium">
                                 <div className="flex items-center gap-1 text-black">
                                     <Heart className="h-4 w-4 text-red-500 fill-red-500" />
-                                    <span>{challenge.likes.toLocaleString()}</span>
+                                    <span className="text-black">{challenge.likes.toLocaleString()}</span>
                                 </div>
                                 <div className="flex items-center gap-1 text-black">
                                     <Eye className="h-4 w-4" />
-                                    <span>{challenge.views.toLocaleString()}</span>
+                                    <span className="text-black">{challenge.views.toLocaleString()}</span>
                                 </div>
                             </div>
                         </div>
@@ -389,10 +389,10 @@ export default function UserProfilePage() {
            <TabsContent value="gifts">
             <Card className="sm:rounded-lg">
                 <CardContent className="p-6">
-                    <div className="text-center py-16 text-zinc-400">
+                    <div className="text-center py-16 text-white">
                         <Gift className="h-12 w-12 mx-auto mb-4" />
                         <h3 className="text-lg font-semibold text-white">Coming Soon!</h3>
-                        <p className="text-sm">This feature is under construction. Check back later to see all the gifts this creator has received.</p>
+                        <p className="text-sm text-zinc-400">This feature is under construction. Check back later to see all the gifts this creator has received.</p>
                     </div>
                 </CardContent>
             </Card>
@@ -444,6 +444,8 @@ function ProfileSkeleton() {
     </div>
   );
 }
+
+    
 
     
 
