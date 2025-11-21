@@ -139,9 +139,10 @@ function LivenetStudioUI() {
         await updateDoc(broadcastDocRef, { isLive: false });
     }
     if (call) {
-        await call.leave();
+        // Disconnect from the call, but don't disconnect the user from the client
+        await call.leave(); 
     }
-    router.push('/');
+    router.push('/feed'); // Navigate to the feed page
   };
 
   const handleInviteGuest = () => {
