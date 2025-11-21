@@ -1,6 +1,7 @@
 
 rules_version = '2';
 
+// Deploying rules at user request.
 service cloud.firestore {
   match /databases/{database}/documents {
 
