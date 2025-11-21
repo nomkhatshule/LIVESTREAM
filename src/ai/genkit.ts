@@ -4,5 +4,5 @@ import {openai} from '@genkit-ai/openai';
 
 export const ai = genkit({
   plugins: [googleAI()],
-  model: 'googleai/gemini-2.5-flash-preview',
+  model: 'googleai/gemini-2.5-flash',
 });
