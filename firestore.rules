@@ -50,9 +50,9 @@ service cloud.firestore {
         allow create: if request.auth != null;
       }
       
-      // Challenges can be read by the recipient, and created by any authenticated user.
+      // Challenges can be read/listed by the recipient, and created by any authenticated user.
       match /challenges/{challengeId} {
-        allow read, update, delete: if request.auth.uid == userId;
+        allow list, read, update, delete: if request.auth.uid == userId;
         allow create: if request.auth != null;
       }
     }
