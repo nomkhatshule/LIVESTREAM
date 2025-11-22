@@ -1,7 +1,7 @@
 
 rules_version = '2';
 
-// Deploying rules at user request.
+// Forcing deployment with correct rules on July 26, 2024, 10:30 AM
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -51,8 +51,8 @@ service cloud.firestore {
         allow create: if request.auth != null;
       }
       
-      // Allow the user to LIST their own challenges.
-      match /challenges {
+      // Allow the user to LIST their own challenges. This is for querying the collection.
+      match /challenges/{challengeId=**} {
         allow list: if request.auth.uid == userId;
       }
       
