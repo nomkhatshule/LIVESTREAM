@@ -93,6 +93,7 @@ export default function ChatPanel({
                     inputRef={textareaRef}
                     replyingTo={replyingTo}
                     onCancelReply={() => setReplyingTo(null)}
+                    attachmentIconType="image"
                 />
              </div>
         </div>

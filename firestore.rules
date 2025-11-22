@@ -51,14 +51,10 @@ service cloud.firestore {
         allow create: if request.auth != null;
       }
       
-      // Allow the user to LIST their own challenges. This is for querying the collection.
-      match /challenges/{challengeId=**} {
-        allow list: if request.auth.uid == userId;
-      }
-      
-      // Allow operations on individual challenge documents.
+      // Allow any authenticated user to LIST and READ challenges for any user.
       match /challenges/{challengeId} {
-        allow read, update, delete: if request.auth.uid == userId;
+        allow list, read: if request.auth != null;
+        allow update, delete: if request.auth.uid == userId;
         allow create: if request.auth != null;
       }
     }
@@ -106,7 +102,7 @@ service cloud.firestore {
       }
     }
     
-    // Chats can be read and written by the participants of the chat.
+    // Chats can be read and written by the participants of the.
     match /chats/{chatId} {
       allow read, write: if request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
       
