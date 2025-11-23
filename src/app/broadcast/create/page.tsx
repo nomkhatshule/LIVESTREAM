@@ -229,7 +229,7 @@ function CreateBroadcastPageComponent() {
                     disabled={isAnySubmitting || !title || isLoading || hasCameraPermission === false}
                     className="w-full bg-white text-black hover:bg-gray-200"
                 >
-                    {isLoading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
+                    {isUserLoading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
                     <Video className="mr-2 h-5 w-5" />
                     Go Live Now
                 </Button>
@@ -245,7 +245,7 @@ function CreateBroadcastPageComponent() {
                     variant="outline"
                     className="w-full"
                 >
-                    {isLoading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
+                    {isUserLoading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
                     <DoorOpen className="mr-2 h-5 w-5" />
                     Stream with OBS/External Software
                 </Button>
