@@ -34,6 +34,8 @@ export function initiateEmailSignUp(authInstance: Auth, email: string, password:
             createdAt: serverTimestamp(),
             profilePicture: user.photoURL || '', // Initialize with photoURL from provider if available
             bio: '', // Initialize with empty string
+            coverUrl: '',
+            coverType: 'image'
           });
         });
     })
@@ -71,6 +73,8 @@ export async function initiateGoogleSignIn(authInstance: Auth): Promise<boolean>
           createdAt: serverTimestamp(),
           profilePicture: user.photoURL || '', // Google provides a photo URL
           bio: '',
+          coverUrl: '',
+          coverType: 'image',
         });
       }
     }

@@ -167,15 +167,33 @@ function CreateBroadcastPageComponent() {
   };
   
   const isLoading = isUserLoading || isDocLoading;
+  const isDataMissing = !user || !userDocument;
   const isAnySubmitting = isSubmitting || isSubmittingRtmp;
 
   if (isLoading && !isAnySubmitting) {
     return (
         <div className="flex h-screen w-full items-center justify-center bg-background">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p className="ml-2">Loading...</p>
+            <p className="ml-2">Loading user profile...</p>
         </div>
     );
+  }
+  
+  if (!isUserLoading && !isDocLoading && isDataMissing) {
+      return (
+        <div className="flex h-screen w-full items-center justify-center bg-background text-white">
+            <div className="flex flex-col items-center justify-center text-center max-w-md p-8">
+                <CameraOff className="h-16 w-16 mb-4 text-red-500" />
+                <h2 className="text-2xl font-bold">User Profile Incomplete</h2>
+                <p className="text-muted-foreground mt-2">
+                    We couldn't find a user profile for your account. A complete profile is required to start a broadcast. Please complete your profile and try again.
+                </p>
+                 <Button onClick={() => router.push('/profile')} className="mt-4">
+                    Go to Profile
+                </Button>
+            </div>
+        </div>
+      )
   }
 
   return (
@@ -226,10 +244,10 @@ function CreateBroadcastPageComponent() {
                 <Button
                     size="lg"
                     onClick={handleGoLive}
-                    disabled={isAnySubmitting || !title || isLoading || hasCameraPermission === false}
+                    disabled={isAnySubmitting || !title || isLoading || isDataMissing || hasCameraPermission === false}
                     className="w-full bg-white text-black hover:bg-gray-200"
                 >
-                    {isUserLoading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
+                    {isLoading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
                     <Video className="mr-2 h-5 w-5" />
                     Go Live Now
                 </Button>
@@ -241,11 +259,11 @@ function CreateBroadcastPageComponent() {
                  <Button
                     size="lg"
                     onClick={handleSetUpRtmpStream}
-                    disabled={isAnySubmitting || !title || isLoading}
+                    disabled={isAnySubmitting || !title || isLoading || isDataMissing}
                     variant="outline"
                     className="w-full"
                 >
-                    {isUserLoading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
+                    {isLoading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
                     <DoorOpen className="mr-2 h-5 w-5" />
                     Stream with OBS/External Software
                 </Button>
