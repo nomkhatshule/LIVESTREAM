@@ -41,7 +41,7 @@ export default function Footer() {
             </ul>
           </div>
         </div>
-        <div className="mt-12 border-t border-stone-800 pt-8 text-center text-sm text-stone-500">
+        <div className="mt-12 border-t border-stone-800 pt-8 text-center text-sm text-white">
           <p>&copy; {year} LIVENET. All rights reserved.</p>
         </div>
       </div>
