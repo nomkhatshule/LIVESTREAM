@@ -71,6 +71,17 @@ function LivenetStudioUI() {
   }, [broadcastId, firestore]);
   
   const { data: broadcastData, isLoading: isBroadcastLoading } = useDoc<BroadcastData>(broadcastDocRef);
+  
+  // Effect to update the viewer count in Firestore whenever it changes
+  useEffect(() => {
+    if (broadcastDocRef && isCallJoined) {
+        // We only update if the new viewerCount is different from what's in Firestore
+        // to avoid unnecessary writes.
+        if (broadcastData?.viewerCount !== viewerCount) {
+             updateDoc(broadcastDocRef, { viewerCount: viewerCount });
+        }
+    }
+  }, [viewerCount, broadcastDocRef, isCallJoined, broadcastData?.viewerCount]);
 
   // Real-time chat messages
    const messagesQuery = useMemoFirebase(() => {
@@ -139,10 +150,9 @@ function LivenetStudioUI() {
         await updateDoc(broadcastDocRef, { isLive: false });
     }
     if (call) {
-        // Disconnect from the call, but don't disconnect the user from the client
-        await call.leave(); 
+        await call.leave();
     }
-    router.push('/feed'); // Navigate to the feed page
+    router.push('/');
   };
 
   const handleInviteGuest = () => {
@@ -260,10 +270,10 @@ function LivenetStudioUI() {
             cardSize={cardSize}
             isDragging={isDragging}
             onMouseDown={handleMouseDown}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
             onTouchEnd={handleTouchEnd}
-            onResizeStop={handleResizeStop}
+            onResizeStop={onResizeStop}
             onSetCardSize={setCardSize}
             onCompleteChallenge={handleCompleteChallenge}
             broadcastDocRef={broadcastDocRef}

@@ -229,8 +229,7 @@ export default function BroadcastPage() {
               <div className="flex items-center gap-3 mt-1">
                  <span className="inline-flex items-center text-xs font-medium gap-1">
                       <Users className="h-3 w-3" />
-                      {/* Viewer count will come from Mux Data in a real integration */}
-                      0
+                      {broadcast.viewers || 0}
                   </span>
               </div>
             </div>

@@ -125,10 +125,11 @@ function ViewerStreamContent({ broadcast, onParticipantCountChange }: { broadcas
   const hostParticipant = participants.find(p => p.userId === broadcast.hostId);
   
   useEffect(() => {
-    // Exclude the host from the viewer count
-    const viewerCount = Math.max(0, participants.length -1);
+    // The viewer count is the number of participants minus the host.
+    // This will update whenever someone joins or leaves.
+    const viewerCount = Math.max(0, participants.length - (hostParticipant ? 1 : 0));
     onParticipantCountChange?.(viewerCount);
-  }, [participants, onParticipantCountChange]);
+  }, [participants, hostParticipant, onParticipantCountChange]);
 
   if (!hostParticipant) {
     return (
