@@ -1,3 +1,4 @@
+
 'use client';
 
 import { usePathname } from 'next/navigation';
@@ -22,7 +23,7 @@ export default function Footer() {
               <span className="font-logo font-black text-white text-3xl">LIVENET</span>
             </Link>
             <p className="mt-4 text-sm text-stone-300 max-w-md">
-              Real people, real moments, real connections. The future of reality social is live.
+              Real people, real moments, real connections.
             </p>
           </div>
           <div className="col-span-1">
