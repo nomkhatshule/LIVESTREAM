@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -30,7 +31,8 @@ function AuthPageContent() {
       <Card className="mx-auto max-w-sm w-full bg-card/80 backdrop-blur-lg border-white/20">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <Link href="/landing">
+            <Link href="/landing" className="flex items-center gap-2">
+              <Image src="/favicon.ico" alt="LIVENET Logo" width={42} height={42} />
               <span className="font-logo font-black text-white text-4xl">LIVENET</span>
             </Link>
           </div>
