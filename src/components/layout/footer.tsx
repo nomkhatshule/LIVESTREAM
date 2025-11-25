@@ -21,7 +21,7 @@ export default function Footer() {
             <Link href="/" className="flex items-center gap-2">
               <span className="font-logo font-black text-white text-3xl">LIVENET</span>
             </Link>
-            <p className="mt-4 text-sm text-stone-400 max-w-md">
+            <p className="mt-4 text-sm text-stone-300 max-w-md">
               Real people, real moments, real connections. The future of reality social is live.
             </p>
           </div>
@@ -42,7 +42,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="mt-12 border-t border-stone-800 pt-8 text-center text-sm text-white">
-          <p>&copy; {year} LIVENET. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} LIVENET. All rights reserved.</p>
         </div>
       </div>
     </footer>
