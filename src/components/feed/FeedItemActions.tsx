@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { addDocumentNonBlocking, deleteDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { cn } from '@/lib/utils';
 import AIChat from '@/components/broadcast/ai-chat';
-import { Heart, MessageSquareMore, Search, Send, Swords } from 'lucide-react';
+import { Heart, MessageSquareMore, Search, Send, Swords, Share2 } from 'lucide-react';
 import type { Broadcast } from '@/lib/data';
 import ChallengeDisplayCard from '../broadcast/ChallengeDisplayCard';
 import CountdownTimer from '../broadcast/CountdownTimer';
@@ -73,6 +73,15 @@ export default function FeedItemActions({ broadcast, broadcastContext, isChatVis
             }
         }
     };
+
+    const handleShare = () => {
+        const url = `${window.location.origin}/broadcast/${broadcast.id}`;
+        navigator.clipboard.writeText(url).then(() => {
+            toast({ title: "Link Copied!", description: "The stream link is ready to be shared." });
+        }).catch(() => {
+            toast({ title: "Copy Failed", description: "Could not copy the link to your clipboard.", variant: "destructive" });
+        });
+    }
 
     const cardPosition = broadcast.challengeCardPosition || { x: 0, y: 0 };
     const cardSize = broadcast.challengeCardSize || { width: 320, height: 460 };
@@ -143,6 +152,14 @@ export default function FeedItemActions({ broadcast, broadcastContext, isChatVis
                             <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">AI</span>
                     </div>
                 </AIChat>
+
+                {/* 5. Share Button */}
+                <div className="flex flex-col items-center group">
+                    <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform" onClick={handleShare}>
+                        <Share2 className="h-7 w-7 drop-shadow-md" strokeWidth={1.5} />
+                    </button>
+                    <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">Share</span>
+                </div>
             </div>
         </>
     );
