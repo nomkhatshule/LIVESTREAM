@@ -21,7 +21,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="col-span-1 md:col-span-2">
             <Link href="/" className="flex items-center gap-2">
-              <Image src="/favicon.ico" alt="LIVENET Logo" width={36} height={36} />
+              <Image src="/favicon.ico" alt="LIVENET Logo" width={40} height={40} />
               <span className="font-logo font-black text-white text-3xl">LIVENET</span>
             </Link>
             <p className="mt-4 text-sm text-stone-300 max-w-md">
