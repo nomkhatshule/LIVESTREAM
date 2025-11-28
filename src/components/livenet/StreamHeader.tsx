@@ -17,7 +17,7 @@ export default function StreamHeader({ broadcastData, viewerCount, onEndStream }
     return (
         <div className="absolute top-0 left-0 right-0 z-30 p-2 md:p-4 flex items-center justify-between bg-gradient-to-b from-black/50 to-transparent">
             <div className="flex items-center gap-2 md:gap-3 bg-black/30 p-1.5 md:p-2 rounded-full">
-                <Avatar className={cn("h-8 w-8 md:h-9 md:w-9 border-4 border-destructive", broadcastData?.isLive && "animate-breathing")}>
+                <Avatar className={cn("h-8 w-8 md:h-9 md:w-9 border-4 border-primary", broadcastData?.isLive && "animate-breathing")}>
                     <AvatarImage src={broadcastData?.hostAvatar || broadcastData?.user?.avatarUrl || ''} alt={broadcastData?.hostName || broadcastData?.user?.name || ''} />
                     <AvatarFallback>{(broadcastData?.hostName || broadcastData?.user?.name || 'U').charAt(0)}</AvatarFallback>
                 </Avatar>
@@ -39,3 +39,5 @@ export default function StreamHeader({ broadcastData, viewerCount, onEndStream }
         </div>
     );
 };
+
+    
