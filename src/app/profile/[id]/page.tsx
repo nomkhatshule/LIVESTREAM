@@ -89,8 +89,8 @@ export default function UserProfilePage() {
         toast({
             title: `Welcome to LIVENET, ${userDocument.username}!`,
             description: (
-              <div className="flex flex-col gap-3 mt-2">
-                <div className="relative w-full aspect-video rounded-md overflow-hidden">
+              <div className="flex flex-col sm:flex-row gap-3 mt-2 items-center">
+                <div className="relative w-full sm:w-24 aspect-video sm:aspect-square rounded-md overflow-hidden flex-shrink-0">
                     <Image
                         src="https://cdn.midjourney.com/7fcf346d-6ade-47fd-ac78-898d9ee545db/0_3.png"
                         alt="Welcome to Livenet"
@@ -98,7 +98,7 @@ export default function UserProfilePage() {
                         className="object-cover"
                     />
                 </div>
-                <p>To customize your avatar and cover, click the settings icon on your profile.</p>
+                <p className="text-sm">To customize your avatar and cover, click the settings icon on your profile.</p>
               </div>
             ),
             duration: 10000,
@@ -494,5 +494,3 @@ function ProfileSkeleton() {
     </div>
   );
 }
-
-    
