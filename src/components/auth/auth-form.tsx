@@ -22,7 +22,7 @@ import {
   initiateEmailSignIn,
   initiateGoogleSignIn,
 } from '@/firebase/non-blocking-login';
-import { Suspense } from 'react';
+import { Suspense, useEffect } from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 const loginSchema = z.object({
@@ -67,6 +67,14 @@ function AuthFormComponent() {
         unsubscribe(); // Unsubscribe after we get the user
         if (isNewUser) {
           router.push(`/profile/${user.uid}`);
+          // Add a short delay to ensure the toast appears after the page transition
+          setTimeout(() => {
+            toast({
+              title: "Welcome to LIVENET!",
+              description: "To customize your profile, click the settings icon on your cover image.",
+              duration: 8000, // Make it last a bit longer
+            });
+          }, 500);
         } else {
           router.push('/feed');
         }
