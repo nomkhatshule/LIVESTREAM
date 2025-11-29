@@ -177,6 +177,10 @@ body {
       animation: breathing-prominent 2s ease-out infinite;
     }
 
+    .animate-breathing-destructive {
+      animation: breathing-destructive 2s ease-out infinite;
+    }
+
     .animate-breathing-green {
       animation: breathing-green 2s ease-out infinite;
     }
@@ -225,6 +229,15 @@ body {
         }
         50% {
             box-shadow: 0 0 25px 12px hsl(var(--primary) / 0.5);
+        }
+    }
+
+    @keyframes breathing-destructive {
+        0%, 100% {
+            box-shadow: 0 0 8px 3px hsl(var(--destructive) / 0.8);
+        }
+        50% {
+            box-shadow: 0 0 25px 12px hsl(var(--destructive) / 0.5);
         }
     }
 
