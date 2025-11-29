@@ -247,7 +247,7 @@ export default function UserProfilePage() {
 
 
       <div className="container mx-auto max-w-4xl pb-8 sm:px-0 md:px-4 relative">
-         <Button variant="outline" asChild className="absolute top-4 left-4 sm:left-4 md:left-8 bg-transparent text-white border-zinc-700 hover:bg-zinc-900 hover:text-white z-20">
+         <Button variant="outline" asChild className="absolute top-4 left-4 bg-transparent text-white border-zinc-700 hover:bg-zinc-900 hover:text-white z-20">
           <Link href="/feed">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Feed
