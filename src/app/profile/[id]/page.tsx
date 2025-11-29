@@ -4,7 +4,7 @@ import { useUserDocumentById, UserProfile } from '@/firebase/firestore/use-user-
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { useUser, useFirestore, useCollection, useMemoFirebase, useUserDocument } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { doc, writeBatch, serverTimestamp, where, query, orderBy, limit, collection, getCountFromServer } from 'firebase/firestore';
@@ -28,6 +28,8 @@ import { cn } from '@/lib/utils';
 
 export default function UserProfilePage() {
   const params = useParams();
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const profileUserId = params.id as string;
   const { user: currentUser } = useUser();
   const { userDocument: currentUserDocument } = useUserDocument();
@@ -80,6 +82,21 @@ export default function UserProfilePage() {
   }, [profileUserId, firestore]);
   const { data: userBroadcasts, isLoading: areBroadcastsLoading } = useCollection(userBroadcastsQuery);
   
+  // --- New User Toast Logic ---
+  useEffect(() => {
+    const isNewUser = searchParams.get('new_user') === 'true';
+    if (isNewUser && !isDocLoading) {
+        toast({
+            title: "Welcome to LIVENET!",
+            description: "To customize your avatar and cover, click the settings icon on your profile.",
+            duration: 8000,
+        });
+        // Clean the URL
+        router.replace(`/profile/${profileUserId}`, { scroll: false });
+    }
+  }, [isDocLoading, searchParams, toast, router, profileUserId]);
+
+
   useEffect(() => {
     if (!userBroadcasts || !firestore) {
       setTotalLikes(0);

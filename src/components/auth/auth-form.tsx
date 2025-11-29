@@ -66,15 +66,7 @@ function AuthFormComponent() {
       if (user) {
         unsubscribe(); // Unsubscribe after we get the user
         if (isNewUser) {
-          router.push(`/profile/${user.uid}`);
-          // Add a short delay to ensure the toast appears after the page transition
-          setTimeout(() => {
-            toast({
-              title: "Welcome to LIVENET!",
-              description: "To customize your profile, click the settings icon on your cover image.",
-              duration: 8000, // Make it last a bit longer
-            });
-          }, 500);
+          router.push(`/profile/${user.uid}?new_user=true`);
         } else {
           router.push('/feed');
         }
