@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { doc, writeBatch, serverTimestamp, where, query, orderBy, limit, collection, getCountFromServer } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { useMemo, useState, useEffect } from 'react';
-import { UserPlus, UserCheck, MessageSquare, Heart, Eye, Gem, Gift, Video, Settings, X, Swords } from 'lucide-react';
+import { UserPlus, UserCheck, MessageSquare, Heart, Eye, Gem, Gift, Video, Settings, X, Swords, ArrowLeft } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -229,7 +229,13 @@ export default function UserProfilePage() {
       </Dialog>
 
 
-      <div className="container mx-auto max-w-4xl pb-8 sm:px-0 md:px-4">
+      <div className="container mx-auto max-w-4xl pb-8 sm:px-0 md:px-4 relative">
+         <Button variant="outline" asChild className="absolute top-4 left-4 sm:left-4 md:left-8 bg-transparent text-white border-zinc-700 hover:bg-zinc-900 hover:text-white z-20">
+          <Link href="/feed">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Feed
+          </Link>
+        </Button>
         <Tabs defaultValue="highlights" className="w-full">
           {/* Profile Header Card */}
           <Card className="overflow-hidden mb-2 sm:rounded-lg">
@@ -260,7 +266,7 @@ export default function UserProfilePage() {
                 )}
               </div>
               <div className="flex flex-col items-center p-6 pt-0 -mt-24">
-                <Avatar className="w-28 h-28 border-4 border-background ring-4 ring-primary">
+                <Avatar className="w-28 h-28 border-4 border-background ring-4 ring-black">
                   <AvatarImage src={userDocument.profilePicture || "https://picsum.photos/seed/profile-placeholder/200"} alt={userDocument.username || ''} />
                   <AvatarFallback className="text-4xl">{userDocument.username?.charAt(0)}</AvatarFallback>
                 </Avatar>
@@ -459,12 +465,3 @@ function ProfileSkeleton() {
     </div>
   );
 }
-
-    
-
-    
-
-    
-
-    
-    
