@@ -295,7 +295,7 @@ export default function UserProfilePage() {
                 )}
               </div>
               <div className="flex flex-col items-center p-6 pt-0 -mt-24">
-                <Avatar className="w-28 h-28 border-4 border-background ring-4 ring-black">
+                <Avatar className="w-28 h-28 border-4 border-background ring-4 ring-white">
                   <AvatarImage src={userDocument.profilePicture || "https://picsum.photos/seed/profile-placeholder/200"} alt={userDocument.username || ''} />
                   <AvatarFallback className="text-4xl">{userDocument.username?.charAt(0)}</AvatarFallback>
                 </Avatar>
@@ -460,7 +460,7 @@ function ProfileSkeleton() {
         <Card className="overflow-hidden mb-2 sm:rounded-lg">
           <Skeleton className="h-48 w-full" />
           <div className="flex flex-col items-center p-6 pt-0 -mt-24">
-            <Skeleton className="w-28 h-28 rounded-full border-4 border-background ring-4 ring-primary" />
+            <Skeleton className="w-28 h-28 rounded-full border-4 border-background ring-4 ring-white" />
             <Skeleton className="h-9 w-48 mt-4" />
             <Skeleton className="h-5 w-80 mt-3" />
             
