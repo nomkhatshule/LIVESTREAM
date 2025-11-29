@@ -259,12 +259,6 @@ export default function UserProfilePage() {
 
 
       <div className="container mx-auto max-w-4xl pb-8 sm:px-0 md:px-4 relative">
-         <Button variant="outline" asChild className={cn("absolute top-4 z-20", "left-4 sm:left-4 md:left-8", "bg-transparent text-white border-zinc-700 hover:bg-zinc-900 hover:text-white")}>
-            <Link href="/feed">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Feed
-            </Link>
-        </Button>
         <Tabs defaultValue="highlights" className="w-full">
           {/* Profile Header Card */}
           <Card className="overflow-hidden mb-2 sm:rounded-lg">
