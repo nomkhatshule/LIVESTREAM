@@ -259,6 +259,12 @@ export default function UserProfilePage() {
 
 
       <div className="container mx-auto max-w-4xl pb-8 sm:px-0 md:px-4 relative">
+         <Button variant="outline" asChild className={cn("absolute top-4 z-20", "left-4 sm:left-4 md:left-8", "bg-transparent text-white border-zinc-700 hover:bg-zinc-900 hover:text-white")}>
+            <Link href="/feed">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Feed
+            </Link>
+        </Button>
         <Tabs defaultValue="highlights" className="w-full">
           {/* Profile Header Card */}
           <Card className="overflow-hidden mb-2 sm:rounded-lg">
@@ -310,16 +316,7 @@ export default function UserProfilePage() {
                     <p className="text-sm text-muted-foreground">Likes</p>
                   </div>
                 </div>
-                
-                {isNewUser && (
-                  <Button size="lg" className="mt-6" asChild>
-                    <Link href="/feed">
-                      <Clapperboard className="mr-2 h-5 w-5" />
-                      Explore Your Feed
-                    </Link>
-                  </Button>
-                )}
-                
+                                
                 {!isOwnProfile && currentUser && (
                   <div className="mt-6 flex items-center gap-2">
                     <Button
@@ -378,15 +375,30 @@ export default function UserProfilePage() {
                 ))}
               </div>
             ) : (
-               <div className="text-center py-16 text-muted-foreground bg-card rounded-b-lg">
-                    <Video className="h-12 w-12 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold">No Highlights Yet</h3>
-                    {isOwnProfile ? (
-                      <p>Upload your first highlight from the feed!</p>
+                <div className="text-center py-16 text-muted-foreground bg-card rounded-b-lg">
+                    {isNewUser ? (
+                        <>
+                            <Clapperboard className="h-12 w-12 mx-auto mb-4" />
+                            <h3 className="text-lg font-semibold text-white">Your Profile is Ready!</h3>
+                            <p className="mb-4">Click below to start exploring live streams.</p>
+                            <Button size="lg" asChild>
+                                <Link href="/feed">
+                                    Explore Your Feed
+                                </Link>
+                            </Button>
+                        </>
                     ) : (
-                      <p>This user hasn't shared any highlights.</p>
+                        <>
+                            <Video className="h-12 w-12 mx-auto mb-4" />
+                            <h3 className="text-lg font-semibold">No Highlights Yet</h3>
+                            {isOwnProfile ? (
+                                <p>Upload your first highlight from the feed!</p>
+                            ) : (
+                                <p>This user hasn't shared any highlights.</p>
+                            )}
+                        </>
                     )}
-                  </div>
+                </div>
             )}
           </TabsContent>
           <TabsContent value="challenges">
