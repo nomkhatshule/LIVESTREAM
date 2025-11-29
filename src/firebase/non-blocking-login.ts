@@ -1,3 +1,4 @@
+
 'use client';
 import {
   Auth,
@@ -51,15 +52,16 @@ export function initiateEmailSignIn(authInstance: Auth, email: string, password:
 }
 
 /** Initiate Google Sign-In and create user document if new. */
-export async function initiateGoogleSignIn(authInstance: Auth): Promise<boolean> {
+export async function initiateGoogleSignIn(authInstance: Auth): Promise<{ success: boolean; isNewUser: boolean; }> {
   const provider = new GoogleAuthProvider();
   try {
     const result = await signInWithPopup(authInstance, provider);
     const user = result.user;
     const additionalInfo = getAdditionalUserInfo(result);
+    const isNewUser = additionalInfo?.isNewUser || false;
 
     // If it's a new user, create their document in Firestore
-    if (additionalInfo?.isNewUser) {
+    if (isNewUser) {
       const db = getFirestore(authInstance.app);
       const userDocRef = doc(db, 'users', user.uid);
       
@@ -78,9 +80,9 @@ export async function initiateGoogleSignIn(authInstance: Auth): Promise<boolean>
         });
       }
     }
-    return true; // Indicate success
+    return { success: true, isNewUser }; // Indicate success and if the user is new
   } catch (error) {
     console.error("Error during Google sign-in:", error);
-    return false; // Indicate failure
+    return { success: false, isNewUser: false }; // Indicate failure
   }
 }

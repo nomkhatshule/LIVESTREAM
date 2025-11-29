@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -17,11 +18,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import {
-  initiateEmailSignIn,
   initiateEmailSignUp,
+  initiateEmailSignIn,
   initiateGoogleSignIn,
 } from '@/firebase/non-blocking-login';
 import { Suspense } from 'react';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address.' }),
@@ -57,23 +59,38 @@ function AuthFormComponent() {
         ? { username: '', email: '', password: '' }
         : { email: '', password: '' },
   });
+  
+  const handleAuthRedirect = (isNewUser: boolean) => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        unsubscribe(); // Unsubscribe after we get the user
+        if (isNewUser) {
+          router.push(`/profile/${user.uid}`);
+        } else {
+          router.push('/feed');
+        }
+      }
+    });
+  }
 
   const onSubmit: SubmitHandler<FormSchema> = data => {
     if (authType === 'signup') {
       const { email, password, username } = data as z.infer<typeof signupSchema>;
-      // Pass username to the signup function
       initiateEmailSignUp(auth, email, password, username);
+      handleAuthRedirect(true); // New email signup is always a new user
     } else {
       const { email, password } = data as z.infer<typeof loginSchema>;
       initiateEmailSignIn(auth, email, password);
+      handleAuthRedirect(false); // Login is for existing users
     }
-    router.push('/feed');
   };
 
   const handleGoogleSignIn = async () => {
-    const success = await initiateGoogleSignIn(auth);
-    if (success) {
-      router.push('/feed');
+    const result = await initiateGoogleSignIn(auth);
+    if (result.success) {
+      // Use the isNewUser flag from the result to decide the redirect
+      handleAuthRedirect(result.isNewUser);
     } else {
       toast({
         variant: 'destructive',
