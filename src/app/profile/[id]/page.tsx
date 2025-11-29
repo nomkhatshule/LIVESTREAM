@@ -92,7 +92,7 @@ export default function UserProfilePage() {
               <div className="flex flex-col gap-3 mt-2">
                 <div className="relative w-full aspect-video rounded-md overflow-hidden">
                     <Image
-                        src="https://firebasestorage.googleapis.com/v0/b/studio-5881083204-f3849.appspot.com/o/covers%2FpDOa2Wd87RV6kCz0fbBdN095PIh1%2F1764092383570-u2134256718_My_favorite_place_ever_--ar_113_--profile_jtovmy9_fd929072-31c0-46bd-95c8-27cbdebff319_3.png?alt=media&token=7a1d6eae-e56c-4111-9992-ba171ba62a8d"
+                        src="https://cdn.midjourney.com/7fcf346d-6ade-47fd-ac78-898d9ee545db/0_3.png"
                         alt="Welcome to Livenet"
                         fill
                         className="object-cover"
