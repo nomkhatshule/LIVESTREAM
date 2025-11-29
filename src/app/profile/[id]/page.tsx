@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { doc, writeBatch, serverTimestamp, where, query, orderBy, limit, collection, getCountFromServer } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { useMemo, useState, useEffect } from 'react';
-import { UserPlus, UserCheck, MessageSquare, Heart, Eye, Gem, Gift, Video, Settings, X, Swords, ArrowLeft } from 'lucide-react';
+import { UserPlus, UserCheck, MessageSquare, Heart, Eye, Gem, Gift, Video, Settings, X, Swords, ArrowLeft, Clapperboard } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -42,6 +42,7 @@ export default function UserProfilePage() {
   const [totalLikes, setTotalLikes] = useState(0);
   
   const { userDocument, isDocLoading } = useUserDocumentById(profileUserId);
+  const isNewUser = searchParams.get('new_user') === 'true';
 
   // --- Follower/Following Logic ---
   const currentUserFollowingRef = useMemoFirebase(() => currentUser ? collection(firestore, `users/${currentUser.uid}/following`) : null, [currentUser, firestore]);
@@ -84,12 +85,11 @@ export default function UserProfilePage() {
   
   // --- New User Toast Logic ---
   useEffect(() => {
-    const isNewUser = searchParams.get('new_user') === 'true';
     if (isNewUser && !isDocLoading && userDocument) {
         toast({
             title: `Welcome to LIVENET, ${userDocument.username}!`,
             description: (
-              <div className="flex flex-col sm:flex-row gap-3 mt-2 items-center">
+              <div className="flex flex-col sm:flex-row gap-3 mt-2 items-start">
                 <div className="relative w-full sm:w-24 aspect-video sm:aspect-square rounded-md overflow-hidden flex-shrink-0">
                     <Image
                         src="https://cdn.midjourney.com/7fcf346d-6ade-47fd-ac78-898d9ee545db/0_3.png"
@@ -106,7 +106,7 @@ export default function UserProfilePage() {
         // Clean the URL
         router.replace(`/profile/${profileUserId}`, { scroll: false });
     }
-  }, [isDocLoading, userDocument, searchParams, toast, router, profileUserId]);
+  }, [isNewUser, isDocLoading, userDocument, toast, router, profileUserId]);
 
 
   useEffect(() => {
@@ -259,12 +259,6 @@ export default function UserProfilePage() {
 
 
       <div className="container mx-auto max-w-4xl pb-8 sm:px-0 md:px-4 relative">
-         <Button variant="outline" asChild className="absolute top-4 left-4 bg-transparent text-white border-zinc-700 hover:bg-zinc-900 hover:text-white z-20">
-          <Link href="/feed">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Feed
-          </Link>
-        </Button>
         <Tabs defaultValue="highlights" className="w-full">
           {/* Profile Header Card */}
           <Card className="overflow-hidden mb-2 sm:rounded-lg">
@@ -316,6 +310,15 @@ export default function UserProfilePage() {
                     <p className="text-sm text-muted-foreground">Likes</p>
                   </div>
                 </div>
+                
+                {isNewUser && (
+                  <Button size="lg" className="mt-6" asChild>
+                    <Link href="/feed">
+                      <Clapperboard className="mr-2 h-5 w-5" />
+                      Explore Your Feed
+                    </Link>
+                  </Button>
+                )}
                 
                 {!isOwnProfile && currentUser && (
                   <div className="mt-6 flex items-center gap-2">
@@ -494,3 +497,5 @@ function ProfileSkeleton() {
     </div>
   );
 }
+
+    
