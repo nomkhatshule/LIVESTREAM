@@ -29,7 +29,7 @@ export default function LandingPage() {
             Share Every Moment
           </h1>
           <p className="text-xl text-stone-200 max-w-2xl mb-8 drop-shadow-md">
-            Discover live streams from creators around the world, or go live and share your passion.
+            Discover live streams from creators around the world, or start streaming and build your own community.
           </p>
           <Button size="lg" className="bg-black text-white hover:bg-black/80" asChild>
             <Link href="/feed">
