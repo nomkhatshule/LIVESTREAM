@@ -24,7 +24,6 @@ import {
 import VideoPlayer from '@/components/broadcast/video-player';
 import StreamHeader from '@/components/livenet/StreamHeader';
 import FloatingReactions from '@/components/livenet/FloatingReactions';
-import InStreamGamesPanel from '@/components/livenet/InStreamGamesPanel';
 import StreamControls from '@/components/livenet/StreamControls';
 import type { Reaction, BroadcastData, Comment, GiphyResult } from '@/lib/types';
 import { useGameFlow } from '@/hooks/useGameFlow';
@@ -47,7 +46,6 @@ function LivenetStudioUI() {
   const { toast } = useToast();
   
   const [reactions, setReactions] = useState<Reaction[]>([]);
-  const [isGamePanelOpen, setIsGamePanelOpen] = useState(false);
   const [isChatVisible, setIsChatVisible] = useState(true);
   const [isFlippingCamera, setIsFlippingCamera] = useState(false);
 
@@ -264,9 +262,9 @@ function LivenetStudioUI() {
             isDragging={isDragging}
             onMouseDown={handleMouseDown}
             onTouchStart={onTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-            onResizeStop={onResizeStop}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+            onResizeStop={handleResizeStop}
             onSetCardSize={setCardSize}
             onCompleteChallenge={handleCompleteChallenge}
             broadcastDocRef={broadcastDocRef}
@@ -283,18 +281,11 @@ function LivenetStudioUI() {
             isMicEnabled={isMicEnabled}
             isScreenSharing={isScreenSharing}
             isCallJoined={isCallJoined}
-            onOpenGames={() => setIsGamePanelOpen(true)}
             viewerCount={viewerCount}
             onToggleChat={() => setIsChatVisible(prev => !prev)}
             isChatVisible={isChatVisible}
             participants={participants}
             isFlippingCamera={isFlippingCamera}
-        />
-        
-        <InStreamGamesPanel 
-            onSelectChallenge={handleChallengeSelect} 
-            open={isGamePanelOpen} 
-            onOpenChange={setIsGamePanelOpen} 
         />
 
         <ChatPanel 

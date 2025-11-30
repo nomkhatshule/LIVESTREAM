@@ -9,7 +9,6 @@ import MicButton from "./controls/MicButton";
 import FlipCameraButton from "./controls/FlipCameraButton";
 import ScreenShareButton from "./controls/ScreenShareButton";
 import ChallengeVisibilityButton from "./controls/ChallengeVisibilityButton";
-import GamesButton from "./controls/GamesButton";
 import ChatButton from "./controls/ChatButton";
 
 interface StreamControlsProps {
@@ -18,7 +17,6 @@ interface StreamControlsProps {
     onFlipCamera: () => void;
     onToggleScreenShare: () => void;
     onToggleChallengeVisibility: () => void;
-    onOpenGames: () => void;
     onToggleChat: () => void;
     isVideoEnabled: boolean;
     isMicEnabled: boolean;
@@ -41,7 +39,6 @@ export default function StreamControls({
     isScreenSharing, 
     onToggleChallengeVisibility, 
     isChallengeActive, 
-    onOpenGames,
     viewerCount,
     isCallJoined,
     isChatVisible,
@@ -62,7 +59,6 @@ export default function StreamControls({
             <ScreenShareButton isScreenSharing={isScreenSharing} onClick={onToggleScreenShare} />
             <ChallengeVisibilityButton isChallengeActive={isChallengeActive} onClick={onToggleChallengeVisibility} />
             <ParticipantsPanel viewerCount={viewerCount} participants={participants} />
-            <GamesButton onClick={onOpenGames} />
             <ChatButton isChatVisible={isChatVisible} onClick={onToggleChat} />
         </div>
     );
