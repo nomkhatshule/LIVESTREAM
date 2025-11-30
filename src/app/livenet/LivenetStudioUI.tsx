@@ -155,13 +155,6 @@ function LivenetStudioUI() {
     router.push('/');
   };
 
-  const handleInviteGuest = () => {
-    toast({
-        title: "Guest Link Copied!",
-        description: "A unique invite link has been copied to your clipboard.",
-    });
-  };
-
   // Custom Hooks for managing complex logic
   const { showChallengeCoverCard, isChallengeVisible, isTimerFinished, handleChallengeSelect, handleStartStagedChallenge, handleCancelStagedChallenge, handleCompleteChallenge, setIsChallengeVisible } = useGameFlow(broadcastDocRef, broadcastData);
   const { cardPosition, cardSize, isDragging, handleMouseDown, handleTouchStart, handleTouchMove, handleTouchEnd, handleResizeStop, setCardSize } = useChallengeCard(broadcastDocRef, broadcastData?.challengeCardPosition, broadcastData?.challengeCardSize);
@@ -270,10 +263,10 @@ function LivenetStudioUI() {
             cardSize={cardSize}
             isDragging={isDragging}
             onMouseDown={handleMouseDown}
-            onTouchStart={handleTouchStart}
+            onTouchStart={onTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
-            onResizeStop={handleResizeStop}
+            onResizeStop={onResizeStop}
             onSetCardSize={setCardSize}
             onCompleteChallenge={handleCompleteChallenge}
             broadcastDocRef={broadcastDocRef}
@@ -284,7 +277,6 @@ function LivenetStudioUI() {
             onToggleMic={handleToggleMic}
             onFlipCamera={handleFlipCamera}
             onToggleScreenShare={handleToggleScreenShare}
-            onInviteGuest={handleInviteGuest}
             onToggleChallengeVisibility={() => setIsChallengeVisible(prev => !prev)}
             isChallengeActive={!!broadcastData.activeChallenge}
             isVideoEnabled={isVideoEnabled}
