@@ -56,6 +56,7 @@ export default function EditProfileModal({ open, onOpenChange }: EditProfileModa
   const [isUploadingCover, setIsUploadingCover] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const [coverPreviewType, setCoverPreviewType] = useState<'image' | 'video' | null>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
@@ -116,6 +117,7 @@ export default function EditProfileModal({ open, onOpenChange }: EditProfileModa
 
     const fileType = file.type.startsWith('video') ? 'video' : 'image';
     const objectUrl = URL.createObjectURL(file);
+    setCoverPreviewType(fileType);
 
     // If it's a video, check the duration before proceeding
     if (fileType === 'video') {
@@ -129,6 +131,8 @@ export default function EditProfileModal({ open, onOpenChange }: EditProfileModa
                     title: 'Video Too Long',
                     description: 'Cover videos must be 20 seconds or less.',
                 });
+                setCoverPreview(null);
+                setCoverPreviewType(null);
                 return; // Abort
             }
             // If duration is valid, proceed with upload
@@ -181,6 +185,10 @@ export default function EditProfileModal({ open, onOpenChange }: EditProfileModa
     }
   };
 
+  const currentCoverUrl = coverPreview || userDocument?.coverUrl;
+  const currentCoverType = coverPreviewType || userDocument?.coverType;
+
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
@@ -193,12 +201,24 @@ export default function EditProfileModal({ open, onOpenChange }: EditProfileModa
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="relative h-32 w-full bg-muted rounded-lg group">
-                <Image
-                    src={coverPreview || userDocument?.coverUrl || 'https://picsum.photos/seed/cover-placeholder/800/200'}
-                    alt="Cover image"
-                    fill
-                    className="object-cover rounded-lg"
-                />
+                {currentCoverType === 'video' && currentCoverUrl ? (
+                    <video
+                        key={currentCoverUrl}
+                        src={currentCoverUrl}
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        className="object-cover w-full h-full rounded-lg"
+                    />
+                ) : (
+                    <Image
+                        src={currentCoverUrl || 'https://picsum.photos/seed/cover-placeholder/800/200'}
+                        alt="Cover image"
+                        fill
+                        className="object-cover rounded-lg"
+                    />
+                )}
                 <div 
                     className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg cursor-pointer"
                     onClick={() => coverInputRef.current?.click()}
