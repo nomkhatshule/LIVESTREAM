@@ -258,7 +258,7 @@ export default function UserProfilePage() {
       <div className="container mx-auto max-w-4xl pb-8 sm:px-0 md:px-4 relative">
         <Tabs defaultValue="highlights" className="w-full">
           {/* Profile Header Card */}
-          <Card className="overflow-hidden mb-2 sm:rounded-lg">
+          <Card className="overflow-hidden mb-2 rounded-b-lg sm:rounded-lg">
               <div className="relative h-48 w-full bg-muted">
                 {userDocument.coverUrl && userDocument.coverType === 'video' ? (
                       <video
@@ -430,7 +430,7 @@ export default function UserProfilePage() {
                     </div>
                     ) : (
                         <div className="text-center py-16 text-muted-foreground">
-                            <Swords className="h-12 w-12 mx-auto mb-4" />
+                            <Swords className="h-12 w-12 mx-auto mb-4 text-white" />
                             <h3 className="text-lg font-semibold">No Challenges Completed</h3>
                             {isOwnProfile ? (
                               <p>Accept a challenge from your feed to get started!</p>
