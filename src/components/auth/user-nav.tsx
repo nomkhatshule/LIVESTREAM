@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { CreditCard, LogOut, PlusCircle, Settings, User as UserIcon } from 'lucide-react';
+import { CreditCard, LogOut, PlusCircle, User as UserIcon } from 'lucide-react';
 import { useAuth, useUser, useUserDocument } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';

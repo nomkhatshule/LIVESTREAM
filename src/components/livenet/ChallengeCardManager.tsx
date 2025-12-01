@@ -2,12 +2,13 @@
 
 'use client';
 
+import Draggable from 'react-draggable';
 import { Resizable } from 're-resizable';
 import { cn } from '@/lib/utils';
 import ChallengeDisplayCard from '@/components/broadcast/ChallengeDisplayCard';
 import CountdownTimer from '@/components/broadcast/CountdownTimer';
 import { Button } from '@/components/ui/button';
-import { Undo2, Check } from 'lucide-react';
+import { GripVertical, Check } from 'lucide-react';
 import type { BroadcastData } from '@/lib/types';
 import { DocumentReference, updateDoc } from 'firebase/firestore';
 
@@ -17,11 +18,8 @@ interface ChallengeCardManagerProps {
     isTimerFinished: boolean;
     cardPosition: { x: number; y: number };
     cardSize: { width: number | string; height: number | string; };
-    isDragging: boolean;
-    onMouseDown: (e: React.MouseEvent) => void;
-    onTouchStart: (e: React.TouchEvent) => void;
-    onTouchMove: (e: React.TouchEvent) => void;
-    onTouchEnd: () => void;
+    onDrag: (e: any, data: any) => void;
+    onDragStop: (e: any, data: any) => void;
     onResizeStop: (e: any, direction: any, ref: any, d: any) => void;
     onSetCardSize: (size: { width: number, height: number }) => void;
     onCompleteChallenge: () => void;
@@ -34,11 +32,8 @@ export default function ChallengeCardManager({
     isTimerFinished,
     cardPosition,
     cardSize,
-    isDragging,
-    onMouseDown,
-    onTouchStart,
-    onTouchMove,
-    onTouchEnd,
+    onDrag,
+    onDragStop,
     onResizeStop,
     onSetCardSize,
     onCompleteChallenge,
@@ -61,61 +56,69 @@ export default function ChallengeCardManager({
     };
     
     return (
-        <div 
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none"
-            style={{
-              transform: `translate(calc(-50% + ${cardPosition.x}px), calc(-50% + ${cardPosition.y}px))`,
-            }}
+        <Draggable
+            axis="both"
+            handle=".drag-handle"
+            position={cardPosition}
+            onDrag={onDrag}
+            onStop={onDragStop}
+            scale={1}
         >
-            <Resizable
-                size={cardSize}
-                onResizeStop={onResizeStop}
-                onResize={(e, direction, ref, d) => {
-                    if (typeof cardSize.width === 'number' && typeof cardSize.height === 'number') {
-                        onSetCardSize({
-                            width: cardSize.width + d.width,
-                            height: cardSize.height + d.height,
-                        });
-                    }
+            <div 
+                className="absolute z-20 pointer-events-none"
+                style={{
+                  width: cardSize.width,
+                  height: cardSize.height,
+                  top: '50%', 
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
                 }}
-                minWidth={300}
-                minHeight={400}
-                lockAspectRatio
-                className="relative"
             >
-                <div 
-                  className={cn("h-full w-full pointer-events-auto", isDragging ? 'cursor-grabbing' : 'cursor-grab')}
-                  onMouseDown={onMouseDown}
-                  onTouchStart={onTouchStart}
-                  onTouchMove={onTouchMove}
-                  onTouchEnd={onTouchEnd}
+                <Resizable
+                    size={cardSize}
+                    onResizeStop={onResizeStop}
+                    onResize={(e, direction, ref, d) => {
+                        if (typeof cardSize.width === 'number' && typeof cardSize.height === 'number') {
+                            onSetCardSize({
+                                width: cardSize.width + d.width,
+                                height: cardSize.height + d.height,
+                            });
+                        }
+                    }}
+                    minWidth={300}
+                    minHeight={400}
+                    lockAspectRatio
+                    className="relative pointer-events-auto"
                 >
-                    <ChallengeDisplayCard 
-                        text={broadcastData.activeChallenge}
-                        type={broadcastData.activeChallengeType}
-                        onClose={handleCloseChallenge}
-                        timer={broadcastData.challengeStartTime && broadcastData.challengeDurationSeconds ? (
-                            <CountdownTimer 
-                                startTime={broadcastData.challengeStartTime} 
-                                durationSeconds={broadcastData.challengeDurationSeconds} 
-                            />
-                        ) : null}
-                    >
-                        <div className="flex w-full gap-2">
-                           <Button 
-                                size="lg" 
-                                className="w-full bg-black/90 text-white border-2 border-black hover:bg-black"
-                                onClick={onCompleteChallenge}
-                            >
-                                <Check className="mr-2 h-5 w-5" />
-                                Complete
-                            </Button>
+                    <div className={cn("h-full w-full")}>
+                        <div className="absolute top-1/2 -translate-y-1/2 left-2 drag-handle cursor-grab active:cursor-grabbing">
+                            <GripVertical className="h-8 w-8 text-gray-400" />
                         </div>
-                    </ChallengeDisplayCard>
-                </div>
-            </Resizable>
-        </div>
+                        <ChallengeDisplayCard 
+                            text={broadcastData.activeChallenge}
+                            type={broadcastData.activeChallengeType}
+                            onClose={handleCloseChallenge}
+                            timer={broadcastData.challengeStartTime && broadcastData.challengeDurationSeconds ? (
+                                <CountdownTimer 
+                                    startTime={broadcastData.challengeStartTime} 
+                                    durationSeconds={broadcastData.challengeDurationSeconds} 
+                                />
+                            ) : null}
+                        >
+                            <div className="flex w-full gap-2">
+                               <Button 
+                                    size="lg" 
+                                    className="w-full bg-black/90 text-white border-2 border-black hover:bg-black"
+                                    onClick={onCompleteChallenge}
+                                >
+                                    <Check className="mr-2 h-5 w-5" />
+                                    Complete
+                                </Button>
+                            </div>
+                        </ChallengeDisplayCard>
+                    </div>
+                </Resizable>
+            </div>
+        </Draggable>
     );
 }
-
-    

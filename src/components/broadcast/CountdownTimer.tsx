@@ -3,7 +3,6 @@
 
 import { useState, useEffect } from 'react';
 import { Timestamp } from 'firebase/firestore';
-import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 
 interface CountdownTimerProps {

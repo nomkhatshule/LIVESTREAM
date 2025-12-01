@@ -2,7 +2,7 @@
 
 'use client';
 
-import { Suspense, useEffect, useState, useMemo, useRef } from 'react';
+import { Suspense, useEffect, useState, useMemo } from 'react';
 import { useUser, useFirestore, useMemoFirebase, useUserDocument, useAuth } from '@/firebase';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { collection, query, where, writeBatch, doc, orderBy, getDocs } from 'firebase/firestore';
@@ -305,7 +305,7 @@ function HomePageContent() {
                         <div className="h-full w-full flex items-center justify-center text-white snap-start">
                              <div className="text-center">
                                 <p className="text-lg font-semibold">No live broadcasts right now.</p>
-                                <p className="text-sm text-muted-foreground">Check back later or be the first to go live!</p>
+                                <p className="text-sm text-stone-200">Check back later or be the first to go live!</p>
                                 <Button asChild className="mt-4">
                                     <Link href="/broadcast/create">
                                         <Clapperboard className="mr-2 h-4 w-4" />

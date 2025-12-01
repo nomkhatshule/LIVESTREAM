@@ -5,7 +5,7 @@ import { useState, useRef, useEffect, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, ArrowUp, Bot, Loader2, Globe, Search, User, Calendar, Newspaper, Camera } from 'lucide-react';
+import { ArrowUp, Loader2, Globe, User, Calendar, Camera } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
 import {
@@ -21,7 +21,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { askAssistant, type AskAssistantOutput } from '@/ai/flows/in-stream-assistant';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import Link from 'next/link';
 import Image from 'next/image';
 
 type AssistantMessage = {
@@ -249,7 +248,7 @@ export default function AIChat({
                             <ReactMarkdown remarkPlugins={[remarkGfm]}
                                 components={{
                                     ul(props) {
-                                        const {node, ...rest} = props
+                                        const {...rest} = props
                                         return <ul className="prose-ul:text-black" {...rest} />
                                     }
                                 }}

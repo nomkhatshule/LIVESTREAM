@@ -11,13 +11,12 @@ interface ChallengeDisplayCardProps {
   text: string;
   type: 'truth' | 'dare' | 'challenge';
   size?: 'large' | 'small';
-  variant?: 'stacked' | 'simple';
   children?: React.ReactNode; // For action buttons
   onClose?: () => void;
   timer?: React.ReactNode;
 }
 
-export default function ChallengeDisplayCard({ text, type, size = 'large', variant = 'stacked', children, onClose, timer }: ChallengeDisplayCardProps) {
+export default function ChallengeDisplayCard({ text, type, size = 'large', children, onClose, timer }: ChallengeDisplayCardProps) {
   const getBadgeInfo = () => {
     switch (type) {
       case 'truth':

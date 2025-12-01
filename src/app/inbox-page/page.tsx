@@ -5,7 +5,7 @@
 import { Suspense, useEffect, useState, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useChatContext } from '@/components/chat/ChatProvider';
-import { useUser, useUserDocument } from '@/firebase';
+import { useUser } from '@/firebase';
 import { Loader2, ArrowLeft, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -68,7 +68,7 @@ function InboxPageComponent() {
         const handleMessageDeleted = (event: any) => {
             setMessages(prev => prev.map(m => m.id === event.message.id ? event.message : m));
         }
-        const handleMessageRead = (event: any) => {
+        const handleMessageRead = () => {
             // A message was read, so we might need to remove the unread separator
             if (activeChannel.countUnread() === 0) {
                 setFirstUnreadId(null);

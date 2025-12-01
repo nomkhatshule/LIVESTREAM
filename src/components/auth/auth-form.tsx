@@ -22,7 +22,7 @@ import {
   initiateEmailSignIn,
   initiateGoogleSignIn,
 } from '@/firebase/non-blocking-login';
-import { Suspense, useEffect } from 'react';
+import { Suspense } from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 const loginSchema = z.object({

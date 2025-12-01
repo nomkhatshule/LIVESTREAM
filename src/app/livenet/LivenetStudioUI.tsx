@@ -2,9 +2,8 @@
 
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { Loader2, X } from 'lucide-react';
-import { Suspense, useEffect, useState } from 'react';
+import { Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useDoc, useFirestore, useMemoFirebase, useUserDocument, useStorage } from '@/firebase';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -12,14 +11,9 @@ import { doc, query, orderBy, limit, collection, serverTimestamp, updateDoc } fr
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useCollection } from '@/firebase';
 import {
-  Call,
-  StreamCall,
-  StreamVideo,
-  StreamVideoClient,
   useCall,
   useCallStateHooks,
   CallingState,
-  StreamVideoParticipant,
 } from '@stream-io/video-react-sdk';
 import VideoPlayer from '@/components/broadcast/video-player';
 import StreamHeader from '@/components/livenet/StreamHeader';
@@ -154,8 +148,8 @@ function LivenetStudioUI() {
   };
 
   // Custom Hooks for managing complex logic
-  const { showChallengeCoverCard, isChallengeVisible, isTimerFinished, handleChallengeSelect, handleStartStagedChallenge, handleCancelStagedChallenge, handleCompleteChallenge, setIsChallengeVisible } = useGameFlow(broadcastDocRef, broadcastData);
-  const { cardPosition, cardSize, isDragging, handleMouseDown, handleTouchStart, handleTouchMove, handleTouchEnd, handleResizeStop, setCardSize } = useChallengeCard(broadcastDocRef, broadcastData?.challengeCardPosition, broadcastData?.challengeCardSize);
+  const { showChallengeCoverCard, isChallengeVisible, isTimerFinished, handleStartStagedChallenge, handleCancelStagedChallenge, handleCompleteChallenge, setIsChallengeVisible } = useGameFlow(broadcastDocRef, broadcastData);
+  const { cardPosition, cardSize, handleDrag, handleDragStop, handleResizeStop, setCardSize } = useChallengeCard(broadcastDocRef, broadcastData?.challengeCardPosition, broadcastData?.challengeCardSize);
   
   const handleReaction = (emoji: React.ReactNode) => {
     const newReaction: Reaction = {
@@ -196,7 +190,7 @@ function LivenetStudioUI() {
             }
         }
         
-        let newComment: any = {
+        const newComment: any = {
           userId: user.uid,
           username: userDocument.username || 'Anonymous',
           userAvatar: userDocument.profilePicture || '',
@@ -259,11 +253,8 @@ function LivenetStudioUI() {
             isTimerFinished={isTimerFinished}
             cardPosition={cardPosition}
             cardSize={cardSize}
-            isDragging={isDragging}
-            onMouseDown={handleMouseDown}
-            onTouchStart={onTouchStart}
-            onTouchMove={onTouchMove}
-            onTouchEnd={onTouchEnd}
+            onDrag={handleDrag}
+            onDragStop={handleDragStop}
             onResizeStop={handleResizeStop}
             onSetCardSize={setCardSize}
             onCompleteChallenge={handleCompleteChallenge}

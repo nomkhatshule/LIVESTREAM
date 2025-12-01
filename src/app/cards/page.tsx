@@ -2,15 +2,14 @@
 
 'use client';
 
-import { useState, useMemo, Suspense } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useState, Suspense } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Sparkles, Users, Wand2, ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { generateGamePrompts } from '@/ai/flows/generate-game-prompts';
 import SendChallengeSheet from '@/components/challenges/SendChallengeSheet';
@@ -28,7 +27,6 @@ const mockChallenges = [
 
 
 function ChallengeCreator() {
-    const { user } = useUser();
     const { toast } = useToast();
     const [challengeText, setChallengeText] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
@@ -107,7 +105,7 @@ function ChallengeBoard() {
        <Separator className="bg-black/20" />
       <CardContent className="p-0">
         <div className="space-y-0">
-            {mockChallenges.map((challenge, index) => (
+            {mockChallenges.map((challenge) => (
             <div key={challenge.id} className="p-4 border-b border-black/20 last:border-b-0">
                 <p className="text-sm font-medium text-zinc-800">"{challenge.text}"</p>
                 <div className="flex items-center justify-between mt-2">
@@ -134,7 +132,6 @@ function ChallengeBoard() {
 
 
 function ChallengesPageComponent() {
-  const router = useRouter();
   return (
     <div className="relative min-h-[calc(100vh-4rem)] w-full flex flex-col items-center justify-center p-4 bg-black">
        <Button variant="outline" asChild className="absolute top-8 left-8 bg-transparent text-white border-zinc-700 hover:bg-zinc-900 hover:text-white z-20">

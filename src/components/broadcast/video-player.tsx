@@ -2,23 +2,16 @@
 'use client';
 
 import {
-  Call,
   StreamCall,
   StreamVideo,
   StreamVideoClient,
-  useCall,
   useCallStateHooks,
   ParticipantView,
-  StreamVideoParticipant,
 } from '@stream-io/video-react-sdk';
-import { useUser } from '@/firebase';
 import type { BroadcastData } from '@/lib/types';
-import { useEffect, useState, useRef } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import { useEffect, useState } from 'react';
 import { Loader2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
-import { useStreamPrefetch } from '@/hooks/useStreamPrefetch';
 
 interface VideoPlayerProps {
   broadcast: BroadcastData;
@@ -78,7 +71,7 @@ function HostVideoPlayer({ broadcast }: { broadcast: BroadcastData }) {
 // --- VIEWER-SPECIFIC PLAYER ---
 // This component is self-contained and used on the /feed page.
 // It manages its own StreamVideoClient and StreamCall.
-function ViewerVideoPlayer({ broadcast, prefetchedClient, prefetchedToken, onParticipantCountChange }: VideoPlayerProps) {
+function ViewerVideoPlayer({ broadcast, prefetchedClient, onParticipantCountChange }: VideoPlayerProps) {
   const [call, setCall] = useState<Call | null>(null);
 
   useEffect(() => {
@@ -87,7 +80,7 @@ function ViewerVideoPlayer({ broadcast, prefetchedClient, prefetchedToken, onPar
         return;
     };
 
-    let callInstance = prefetchedClient.call('livestream', broadcast.id);
+    const callInstance = prefetchedClient.call('livestream', broadcast.id);
     
     callInstance.join()
       .then(() => {
@@ -169,6 +162,6 @@ export default function VideoPlayer({ broadcast, isHost = false, prefetchedClien
         return <HostVideoPlayer broadcast={broadcast} />;
     } else {
         // The viewer player is more complex as it manages its own providers
-        return <ViewerVideoPlayer broadcast={broadcast} prefetchedClient={prefetchedClient} prefetchedToken={prefetchedToken} onParticipantCountChange={onParticipantCountChange}/>;
+        return <ViewerVideoPlayer broadcast={broadcast} prefetchedClient={prefetchedClient} onParticipantCountChange={onParticipantCountChange}/>;
     }
 }

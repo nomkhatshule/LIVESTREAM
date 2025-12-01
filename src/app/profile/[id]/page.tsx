@@ -1,6 +1,6 @@
 
 'use client';
-import { useUserDocumentById, UserProfile } from '@/firebase/firestore/use-user-document';
+import { useUserDocumentById } from '@/firebase/firestore/use-user-document';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -10,20 +10,17 @@ import { Button } from '@/components/ui/button';
 import { doc, writeBatch, serverTimestamp, where, query, orderBy, limit, collection, getCountFromServer } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { useMemo, useState, useEffect } from 'react';
-import { UserPlus, UserCheck, MessageSquare, Heart, Eye, Gem, Gift, Video, Settings, X, Swords, ArrowLeft, Clapperboard } from 'lucide-react';
+import { UserPlus, UserCheck, MessageSquare, Heart, Eye, Gift, Video, Settings, Swords, Clapperboard } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Link from 'next/link';
 import Image from 'next/image';
-import { mockGifts, type Highlight, type CompletedChallenge } from '@/lib/data';
-import { Badge } from '@/components/ui/badge';
-import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { type Highlight, type CompletedChallenge } from '@/lib/data';
 import SettingsModal from '@/components/profile/SettingsModal';
 import EditProfileModal from '@/components/profile/EditProfileModal';
 import AccountModal from '@/components/profile/AccountModal';
-import { Dialog, DialogContent, DialogClose, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { formatDistanceToNow } from 'date-fns';
-import { cn } from '@/lib/utils';
 
 
 export default function UserProfilePage() {

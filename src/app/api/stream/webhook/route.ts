@@ -2,7 +2,7 @@
 import { headers } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { StreamChat } from 'stream-chat';
-import { getFirestore, doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc } from 'firebase/firestore';
 import { initializeFirebaseForServer } from '@/firebase/server-init';
 
 // Initialize firebase to get the firestore instance.
