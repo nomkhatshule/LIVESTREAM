@@ -115,20 +115,47 @@ export default function EditProfileModal({ open, onOpenChange }: EditProfileModa
     if (!file || !user) return;
 
     const fileType = file.type.startsWith('video') ? 'video' : 'image';
-    setCoverPreview(URL.createObjectURL(file));
-    setIsUploadingCover(true);
+    const objectUrl = URL.createObjectURL(file);
 
+    // If it's a video, check the duration before proceeding
+    if (fileType === 'video') {
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+        video.onloadedmetadata = async () => {
+            window.URL.revokeObjectURL(video.src); // Clean up memory
+            if (video.duration > 20) {
+                toast({
+                    variant: 'destructive',
+                    title: 'Video Too Long',
+                    description: 'Cover videos must be 20 seconds or less.',
+                });
+                return; // Abort
+            }
+            // If duration is valid, proceed with upload
+            await uploadCover(file, fileType, objectUrl);
+        };
+        video.src = objectUrl;
+    } else {
+        // If it's an image, upload directly
+        await uploadCover(file, fileType, objectUrl);
+    }
+  };
+
+  const uploadCover = async (file: File, fileType: 'image' | 'video', previewUrl: string) => {
+    if (!user) return;
+    setCoverPreview(previewUrl);
+    setIsUploadingCover(true);
     try {
-      const path = `covers/${user.uid}/${Date.now()}-${file.name}`;
-      const downloadURL = await uploadFile(file, path);
-      const userDocRef = doc(firestore, 'users', user.uid);
-      await updateDoc(userDocRef, { coverUrl: downloadURL, coverType: fileType });
-      toast({ title: 'Cover updated successfully!' });
-      revalidateProfilePaths();
+        const path = `covers/${user.uid}/${Date.now()}-${file.name}`;
+        const downloadURL = await uploadFile(file, path);
+        const userDocRef = doc(firestore, 'users', user.uid);
+        await updateDoc(userDocRef, { coverUrl: downloadURL, coverType: fileType });
+        toast({ title: 'Cover updated successfully!' });
+        revalidateProfilePaths();
     } catch (error) {
-      toast({ variant: 'destructive', title: 'Cover Upload Failed', description: 'Please try again.' });
+        toast({ variant: 'destructive', title: 'Cover Upload Failed', description: 'Please try again.' });
     } finally {
-      setIsUploadingCover(false);
+        setIsUploadingCover(false);
     }
   };
 
