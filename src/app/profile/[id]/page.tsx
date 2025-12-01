@@ -500,5 +500,3 @@ function ProfileSkeleton() {
     </div>
   );
 }
-
-    

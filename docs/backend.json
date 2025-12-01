@@ -499,5 +499,3 @@
     "reasoning": "This Firestore structure is designed for a scalable and feature-rich live streaming application. It uses a root `broadcasts` collection for discoverability and nests ephemeral or stream-specific data like chat, reactions, likes, and guests in sub-collections. User profiles are kept in a separate root collection to avoid data duplication and to house user-specific sub-collections like `following` and `followers`. The new `challenges` sub-collection under users is for the core social challenge loop."
   }
 }
-
-    
