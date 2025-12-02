@@ -258,7 +258,7 @@ export default function UserProfilePage() {
       <div className="container mx-auto max-w-4xl pb-8 sm:px-0 md:px-4 relative">
         <Tabs defaultValue="highlights" className="w-full">
           {/* Profile Header Card */}
-          <Card className="overflow-hidden mb-2 rounded-b-lg sm:rounded-lg">
+          <Card className="overflow-hidden mb-2 rounded-b-lg sm:rounded-t-lg">
               <div className="relative h-48 w-full bg-muted">
                 {userDocument.coverUrl && userDocument.coverType === 'video' ? (
                       <video
@@ -500,3 +500,5 @@ function ProfileSkeleton() {
     </div>
   );
 }
+
+    
