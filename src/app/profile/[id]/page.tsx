@@ -267,7 +267,7 @@ export default function UserProfilePage() {
                           loop
                           muted
                           playsInline
-                          className="object-cover w-full h-full"
+                          className="object-contain w-full h-full"
                       />
                   ) : userDocument.coverUrl && userDocument.coverType === 'image' ? (
                       <Image 
@@ -500,5 +500,3 @@ function ProfileSkeleton() {
     </div>
   );
 }
-
-    
