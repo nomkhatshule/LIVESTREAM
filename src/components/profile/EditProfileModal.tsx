@@ -125,11 +125,11 @@ export default function EditProfileModal({ open, onOpenChange }: EditProfileModa
         video.preload = 'metadata';
         video.onloadedmetadata = async () => {
             window.URL.revokeObjectURL(video.src); // Clean up memory
-            if (video.duration > 20) {
+            if (video.duration > 30) {
                 toast({
                     variant: 'destructive',
                     title: 'Video Too Long',
-                    description: 'Cover videos must be 20 seconds or less.',
+                    description: 'Cover videos must be 30 seconds or less.',
                 });
                 setCoverPreview(null);
                 setCoverPreviewType(null);
