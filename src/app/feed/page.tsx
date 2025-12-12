@@ -15,7 +15,13 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import Link from 'next/link';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from "@/components/ui/sheet";
-import { UserSearch } from '@/components/search/user-search';
+import dynamic from 'next/dynamic';
+
+const UserSearch = dynamic(() => import('@/components/search/user-search').then(mod => mod.UserSearch), {
+  ssr: false,
+  loading: () => <div className="p-2"><p className="text-center text-xs text-muted-foreground">Loading...</p></div>
+});
+
 import UploadHighlightForm from '@/components/feed/UploadHighlightForm';
 import InboxPanel from '@/components/feed/InboxPanel';
 import ActivityPanel from '@/components/feed/ActivityPanel';

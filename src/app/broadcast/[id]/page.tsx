@@ -6,7 +6,7 @@ import { notFound, useParams } from 'next/navigation';
 import VideoPlayer from '@/components/broadcast/video-player';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Heart, UserSearch, MoreVertical, PlusCircle, Users, ArrowUp, MessageSquareMore, Share2, Clapperboard, User as UserIcon, CornerUpLeft } from 'lucide-react';
+import { Heart, Search, MoreVertical, PlusCircle, Users, ArrowUp, MessageSquareMore, Share2, Clapperboard, User as UserIcon, CornerUpLeft } from 'lucide-react';
 import { useUser, useMemoFirebase, useUserDocument } from '@/firebase';
 import type { Broadcast, ChatMessage } from '@/lib/data';
 import { useDoc, useFirestore, useCollection } from '@/firebase';

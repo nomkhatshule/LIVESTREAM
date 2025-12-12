@@ -10,13 +10,19 @@ import {
   SheetDescription,
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { UserSearch } from '@/components/search/user-search';
+import dynamic from 'next/dynamic';
 import { useUser, useUserDocument, useFirestore } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { collection, serverTimestamp } from 'firebase/firestore';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import type { Hit as AlgoliaHit } from 'instantsearch.js';
 import { Loader2 } from 'lucide-react';
+
+const UserSearch = dynamic(() => import('@/components/search/user-search').then(mod => mod.UserSearch), {
+  ssr: false,
+  loading: () => <div className="p-2"><p className="text-center text-xs text-muted-foreground">Loading...</p></div>
+});
+
 
 interface SendChallengeSheetProps {
   open: boolean;
@@ -68,7 +74,7 @@ export default function SendChallengeSheet({
         createdAt: serverTimestamp(),
       });
       
-      toast({
+        toast({
         title: 'Challenge Sent!',
         description: `Your challenge has been sent to @${selectedUser.username}.`,
       });
