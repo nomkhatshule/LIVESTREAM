@@ -17,9 +17,13 @@ export default function StreamTimer({ startTime, durationSeconds, onTimerEnd }: 
   const [remainingSeconds, setRemainingSeconds] = useState(durationSeconds);
   const { toast } = useToast();
   const warningShownRef = useRef(false);
+  const timerEndedRef = useRef(false);
 
   useEffect(() => {
     const calculateRemaining = () => {
+      // If the timer has already ended, don't do anything else.
+      if (timerEndedRef.current) return;
+
       const now = new Date();
       const start = startTime.toDate();
       const elapsedSeconds = Math.floor((now.getTime() - start.getTime()) / 1000);
@@ -27,7 +31,7 @@ export default function StreamTimer({ startTime, durationSeconds, onTimerEnd }: 
       
       setRemainingSeconds(remaining);
 
-      // Show 1-minute warning
+      // Show 1-minute warning only once
       if (remaining <= 60 && !warningShownRef.current) {
         toast({
           title: '1 Minute Remaining',
@@ -36,15 +40,20 @@ export default function StreamTimer({ startTime, durationSeconds, onTimerEnd }: 
         warningShownRef.current = true;
       }
 
-      // End the stream when timer hits zero
+      // End the stream when timer hits zero, and only do it once.
       if (remaining === 0) {
+        timerEndedRef.current = true;
         onTimerEnd();
       }
     };
 
-    calculateRemaining(); // Initial calculation
+    // Run once immediately to set the initial state
+    calculateRemaining();
+    
+    // Then set up an interval to check every second
     const interval = setInterval(calculateRemaining, 1000);
 
+    // Clean up the interval when the component unmounts or dependencies change
     return () => clearInterval(interval);
   }, [startTime, durationSeconds, onTimerEnd, toast]);
 
