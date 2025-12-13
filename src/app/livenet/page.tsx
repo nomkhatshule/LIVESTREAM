@@ -4,7 +4,7 @@
 import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useUser, useFirestore } from '@/firebase';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import {
   StreamVideoClient,
@@ -81,10 +81,12 @@ function LivenetWrapper() {
                 // Join the call. The `create` flag is a fallback.
                 await callInstance.join({ create: true });
 
-                // Once successfully joined, mark the broadcast as 'isLive' in Firestore.
-                // This makes it appear on the feed for other users.
+                // Once successfully joined, mark the broadcast as 'isLive' and set start time.
                 const broadcastDocRef = doc(firestore, 'broadcasts', broadcastId);
-                await updateDoc(broadcastDocRef, { isLive: true });
+                await updateDoc(broadcastDocRef, { 
+                  isLive: true,
+                  streamStartedAt: serverTimestamp() // Add start time
+                });
                 
                 setCall(callInstance);
 

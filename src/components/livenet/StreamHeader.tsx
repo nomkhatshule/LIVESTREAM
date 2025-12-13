@@ -6,14 +6,16 @@ import { Button } from "@/components/ui/button";
 import { BroadcastData } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Users, X } from "lucide-react";
+import type { ReactNode } from "react";
 
 interface StreamHeaderProps {
     broadcastData: BroadcastData,
     viewerCount: number,
-    onEndStream: () => void
+    onEndStream: () => void,
+    children?: ReactNode;
 }
 
-export default function StreamHeader({ broadcastData, viewerCount, onEndStream }: StreamHeaderProps) {
+export default function StreamHeader({ broadcastData, viewerCount, onEndStream, children }: StreamHeaderProps) {
     return (
         <div className="absolute top-0 left-0 right-0 z-30 p-2 md:p-4 flex items-center justify-between bg-gradient-to-b from-black/50 to-transparent">
             <div className="flex items-center gap-2 md:gap-3 bg-black/30 p-1.5 md:p-2 rounded-full">
@@ -33,11 +35,12 @@ export default function StreamHeader({ broadcastData, viewerCount, onEndStream }
                     </div>
                 </div>
             </div>
-            <Button variant="destructive" size="sm" className="h-8 px-3 md:h-9 md:px-4" onClick={onEndStream}>
-                <X className="h-4 w-4 mr-1.5" /> End
-            </Button>
+            <div className="flex items-center gap-4">
+                {children}
+                <Button variant="destructive" size="sm" className="h-8 px-3 md:h-9 md:px-4" onClick={onEndStream}>
+                    <X className="h-4 w-4 mr-1.5" /> End
+                </Button>
+            </div>
         </div>
     );
 };
-
-    

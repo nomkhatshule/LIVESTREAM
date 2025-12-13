@@ -1,10 +1,8 @@
 
-
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { Loader2, X } from 'lucide-react';
-import { Suspense, useEffect, useState } from 'react';
+import { Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useDoc, useFirestore, useMemoFirebase, useUserDocument, useStorage } from '@/firebase';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -12,19 +10,13 @@ import { doc, query, orderBy, limit, collection, serverTimestamp, updateDoc } fr
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useCollection } from '@/firebase';
 import {
-  Call,
-  StreamCall,
-  StreamVideo,
-  StreamVideoClient,
   useCall,
   useCallStateHooks,
   CallingState,
-  StreamVideoParticipant,
 } from '@stream-io/video-react-sdk';
 import VideoPlayer from '@/components/broadcast/video-player';
 import StreamHeader from '@/components/livenet/StreamHeader';
 import FloatingReactions from '@/components/livenet/FloatingReactions';
-import InStreamGamesPanel from '@/components/livenet/InStreamGamesPanel';
 import StreamControls from '@/components/livenet/StreamControls';
 import type { Reaction, BroadcastData, Comment, GiphyResult } from '@/lib/types';
 import { useGameFlow } from '@/hooks/useGameFlow';
@@ -33,6 +25,7 @@ import GameFlowManager from '@/components/livenet/GameFlowManager';
 import ChallengeCardManager from '@/components/livenet/ChallengeCardManager';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import ChatPanel from '@/components/livenet/ChatPanel';
+import StreamTimer from './StreamTimer';
 
 
 function LivenetStudioUI() {
@@ -47,7 +40,6 @@ function LivenetStudioUI() {
   const { toast } = useToast();
   
   const [reactions, setReactions] = useState<Reaction[]>([]);
-  const [isGamePanelOpen, setIsGamePanelOpen] = useState(false);
   const [isChatVisible, setIsChatVisible] = useState(true);
   const [isFlippingCamera, setIsFlippingCamera] = useState(false);
 
@@ -71,6 +63,17 @@ function LivenetStudioUI() {
   }, [broadcastId, firestore]);
   
   const { data: broadcastData, isLoading: isBroadcastLoading } = useDoc<BroadcastData>(broadcastDocRef);
+  
+  // Effect to update the viewer count in Firestore whenever it changes
+  useEffect(() => {
+    if (broadcastDocRef && isCallJoined) {
+        // We only update if the new viewerCount is different from what's in Firestore
+        // to avoid unnecessary writes.
+        if (broadcastData?.viewerCount !== viewerCount) {
+             updateDoc(broadcastDocRef, { viewerCount: viewerCount });
+        }
+    }
+  }, [viewerCount, broadcastDocRef, isCallJoined, broadcastData?.viewerCount]);
 
   // Real-time chat messages
    const messagesQuery = useMemoFirebase(() => {
@@ -144,16 +147,9 @@ function LivenetStudioUI() {
     router.push('/');
   };
 
-  const handleInviteGuest = () => {
-    toast({
-        title: "Guest Link Copied!",
-        description: "A unique invite link has been copied to your clipboard.",
-    });
-  };
-
   // Custom Hooks for managing complex logic
-  const { showChallengeCoverCard, isChallengeVisible, isTimerFinished, handleChallengeSelect, handleStartStagedChallenge, handleCancelStagedChallenge, handleCompleteChallenge, setIsChallengeVisible } = useGameFlow(broadcastDocRef, broadcastData);
-  const { cardPosition, cardSize, isDragging, handleMouseDown, handleTouchStart, handleTouchMove, handleTouchEnd, handleResizeStop, setCardSize } = useChallengeCard(broadcastDocRef, broadcastData?.challengeCardPosition, broadcastData?.challengeCardSize);
+  const { showChallengeCoverCard, isChallengeVisible, isTimerFinished, handleStartStagedChallenge, handleCancelStagedChallenge, handleCompleteChallenge, setIsChallengeVisible } = useGameFlow(broadcastDocRef, broadcastData);
+  const { cardPosition, cardSize, handleDrag, handleDragStop, handleResizeStop, setCardSize } = useChallengeCard(broadcastDocRef, broadcastData?.challengeCardPosition, broadcastData?.challengeCardSize);
   
   const handleReaction = (emoji: React.ReactNode) => {
     const newReaction: Reaction = {
@@ -194,7 +190,7 @@ function LivenetStudioUI() {
             }
         }
         
-        let newComment: any = {
+        const newComment: any = {
           userId: user.uid,
           username: userDocument.username || 'Anonymous',
           userAvatar: userDocument.profilePicture || '',
@@ -243,7 +239,15 @@ function LivenetStudioUI() {
             broadcastData={broadcastData}
             viewerCount={viewerCount}
             onEndStream={handleEndStream}
-        />
+        >
+            {broadcastData.streamStartedAt && (
+                <StreamTimer 
+                    startTime={broadcastData.streamStartedAt}
+                    durationSeconds={300} // 5 minutes
+                    onTimerEnd={handleEndStream}
+                />
+            )}
+        </StreamHeader>
         
         <GameFlowManager 
             showCoverCard={showChallengeCoverCard}
@@ -257,11 +261,8 @@ function LivenetStudioUI() {
             isTimerFinished={isTimerFinished}
             cardPosition={cardPosition}
             cardSize={cardSize}
-            isDragging={isDragging}
-            onMouseDown={handleMouseDown}
-            onTouchStart={onTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
+            onDrag={handleDrag}
+            onDragStop={handleDragStop}
             onResizeStop={handleResizeStop}
             onSetCardSize={setCardSize}
             onCompleteChallenge={handleCompleteChallenge}
@@ -273,25 +274,17 @@ function LivenetStudioUI() {
             onToggleMic={handleToggleMic}
             onFlipCamera={handleFlipCamera}
             onToggleScreenShare={handleToggleScreenShare}
-            onInviteGuest={handleInviteGuest}
             onToggleChallengeVisibility={() => setIsChallengeVisible(prev => !prev)}
             isChallengeActive={!!broadcastData.activeChallenge}
             isVideoEnabled={isVideoEnabled}
             isMicEnabled={isMicEnabled}
             isScreenSharing={isScreenSharing}
             isCallJoined={isCallJoined}
-            onOpenGames={() => setIsGamePanelOpen(true)}
             viewerCount={viewerCount}
             onToggleChat={() => setIsChatVisible(prev => !prev)}
             isChatVisible={isChatVisible}
             participants={participants}
             isFlippingCamera={isFlippingCamera}
-        />
-        
-        <InStreamGamesPanel 
-            onSelectChallenge={handleChallengeSelect} 
-            open={isGamePanelOpen} 
-            onOpenChange={setIsGamePanelOpen} 
         />
 
         <ChatPanel 

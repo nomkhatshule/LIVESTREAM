@@ -36,6 +36,7 @@ export interface BroadcastData {
     hostName: string;
     hostAvatar: string;
     isLive: boolean;
+    streamStartedAt?: Timestamp;
     challenge?: string;
     activeChallenge?: string;
     activeChallengeType?: 'truth' | 'dare' | 'challenge';
@@ -53,7 +54,8 @@ export interface BroadcastData {
         id: string;
         name: string;
         avatarUrl: string;
-    }
+    },
+    viewerCount?: number;
 }
 
 export interface GiphyResult {
