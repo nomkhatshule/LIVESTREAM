@@ -40,7 +40,7 @@ export default function StreamControls({
     }
     
     return (
-        <div className="absolute top-1/2 right-4 -translate-y-1/2 z-30 flex flex-col items-center gap-4 p-2 bg-black/40 rounded-full backdrop-blur-sm pointer-events-auto">
+        <div className="absolute top-1/2 right-4 -translate-y-1/2 z-30 flex flex-col items-center gap-4 p-2 rounded-full pointer-events-auto">
             <VideoButton isVideoEnabled={isVideoEnabled} onClick={onToggleVideo} />
             <FlipCameraButton onClick={onFlipCamera} isFlipping={isFlippingCamera} />
             <MicButton isMicEnabled={isMicEnabled} onClick={onToggleMic} />

@@ -12,9 +12,9 @@ interface FlipCameraButtonProps {
 export default function FlipCameraButton({ onClick, isFlipping }: FlipCameraButtonProps) {
     return (
         <Button 
-            variant="secondary" 
+            variant="ghost" 
             size="icon" 
-            className="rounded-full h-10 w-10 md:h-12 md:w-12" 
+            className="rounded-full h-10 w-10 md:h-12 md:w-12 text-white hover:bg-white/20 hover:text-white" 
             onClick={onClick}
             disabled={isFlipping}
         >
