@@ -155,7 +155,7 @@ export default function FeedItemChat({ broadcast, isChatVisible }: FeedItemChatP
                         </div>
                     </ScrollArea>
                 </div>
-                <div className="pb-16 md:pb-4 pointer-events-auto">
+                <div className="pb-10 md:pb-4 pointer-events-auto">
                    <ChatInputForm 
                         onSubmit={handleSendMessage} 
                         inputRef={textareaRef}
