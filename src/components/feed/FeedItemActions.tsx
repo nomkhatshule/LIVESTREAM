@@ -1,19 +1,14 @@
-
 'use client';
 
-import { useMemo, useState } from 'react';
-import Link from 'next/link';
+import { useMemo } from 'react';
 import { useUser, useUserDocument, useFirestore, useMemoFirebase } from '@/firebase';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { collection, doc, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { addDocumentNonBlocking, deleteDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { cn } from '@/lib/utils';
-import AIChat from '@/components/broadcast/ai-chat';
-import { Heart, MessageSquareMore, Search, Send, Swords, Share2 } from 'lucide-react';
+import { Heart, MessageSquareMore } from 'lucide-react';
 import type { Broadcast } from '@/lib/data';
-import ChallengeDisplayCard from '../broadcast/ChallengeDisplayCard';
-import CountdownTimer from '../broadcast/CountdownTimer';
 
 interface FeedItemActionsProps {
     broadcast: Broadcast;
@@ -28,7 +23,6 @@ export default function FeedItemActions({ broadcast, broadcastContext, isChatVis
     const { userDocument } = useUserDocument();
     const firestore = useFirestore();
     const { toast } = useToast();
-    const [isChallengeVisible, setIsChallengeVisible] = useState(true);
 
     const likesCollectionRef = useMemoFirebase(() => {
         if (!broadcast.id || !firestore) return null;
@@ -74,41 +68,8 @@ export default function FeedItemActions({ broadcast, broadcastContext, isChatVis
         }
     };
 
-    const handleShare = () => {
-        const url = `${window.location.origin}/broadcast/${broadcast.id}`;
-        navigator.clipboard.writeText(url).then(() => {
-            toast({ title: "Link Copied!", description: "The stream link is ready to be shared." });
-        }).catch(() => {
-            toast({ title: "Copy Failed", description: "Could not copy the link to your clipboard.", variant: "destructive" });
-        });
-    }
-
-    const cardPosition = broadcast.challengeCardPosition || { x: 0, y: 0 };
-    const cardSize = broadcast.challengeCardSize || { width: 320, height: 460 };
-    
     return (
         <>
-            {broadcast.activeChallenge && broadcast.activeChallengeType && isChallengeVisible && (
-                <div
-                    className="absolute top-1/2 left-1/2 pointer-events-none z-20 transform -rotate-3 transition-transform hover:rotate-0 hover:scale-105"
-                    style={{
-                        transform: `translate(calc(-50% + ${cardPosition.x}px), calc(-50% + ${cardPosition.y}px)) scale(1.1) rotate(-3deg)`,
-                        width: `${cardSize.width}px`,
-                        height: `${cardSize.height}px`,
-                    }}
-                >
-                    <ChallengeDisplayCard 
-                        text={broadcast.activeChallenge}
-                        type={broadcast.activeChallengeType}
-                        timer={broadcast.challengeStartTime && broadcast.challengeDurationSeconds ? (
-                            <CountdownTimer 
-                                startTime={broadcast.challengeStartTime} 
-                                durationSeconds={broadcast.challengeDurationSeconds} 
-                            />
-                        ) : null}
-                    />
-                </div>
-            )}
             <div className="absolute top-1/2 right-0 -translate-y-1/2 z-40 flex flex-col items-center gap-y-4 md:gap-y-6 pointer-events-auto text-white p-2 md:p-4">
                 {/* 1. Like Button */}
                 <div className="flex flex-col items-center group">
@@ -124,41 +85,6 @@ export default function FeedItemActions({ broadcast, broadcastContext, isChatVis
                        <MessageSquareMore className="h-7 w-7 drop-shadow-md" strokeWidth={1.5} />
                     </button>
                     <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">{commentsCount}</span>
-                </div>
-
-                {/* 3. Challenge Actions */}
-                {broadcast.activeChallenge ? (
-                    <div className="flex flex-col items-center group">
-                        <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform" onClick={() => setIsChallengeVisible(prev => !prev)}>
-                            <Swords className="h-7 w-7 drop-shadow-md text-yellow-400" strokeWidth={1.5} />
-                        </button>
-                        <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">Challenge</span>
-                    </div>
-                ) : (
-                    <div className="flex flex-col items-center group pointer-events-auto">
-                        <Link href="/cards" className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform flex flex-col items-center">
-                            <Send className="h-6 w-6 drop-shadow-md" strokeWidth={1.5} />
-                            <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">Challenge</span>
-                        </Link>
-                    </div>
-                )}
-                
-                {/* 4. AI Button */}
-                <AIChat userAvatar={userDocument?.profilePicture} broadcastContext={broadcastContext}>
-                    <div className="flex flex-col items-center group">
-                        <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform">
-                            <Search className="h-7 w-7 drop-shadow-md" strokeWidth={1.5} />
-                        </button>
-                            <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">AI</span>
-                    </div>
-                </AIChat>
-
-                {/* 5. Share Button */}
-                <div className="flex flex-col items-center group">
-                    <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform" onClick={handleShare}>
-                        <Share2 className="h-7 w-7 drop-shadow-md" strokeWidth={1.5} />
-                    </button>
-                    <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">Share</span>
                 </div>
             </div>
         </>

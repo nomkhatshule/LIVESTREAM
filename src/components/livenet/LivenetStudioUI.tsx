@@ -18,10 +18,6 @@ import StreamHeader from '@/components/livenet/StreamHeader';
 import FloatingReactions from '@/components/livenet/FloatingReactions';
 import StreamControls from '@/components/livenet/StreamControls';
 import type { Reaction, BroadcastData, Comment, GiphyResult } from '@/lib/types';
-import { useGameFlow } from '@/hooks/useGameFlow';
-import { useChallengeCard } from '@/hooks/useChallengeCard';
-import GameFlowManager from '@/components/livenet/GameFlowManager';
-import ChallengeCardManager from '@/components/livenet/ChallengeCardManager';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import ChatPanel from '@/components/livenet/ChatPanel';
 
@@ -144,10 +140,6 @@ function LivenetStudioUI() {
     }
     router.push('/');
   };
-
-  // Custom Hooks for managing complex logic
-  const { showChallengeCoverCard, isChallengeVisible, isTimerFinished, handleStartStagedChallenge, handleCancelStagedChallenge, handleCompleteChallenge, setIsChallengeVisible } = useGameFlow(broadcastDocRef, broadcastData);
-  const { cardPosition, cardSize, handleDrag, handleDragStop, handleResizeStop, setCardSize } = useChallengeCard(broadcastDocRef, broadcastData?.challengeCardPosition, broadcastData?.challengeCardSize);
   
   const handleReaction = (emoji: React.ReactNode) => {
     const newReaction: Reaction = {
@@ -239,41 +231,15 @@ function LivenetStudioUI() {
             onEndStream={handleEndStream}
         >
         </StreamHeader>
-        
-        <GameFlowManager 
-            showCoverCard={showChallengeCoverCard}
-            onStart={handleStartStagedChallenge}
-            onCancel={handleCancelStagedChallenge}
-        />
-
-        <ChallengeCardManager 
-            isVisible={isChallengeVisible}
-            broadcastData={broadcastData}
-            isTimerFinished={isTimerFinished}
-            cardPosition={cardPosition}
-            cardSize={cardSize}
-            onDrag={handleDrag}
-            onDragStop={handleDragStop}
-            onResizeStop={onResizeStop}
-            onSetCardSize={setCardSize}
-            onCompleteChallenge={handleCompleteChallenge}
-            broadcastDocRef={broadcastDocRef}
-        />
 
         <StreamControls 
             onToggleVideo={handleToggleVideo}
             onToggleMic={handleToggleMic}
             onFlipCamera={handleFlipCamera}
-            onToggleScreenShare={handleToggleScreenShare}
-            onToggleChallengeVisibility={() => setIsChallengeVisible(prev => !prev)}
-            isChallengeActive={!!broadcastData.activeChallenge}
             isVideoEnabled={isVideoEnabled}
             isMicEnabled={isMicEnabled}
-            isScreenSharing={isScreenSharing}
             isCallJoined={isCallJoined}
             viewerCount={viewerCount}
-            onToggleChat={() => setIsChatVisible(prev => !prev)}
-            isChatVisible={isChatVisible}
             participants={participants}
             isFlippingCamera={isFlippingCamera}
         />

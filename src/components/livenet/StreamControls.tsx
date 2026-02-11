@@ -5,16 +5,13 @@ import ParticipantsPanel from "./ParticipantsPanel";
 import VideoButton from "./controls/VideoButton";
 import MicButton from "./controls/MicButton";
 import FlipCameraButton from "./controls/FlipCameraButton";
-import ChallengeVisibilityButton from "./controls/ChallengeVisibilityButton";
 
 interface StreamControlsProps {
     onToggleVideo: () => void;
     onToggleMic: () => void;
     onFlipCamera: () => void;
-    onToggleChallengeVisibility: () => void;
     isVideoEnabled: boolean;
     isMicEnabled: boolean;
-    isChallengeActive: boolean;
     isFlippingCamera: boolean;
     viewerCount: number;
     isCallJoined: boolean;
@@ -27,8 +24,6 @@ export default function StreamControls({
     onFlipCamera,
     isVideoEnabled, 
     isMicEnabled, 
-    onToggleChallengeVisibility, 
-    isChallengeActive, 
     viewerCount,
     isCallJoined,
     participants,
@@ -44,7 +39,6 @@ export default function StreamControls({
             <VideoButton isVideoEnabled={isVideoEnabled} onClick={onToggleVideo} />
             <FlipCameraButton onClick={onFlipCamera} isFlipping={isFlippingCamera} />
             <MicButton isMicEnabled={isMicEnabled} onClick={onToggleMic} />
-            <ChallengeVisibilityButton isChallengeActive={isChallengeActive} onClick={onToggleChallengeVisibility} />
             <ParticipantsPanel viewerCount={viewerCount} participants={participants} />
         </div>
     );

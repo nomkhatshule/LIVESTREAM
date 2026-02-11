@@ -1,4 +1,3 @@
-
 'use client';
 
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -6,11 +5,7 @@ import { SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet
 import ActivityItem from "./ActivityItem";
 import type { Notification } from '@/lib/data';
 import { Skeleton } from "../ui/skeleton";
-import { MessageCircleHeart, Swords } from "lucide-react";
-import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, where } from 'firebase/firestore';
-import { useMemo, useState } from "react";
-import ChallengeNotificationItem from "./ChallengeNotificationItem";
+import { MessageCircleHeart } from "lucide-react";
 import { Separator } from "../ui/separator";
 import React from "react";
 
@@ -30,44 +25,23 @@ const ActivitySkeleton = () => (
 );
 
 
-export default function ActivityPanel({ notifications, isLoading: areNotificationsLoading }: ActivityPanelProps) {
-    const { user } = useUser();
-    const firestore = useFirestore();
-
-    const challengesQuery = useMemoFirebase(() => {
-        if (!user) return null;
-        return query(
-            collection(firestore, `users/${user.uid}/challenges`),
-            orderBy('createdAt', 'desc')
-        );
-    }, [user, firestore]);
-    const { data: challenges, isLoading: areChallengesLoading } = useCollection(challengesQuery);
-
-    const isLoading = areNotificationsLoading || areChallengesLoading;
-
-    // Combine and sort notifications and challenges by date
-    const combinedActivity = useMemo(() => {
-        const allItems = [
-            ...(notifications || []).map(item => ({ ...item, itemType: 'notification' })),
-            ...(challenges || []).map(item => ({ ...item, itemType: 'challenge' }))
-        ];
-
-        allItems.sort((a, b) => {
-            const dateA = a.createdAt?.toDate() || a.timestamp?.toDate() || new Date(0);
-            const dateB = b.createdAt?.toDate() || b.timestamp?.toDate() || new Date(0);
+export default function ActivityPanel({ notifications, isLoading }: ActivityPanelProps) {
+    // Sort notifications by date, as they might not be sorted if combined with other data previously
+    const sortedNotifications = React.useMemo(() => {
+        if (!notifications) return [];
+        return [...notifications].sort((a, b) => {
+            const dateA = a.timestamp?.toDate() || new Date(0);
+            const dateB = b.timestamp?.toDate() || new Date(0);
             return dateB.getTime() - dateA.getTime();
         });
-
-        return allItems;
-    }, [notifications, challenges]);
-
+    }, [notifications]);
 
     return (
         <>
             <SheetHeader>
                 <SheetTitle>Activity</SheetTitle>
                 <SheetDescription>
-                    Recent challenges, likes, comments, and follows.
+                    Recent likes, comments, and follows.
                 </SheetDescription>
             </SheetHeader>
             <ScrollArea className="h-[calc(100%-4rem)] -mx-6">
@@ -78,16 +52,12 @@ export default function ActivityPanel({ notifications, isLoading: areNotificatio
                             <ActivitySkeleton />
                             <ActivitySkeleton />
                         </>
-                    ) : combinedActivity.length > 0 ? (
+                    ) : sortedNotifications.length > 0 ? (
                         <div className="space-y-2">
-                            {combinedActivity.map((item: any, index: number) => (
+                            {sortedNotifications.map((item: Notification, index: number) => (
                                <React.Fragment key={item.id}>
-                                    {item.itemType === 'challenge' ? (
-                                        <ChallengeNotificationItem challenge={item} />
-                                    ) : (
-                                        <ActivityItem activity={item} />
-                                    )}
-                                    {index < combinedActivity.length - 1 && <Separator className="my-2 bg-zinc-800" />}
+                                    <ActivityItem activity={item} />
+                                    {index < sortedNotifications.length - 1 && <Separator className="my-2 bg-zinc-800" />}
                                </React.Fragment>
                             ))}
                         </div>

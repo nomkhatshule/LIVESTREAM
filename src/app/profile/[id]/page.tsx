@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { doc, writeBatch, serverTimestamp, where, query, orderBy, limit, collection, getCountFromServer } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { useMemo, useState, useEffect } from 'react';
-import { UserPlus, UserCheck, MessageSquare, Heart, Eye, Gift, Video, Settings, Swords, Clapperboard } from 'lucide-react';
+import { UserPlus, UserCheck, MessageSquare, Heart, Eye, Gift, Video, Settings, Clapperboard } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -60,17 +60,6 @@ export default function UserProfilePage() {
         );
     }, [profileUserId, firestore]);
     const { data: highlights, isLoading: areHighlightsLoading } = useCollection<Highlight>(highlightsQuery);
-
-    const completedChallengesQuery = useMemoFirebase(() => {
-        if (!profileUserId) return null;
-        return query(
-            collection(firestore, `users/${profileUserId}/challenges`),
-            where('status', '==', 'completed'),
-            orderBy('completedAt', 'desc')
-        );
-    }, [profileUserId, firestore]);
-    const { data: completedChallenges, isLoading: areChallengesLoading } = useCollection<CompletedChallenge>(completedChallengesQuery);
-
 
   // --- Likes Logic ---
   const userBroadcastsQuery = useMemoFirebase(() => {
@@ -197,7 +186,7 @@ export default function UserProfilePage() {
   };
   
   const isOwnProfile = currentUser?.uid === profileUserId;
-  const isLoading = isDocLoading || isCurrentUserFollowingLoading || isFollowersLoading || isFollowingLoading || areBroadcastsLoading || areHighlightsLoading || areChallengesLoading;
+  const isLoading = isDocLoading || isCurrentUserFollowingLoading || isFollowersLoading || isFollowingLoading || areBroadcastsLoading || areHighlightsLoading;
 
   if (isLoading) {
     return <ProfileSkeleton />;
@@ -327,9 +316,8 @@ export default function UserProfilePage() {
                   </div>
                 )}
               </div>
-            <TabsList className="grid w-full grid-cols-3 rounded-none border-t">
+            <TabsList className="grid w-full grid-cols-2 rounded-none border-t">
               <TabsTrigger value="highlights" className="text-white data-[state=active]:font-bold">Highlights</TabsTrigger>
-              <TabsTrigger value="challenges" className="text-white data-[state=active]:font-bold">Challenges</TabsTrigger>
               <TabsTrigger value="gifts" className="text-white data-[state=active]:font-bold">Gifts</TabsTrigger>
             </TabsList>
           </Card>
@@ -390,56 +378,6 @@ export default function UserProfilePage() {
                     )}
                 </div>
             )}
-          </TabsContent>
-          <TabsContent value="challenges">
-            <Card className="sm:rounded-lg bg-zinc-900/50 border-zinc-800">
-                <CardContent className="p-0">
-                    {areChallengesLoading ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-0">
-                            {[...Array(6)].map((_, i) => <Skeleton key={i} className="aspect-[1/1]"/>)}
-                        </div>
-                    ) : completedChallenges && completedChallenges.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-0">
-                        {completedChallenges.map((challenge) => (
-                        <div 
-                            key={challenge.id} 
-                            className="p-4 bg-[#fefabc] text-black flex flex-col border border-zinc-800/50 rounded-lg"
-                        >
-                            <div className="flex items-center gap-2 mb-2">
-                                <Avatar className="h-6 w-6">
-                                <AvatarImage src={challenge.fromUserAvatar} />
-                                <AvatarFallback>{challenge.fromUsername.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                <span className="text-xs font-semibold text-black">@{challenge.fromUsername}</span>
-                            </div>
-                            <p className="text-base font-bold font-headline mb-2 flex-grow">"{challenge.text}"</p>
-                            <p className="text-right text-xs text-black mt-2">{challenge.completedAt ? formatDistanceToNow(challenge.completedAt.toDate(), { addSuffix: true }) : ''}</p>
-                            <div className="mt-3 pt-2 border-t border-black/10 flex items-center justify-between text-xs font-medium">
-                                <div className="flex items-center gap-1 text-black">
-                                    <Heart className="h-4 w-4 text-red-500 fill-red-500" />
-                                    <span className="text-black">{(challenge.likes || 0).toLocaleString()}</span>
-                                </div>
-                                <div className="flex items-center gap-1 text-black">
-                                    <Eye className="h-4 w-4" />
-                                    <span className="text-black">{(challenge.views || 0).toLocaleString()}</span>
-                                </div>
-                            </div>
-                        </div>
-                        ))}
-                    </div>
-                    ) : (
-                        <div className="text-center py-16 text-muted-foreground">
-                            <Swords className="h-12 w-12 mx-auto mb-4 text-white" />
-                            <h3 className="text-lg font-semibold">No Challenges Completed</h3>
-                            {isOwnProfile ? (
-                              <p>Accept a challenge from your feed to get started!</p>
-                            ) : (
-                              <p>This user hasn't completed any challenges yet.</p>
-                            )}
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
           </TabsContent>
            <TabsContent value="gifts">
             <Card className="sm:rounded-lg">

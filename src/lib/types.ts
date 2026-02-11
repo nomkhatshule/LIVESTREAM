@@ -24,12 +24,6 @@ export interface Reaction {
   x: number;
 }
 
-export interface StagedChallenge {
-    text: string;
-    type: 'truth' | 'dare' | 'challenge';
-    duration: number;
-}
-
 export interface BroadcastData {
     title: string;
     hostId: string;
@@ -37,16 +31,6 @@ export interface BroadcastData {
     hostAvatar: string;
     isLive: boolean;
     streamStartedAt?: Timestamp;
-    challenge?: string;
-    activeChallenge?: string;
-    activeChallengeType?: 'truth' | 'dare' | 'challenge';
-    challengeSenderId?: string;
-    challengeSenderName?: string;
-    challengeSenderAvatar?: string;
-    challengeStartTime?: Timestamp;
-    challengeDurationSeconds?: number;
-    challengeCardPosition?: { x: number; y: number };
-    challengeCardSize?: { width: number, height: number },
     streamDetails?: {
       isScreenSharing: boolean;
     },
