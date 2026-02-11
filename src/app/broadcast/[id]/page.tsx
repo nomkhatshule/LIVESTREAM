@@ -4,7 +4,7 @@ import { notFound, useParams } from 'next/navigation';
 import VideoPlayer from '@/components/broadcast/video-player';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Heart, Search, MoreVertical, PlusCircle, Users, ArrowUp, MessageSquareMore, Share2, Clapperboard, User as UserIcon, CornerUpLeft } from 'lucide-react';
+import { Heart, MoreVertical, PlusCircle, Users, ArrowUp, MessageSquareMore, Share2, Clapperboard, User as UserIcon, CornerUpLeft, UserSearch } from 'lucide-react';
 import { useUser, useMemoFirebase, useUserDocument } from '@/firebase';
 import type { Broadcast, ChatMessage } from '@/lib/data';
 import { useDoc, useFirestore, useCollection } from '@/firebase';
@@ -25,6 +25,7 @@ import { cn } from '@/lib/utils';
 import ChallengeDisplayCard from '@/components/broadcast/ChallengeDisplayCard';
 import CountdownTimer from '@/components/broadcast/CountdownTimer';
 import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
 
 
 export default function BroadcastPage() {
@@ -219,6 +220,9 @@ export default function BroadcastPage() {
                 <Link href={`/profile/${broadcast.user.id}`}>
                   <div className="flex items-center gap-2">
                     <p className="font-bold font-headline text-lg hover:underline">{broadcast.user.name}</p>
+                    {broadcast.isLive && (
+                        <Badge variant="destructive" className="px-2 py-0.5 text-xs h-5 blinking-text">LIVE</Badge>
+                    )}
                   </div>
                 </Link>
               <p className="text-base font-normal mt-1">{broadcast.title}</p>
@@ -358,5 +362,3 @@ function BroadcastSkeleton() {
     </div>
   );
 }
-
-    

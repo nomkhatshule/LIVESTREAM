@@ -11,6 +11,7 @@ import type { Broadcast } from '@/lib/data';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Users } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 interface FeedItemHeaderProps {
     broadcast: Broadcast;
@@ -92,6 +93,9 @@ export default function FeedItemHeader({ broadcast, viewerCount }: FeedItemHeade
                             <Link href={`/profile/${broadcast.hostId}`} className="pointer-events-auto">
                                 <p className="font-bold font-headline text-base md:text-lg hover:underline">{broadcast.hostName}</p>
                             </Link>
+                            {broadcast.isLive && (
+                                <Badge variant="destructive" className="px-2 py-0.5 text-xs h-5 blinking-text">LIVE</Badge>
+                            )}
                             {user && user.uid !== broadcast.hostId && !isFollowing && (
                                 <Button 
                                     size="sm" 

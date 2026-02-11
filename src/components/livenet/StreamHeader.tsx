@@ -7,6 +7,7 @@ import { BroadcastData } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Users, X } from "lucide-react";
 import type { ReactNode } from "react";
+import { Badge } from "@/components/ui/badge";
 
 interface StreamHeaderProps {
     broadcastData: BroadcastData,
@@ -26,6 +27,9 @@ export default function StreamHeader({ broadcastData, viewerCount, onEndStream, 
                 <div className="flex flex-col">
                     <div className="flex items-center gap-2">
                         <span className="font-bold font-headline text-xs md:text-sm leading-tight text-white">{broadcastData?.hostName || broadcastData?.user?.name || 'Host'}</span>
+                        {broadcastData.isLive && (
+                           <Badge variant="destructive" className="px-1.5 py-0.5 text-[10px] h-4 blinking-text">LIVE</Badge>
+                        )}
                     </div>
                     <div className="flex items-center gap-2 md:gap-3 mt-0.5">
                         <span className="inline-flex items-center text-[10px] md:text-xs font-medium gap-1 text-white">
