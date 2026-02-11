@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { StreamVideoParticipant } from "@stream-io/video-react-sdk";
@@ -7,22 +5,16 @@ import ParticipantsPanel from "./ParticipantsPanel";
 import VideoButton from "./controls/VideoButton";
 import MicButton from "./controls/MicButton";
 import FlipCameraButton from "./controls/FlipCameraButton";
-import ScreenShareButton from "./controls/ScreenShareButton";
 import ChallengeVisibilityButton from "./controls/ChallengeVisibilityButton";
-import ChatButton from "./controls/ChatButton";
 
 interface StreamControlsProps {
     onToggleVideo: () => void;
     onToggleMic: () => void;
     onFlipCamera: () => void;
-    onToggleScreenShare: () => void;
     onToggleChallengeVisibility: () => void;
-    onToggleChat: () => void;
     isVideoEnabled: boolean;
     isMicEnabled: boolean;
-    isScreenSharing: boolean;
     isChallengeActive: boolean;
-    isChatVisible: boolean;
     isFlippingCamera: boolean;
     viewerCount: number;
     isCallJoined: boolean;
@@ -33,16 +25,12 @@ export default function StreamControls({
     onToggleVideo, 
     onToggleMic,
     onFlipCamera,
-    onToggleScreenShare, 
     isVideoEnabled, 
     isMicEnabled, 
-    isScreenSharing, 
     onToggleChallengeVisibility, 
     isChallengeActive, 
     viewerCount,
     isCallJoined,
-    isChatVisible,
-    onToggleChat,
     participants,
     isFlippingCamera,
 }: StreamControlsProps) {
@@ -56,12 +44,8 @@ export default function StreamControls({
             <VideoButton isVideoEnabled={isVideoEnabled} onClick={onToggleVideo} />
             <FlipCameraButton onClick={onFlipCamera} isFlipping={isFlippingCamera} />
             <MicButton isMicEnabled={isMicEnabled} onClick={onToggleMic} />
-            <ScreenShareButton isScreenSharing={isScreenSharing} onClick={onToggleScreenShare} />
             <ChallengeVisibilityButton isChallengeActive={isChallengeActive} onClick={onToggleChallengeVisibility} />
             <ParticipantsPanel viewerCount={viewerCount} participants={participants} />
-            <ChatButton isChatVisible={isChatVisible} onClick={onToggleChat} />
         </div>
     );
 };
-
-    

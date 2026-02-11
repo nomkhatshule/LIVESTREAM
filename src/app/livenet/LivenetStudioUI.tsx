@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { Loader2 } from 'lucide-react';
@@ -26,6 +24,7 @@ import GameFlowManager from '@/components/livenet/GameFlowManager';
 import ChallengeCardManager from '@/components/livenet/ChallengeCardManager';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import ChatPanel from '@/components/livenet/ChatPanel';
+import StreamTimer from './StreamTimer';
 
 
 function LivenetStudioUI() {
@@ -40,16 +39,14 @@ function LivenetStudioUI() {
   const { toast } = useToast();
   
   const [reactions, setReactions] = useState<Reaction[]>([]);
-  const [isChatVisible, setIsChatVisible] = useState(true);
   const [isFlippingCamera, setIsFlippingCamera] = useState(false);
 
   // Stream SDK Hooks
-  const { useParticipants, useCallCallingState, useCameraState, useMicrophoneState, useScreenShareState } = useCallStateHooks();
+  const { useParticipants, useCallCallingState, useCameraState, useMicrophoneState } = useCallStateHooks();
   const participants = useParticipants();
   const callingState = useCallCallingState();
   const { camera } = useCameraState();
   const { microphone } = useMicrophoneState();
-  const { isScreenSharing } = useScreenShareState();
   
   const viewerCount = Math.max(0, participants.length -1); // Exclude the host
   const isCallJoined = callingState === CallingState.JOINED;
@@ -112,27 +109,6 @@ function LivenetStudioUI() {
   const handleToggleMic = async () => {
     if (call && call.microphone) {
       await call.microphone.toggle();
-    }
-  };
-
-  const handleToggleScreenShare = async () => {
-    if (!call || !call.screenShare) return;
-    const nextIsScreenSharing = !isScreenSharing;
-    try {
-        await call.screenShare.toggle();
-        if (broadcastDocRef) {
-            updateDoc(broadcastDocRef, { 'streamDetails.isScreenSharing': nextIsScreenSharing });
-        }
-    } catch (error) {
-        console.error('Error toggling screen share:', error);
-        toast({
-            variant: 'destructive',
-            title: 'Screen Share Failed',
-            description: 'Could not change screen sharing state.',
-        });
-        if (broadcastDocRef) {
-            updateDoc(broadcastDocRef, { 'streamDetails.isScreenSharing': isScreenSharing }); // Revert on error
-        }
     }
   };
 
@@ -239,7 +215,15 @@ function LivenetStudioUI() {
             broadcastData={broadcastData}
             viewerCount={viewerCount}
             onEndStream={handleEndStream}
-        />
+        >
+            {broadcastData.streamStartedAt && (
+                <StreamTimer 
+                    startTime={broadcastData.streamStartedAt}
+                    durationSeconds={300} // 5 minutes
+                    onTimerEnd={handleEndStream}
+                />
+            )}
+        </StreamHeader>
         
         <GameFlowManager 
             showCoverCard={showChallengeCoverCard}
@@ -255,7 +239,7 @@ function LivenetStudioUI() {
             cardSize={cardSize}
             onDrag={handleDrag}
             onDragStop={handleDragStop}
-            onResizeStop={handleResizeStop}
+            onResizeStop={onResizeStop}
             onSetCardSize={setCardSize}
             onCompleteChallenge={handleCompleteChallenge}
             broadcastDocRef={broadcastDocRef}
@@ -265,23 +249,19 @@ function LivenetStudioUI() {
             onToggleVideo={handleToggleVideo}
             onToggleMic={handleToggleMic}
             onFlipCamera={handleFlipCamera}
-            onToggleScreenShare={handleToggleScreenShare}
             onToggleChallengeVisibility={() => setIsChallengeVisible(prev => !prev)}
             isChallengeActive={!!broadcastData.activeChallenge}
             isVideoEnabled={isVideoEnabled}
             isMicEnabled={isMicEnabled}
-            isScreenSharing={isScreenSharing}
             isCallJoined={isCallJoined}
             viewerCount={viewerCount}
-            onToggleChat={() => setIsChatVisible(prev => !prev)}
-            isChatVisible={isChatVisible}
             participants={participants}
             isFlippingCamera={isFlippingCamera}
         />
 
         <ChatPanel 
             comments={comments}
-            isVisible={isChatVisible}
+            isVisible={true}
             onSendMessage={handleSendMessage}
             onReaction={handleReaction}
         />
