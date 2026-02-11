@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Button } from "@/components/ui/button";
@@ -16,8 +15,7 @@ export default function MicButton({ isMicEnabled, onClick }: MicButtonProps) {
             variant="secondary" 
             size="icon" 
             className={cn(
-                "rounded-full h-10 w-10 md:h-12 md:w-12",
-                isMicEnabled && "animate-breathing-green"
+                "rounded-full h-10 w-10 md:h-12 md:w-12"
             )} 
             onClick={onClick}
         >
@@ -25,5 +23,3 @@ export default function MicButton({ isMicEnabled, onClick }: MicButtonProps) {
         </Button>
     );
 }
-
-    
