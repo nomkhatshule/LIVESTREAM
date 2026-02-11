@@ -18,6 +18,7 @@ const nextConfig: NextConfig = {
     ],
   },
   webpack: (config, { isServer }) => {
+    // This file is DEPRECATED. The configuration has been moved to the root next.config.ts
     // This is to solve a bug with the Stream SDK.
     // The SDK is not meant to be used on the server, so we need to tell Webpack to ignore it.
     if (isServer) {
