@@ -22,7 +22,6 @@ import Link from 'next/link';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import ChallengeDisplayCard from '@/components/broadcast/ChallengeDisplayCard';
 import CountdownTimer from '@/components/broadcast/CountdownTimer';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
@@ -179,34 +178,11 @@ export default function BroadcastPage() {
     notFound();
   }
   
-  const cardPosition = broadcast.challengeCardPosition || { x: 0, y: 0 };
-  const cardSize = broadcast.challengeCardSize || { width: 384, height: 550 };
 
   return (
     <div className="h-screen w-full bg-black snap-start">
       <VideoPlayer broadcast={broadcast} />
       
-      {broadcast.activeChallenge && broadcast.activeChallengeType && (
-            <div 
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-20"
-              style={{
-                  transform: `translate(calc(-50% + ${cardPosition.x}px), calc(-50% + ${cardPosition.y}px)) scale(0.8)`,
-                  width: `${cardSize.width}px`,
-                  height: `${cardSize.height}px`,
-              }}
-            >
-                <ChallengeDisplayCard 
-                    text={broadcast.activeChallenge}
-                    type={broadcast.activeChallengeType}
-                    timer={broadcast.challengeStartTime && broadcast.challengeDurationSeconds ? (
-                        <CountdownTimer 
-                            startTime={broadcast.challengeStartTime} 
-                            durationSeconds={broadcast.challengeDurationSeconds} 
-                        />
-                    ) : null}
-                />
-            </div>
-        )}
 
       <div className="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/50 to-transparent text-white">
          <div className="flex items-start gap-4">
@@ -354,3 +330,5 @@ function BroadcastSkeleton() {
     </div>
   );
 }
+
+    
