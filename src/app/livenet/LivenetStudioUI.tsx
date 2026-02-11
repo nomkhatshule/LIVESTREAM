@@ -231,7 +231,7 @@ function LivenetStudioUI() {
             cardSize={cardSize}
             onDrag={handleDrag}
             onDragStop={handleDragStop}
-            onResizeStop={onResizeStop}
+            onResizeStop={handleResizeStop}
             onSetCardSize={setCardSize}
             onCompleteChallenge={handleCompleteChallenge}
             broadcastDocRef={broadcastDocRef}
