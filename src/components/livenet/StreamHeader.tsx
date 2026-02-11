@@ -41,7 +41,7 @@ export default function StreamHeader({ broadcastData, viewerCount, onEndStream, 
             </div>
             <div className="flex items-center gap-4">
                 {children}
-                <Button variant="ghost" size="icon" className="h-8 w-8 md:h-9 md:w-9 text-white rounded-full hover:bg-white/20" onClick={onEndStream}>
+                <Button variant="ghost" size="icon" className="h-8 w-8 md:h-9 md:w-9 text-white rounded-full hover:bg-white/20 border border-white/50" onClick={onEndStream}>
                     <X className="h-5 w-5" />
                 </Button>
             </div>
