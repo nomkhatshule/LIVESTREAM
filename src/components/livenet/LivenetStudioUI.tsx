@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Loader2 } from 'lucide-react';
@@ -25,7 +24,6 @@ import GameFlowManager from '@/components/livenet/GameFlowManager';
 import ChallengeCardManager from '@/components/livenet/ChallengeCardManager';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import ChatPanel from '@/components/livenet/ChatPanel';
-import StreamTimer from './StreamTimer';
 
 
 function LivenetStudioUI() {
@@ -240,13 +238,6 @@ function LivenetStudioUI() {
             viewerCount={viewerCount}
             onEndStream={handleEndStream}
         >
-            {broadcastData.streamStartedAt && (
-                <StreamTimer 
-                    startTime={broadcastData.streamStartedAt}
-                    durationSeconds={300} // 5 minutes
-                    onTimerEnd={handleEndStream}
-                />
-            )}
         </StreamHeader>
         
         <GameFlowManager 
@@ -263,7 +254,7 @@ function LivenetStudioUI() {
             cardSize={cardSize}
             onDrag={handleDrag}
             onDragStop={handleDragStop}
-            onResizeStop={handleResizeStop}
+            onResizeStop={onResizeStop}
             onSetCardSize={setCardSize}
             onCompleteChallenge={handleCompleteChallenge}
             broadcastDocRef={broadcastDocRef}

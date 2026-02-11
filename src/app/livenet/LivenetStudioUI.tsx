@@ -24,7 +24,6 @@ import GameFlowManager from '@/components/livenet/GameFlowManager';
 import ChallengeCardManager from '@/components/livenet/ChallengeCardManager';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import ChatPanel from '@/components/livenet/ChatPanel';
-import StreamTimer from './StreamTimer';
 
 
 function LivenetStudioUI() {
@@ -216,13 +215,6 @@ function LivenetStudioUI() {
             viewerCount={viewerCount}
             onEndStream={handleEndStream}
         >
-            {broadcastData.streamStartedAt && (
-                <StreamTimer 
-                    startTime={broadcastData.streamStartedAt}
-                    durationSeconds={300} // 5 minutes
-                    onTimerEnd={handleEndStream}
-                />
-            )}
         </StreamHeader>
         
         <GameFlowManager 
