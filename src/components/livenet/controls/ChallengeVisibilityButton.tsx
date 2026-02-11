@@ -15,8 +15,8 @@ export default function ChallengeVisibilityButton({ isChallengeActive, onClick }
     }
 
     return (
-        <Button variant="ghost" size="icon" className="rounded-full h-10 w-10 md:h-12 md:w-12 text-white hover:bg-white/20 hover:text-white" onClick={onClick}>
-            <Minus className="h-5 w-5 md:h-6 md:w-6"/>
+        <Button variant="ghost" size="icon" className="rounded-full h-12 w-12 md:h-14 md:w-14 border-2 border-white/30 text-white hover:bg-white/20" onClick={onClick}>
+            <Minus className="h-6 w-6 md:h-7 md:w-7"/>
         </Button>
     );
 }
