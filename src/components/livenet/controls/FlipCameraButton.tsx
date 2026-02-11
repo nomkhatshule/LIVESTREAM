@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Button } from "@/components/ui/button";
@@ -14,7 +13,7 @@ export default function FlipCameraButton({ onClick, isFlipping }: FlipCameraButt
         <Button 
             variant="ghost" 
             size="icon" 
-            className="rounded-full h-12 w-12 md:h-14 md:w-14 border-2 border-white/30 text-white hover:bg-white/20" 
+            className="rounded-full h-12 w-12 md:h-14 md:w-14 text-white hover:bg-white/20" 
             onClick={onClick}
             disabled={isFlipping}
         >
@@ -26,5 +25,3 @@ export default function FlipCameraButton({ onClick, isFlipping }: FlipCameraButt
         </Button>
     );
 }
-
-    
