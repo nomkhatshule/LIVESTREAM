@@ -15,11 +15,11 @@ export default function MicButton({ isMicEnabled, onClick }: MicButtonProps) {
             variant="ghost" 
             size="icon" 
             className={cn(
-                "rounded-full h-12 w-12 md:h-14 md:w-14 text-white hover:bg-white/20"
+                "rounded-full h-14 w-14 text-white hover:bg-white/20"
             )} 
             onClick={onClick}
         >
-            {isMicEnabled ? <Mic className="h-6 w-6 md:h-7 md:w-7"/> : <MicOff className="h-6 w-6 md:h-7 md:w-7"/>}
+            {isMicEnabled ? <Mic className="h-8 w-8"/> : <MicOff className="h-8 w-8"/>}
         </Button>
     );
 }
