@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo } from 'react';
@@ -83,7 +82,7 @@ export default function FeedItemHeader({ broadcast, viewerCount }: FeedItemHeade
             <div className="flex items-start justify-between">
                 <div className="flex items-start gap-3">
                     <Link href={`/profile/${broadcast.hostId}`} className="pointer-events-auto">
-                        <Avatar className={cn("h-10 w-10 md:h-12 md:w-12 border-4 border-primary", broadcast.isLive && "animate-breathing-destructive")}>
+                        <Avatar className="h-10 w-10 md:h-12 md:w-12">
                             <AvatarImage src={broadcast.hostAvatar || 'https://picsum.photos/seed/placeholder-avatar/200'} alt={broadcast.hostName} />
                             <AvatarFallback>{broadcast.hostName?.charAt(0) || 'A'}</AvatarFallback>
                         </Avatar>

@@ -1,4 +1,3 @@
-
 'use client';
 import { useUserDocumentById } from '@/firebase/firestore/use-user-document';
 import { Card, CardContent } from '@/components/ui/card';
@@ -286,7 +285,7 @@ export default function UserProfilePage() {
                 )}
               </div>
               <div className="flex flex-col items-center p-6 pt-0 -mt-24">
-                <Avatar className="w-28 h-28 border-4 border-background ring-4 ring-white">
+                <Avatar className="w-28 h-28">
                   <AvatarImage src={userDocument.profilePicture || "https://picsum.photos/seed/profile-placeholder/200"} alt={userDocument.username || ''} />
                   <AvatarFallback className="text-4xl">{userDocument.username?.charAt(0)}</AvatarFallback>
                 </Avatar>

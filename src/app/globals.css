@@ -173,18 +173,6 @@ body {
       animation: breathing 2s ease-out infinite;
     }
     
-    .animate-breathing-prominent {
-      animation: breathing-prominent 2s ease-out infinite;
-    }
-
-    .animate-breathing-destructive {
-      animation: breathing-destructive 2s ease-out infinite;
-    }
-
-    .animate-breathing-green {
-      animation: breathing-green 2s ease-out infinite;
-    }
-
     .perspective-1000 {
       perspective: 1000px;
     }
@@ -220,33 +208,6 @@ body {
         }
         50% {
             box-shadow: 0 0 20px 8px hsl(var(--primary) / 0.4);
-        }
-    }
-
-    @keyframes breathing-prominent {
-        0%, 100% {
-            box-shadow: 0 0 8px 3px hsl(var(--primary) / 0.8);
-        }
-        50% {
-            box-shadow: 0 0 25px 12px hsl(var(--primary) / 0.5);
-        }
-    }
-
-    @keyframes breathing-destructive {
-        0%, 100% {
-            box-shadow: 0 0 8px 3px hsl(var(--destructive) / 0.8);
-        }
-        50% {
-            box-shadow: 0 0 25px 12px hsl(var(--destructive) / 0.5);
-        }
-    }
-
-    @keyframes breathing-green {
-        0%, 100% {
-            box-shadow: 0 0 7px 3px hsla(140, 70%, 40%, 0.7);
-        }
-        50% {
-            box-shadow: 0 0 22px 10px hsla(140, 70%, 40%, 0.4);
         }
     }
 
