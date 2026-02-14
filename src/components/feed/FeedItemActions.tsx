@@ -7,7 +7,7 @@ import { collection, doc, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { addDocumentNonBlocking, deleteDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { cn } from '@/lib/utils';
-import { Heart, MessageSquareMore } from 'lucide-react';
+import { Heart, MessageCircleMore } from 'lucide-react';
 import type { Broadcast } from '@/lib/data';
 
 interface FeedItemActionsProps {
@@ -74,7 +74,7 @@ export default function FeedItemActions({ broadcast, broadcastContext, isChatVis
                 {/* 1. Like Button */}
                 <div className="flex flex-col items-center group">
                     <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform" onClick={handleLike}>
-                        <Heart className={cn("h-7 w-7 drop-shadow-md", hasLiked ? "fill-red-500 text-red-500" : "fill-white text-white")} strokeWidth={1.5} />
+                        <Heart className={cn("h-7 w-7 drop-shadow-md", hasLiked ? "fill-red-500 text-red-500" : "fill-white")} strokeWidth={1.5} />
                     </button>
                     <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">{likes?.length || 0}</span>
                 </div>
@@ -82,7 +82,7 @@ export default function FeedItemActions({ broadcast, broadcastContext, isChatVis
                 {/* 2. Comment Button */}
                 <div className="flex flex-col items-center group">
                     <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform" onClick={() => setIsChatVisible(!isChatVisible)}>
-                       <MessageSquareMore className="h-7 w-7 drop-shadow-md fill-white" strokeWidth={1.5} />
+                       <MessageCircleMore className="h-7 w-7 drop-shadow-md fill-white" strokeWidth={1.5} />
                     </button>
                     <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">{commentsCount}</span>
                 </div>
