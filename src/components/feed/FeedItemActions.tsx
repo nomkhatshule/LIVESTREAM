@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo } from 'react';
@@ -74,7 +75,7 @@ export default function FeedItemActions({ broadcast, broadcastContext, isChatVis
                 {/* 1. Like Button */}
                 <div className="flex flex-col items-center group">
                     <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform" onClick={handleLike}>
-                        <Heart className={cn("h-7 w-7 drop-shadow-md", hasLiked && "fill-red-500 text-red-500")} strokeWidth={1.5} />
+                        <Heart className="h-7 w-7 drop-shadow-md fill-white text-white" strokeWidth={1.5} />
                     </button>
                     <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">{likes?.length || 0}</span>
                 </div>
