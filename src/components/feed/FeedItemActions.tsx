@@ -82,7 +82,7 @@ export default function FeedItemActions({ broadcast, broadcastContext, isChatVis
                 {/* 2. Comment Button */}
                 <div className="flex flex-col items-center group">
                     <button className="p-0 bg-transparent border-none text-white hover:scale-110 transition-transform" onClick={() => setIsChatVisible(!isChatVisible)}>
-                       <MessageSquareMore className="h-7 w-7 drop-shadow-md" strokeWidth={1.5} />
+                       <MessageSquareMore className="h-7 w-7 drop-shadow-md fill-white" strokeWidth={1.5} />
                     </button>
                     <span className="text-xs font-bold text-white drop-shadow-md mt-1.5">{commentsCount}</span>
                 </div>
