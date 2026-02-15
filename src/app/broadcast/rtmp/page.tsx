@@ -86,7 +86,7 @@ function RtmpDetailsPageComponent() {
   };
   
   const isLoading = isUserLoading || isBroadcastLoading || isLoadingToken;
-  const rtmpUrl = 'rtmp://global.v2.stream-io-video.com/live';
+  const rtmpUrl = 'rtmps://global.v2.stream-io-video.com:443/live';
   const streamKey = streamToken ? `livestream:${broadcastId}?key=${streamToken}` : '';
 
   if (isLoading) {
