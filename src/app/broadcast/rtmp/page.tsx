@@ -86,8 +86,8 @@ function RtmpDetailsPageComponent() {
   };
   
   const isLoading = isUserLoading || isBroadcastLoading || isLoadingToken;
-  const rtmpUrl = 'rtmp://ingest.stream-io-video.com/live';
-  const streamKey = streamToken ? `${broadcastId}?token=${streamToken}` : '';
+  const rtmpUrl = 'rtmp://us-east.v2.stream-io-video.com/live';
+  const streamKey = streamToken ? `livestream:${broadcastId}?key=${streamToken}` : '';
 
   if (isLoading) {
       return (
