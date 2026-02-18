@@ -88,8 +88,6 @@ export default function UserProfilePage() {
             ),
             duration: 10000,
         });
-        // Clean the URL
-        router.replace(`/profile/${profileUserId}`, { scroll: false });
     }
   }, [isNewUser, isDocLoading, userDocument, toast, router, profileUserId]);
 
