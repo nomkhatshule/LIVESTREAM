@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { doc, writeBatch, serverTimestamp, where, query, orderBy, limit, collection, getCountFromServer } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { useMemo, useState, useEffect } from 'react';
-import { UserPlus, UserCheck, MessageSquare, Heart, Eye, Gift, Video, Settings, Clapperboard } from 'lucide-react';
+import { UserPlus, UserCheck, MessageSquare, Heart, Eye, Gift, Video, Settings, Clapperboard, ArrowRight } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -361,7 +361,8 @@ export default function UserProfilePage() {
                             <p className="mb-4">Click below to start exploring live streams.</p>
                             <Button size="lg" asChild>
                                 <Link href="/feed">
-                                    Explore Your Feed
+                                    To the Feed
+                                    <ArrowRight />
                                 </Link>
                             </Button>
                         </>
