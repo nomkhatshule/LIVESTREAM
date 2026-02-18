@@ -267,7 +267,15 @@ export default function UserProfilePage() {
                   ) : (
                       <div className="h-full w-full bg-muted" />
                   )}
-                {isOwnProfile && (
+                {isNewUser && (
+                    <Button asChild className="absolute top-3 left-3">
+                        <Link href="/feed">
+                            To the Feed
+                            <ArrowRight className="ml-2 h-4 w-4" />
+                        </Link>
+                    </Button>
+                )}
+                {isOwnProfile && !isNewUser && (
                   <Button size="icon" variant="secondary" className="absolute top-3 right-3" onClick={() => setIsSettingsModalOpen(true)}>
                       <Settings className="h-4 w-4" />
                   </Button>
@@ -354,28 +362,12 @@ export default function UserProfilePage() {
               </div>
             ) : (
                 <div className="text-center py-16 text-muted-foreground bg-card rounded-b-lg">
-                    {isNewUser ? (
-                        <>
-                            <Clapperboard className="h-12 w-12 mx-auto mb-4" />
-                            <h3 className="text-lg font-semibold text-white">Your Profile is Ready!</h3>
-                            <p className="mb-4">Click below to start exploring live streams.</p>
-                            <Button size="lg" asChild>
-                                <Link href="/feed">
-                                    To the Feed
-                                    <ArrowRight />
-                                </Link>
-                            </Button>
-                        </>
+                    <Video className="h-12 w-12 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold">No Highlights Yet</h3>
+                    {isOwnProfile ? (
+                        <p>Upload your first highlight from the feed!</p>
                     ) : (
-                        <>
-                            <Video className="h-12 w-12 mx-auto mb-4" />
-                            <h3 className="text-lg font-semibold">No Highlights Yet</h3>
-                            {isOwnProfile ? (
-                                <p>Upload your first highlight from the feed!</p>
-                            ) : (
-                                <p>This user hasn't shared any highlights.</p>
-                            )}
-                        </>
+                        <p>This user hasn't shared any highlights.</p>
                     )}
                 </div>
             )}
