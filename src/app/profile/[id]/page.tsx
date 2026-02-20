@@ -355,13 +355,13 @@ export default function UserProfilePage() {
                   {isOwnProfile && (
                     <>
                       <div 
-                        className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                        className="absolute inset-0 bg-black/40 flex items-start justify-center pt-8 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                         onClick={() => !isSubmitting && coverInputRef.current?.click()}
                       >
                         {isUploadingCover ? (
                           <Loader2 className="h-8 w-8 text-white animate-spin" />
                         ) : (
-                          <div className="text-center text-white pb-4">
+                          <div className="text-center text-white">
                             <ImageIcon className="mx-auto h-8 w-8" />
                             <p className="text-xs font-semibold mt-1">Change Cover</p>
                           </div>
