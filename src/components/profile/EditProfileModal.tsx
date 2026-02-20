@@ -226,9 +226,9 @@ export default function EditProfileModal({ open, onOpenChange }: EditProfileModa
                     {isUploadingCover ? (
                         <Loader2 className="h-8 w-8 text-white animate-spin" />
                     ) : (
-                        <div className="text-center text-white">
+                        <div className="text-center text-white pb-4">
                             <ImageIcon className="mx-auto h-8 w-8" />
-                            <p className="text-xs font-semibold">Change Cover</p>
+                            <p className="text-xs font-semibold mt-1">Change Cover</p>
                         </div>
                     )}
                 </div>

@@ -361,7 +361,7 @@ export default function UserProfilePage() {
                         {isUploadingCover ? (
                           <Loader2 className="h-8 w-8 text-white animate-spin" />
                         ) : (
-                          <div className="text-center text-white">
+                          <div className="text-center text-white pb-4">
                             <ImageIcon className="mx-auto h-8 w-8" />
                             <p className="text-xs font-semibold mt-1">Change Cover</p>
                           </div>
@@ -382,13 +382,13 @@ export default function UserProfilePage() {
                       <Settings className="h-4 w-4" />
                   </Button>
                 )}
-                 {isOwnProfile && isNewUser && (
-                  <Button asChild className="absolute top-3 left-3">
-                    <Link href="/feed">
-                      To the Feed
-                      <ArrowRight className="ml-2" />
-                    </Link>
-                  </Button>
+                {isOwnProfile && isNewUser && (
+                    <Button asChild className="absolute top-3 left-3">
+                        <Link href="/feed">
+                        To the Feed
+                        <ArrowRight className="ml-2" />
+                        </Link>
+                    </Button>
                 )}
               </div>
               <div className="flex flex-col items-center p-6 pt-0 -mt-24">
@@ -456,6 +456,14 @@ export default function UserProfilePage() {
                         </Link>
                      </Button>
                   </div>
+                )}
+                {isNewUser && (
+                    <Button asChild size="lg" className="mt-6">
+                        <Link href="/feed">
+                        To the Feed
+                        <ArrowRight className="ml-2" />
+                        </Link>
+                    </Button>
                 )}
               </div>
             <TabsList className="grid w-full grid-cols-2 rounded-none border-t">
