@@ -396,9 +396,9 @@ export default function UserProfilePage() {
                                 onClick={() => !isSubmitting && avatarInputRef.current?.click()}
                             >
                                 {isUploadingAvatar ? (
-                                    <Loader2 className="h-8 w-8 text-white animate-spin" />
+                                    <Loader2 className="h-6 w-6 text-white animate-spin" />
                                 ) : (
-                                    <Camera className="h-8 w-8 text-white" />
+                                    <Camera className="h-6 w-6 text-white" />
                                 )}
                             </div>
                             <input
@@ -449,14 +449,6 @@ export default function UserProfilePage() {
                      </Button>
                   </div>
                 )}
-                {isNewUser && isOwnProfile && (
-                    <Button asChild size="lg" className="mt-6">
-                        <Link href="/feed">
-                        To the Feed
-                        <ArrowRight className="ml-2" />
-                        </Link>
-                    </Button>
-                )}
               </div>
             <TabsList className="grid w-full grid-cols-2 rounded-none border-t">
               <TabsTrigger value="highlights" className="text-white data-[state=active]:font-bold">Highlights</TabsTrigger>
@@ -493,6 +485,17 @@ export default function UserProfilePage() {
                     </div>
                 ))}
               </div>
+            ) : isNewUser && isOwnProfile ? (
+                <div className="text-center py-16 text-muted-foreground bg-card rounded-b-lg">
+                    <h3 className="text-lg font-semibold text-white">Welcome to LIVENET!</h3>
+                    <p className="mt-4">Your profile is ready. Customize it or jump right into the action.</p>
+                    <Button asChild size="lg" className="mt-6">
+                        <Link href="/feed">
+                            To the Feed
+                            <ArrowRight className="ml-2" />
+                        </Link>
+                    </Button>
+                </div>
             ) : (
                 <div className="text-center py-16 text-muted-foreground bg-card rounded-b-lg">
                     <Video className="h-12 w-12 mx-auto mb-4" />
