@@ -21,20 +21,26 @@
     {
       "id": "default-cover-1",
       "description": "Default cover image 1",
-      "imageUrl": "https://images.unsplash.com/photo-1609669145558-352b542f89c0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8bWluaW1hbGlzdCUyMGxhbmRzY2FwZXxlbnwwfHx8fDE3NzE2MTUyNDR8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "minimalist landscape"
+      "imageUrl": "https://cdn.pixabay.com/photo/2014/09/07/21/53/x-439046_1280.jpg",
+      "imageHint": "abstract fractal"
     },
     {
       "id": "default-cover-2",
       "description": "Default cover image 2",
-      "imageUrl": "https://images.unsplash.com/photo-1690738083706-cd82416dbea9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxhdXJvcmElMjBsaWdodHN8ZW58MHx8fHwxNzcxNjE1MjQ0fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "aurora lights"
+      "imageUrl": "https://cdn.pixabay.com/photo/2013/04/10/18/48/x-74005_1280.jpg",
+      "imageHint": "abstract light"
     },
     {
       "id": "default-cover-3",
       "description": "Default cover image 3",
-      "imageUrl": "https://images.unsplash.com/photo-1640552421447-1808735878e1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHx0ZWNoJTIwY2lyY3VpdHxlbnwwfHx8fDE3NzE2MTM2MDJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "tech circuit"
+      "imageUrl": "https://cdn.pixabay.com/photo/2020/06/15/15/12/x-5324149_1280.jpg",
+      "imageHint": "abstract wave"
+    },
+    {
+      "id": "default-cover-4",
+      "description": "Default cover image 4",
+      "imageUrl": "https://cdn.pixabay.com/photo/2017/05/10/22/28/x-2297961_1280.jpg",
+      "imageHint": "abstract energy"
     },
     {
       "id": "avatar-1",
