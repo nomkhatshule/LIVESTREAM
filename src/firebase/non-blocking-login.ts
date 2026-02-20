@@ -1,4 +1,3 @@
-
 'use client';
 import {
   Auth,
@@ -11,6 +10,16 @@ import {
   getAdditionalUserInfo
 } from 'firebase/auth';
 import { getFirestore, doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
+import placeholderData from '@/lib/placeholder-images.json';
+
+const { placeholderImages } = placeholderData;
+const defaultAvatars = placeholderImages.filter(img => img.id.startsWith('default-avatar-'));
+const defaultCovers = placeholderImages.filter(img => img.id.startsWith('default-cover-'));
+
+function getRandomItem<T>(arr: T[]): T {
+    return arr[Math.floor(Math.random() * arr.length)];
+}
+
 
 /** Initiate anonymous sign-in (non-blocking). */
 export function initiateAnonymousSignIn(authInstance: Auth): void {
@@ -22,8 +31,12 @@ export function initiateEmailSignUp(authInstance: Auth, email: string, password:
   createUserWithEmailAndPassword(authInstance, email, password)
     .then(userCredential => {
       const user = userCredential.user;
-      // Set the display name in Firebase Auth
-      return updateProfile(user, { displayName: username })
+      
+      const randomAvatar = getRandomItem(defaultAvatars);
+      const randomCover = getRandomItem(defaultCovers);
+
+      // Set the display name and photoURL in Firebase Auth
+      return updateProfile(user, { displayName: username, photoURL: randomAvatar.imageUrl })
         .then(() => {
           // Now create the document in Firestore
           const db = getFirestore(authInstance.app);
@@ -33,9 +46,9 @@ export function initiateEmailSignUp(authInstance: Auth, email: string, password:
             username: username,
             email: user.email,
             createdAt: serverTimestamp(),
-            profilePicture: user.photoURL || '', // Initialize with photoURL from provider if available
+            profilePicture: randomAvatar.imageUrl, // Set default avatar
             bio: '', // Initialize with empty string
-            coverUrl: '',
+            coverUrl: randomCover.imageUrl, // Set default cover
             coverType: 'image'
           });
         });
@@ -68,16 +81,24 @@ export async function initiateGoogleSignIn(authInstance: Auth): Promise<{ succes
       // Check if doc already exists just in case (e.g. from a failed previous attempt)
       const docSnap = await getDoc(userDocRef);
       if (!docSnap.exists()) {
-         await setDoc(userDocRef, {
+        const randomAvatar = getRandomItem(defaultAvatars);
+        const randomCover = getRandomItem(defaultCovers);
+
+        await setDoc(userDocRef, {
           id: user.uid,
           username: user.displayName, // Google provides a display name
           email: user.email,
           createdAt: serverTimestamp(),
-          profilePicture: user.photoURL || '', // Google provides a photo URL
+          profilePicture: user.photoURL || randomAvatar.imageUrl, // Use Google's photo if available, otherwise our default
           bio: '',
-          coverUrl: '',
+          coverUrl: randomCover.imageUrl, // Set default cover
           coverType: 'image',
         });
+        
+        // Also update the Auth profile if it doesn't have a photoURL from Google
+        if (!user.photoURL) {
+            await updateProfile(user, { photoURL: randomAvatar.imageUrl });
+        }
       }
     }
     return { success: true, isNewUser }; // Indicate success and if the user is new

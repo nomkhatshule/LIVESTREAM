@@ -1,99 +1,135 @@
 {
   "placeholderImages": [
     {
+      "id": "default-avatar-1",
+      "description": "Default user avatar 1",
+      "imageUrl": "https://images.unsplash.com/photo-1679592098614-ae83589aa91a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxhYnN0cmFjdCUyMHBhdHRlcm58ZW58MHx8fHwxNzcxNTcwMjczfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "abstract pattern"
+    },
+    {
+      "id": "default-avatar-2",
+      "description": "Default user avatar 2",
+      "imageUrl": "https://images.unsplash.com/photo-1604079628040-94301bb21b91?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxncmFkaWVudCUyMGNvbG9yfGVufDB8fHx8MTc3MTYxNTI0NXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "gradient color"
+    },
+    {
+      "id": "default-avatar-3",
+      "description": "Default user avatar 3",
+      "imageUrl": "https://images.unsplash.com/photo-1604782666037-3c63d50052db?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxnZW9tZXRyaWMlMjBzaGFwZXN8ZW58MHx8fHwxNzcxNTMyMDI5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "geometric shapes"
+    },
+    {
+      "id": "default-cover-1",
+      "description": "Default cover image 1",
+      "imageUrl": "https://images.unsplash.com/photo-1609669145558-352b542f89c0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8bWluaW1hbGlzdCUyMGxhbmRzY2FwZXxlbnwwfHx8fDE3NzE2MTUyNDR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "minimalist landscape"
+    },
+    {
+      "id": "default-cover-2",
+      "description": "Default cover image 2",
+      "imageUrl": "https://images.unsplash.com/photo-1690738083706-cd82416dbea9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxhdXJvcmElMjBsaWdodHN8ZW58MHx8fHwxNzcxNjE1MjQ0fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "aurora lights"
+    },
+    {
+      "id": "default-cover-3",
+      "description": "Default cover image 3",
+      "imageUrl": "https://images.unsplash.com/photo-1640552421447-1808735878e1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHx0ZWNoJTIwY2lyY3VpdHxlbnwwfHx8fDE3NzE2MTM2MDJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "tech circuit"
+    },
+    {
       "id": "avatar-1",
       "description": "User avatar 1",
-      "imageUrl": "https://picsum.photos/seed/avatar1/200/200",
+      "imageUrl": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxwZXJzb24lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NzE1OTUwNDd8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "person portrait"
     },
     {
       "id": "avatar-2",
       "description": "User avatar 2",
-      "imageUrl": "https://picsum.photos/seed/avatar2/200/200",
+      "imageUrl": "https://images.unsplash.com/photo-1600180758890-6b94519a8ba6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxwZXJzb24lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NzE1OTUwNDd8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "person portrait"
     },
     {
       "id": "avatar-3",
       "description": "User avatar 3",
-      "imageUrl": "https://picsum.photos/seed/avatar3/200/200",
+      "imageUrl": "https://images.unsplash.com/flagged/photo-1595514191830-3e96a518989b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8cGVyc29uJTIwcG9ydHJhaXR8ZW58MHx8fHwxNzcxNTk1MDQ3fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "person portrait"
     },
     {
       "id": "avatar-4",
       "description": "User avatar 4",
-      "imageUrl": "https://picsum.photos/seed/avatar4/200/200",
+      "imageUrl": "https://images.unsplash.com/flagged/photo-1595514191830-3e96a518989b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8cGVyc29uJTIwcG9ydHJhaXR8ZW58MHx8fHwxNzcxNTk1MDQ3fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "person portrait"
     },
     {
       "id": "avatar-5",
       "description": "User avatar 5",
-      "imageUrl": "https://picsum.photos/seed/avatar5/200/200",
+      "imageUrl": "https://images.unsplash.com/photo-1590086782792-42dd2350140d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxwZXJzb24lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NzE1OTUwNDd8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "person portrait"
     },
     {
       "id": "broadcast-1",
       "description": "Broadcast thumbnail for gaming",
-      "imageUrl": "https://picsum.photos/seed/game1/600/400",
+      "imageUrl": "https://images.unsplash.com/photo-1618193139062-2c5bf4f935b7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHx2aWRlbyUyMGdhbWV8ZW58MHx8fHwxNzcxNTM2OTk2fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "video game"
     },
     {
       "id": "broadcast-2",
       "description": "Broadcast thumbnail for music",
-      "imageUrl": "https://picsum.photos/seed/music1/600/400",
+      "imageUrl": "https://images.unsplash.com/photo-1698153771636-a56f5656a60f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxjb25jZXJ0JTIwZGp8ZW58MHx8fHwxNzcxNjE1MjQ1fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "concert dj"
     },
     {
       "id": "broadcast-3",
       "description": "Broadcast thumbnail for cooking",
-      "imageUrl": "https://picsum.photos/seed/cook1/600/400",
+      "imageUrl": "https://images.unsplash.com/photo-1755441213555-eb3251f74341?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxraXRjaGVuJTIwZm9vZHxlbnwwfHx8fDE3NzE1NjQ4NzN8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "kitchen food"
     },
     {
       "id": "broadcast-4",
       "description": "Broadcast thumbnail for art",
-      "imageUrl": "https://picsum.photos/seed/art1/600/400",
+      "imageUrl": "https://images.unsplash.com/photo-1611352672803-c86c22307eb7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxwYWludGluZyUyMGVhc2VsfGVufDB8fHx8MTc3MTYxNTI0NXww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "painting easel"
     },
     {
       "id": "broadcast-5",
       "description": "Broadcast thumbnail for coding",
-      "imageUrl": "https://picsum.photos/seed/code1/600/400",
+      "imageUrl": "https://images.unsplash.com/photo-1608742213509-815b97c30b36?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxjb2RlJTIwc2NyZWVufGVufDB8fHx8MTc3MTU4MjMwMnww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "code screen"
     },
     {
       "id": "broadcast-6",
       "description": "Broadcast thumbnail for travel",
-      "imageUrl": "https://picsum.photos/seed/travel1/600/400",
+      "imageUrl": "https://images.unsplash.com/photo-1611080402167-ed75bae6df32?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxtb3VudGFpbiUyMGxhbmRzY2FwZXxlbnwwfHx8fDE3NzE1NzI2ODB8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "mountain landscape"
     },
     {
       "id": "broadcast-7",
       "description": "Broadcast thumbnail for talk show",
-      "imageUrl": "https://picsum.photos/seed/talk1/600/400",
+      "imageUrl": "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxwb2RjYXN0JTIwbWljcm9waG9uZXxlbnwwfHx8fDE3NzE2MTUyNDV8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "podcast microphone"
     },
     {
       "id": "broadcast-8",
       "description": "Broadcast thumbnail for fitness",
-      "imageUrl": "https://picsum.photos/seed/fitness1/600/400",
+      "imageUrl": "https://images.unsplash.com/photo-1666478042301-8a0661bff75e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHx5b2dhJTIwZ3ltfGVufDB8fHx8MTc3MTYxNTI0NXww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "yoga gym"
     },
     {
       "id": "broadcast-9",
       "description": "Broadcast thumbnail for another game",
-      "imageUrl": "https://picsum.photos/seed/game2/600/400",
+      "imageUrl": "https://images.unsplash.com/photo-1616341316831-9197de0a88dc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Z2FtaW5nJTIwY29udHJvbGxlcnxlbnwwfHx8fDE3NzE2MDg0NjZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "gaming controller"
     },
     {
       "id": "broadcast-10",
       "description": "Broadcast thumbnail for another music session",
-      "imageUrl": "https://picsum.photos/seed/music2/600/400",
+      "imageUrl": "https://images.unsplash.com/photo-1588450523206-e0b048d8f4d3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxndWl0YXIlMjBwbGF5ZXJ8ZW58MHx8fHwxNzcxNjE1MjQ1fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "guitar player"
     },
     {
       "id": "hero-image",
       "description": "Hero image for the homepage",
-      "imageUrl": "https://picsum.photos/seed/hero/1280/720",
+      "imageUrl": "https://images.unsplash.com/photo-1550275994-cdc89cd1948f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxhYnN0cmFjdCUyMGxpZ2h0c3xlbnwwfHx8fDE3NzE1MzczMDZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "abstract lights"
     }
   ]
