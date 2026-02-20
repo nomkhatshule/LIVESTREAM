@@ -500,7 +500,6 @@ export default function UserProfilePage() {
                     {isOwnProfile ? (
                        <div className="mt-4 space-y-2">
                             <p>Your profile is your stage. Upload your first highlight!</p>
-                             <Button onClick={() => router.push('/feed')}>Go to Feed</Button>
                         </div>
                     ) : (
                         <p>This user hasn't shared any highlights.</p>
