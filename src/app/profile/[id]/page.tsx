@@ -491,7 +491,7 @@ export default function UserProfilePage() {
                     <p className="mt-4">Your profile is ready. Customize it or jump right into the action.</p>
                     <Button asChild size="lg" className="mt-6">
                         <Link href="/feed">
-                            To the Feed
+                            Explore the Feed
                             <ArrowRight className="ml-2" />
                         </Link>
                     </Button>
