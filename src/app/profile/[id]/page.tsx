@@ -382,14 +382,6 @@ export default function UserProfilePage() {
                       <Settings className="h-4 w-4" />
                   </Button>
                 )}
-                {isOwnProfile && isNewUser && (
-                    <Button asChild className="absolute top-3 left-3">
-                        <Link href="/feed">
-                        To the Feed
-                        <ArrowRight className="ml-2" />
-                        </Link>
-                    </Button>
-                )}
               </div>
               <div className="flex flex-col items-center p-6 pt-0 -mt-24">
                 <div className="relative group">
@@ -457,7 +449,7 @@ export default function UserProfilePage() {
                      </Button>
                   </div>
                 )}
-                {isNewUser && (
+                {isNewUser && isOwnProfile && (
                     <Button asChild size="lg" className="mt-6">
                         <Link href="/feed">
                         To the Feed
