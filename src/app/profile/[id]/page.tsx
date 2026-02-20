@@ -68,28 +68,6 @@ export default function UserProfilePage() {
   }, [profileUserId, firestore]);
   const { data: userBroadcasts, isLoading: areBroadcastsLoading } = useCollection(userBroadcastsQuery);
   
-  // --- New User Toast Logic ---
-  useEffect(() => {
-    if (isNewUser && !isDocLoading && userDocument) {
-        toast({
-            title: `Welcome to LIVENET, ${userDocument.username}!`,
-            description: (
-              <div className="flex flex-col sm:flex-row gap-3 mt-2 items-start">
-                <div className="relative w-full sm:w-24 aspect-video sm:aspect-square rounded-md overflow-hidden flex-shrink-0">
-                    <Image
-                        src="https://cdn.midjourney.com/7fcf346d-6ade-47fd-ac78-898d9ee545db/0_3.png"
-                        alt="Welcome to Livenet"
-                        fill
-                        className="object-cover"
-                    />
-                </div>
-                <p className="text-sm">To customize your avatar and cover, click the settings icon on your profile.</p>
-              </div>
-            ),
-            duration: 10000,
-        });
-    }
-  }, [isNewUser, isDocLoading, userDocument, toast, router, profileUserId]);
 
 
   useEffect(() => {
@@ -265,14 +243,6 @@ export default function UserProfilePage() {
                   ) : (
                       <div className="h-full w-full bg-muted" />
                   )}
-                {isNewUser && (
-                    <Button asChild className="absolute top-3 left-3">
-                        <Link href="/feed">
-                            To the Feed
-                            <ArrowRight className="ml-2 h-4 w-4" />
-                        </Link>
-                    </Button>
-                )}
                 {isOwnProfile && !isNewUser && (
                   <Button size="icon" variant="secondary" className="absolute top-3 right-3" onClick={() => setIsSettingsModalOpen(true)}>
                       <Settings className="h-4 w-4" />
@@ -301,6 +271,17 @@ export default function UserProfilePage() {
                     <p className="text-sm text-muted-foreground">Likes</p>
                   </div>
                 </div>
+
+                {isOwnProfile && isNewUser && (
+                  <div className="mt-6">
+                    <Button asChild size="lg">
+                      <Link href="/feed">
+                        Go to the Feed
+                        <ArrowRight className="ml-2 h-5 w-5" />
+                      </Link>
+                    </Button>
+                  </div>
+                )}
                                 
                 {!isOwnProfile && currentUser && (
                   <div className="mt-6 flex items-center gap-2">
