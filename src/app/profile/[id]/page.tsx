@@ -4,12 +4,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
-import { useUser, useFirestore, useCollection, useMemoFirebase, useUserDocument } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase, useUserDocument, useStorage } from '@/firebase';
 import { Button } from '@/components/ui/button';
-import { doc, writeBatch, serverTimestamp, where, query, orderBy, limit, collection, getCountFromServer } from 'firebase/firestore';
+import { doc, writeBatch, serverTimestamp, where, query, orderBy, limit, collection, getCountFromServer, setDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
-import { useMemo, useState, useEffect } from 'react';
-import { UserPlus, UserCheck, MessageSquare, Heart, Eye, Gift, Video, Settings, Clapperboard, ArrowRight } from 'lucide-react';
+import { useMemo, useState, useEffect, useRef } from 'react';
+import { UserPlus, UserCheck, MessageSquare, Heart, Eye, Gift, Video, Settings, Clapperboard, ArrowRight, Camera, ImageIcon, Loader2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -20,6 +20,8 @@ import AccountModal from '@/components/profile/AccountModal';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { formatDistanceToNow } from 'date-fns';
+import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { revalidateProfilePaths } from '@/app/actions';
 
 
 export default function UserProfilePage() {
@@ -30,6 +32,7 @@ export default function UserProfilePage() {
   const { user: currentUser } = useUser();
   const { userDocument: currentUserDocument } = useUserDocument();
   const firestore = useFirestore();
+  const storage = useStorage();
   const { toast } = useToast();
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
@@ -39,6 +42,15 @@ export default function UserProfilePage() {
   
   const { userDocument, isDocLoading } = useUserDocumentById(profileUserId);
   const isNewUser = searchParams.get('new_user') === 'true';
+
+  // --- States and Refs for file uploads ---
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const [coverPreviewType, setCoverPreviewType] = useState<'image' | 'video' | null>(null);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const coverInputRef = useRef<HTMLInputElement>(null);
 
   // --- Follower/Following Logic ---
   const currentUserFollowingRef = useMemoFirebase(() => currentUser ? collection(firestore, `users/${currentUser.uid}/following`) : null, [currentUser, firestore]);
@@ -68,6 +80,8 @@ export default function UserProfilePage() {
   }, [profileUserId, firestore]);
   const { data: userBroadcasts, isLoading: areBroadcastsLoading } = useCollection(userBroadcastsQuery);
   
+  const isOwnProfile = currentUser?.uid === profileUserId;
+  const isSubmitting = isUploadingAvatar || isUploadingCover;
 
 
   useEffect(() => {
@@ -131,7 +145,6 @@ export default function UserProfilePage() {
       batch.set(followingDocRef, followData);
       batch.set(followerDocRef, followData);
       
-      // Create a notification for the user being followed
       const notificationsCollectionRef = collection(firestore, `users/${profileUserId}/notifications`);
       const notificationData = {
           userId: profileUserId,
@@ -142,7 +155,6 @@ export default function UserProfilePage() {
           isRead: false,
           timestamp: serverTimestamp(),
       };
-      // We can't use `addDoc` in a batch, so we create a new doc ref and set it.
       const newNotifRef = doc(notificationsCollectionRef);
       batch.set(newNotifRef, notificationData);
 
@@ -160,9 +172,107 @@ export default function UserProfilePage() {
       });
     }
   };
+
+  const uploadFile = (file: File, path: string): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      if (!storage) {
+        reject(new Error("Firebase Storage is not available."));
+        return;
+      }
+      const fileRef = storageRef(storage, path);
+      const uploadTask = uploadBytesResumable(fileRef, file);
+
+      uploadTask.on(
+        'state_changed',
+        () => {}, // Progress
+        (error) => {
+          console.error('Upload failed:', error);
+          reject(error);
+        },
+        async () => {
+          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+          resolve(downloadURL);
+        }
+      );
+    });
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !currentUser) return;
+
+    setAvatarPreview(URL.createObjectURL(file));
+    setIsUploadingAvatar(true);
+
+    try {
+      const path = `avatars/${currentUser.uid}/${Date.now()}-${file.name}`;
+      const downloadURL = await uploadFile(file, path);
+      const userDocRef = doc(firestore, 'users', currentUser.uid);
+      await setDoc(userDocRef, { profilePicture: downloadURL }, { merge: true });
+      toast({ title: 'Avatar updated successfully!' });
+      revalidateProfilePaths();
+      setAvatarPreview(null);
+    } catch (error) {
+      toast({ variant: 'destructive', title: 'Avatar Upload Failed', description: 'Please try again.' });
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
+
+  const handleCoverChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !currentUser) return;
+
+    const fileType = file.type.startsWith('video') ? 'video' : 'image';
+    const objectUrl = URL.createObjectURL(file);
+    setCoverPreviewType(fileType);
+
+    if (fileType === 'video') {
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+        video.onloadedmetadata = async () => {
+            window.URL.revokeObjectURL(video.src);
+            if (video.duration > 30) {
+                toast({
+                    variant: 'destructive',
+                    title: 'Video Too Long',
+                    description: 'Cover videos must be 30 seconds or less.',
+                });
+                setCoverPreview(null);
+                setCoverPreviewType(null);
+                return;
+            }
+            await uploadCover(file, fileType, objectUrl);
+        };
+        video.src = objectUrl;
+    } else {
+        await uploadCover(file, fileType, objectUrl);
+    }
+  };
+
+  const uploadCover = async (file: File, fileType: 'image' | 'video', previewUrl: string) => {
+    if (!currentUser) return;
+    setCoverPreview(previewUrl);
+    setIsUploadingCover(true);
+    try {
+        const path = `covers/${currentUser.uid}/${Date.now()}-${file.name}`;
+        const downloadURL = await uploadFile(file, path);
+        const userDocRef = doc(firestore, 'users', currentUser.uid);
+        await setDoc(userDocRef, { coverUrl: downloadURL, coverType: fileType }, { merge: true });
+        toast({ title: 'Cover updated successfully!' });
+        revalidateProfilePaths();
+        setCoverPreview(null);
+        setCoverPreviewType(null);
+    } catch (error) {
+        toast({ variant: 'destructive', title: 'Cover Upload Failed', description: 'Please try again.' });
+    } finally {
+        setIsUploadingCover(false);
+    }
+  };
   
-  const isOwnProfile = currentUser?.uid === profileUserId;
   const isLoading = isDocLoading || isCurrentUserFollowingLoading || isFollowersLoading || isFollowingLoading || areBroadcastsLoading || areHighlightsLoading;
+  const currentCoverUrl = coverPreview || userDocument?.coverUrl;
+  const currentCoverType = coverPreviewType || userDocument?.coverType;
 
   if (isLoading) {
     return <ProfileSkeleton />;
@@ -194,7 +304,6 @@ export default function UserProfilePage() {
       <EditProfileModal open={isEditProfileModalOpen} onOpenChange={setIsEditProfileModalOpen} />
       <AccountModal open={isAccountModalOpen} onOpenChange={setIsAccountModalOpen} />
       
-      {/* Highlight Video Modal */}
       <Dialog open={!!selectedHighlight} onOpenChange={(open) => !open && setSelectedHighlight(null)}>
         <DialogContent className="bg-black border-none shadow-none p-0 max-w-full h-full sm:h-auto sm:max-w-3xl">
             {selectedHighlight && (
@@ -221,21 +330,21 @@ export default function UserProfilePage() {
 
       <div className="container mx-auto max-w-4xl pb-8 sm:px-0 md:px-4 relative">
         <Tabs defaultValue="highlights" className="w-full">
-          {/* Profile Header Card */}
           <Card className="overflow-hidden mb-2 rounded-b-lg sm:rounded-t-lg">
-              <div className="relative h-48 w-full bg-muted">
-                {userDocument.coverUrl && userDocument.coverType === 'video' ? (
+              <div className="relative h-48 w-full bg-muted group">
+                {currentCoverType === 'video' && currentCoverUrl ? (
                       <video
-                          src={userDocument.coverUrl}
+                          key={currentCoverUrl}
+                          src={currentCoverUrl}
                           autoPlay
                           loop
                           muted
                           playsInline
                           className="object-cover w-full h-full"
                       />
-                  ) : userDocument.coverUrl && userDocument.coverType === 'image' ? (
+                  ) : currentCoverUrl && currentCoverType === 'image' ? (
                       <Image 
-                          src={userDocument.coverUrl}
+                          src={currentCoverUrl}
                           alt="Cover photo"
                           fill
                           className="object-cover"
@@ -243,17 +352,74 @@ export default function UserProfilePage() {
                   ) : (
                       <div className="h-full w-full bg-muted" />
                   )}
-                {isOwnProfile && !isNewUser && (
+                  {isOwnProfile && (
+                    <>
+                      <div 
+                        className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                        onClick={() => !isSubmitting && coverInputRef.current?.click()}
+                      >
+                        {isUploadingCover ? (
+                          <Loader2 className="h-8 w-8 text-white animate-spin" />
+                        ) : (
+                          <div className="text-center text-white">
+                            <ImageIcon className="mx-auto h-8 w-8" />
+                            <p className="text-xs font-semibold mt-1">Change Cover</p>
+                          </div>
+                        )}
+                      </div>
+                      <input
+                        type="file"
+                        ref={coverInputRef}
+                        onChange={handleCoverChange}
+                        className="hidden"
+                        accept="image/*,video/*"
+                        disabled={isSubmitting}
+                      />
+                    </>
+                  )}
+                {isOwnProfile && (
                   <Button size="icon" variant="secondary" className="absolute top-3 right-3" onClick={() => setIsSettingsModalOpen(true)}>
                       <Settings className="h-4 w-4" />
                   </Button>
                 )}
+                 {isOwnProfile && isNewUser && (
+                  <Button asChild className="absolute top-3 left-3">
+                    <Link href="/feed">
+                      To the Feed
+                      <ArrowRight className="ml-2" />
+                    </Link>
+                  </Button>
+                )}
               </div>
               <div className="flex flex-col items-center p-6 pt-0 -mt-24">
-                <Avatar className="w-28 h-28">
-                  <AvatarImage src={userDocument.profilePicture || "https://picsum.photos/seed/profile-placeholder/200"} alt={userDocument.username || ''} />
-                  <AvatarFallback className="text-4xl">{userDocument.username?.charAt(0)}</AvatarFallback>
-                </Avatar>
+                <div className="relative group">
+                    <Avatar className="w-28 h-28">
+                        <AvatarImage src={avatarPreview || userDocument.profilePicture || "https://picsum.photos/seed/profile-placeholder/200"} alt={userDocument.username || ''} />
+                        <AvatarFallback className="text-4xl">{userDocument.username?.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    {isOwnProfile && (
+                        <>
+                            <div 
+                                className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                                onClick={() => !isSubmitting && avatarInputRef.current?.click()}
+                            >
+                                {isUploadingAvatar ? (
+                                    <Loader2 className="h-8 w-8 text-white animate-spin" />
+                                ) : (
+                                    <Camera className="h-8 w-8 text-white" />
+                                )}
+                            </div>
+                            <input
+                                type="file"
+                                ref={avatarInputRef}
+                                onChange={handleAvatarChange}
+                                className="hidden"
+                                accept="image/*"
+                                disabled={isSubmitting}
+                            />
+                        </>
+                    )}
+                </div>
                 <h1 className="text-3xl font-bold font-headline mt-4">{userDocument.username || 'Anonymous'}</h1>
                 <p className="text-center text-muted-foreground max-w-lg mt-2">{userDocument.bio}</p>
                 
@@ -272,17 +438,6 @@ export default function UserProfilePage() {
                   </div>
                 </div>
 
-                {isOwnProfile && isNewUser && (
-                  <div className="mt-6">
-                    <Button asChild size="lg">
-                      <Link href="/feed">
-                        Go to the Feed
-                        <ArrowRight className="ml-2 h-5 w-5" />
-                      </Link>
-                    </Button>
-                  </div>
-                )}
-                                
                 {!isOwnProfile && currentUser && (
                   <div className="mt-6 flex items-center gap-2">
                     <Button
@@ -309,7 +464,6 @@ export default function UserProfilePage() {
             </TabsList>
           </Card>
 
-          {/* Activity Tabs Content */}
           <TabsContent value="highlights" className="sm:rounded-lg">
             {areHighlightsLoading ? (
                <div className="grid grid-cols-3 gap-1">
@@ -344,7 +498,10 @@ export default function UserProfilePage() {
                     <Video className="h-12 w-12 mx-auto mb-4" />
                     <h3 className="text-lg font-semibold">No Highlights Yet</h3>
                     {isOwnProfile ? (
-                        <p>Upload your first highlight from the feed!</p>
+                       <div className="mt-4 space-y-2">
+                            <p>Your profile is your stage. Upload your first highlight!</p>
+                             <Button onClick={() => router.push('/feed')}>Go to Feed</Button>
+                        </div>
                     ) : (
                         <p>This user hasn't shared any highlights.</p>
                     )}
