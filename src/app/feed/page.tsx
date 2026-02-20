@@ -5,7 +5,7 @@
 import { Suspense, useEffect, useState, useMemo } from 'react';
 import { useUser, useFirestore, useMemoFirebase, useUserDocument, useAuth } from '@/firebase';
 import { useCollection } from '@/firebase/firestore/use-collection';
-import { collection, query, where, writeBatch, doc, orderBy, getDocs } from 'firebase/firestore';
+import { collection, query, where, writeBatch, doc, orderBy, getDocs, setDoc } from 'firebase/firestore';
 import type { Broadcast, ChatMessage } from '@/lib/data';
 import { Clapperboard, Loader2, Mail, ChevronDownCircle, MessageCircleHeart, Film, RefreshCw, LogOut } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -161,7 +161,7 @@ function HomePageContent() {
         notifications.forEach(notif => {
             if (!notif.isRead) {
                 const notifRef = doc(firestore, `users/${user.uid}/notifications`, notif.id);
-                batch.update(notifRef, { isRead: true });
+                batch.set(notifRef, { isRead: true }, { merge: true });
             }
         });
         await batch.commit().catch(err => console.error("Failed to mark notifications as read:", err));
@@ -181,8 +181,8 @@ function HomePageContent() {
     
           const batch = writeBatch(firestore);
           let count = 0;
-          querySnapshot.forEach((doc) => {
-            batch.update(doc.ref, { isLive: false });
+          querySnapshot.forEach((document) => {
+            batch.set(document.ref, { isLive: false }, { merge: true });
             count++;
           });
     

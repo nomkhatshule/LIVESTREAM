@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { doc, updateDoc, serverTimestamp, DocumentReference, collection, getDocs } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp, DocumentReference, collection, getDocs } from 'firebase/firestore';
 import { generateGamePrompts } from '@/ai/flows/generate-game-prompts';
 import type { BroadcastData, StagedChallenge } from '@/lib/types';
 import { useUser, useUserDocument } from '@/firebase';
@@ -57,12 +57,12 @@ export function useGameFlow(broadcastDocRef: DocumentReference | null, broadcast
 
     const handleStartStagedChallenge = async () => {
         if (broadcastDocRef && stagedChallenge) {
-            await updateDoc(broadcastDocRef, { 
+            await setDoc(broadcastDocRef, { 
                 activeChallenge: stagedChallenge.text, 
                 activeChallengeType: stagedChallenge.type,
                 challengeDurationSeconds: stagedChallenge.duration,
                 challengeStartTime: serverTimestamp(),
-            });
+            }, { merge: true });
             toast({ title: 'New Challenge Started!', description: stagedChallenge.text });
             setStagedChallenge(null);
             setShowChallengeCoverCard(false);
@@ -108,7 +108,7 @@ export function useGameFlow(broadcastDocRef: DocumentReference | null, broadcast
         }
 
         // Clear the challenge from the broadcast
-        await updateDoc(broadcastDocRef, {
+        await setDoc(broadcastDocRef, {
             activeChallenge: null,
             activeChallengeType: null,
             challengeStartTime: null,
@@ -116,7 +116,7 @@ export function useGameFlow(broadcastDocRef: DocumentReference | null, broadcast
             challengeSenderId: null,
             challengeSenderName: null,
             challengeSenderAvatar: null,
-        });
+        }, { merge: true });
 
         toast({ title: 'Challenge Completed!' });
         setIsChallengeVisible(false);
@@ -132,12 +132,12 @@ export function useGameFlow(broadcastDocRef: DocumentReference | null, broadcast
             });
 
             if (result.prompts && result.prompts.length > 0 && result.prompts[0].prompt && result.prompts[0].duration) {
-                await updateDoc(broadcastDocRef, {
+                await setDoc(broadcastDocRef, {
                     activeChallenge: result.prompts[0].prompt,
                     activeChallengeType: gameType,
                     challengeDurationSeconds: result.prompts[0].duration,
                     challengeStartTime: serverTimestamp(),
-                });
+                }, { merge: true });
             } else {
                 throw new Error('AI could not generate a challenge.');
             }

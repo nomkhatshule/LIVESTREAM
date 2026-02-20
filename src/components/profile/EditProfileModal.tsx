@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useUser, useUserDocument, useFirestore, useStorage } from '@/firebase';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -101,7 +101,7 @@ export default function EditProfileModal({ open, onOpenChange }: EditProfileModa
       const path = `avatars/${user.uid}/${Date.now()}-${file.name}`;
       const downloadURL = await uploadFile(file, path);
       const userDocRef = doc(firestore, 'users', user.uid);
-      await updateDoc(userDocRef, { profilePicture: downloadURL });
+      await setDoc(userDocRef, { profilePicture: downloadURL }, { merge: true });
       toast({ title: 'Avatar updated successfully!' });
       revalidateProfilePaths();
     } catch (error) {
@@ -153,7 +153,7 @@ export default function EditProfileModal({ open, onOpenChange }: EditProfileModa
         const path = `covers/${user.uid}/${Date.now()}-${file.name}`;
         const downloadURL = await uploadFile(file, path);
         const userDocRef = doc(firestore, 'users', user.uid);
-        await updateDoc(userDocRef, { coverUrl: downloadURL, coverType: fileType });
+        await setDoc(userDocRef, { coverUrl: downloadURL, coverType: fileType }, { merge: true });
         toast({ title: 'Cover updated successfully!' });
         revalidateProfilePaths();
     } catch (error) {
@@ -169,10 +169,10 @@ export default function EditProfileModal({ open, onOpenChange }: EditProfileModa
 
     try {
       const userDocRef = doc(firestore, 'users', user.uid);
-      await updateDoc(userDocRef, {
+      await setDoc(userDocRef, {
         username: data.username,
         bio: data.bio,
-      });
+      }, { merge: true });
       toast({ title: 'Profile updated successfully!' });
       revalidateProfilePaths();
       onOpenChange(false);

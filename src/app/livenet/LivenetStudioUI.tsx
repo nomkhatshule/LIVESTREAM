@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useDoc, useFirestore, useMemoFirebase, useUserDocument, useStorage } from '@/firebase';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { doc, query, orderBy, limit, collection, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { doc, query, orderBy, limit, collection, serverTimestamp, setDoc } from 'firebase/firestore';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useCollection } from '@/firebase';
 import {
@@ -62,7 +62,7 @@ function LivenetStudioUI() {
         // We only update if the new viewerCount is different from what's in Firestore
         // to avoid unnecessary writes.
         if (broadcastData?.viewerCount !== viewerCount) {
-             updateDoc(broadcastDocRef, { viewerCount: viewerCount });
+             setDoc(broadcastDocRef, { viewerCount: viewerCount }, { merge: true });
         }
     }
   }, [viewerCount, broadcastDocRef, isCallJoined, broadcastData?.viewerCount]);
@@ -110,7 +110,7 @@ function LivenetStudioUI() {
   const handleEndStream = async () => {
     // Client-side attempt to end the stream. The webhook is the source of truth.
     if (broadcastDocRef) {
-        await updateDoc(broadcastDocRef, { isLive: false });
+        await setDoc(broadcastDocRef, { isLive: false }, { merge: true });
     }
     if (call) {
         await call.leave();

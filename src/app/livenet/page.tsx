@@ -4,7 +4,7 @@
 import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useUser, useFirestore } from '@/firebase';
-import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import {
   StreamVideoClient,
@@ -83,10 +83,10 @@ function LivenetWrapper() {
 
                 // Once successfully joined, mark the broadcast as 'isLive' and set start time.
                 const broadcastDocRef = doc(firestore, 'broadcasts', broadcastId);
-                await updateDoc(broadcastDocRef, { 
+                await setDoc(broadcastDocRef, { 
                   isLive: true,
                   streamStartedAt: serverTimestamp() // Add start time
-                });
+                }, { merge: true });
                 
                 setCall(callInstance);
 
