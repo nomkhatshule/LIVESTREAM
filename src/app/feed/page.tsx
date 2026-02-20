@@ -63,7 +63,7 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
     const broadcastContext = `The streamer is ${broadcast.hostName}. The stream is titled "${broadcast.title}" under the category "${broadcast.category}".`;
     
     return (
-        <div ref={ref} className="h-full w-full snap-start relative bg-black">
+        <div ref={ref} className="h-full w-full snap-start relative bg-background">
             
             <div className="absolute inset-0 z-0 bg-black">
               {isActive ? (
@@ -218,7 +218,7 @@ function HomePageContent() {
 
     return (
         <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
-            <div className="h-screen relative bg-black">
+            <div className="h-screen relative bg-background">
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                          <Button variant="ghost" size="icon" className="absolute top-8 right-4 z-50 text-white transition-transform hover:bg-black/20 hover:scale-110 pointer-events-auto focus-visible:ring-0 rounded-full h-10 w-10 bg-black/20">
@@ -308,10 +308,10 @@ function HomePageContent() {
                             isActive={activeBroadcast?.id === broadcast.id}
                         />
                     )) : (
-                        <div className="h-full w-full flex items-center justify-center text-white snap-start">
+                        <div className="h-full w-full flex items-center justify-center text-foreground snap-start">
                              <div className="text-center">
                                 <p className="text-lg font-semibold">No live broadcasts right now.</p>
-                                <p className="text-sm text-stone-200">Check back later or be the first to go live!</p>
+                                <p className="text-sm text-muted-foreground">Check back later or be the first to go live!</p>
                                 <Button asChild className="mt-4">
                                     <Link href="/broadcast/create">
                                         <Clapperboard className="mr-2 h-4 w-4" />
