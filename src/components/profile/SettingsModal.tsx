@@ -11,8 +11,9 @@ import {
 } from '@/components/ui/dialog';
 import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
-import { LogOut, User, Mail } from 'lucide-react';
+import { LogOut, User, Mail, Sun, Moon, Laptop } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { useTheme } from 'next-themes';
 
 interface SettingsModalProps {
   open: boolean;
@@ -24,6 +25,7 @@ interface SettingsModalProps {
 export default function SettingsModal({ open, onOpenChange, onEditProfileClick, onAccountClick }: SettingsModalProps) {
   const auth = useAuth();
   const router = useRouter();
+  const { setTheme, theme } = useTheme();
   
   const handleLogout = () => {
     signOut(auth).then(() => {
@@ -51,6 +53,24 @@ export default function SettingsModal({ open, onOpenChange, onEditProfileClick, 
              <Mail className="mr-3 h-5 w-5" />
              Account
            </Button>
+           <Separator />
+            <div className="p-2">
+                <p className="text-sm font-medium text-muted-foreground px-2 pb-2 pt-2">Theme</p>
+                <div className="grid grid-cols-3 gap-2">
+                    <Button variant={theme === 'light' ? 'secondary' : 'ghost'} onClick={() => setTheme('light')} className="flex flex-col h-auto p-2">
+                        <Sun className="h-5 w-5 mb-1" />
+                        <span className="text-xs">Light</span>
+                    </Button>
+                    <Button variant={theme === 'dark' ? 'secondary' : 'ghost'} onClick={() => setTheme('dark')} className="flex flex-col h-auto p-2">
+                        <Moon className="h-5 w-5 mb-1" />
+                        <span className="text-xs">Dark</span>
+                    </Button>
+                    <Button variant={theme === 'system' ? 'secondary' : 'ghost'} onClick={() => setTheme('system')} className="flex flex-col h-auto p-2">
+                        <Laptop className="h-5 w-5 mb-1" />
+                        <span className="text-xs">System</span>
+                    </Button>
+                </div>
+            </div>
         </div>
         <Separator />
         <Button
