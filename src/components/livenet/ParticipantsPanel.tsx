@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Button } from "@/components/ui/button";
@@ -55,7 +54,7 @@ export default function ParticipantsPanel({ viewerCount, participants }: Partici
         <Sheet>
             <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full h-14 w-14 text-white hover:bg-white/20">
-                    <Users className="h-9 w-9" />
+                    <Users className="h-10 w-10" />
                 </Button>
             </SheetTrigger>
             <SheetContent>
