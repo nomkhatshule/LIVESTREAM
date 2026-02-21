@@ -20,7 +20,7 @@ export default function LandingPage() {
           playsInline
           className="absolute top-0 left-0 w-full h-full object-cover -z-10"
         >
-          <source src="https://pixabay.com/videos/download/x-186843_medium.mp4" type="video/mp4" />
+          <source src="/video/186843-879056520_medium.mp4" type="video/mp4" />
         </video>
         <div className="absolute inset-0 bg-black/60" />
         <div className="relative z-10 flex flex-col items-center">
@@ -38,21 +38,6 @@ export default function LandingPage() {
           </Button>
         </div>
       </div>
-      <section id="reality" className="relative h-screen w-full bg-black flex flex-col items-center justify-center text-center p-8">
-        <Image
-            src="https://cdn.pixabay.com/photo/2016/08/21/20/13/time-square-1610667_1280.jpg"
-            alt="City street at night"
-            fill
-            className="object-cover"
-            data-ai-hint="city street"
-        />
-        <div className="absolute inset-0 bg-black/50" />
-        <div className="relative z-10">
-             <h2 className="text-4xl md:text-6xl font-bold font-headline text-white drop-shadow-xl">
-                Reality social, by the people, for the people
-            </h2>
-        </div>
-      </section>
       
       <ProductDemo />
 

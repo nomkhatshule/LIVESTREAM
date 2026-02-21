@@ -110,9 +110,8 @@ export default function ProductDemo() {
                         muted
                         playsInline
                         className="absolute top-0 left-0 w-full h-full object-cover"
-                        poster="https://cdn.midjourney.com/a857a58a-3511-4355-901c-6d9b54178577/0_0.png"
                     >
-                        <source src="https://cdn.pixabay.com/video/2016/08/22/4727-179738642_tiny.mp4" type="video/mp4" />
+                        <source src="/video/147560-791705573.mp4" type="video/mp4" />
                     </video>
 
                     {/* UI Overlay */}
