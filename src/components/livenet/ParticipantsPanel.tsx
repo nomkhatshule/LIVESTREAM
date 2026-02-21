@@ -79,7 +79,7 @@ export default function ParticipantsPanel({ viewerCount, participants }: Partici
                     </ScrollArea>
                 </SheetContent>
             </Sheet>
-            <span className="text-xs font-semibold text-white">PARTICIPANTS</span>
+            <span className="text-xs font-semibold text-white">{viewerCount}</span>
         </div>
     );
 };
