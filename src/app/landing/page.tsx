@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -70,19 +69,39 @@ export default function LandingPage() {
             <div className="bg-white/80 backdrop-blur-md border border-black/10 rounded-2xl p-8 shadow-xl max-w-2xl text-center">
                <div className="inline-block bg-black text-white border-2 border-white/20 rounded-md px-3 py-1 mb-6">
                  <h3 className="text-sm font-bold font-cosmic uppercase tracking-widest">
-                   100% Human Content
+                   A Manifesto
                  </h3>
                </div>
-              <div className="text-base leading-relaxed text-black space-y-4">
-                <p>
-                  We live in a digital world where nothing feels real anymore, flooded with AI slop, AI-generated videos, fake photos, and soulless content.
-                </p>
-                <p>
-                  LIVENET was created to change that. We’re building a platform for real people, real moments, and real connections.
-                </p>
-                 <p>
-                  No filters, no fakes, just live, human experiences shared as they happen. Welcome to LIVENET, where everything is live and real.
-                </p>
+              <div className="text-lg leading-relaxed text-black space-y-1 font-headline">
+                <p>This is for people on the move.</p>
+                <br/>
+                <p>For the walk through a city at night.</p>
+                <p>For the new restaurant.</p>
+                <p>For the morning run.</p>
+                <p>For the push to the top of the trail.</p>
+                <br/>
+                <p>For cooking at home,</p>
+                <p>trying new recipes,</p>
+                <p>traveling when you can.</p>
+                <br/>
+                <p>For stepping outside</p>
+                <p>just to feel alive.</p>
+                <br/>
+                <p>This is for adventure.</p>
+                <p>For movement.</p>
+                <p>For inspiration.</p>
+                <p>For chasing that one dream</p>
+                <p>that keeps you up at night.</p>
+                <br/>
+                <p>You don’t need to be famous.</p>
+                <p>You don’t need followers.</p>
+                <p>You just need to be doing something.</p>
+                <br/>
+                <p>There’s a world to explore.</p>
+                <p>People to meet.</p>
+                <p>Goals to reach.</p>
+                <br/>
+                <p className="font-bold">Just go do it.</p>
               </div>
             </div>
         </div>
