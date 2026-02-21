@@ -69,7 +69,7 @@ export default function LandingPage() {
             <div className="bg-white/80 backdrop-blur-md border border-black/10 rounded-2xl p-8 shadow-xl max-w-2xl text-center">
                <div className="inline-block bg-black text-white border-2 border-white/20 rounded-md px-3 py-1 mb-6">
                  <h3 className="text-sm font-bold font-cosmic uppercase tracking-widest">
-                   A Manifesto
+                   OUR MANIFESTO
                  </h3>
                </div>
               <div className="text-lg leading-relaxed text-black space-y-1 font-headline">
