@@ -14,7 +14,7 @@ export default function FlipCameraButton({ onClick, isFlipping }: FlipCameraButt
             <Button 
                 variant="ghost" 
                 size="icon" 
-                className="rounded-full h-14 w-14 text-white hover:bg-white/20" 
+                className="rounded-full h-14 w-14 text-white" 
                 onClick={onClick}
                 disabled={isFlipping}
             >

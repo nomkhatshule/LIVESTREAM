@@ -15,7 +15,7 @@ export default function MicButton({ isMicEnabled, onClick }: MicButtonProps) {
                 variant="ghost" 
                 size="icon" 
                 className={cn(
-                    "rounded-full h-14 w-14 text-white hover:bg-white/20"
+                    "rounded-full h-14 w-14 text-white"
                 )} 
                 onClick={onClick}
             >
