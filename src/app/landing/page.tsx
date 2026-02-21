@@ -56,13 +56,13 @@ export default function LandingPage() {
       
       <ProductDemo />
 
-      <section id="manifesto" className="relative w-full bg-black flex flex-col items-center justify-center p-8 py-20 lg:py-32">
+      <section id="manifesto" className="relative w-full bg-black overflow-hidden flex flex-col items-center justify-center p-8 py-20 lg:py-32">
         <video
           autoPlay
           loop
           muted
           playsInline
-          className="absolute top-0 left-0 w-full h-full object-cover -z-10"
+          className="absolute top-0 left-0 w-full h-full object-cover"
         >
           <source src="/video/181376-866506956_small.mp4" type="video/mp4" />
         </video>
@@ -103,7 +103,7 @@ export default function LandingPage() {
                 <p>People to meet.</p>
                 <p>Goals to reach.</p>
                 <br/>
-                <p className="font-bold">Just go do it.</p>
+                <p>Just go do it.</p>
               </div>
             </div>
         </div>
