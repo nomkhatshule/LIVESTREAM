@@ -3,74 +3,62 @@
     {
       "id": "default-avatar-1",
       "description": "Default user avatar 1",
-      "imageUrl": "https://cdn.pixabay.com/photo/2012/04/12/20/12/x-30465_1280.png",
-      "imageHint": "letter x"
+      "imageUrl": "/images/defaults/profile1.jpg",
+      "imageHint": "default avatar"
     },
     {
       "id": "default-avatar-2",
       "description": "Default user avatar 2",
-      "imageUrl": "https://cdn.pixabay.com/photo/2020/08/09/15/34/x-5475963_1280.jpg",
-      "imageHint": "letter x"
+      "imageUrl": "/images/defaults/profile2.jpg",
+      "imageHint": "default avatar"
     },
     {
       "id": "default-avatar-3",
       "description": "Default user avatar 3",
-      "imageUrl": "https://cdn.pixabay.com/photo/2015/09/25/19/27/x-957523_1280.png",
-      "imageHint": "letter x"
+      "imageUrl": "/images/defaults/profile3.jpg",
+      "imageHint": "default avatar"
     },
     {
       "id": "default-cover-1",
       "description": "Default cover image 1",
-      "imageUrl": "https://cdn.pixabay.com/photo/2014/09/07/21/53/x-439046_1280.jpg",
-      "imageHint": "abstract fractal"
+      "imageUrl": "/images/defaults/cover1.jpg",
+      "imageHint": "default cover"
     },
     {
       "id": "default-cover-2",
       "description": "Default cover image 2",
-      "imageUrl": "https://cdn.pixabay.com/photo/2013/04/10/18/48/x-74005_1280.jpg",
-      "imageHint": "abstract light"
+      "imageUrl": "/images/defaults/cover2.jpg",
+      "imageHint": "default cover"
     },
     {
       "id": "default-cover-3",
       "description": "Default cover image 3",
-      "imageUrl": "https://cdn.pixabay.com/photo/2020/06/15/15/12/x-5324149_1280.jpg",
-      "imageHint": "abstract wave"
+      "imageUrl": "/images/defaults/cover3.png",
+      "imageHint": "default cover"
     },
     {
       "id": "default-cover-4",
       "description": "Default cover image 4",
-      "imageUrl": "https://cdn.pixabay.com/photo/2017/05/10/22/28/x-2297961_1280.jpg",
-      "imageHint": "abstract energy"
+      "imageUrl": "/images/defaults/cover4.png",
+      "imageHint": "default cover"
     },
     {
-      "id": "avatar-1",
-      "description": "User avatar 1",
-      "imageUrl": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxwZXJzb24lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NzE1OTUwNDd8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "person portrait"
+      "id": "default-cover-5",
+      "description": "Default cover image 5",
+      "imageUrl": "/images/defaults/cover5.png",
+      "imageHint": "default cover"
     },
     {
-      "id": "avatar-2",
-      "description": "User avatar 2",
-      "imageUrl": "https://images.unsplash.com/photo-1600180758890-6b94519a8ba6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxwZXJzb24lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NzE1OTUwNDd8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "person portrait"
+      "id": "default-cover-6",
+      "description": "Default cover image 6",
+      "imageUrl": "/images/defaults/cover6.png",
+      "imageHint": "default cover"
     },
     {
-      "id": "avatar-3",
-      "description": "User avatar 3",
-      "imageUrl": "https://images.unsplash.com/flagged/photo-1595514191830-3e96a518989b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8cGVyc29uJTIwcG9ydHJhaXR8ZW58MHx8fHwxNzcxNTk1MDQ3fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "person portrait"
-    },
-    {
-      "id": "avatar-4",
-      "description": "User avatar 4",
-      "imageUrl": "https://images.unsplash.com/flagged/photo-1595514191830-3e96a518989b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8cGVyc29uJTIwcG9ydHJhaXR8ZW58MHx8fHwxNzcxNTk1MDQ3fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "person portrait"
-    },
-    {
-      "id": "avatar-5",
-      "description": "User avatar 5",
-      "imageUrl": "https://images.unsplash.com/photo-1590086782792-42dd2350140d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxwZXJzb24lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NzE1OTUwNDd8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "person portrait"
+      "id": "default-cover-7",
+      "description": "Default cover image 7",
+      "imageUrl": "/images/defaults/cover7.png",
+      "imageHint": "default cover"
     },
     {
       "id": "broadcast-1",

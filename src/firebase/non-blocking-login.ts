@@ -32,8 +32,8 @@ export function initiateEmailSignUp(authInstance: Auth, email: string, password:
     .then(userCredential => {
       const user = userCredential.user;
       
-      const randomAvatar = defaultAvatars[0];
-      const randomCover = defaultCovers[0];
+      const randomAvatar = getRandomItem(defaultAvatars);
+      const randomCover = getRandomItem(defaultCovers);
 
       // Set the display name and photoURL in Firebase Auth
       return updateProfile(user, { displayName: username, photoURL: randomAvatar.imageUrl })
@@ -81,8 +81,8 @@ export async function initiateGoogleSignIn(authInstance: Auth): Promise<{ succes
       // Check if doc already exists just in case (e.g. from a failed previous attempt)
       const docSnap = await getDoc(userDocRef);
       if (!docSnap.exists()) {
-        const randomAvatar = defaultAvatars[0];
-        const randomCover = defaultCovers[0];
+        const randomAvatar = getRandomItem(defaultAvatars);
+        const randomCover = getRandomItem(defaultCovers);
 
         await setDoc(userDocRef, {
           id: user.uid,
