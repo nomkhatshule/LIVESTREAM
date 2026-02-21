@@ -25,14 +25,14 @@ const FloatingReaction = ({ reaction }: { reaction: DemoReaction }) => (
 );
 
 const DemoComment = ({ avatar, name, text }: { avatar: string, name: string, text: string }) => (
-    <div className="flex items-start gap-2 text-sm text-white p-2 bg-zinc-900/90 rounded-lg w-fit border border-zinc-700/80">
+    <div className="group flex items-start text-sm text-white pb-1">
         <Avatar className="h-6 w-6 border-2 border-secondary">
             <AvatarImage src={avatar} />
             <AvatarFallback>{name.charAt(0)}</AvatarFallback>
         </Avatar>
-        <div className="flex flex-col">
-            <span className="font-bold font-headline text-primary mr-1.5">{name}</span>
-            <span className="break-words">{text}</span>
+        <div className="flex-1 ml-2">
+             <span className="font-bold font-headline text-primary mr-1.5 text-xs">{name}</span>
+             <span className="break-words text-sm">{text}</span>
         </div>
     </div>
 );
@@ -118,7 +118,7 @@ export default function ProductDemo() {
                     <div className="absolute inset-0 flex flex-col justify-between p-3 text-white z-10 pointer-events-none">
                         {/* Top: Host Info */}
                         <div className="flex items-center gap-2 mt-4">
-                            <Avatar className={cn("h-10 w-10 border-2 border-destructive animate-breathing")}>
+                            <Avatar className="h-10 w-10">
                                 <AvatarImage src="https://picsum.photos/seed/demohost/200" alt="Host" />
                                 <AvatarFallback>H</AvatarFallback>
                             </Avatar>
