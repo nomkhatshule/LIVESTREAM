@@ -109,7 +109,7 @@ export default function ProductDemo() {
                     {/* UI Overlay */}
                     <div className="absolute inset-0 flex flex-col justify-between p-3 text-white z-10 pointer-events-none">
                         {/* Top: Host Info */}
-                        <div className="flex items-center gap-2 mt-2">
+                        <div className="flex items-center gap-2 mt-8">
                             <Avatar className="h-10 w-10">
                                 <AvatarImage src="https://picsum.photos/seed/demohost/200" alt="Host" />
                                 <AvatarFallback>H</AvatarFallback>
