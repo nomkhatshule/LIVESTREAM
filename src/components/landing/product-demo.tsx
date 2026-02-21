@@ -48,10 +48,10 @@ export default function ProductDemo() {
         </div>
       
         {/* Phone Mockup and Feature Descriptions */}
-        <div className="relative flex flex-col md:flex-row items-center justify-center gap-4">
+        <div className="relative flex flex-col md:flex-row items-stretch justify-center gap-4">
 
             {/* Left Descriptions */}
-            <div className="flex flex-col gap-8 md:gap-16 w-full md:w-48 items-center md:items-end">
+            <div className="flex flex-col justify-center w-full md:w-48 items-center md:items-end">
               <FeatureDescription
                 title="Like Any Live Stream"
                 description="Like any live stream on your feed to show your support for the creator."
@@ -60,7 +60,7 @@ export default function ProductDemo() {
             </div>
             
             {/* Dashed Lines - Left */}
-            <div className="hidden md:flex flex-col justify-start w-12 h-40">
+            <div className="hidden md:flex flex-col justify-center w-12">
                <ConnectorLine className="self-end" />
             </div>
 
@@ -121,12 +121,12 @@ export default function ProductDemo() {
             </div>
 
             {/* Dashed Lines - Right */}
-            <div className="hidden md:flex flex-col justify-end w-12 h-40">
+            <div className="hidden md:flex flex-col justify-center w-12">
                <ConnectorLine />
             </div>
             
             {/* Right Descriptions */}
-             <div className="flex flex-col w-full md:w-48 items-center md:items-start">
+             <div className="flex flex-col justify-center w-full md:w-48 items-center md:items-start">
                <FeatureDescription
                 title="Comment on Every Live"
                 description="Comment on any live stream on your feed using text, GIFs, and images to share your reactions."
