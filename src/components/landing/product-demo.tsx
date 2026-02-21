@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -164,10 +163,6 @@ export default function ProductDemo() {
                         <div id="demo-comment" className="flex flex-col items-center">
                             <MessageSquareMore className="h-7 w-7 drop-shadow-md" strokeWidth={1.5} />
                             <span className="text-[10px] font-bold mt-1">345</span>
-                        </div>
-                        <div id="demo-challenge" className="flex flex-col items-center">
-                           <Send className="h-6 w-6 drop-shadow-md" strokeWidth={1.5} />
-                           <span className="text-[10px] font-bold mt-1">Challenge</span>
                         </div>
                         <div id="demo-ai" className="flex flex-col items-center">
                         <Search className="h-7 w-7 drop-shadow-md" strokeWidth={1.5} />
