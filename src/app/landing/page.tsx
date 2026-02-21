@@ -68,7 +68,7 @@ export default function LandingPage() {
         <div className="relative z-10 w-full max-w-3xl flex flex-col items-center gap-4">
             <div className="bg-white/80 backdrop-blur-md border border-black/10 rounded-2xl p-8 shadow-xl max-w-2xl text-center">
                <div className="inline-block bg-black text-white border-2 border-white/20 rounded-md px-3 py-1 mb-6">
-                 <h3 className="text-sm font-bold font-cosmic uppercase tracking-widest">
+                 <h3 className="text-sm font-bold font-headline uppercase tracking-widest">
                    OUR MANIFESTO
                  </h3>
                </div>
