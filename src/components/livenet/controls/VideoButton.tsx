@@ -23,7 +23,7 @@ export default function VideoButton({ isVideoEnabled, onClick }: VideoButtonProp
                     </svg>
                 )}
             </Button>
-            <span className="text-xs font-semibold text-white">Video</span>
+            <span className="text-xs font-semibold text-white">VIDEO</span>
         </div>
     );
 }
