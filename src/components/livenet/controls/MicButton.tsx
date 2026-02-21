@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Button } from "@/components/ui/button";
@@ -19,7 +20,7 @@ export default function MicButton({ isMicEnabled, onClick }: MicButtonProps) {
             )} 
             onClick={onClick}
         >
-            {isMicEnabled ? <Mic className="h-8 w-8"/> : <MicOff className="h-8 w-8"/>}
+            {isMicEnabled ? <Mic className="h-9 w-9"/> : <MicOff className="h-9 w-9"/>}
         </Button>
     );
 }

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Button } from "@/components/ui/button";
@@ -18,9 +19,9 @@ export default function FlipCameraButton({ onClick, isFlipping }: FlipCameraButt
             disabled={isFlipping}
         >
             {isFlipping ? (
-                <Loader2 className="h-8 w-8 animate-spin" />
+                <Loader2 className="h-9 w-9 animate-spin" />
             ) : (
-                <SwitchCamera className="h-8 w-8" />
+                <SwitchCamera className="h-9 w-9" />
             )}
         </Button>
     );
