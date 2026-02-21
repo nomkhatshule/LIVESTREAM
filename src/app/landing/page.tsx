@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -65,7 +64,7 @@ export default function LandingPage() {
           playsInline
           className="absolute top-0 left-0 w-full h-full object-cover -z-10"
         >
-          <source src="https://pixabay.com/videos/download/x-181376_medium.mp4" type="video/mp4" />
+          <source src="/video" type="video/mp4" />
         </video>
         <div className="absolute inset-0 bg-black/60" />
         <div className="relative z-10 w-full max-w-3xl flex flex-col items-center gap-4">
