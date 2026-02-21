@@ -9,7 +9,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '@/components/ui/carousel';
-import { Clapperboard, Globe, Swords, Users } from 'lucide-react';
+import { Clapperboard, Globe, Users } from 'lucide-react';
 import Image from 'next/image';
 import { Separator } from '../ui/separator';
 
@@ -21,14 +21,6 @@ const aboutCards = [
       "Forget complicated setups. With LIVENET, you're just a click away from sharing your world. Whether you're a gamer, artist, or just want to chat, your stage is always ready.",
     imageUrl: 'https://media.istockphoto.com/id/1000032126/vector/video-chat-application-concept-male-hand-holding-smart-phone-with-young-woman-on-display.jpg?s=612x612&w=0&k=20&c=v2gHq6nDoi7C7JxTLgSFApchXCULzUOePdg3wTCWnLk=',
     imageHint: 'live streaming setup',
-  },
-  {
-    icon: Swords,
-    title: 'Shape the Show with Interactive Games.',
-    description:
-      "Turn passive viewing into active co-creation with our in-stream games. Use the AI Game Master to generate endless 'Truth,' 'Dare,' or unique tasks to keep your content fresh.",
-    imageUrl: 'https://cdn.pixabay.com/photo/2020/04/15/15/00/gamer-5046924_1280.jpg',
-    imageHint: 'gamer controller',
   },
   {
     icon: Users,
