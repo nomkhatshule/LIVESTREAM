@@ -63,20 +63,26 @@ export default function ProductDemo() {
         </motion.div>
       
         {/* Phone Mockup and Feature Descriptions */}
-        <div className="relative flex flex-col md:flex-row items-center justify-center gap-x-12 md:gap-x-8">
+        <div className="relative flex flex-col md:flex-row items-center justify-center gap-x-4">
 
             {/* Left Descriptions */}
-            <div className="flex md:flex-col justify-around w-full md:w-48 items-start md:items-end gap-12 md:gap-20">
-              <FeatureDescription
-                title="Ride On"
-                description="Show creators some love and let 'em know you're riding with them."
-                alignment="right"
-              />
-              <FeatureDescription
-                title="Deep Engagement"
-                description="Comment on any live stream on your feed with a suite of expressive tools."
-                alignment="right"
-              />
+            <div className="flex md:flex-col justify-around w-full md:w-auto items-center md:items-end gap-12 md:gap-20">
+              <div className="flex items-center gap-4">
+                <FeatureDescription
+                  title="Ride On"
+                  description="Show creators some love and let 'em know you're riding with them."
+                  alignment="right"
+                />
+                <ConnectorLine />
+              </div>
+               <div className="flex items-center gap-4">
+                <FeatureDescription
+                  title="Deep Engagement"
+                  description="Comment on any live stream on your feed with a suite of expressive tools."
+                  alignment="right"
+                />
+                 <ConnectorLine />
+              </div>
             </div>
             
             {/* Center Phone */}
@@ -136,7 +142,7 @@ export default function ProductDemo() {
                         className="absolute top-1/2 right-0 -translate-y-1/2 z-20 flex flex-col items-center gap-y-6 pointer-events-auto text-white p-2"
                     >
                         <div id="demo-like" className="flex flex-col items-center">
-                            <Heart className="h-8 w-8 text-red-500 fill-red-500 drop-shadow-lg" strokeWidth={1.5} />
+                            <Heart className="h-8 w-8 drop-shadow-lg" strokeWidth={1.5} />
                             <span className="text-xs font-bold mt-1">1.2k</span>
                         </div>
                         <div id="demo-comment" className="flex flex-col items-center">
@@ -148,9 +154,21 @@ export default function ProductDemo() {
             </motion.div>
 
             {/* Right Descriptions */}
-             <div className="flex md:flex-col justify-around w-full md:w-48 items-start gap-12 md:gap-20">
-               <ConnectorLine className="self-center"/>
-               <ConnectorLine className="self-center"/>
+             <div className="flex md:flex-col justify-around w-full md:w-auto items-center md:items-start gap-12 md:gap-20">
+              <div className="flex items-center gap-4">
+                  <ConnectorLine />
+                  <FeatureDescription
+                    title="Seamless Discovery"
+                    description="Flick through a vertical feed of live streams from around the world."
+                  />
+              </div>
+              <div className="flex items-center gap-4">
+                  <ConnectorLine />
+                  <FeatureDescription
+                    title="Gift Your Faves"
+                    description="Send virtual gifts to show appreciation and stand out in the chat."
+                  />
+              </div>
             </div>
         </div>
     </section>
