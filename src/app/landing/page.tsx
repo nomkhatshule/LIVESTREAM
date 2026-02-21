@@ -56,7 +56,7 @@ export default function LandingPage() {
       
       <ProductDemo />
 
-      <section className="relative h-screen w-full bg-black flex flex-col items-center justify-center p-8">
+      <section className="relative w-full bg-black flex flex-col items-center justify-center p-8 py-20 lg:py-32">
         <Image
           src="https://cdn.midjourney.com/36ee8fa8-29f4-46e0-be75-a695ae1c59e1/0_0.png"
           alt="Pixel art background"
