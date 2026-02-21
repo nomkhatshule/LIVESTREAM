@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -96,8 +97,8 @@ export default function ProductDemo() {
             </div>
             
             {/* Dashed Lines - Left */}
-            <div className="hidden md:flex flex-col h-[10rem] justify-start w-12">
-               <ConnectorLine className="self-end" />
+            <div className="hidden md:flex flex-col w-12">
+               <ConnectorLine />
             </div>
 
              <div className="relative w-[280px] h-[560px] md:w-[320px] md:h-[640px] bg-black rounded-[40px] border-4 border-zinc-700 shadow-2xl z-20 my-8 md:my-0">
@@ -159,8 +160,8 @@ export default function ProductDemo() {
             </div>
 
             {/* Dashed Lines - Right */}
-            <div className="hidden md:flex flex-col h-[10rem] justify-start w-12">
-               <ConnectorLine className="self-start" />
+            <div className="hidden md:flex flex-col w-12">
+               <ConnectorLine />
             </div>
             
             {/* Right Descriptions */}
