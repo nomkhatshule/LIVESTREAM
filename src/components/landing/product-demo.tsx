@@ -159,7 +159,7 @@ export default function ProductDemo() {
             </div>
 
             {/* Dashed Lines - Right */}
-            <div className="hidden md:flex flex-col h-[10rem] justify-end w-12">
+            <div className="hidden md:flex flex-col h-[10rem] justify-start w-12">
                <ConnectorLine className="self-start" />
             </div>
             
