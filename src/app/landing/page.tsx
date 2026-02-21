@@ -58,6 +58,16 @@ export default function LandingPage() {
       <ProductDemo />
 
       <section className="relative w-full bg-black flex flex-col items-center justify-center p-8 py-20 lg:py-32">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute top-0 left-0 w-full h-full object-cover -z-10"
+        >
+          <source src="https://pixabay.com/videos/download/x-181376_medium.mp4" type="video/mp4" />
+        </video>
+        <div className="absolute inset-0 bg-black/60" />
         <div className="relative z-10 w-full max-w-3xl flex flex-col items-center gap-4">
             <div className="bg-white/80 border border-black/10 rounded-2xl p-8 shadow-xl max-w-2xl text-center">
                <div className="inline-block bg-black text-white border-2 border-white/20 rounded-md px-3 py-1 mb-6">
