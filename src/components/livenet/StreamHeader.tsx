@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -41,9 +40,12 @@ export default function StreamHeader({ broadcastData, viewerCount, onEndStream, 
             </div>
             <div className="flex items-center gap-4">
                 {children}
-                <Button variant="ghost" size="icon" className="h-8 w-8 md:h-9 md:w-9 text-white rounded-full hover:bg-white/20 border border-white/50" onClick={onEndStream}>
-                    <X className="h-5 w-5" />
-                </Button>
+                {/* This container ensures the button inside is centered relative to the w-14 stream controls */}
+                <div className="w-14 flex justify-center">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 md:h-9 md:w-9 text-white rounded-full hover:bg-white/20 border border-white/50" onClick={onEndStream}>
+                        <X className="h-5 w-5" />
+                    </Button>
+                </div>
             </div>
         </div>
     );
