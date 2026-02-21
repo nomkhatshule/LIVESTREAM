@@ -81,9 +81,6 @@ export default function ProductDemo() {
              <h2 className="text-4xl md:text-6xl font-bold font-headline text-white drop-shadow-xl">
                 Experience the Live Feed
             </h2>
-            <p className="text-lg text-stone-200 mt-4 max-w-2xl mx-auto">
-                This is a real-time preview of what it's like to watch a stream on LIVENET.
-            </p>
         </div>
       
         {/* Phone Mockup and Feature Descriptions */}
