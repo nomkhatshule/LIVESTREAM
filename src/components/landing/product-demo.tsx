@@ -2,14 +2,18 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { Gamepad2, Heart, MessageSquareMore, Search, Send, Swords } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
-import Image from 'next/image';
+import { Heart, MessageSquareMore } from 'lucide-react';
+import React from 'react';
 import { Badge } from '../ui/badge';
+import { motion } from 'framer-motion';
 
-
-const DemoComment = ({ avatar, name, text }: { avatar: string, name: string, text: string }) => (
-    <div className="group flex items-start text-sm text-white pb-1">
+const DemoComment = ({ avatar, name, text, delay }: { avatar: string, name: string, text: string, delay: number }) => (
+    <motion.div 
+        initial={{ opacity: 0, x: -10 }}
+        whileInView={{ opacity: 1, x: 0 }}
+        transition={{ delay, duration: 0.5 }}
+        className="group flex items-start text-sm text-white pb-1"
+    >
         <Avatar className="h-6 w-6 border-2 border-secondary">
             <AvatarImage src={avatar} />
             <AvatarFallback>{name.charAt(0)}</AvatarFallback>
@@ -18,15 +22,21 @@ const DemoComment = ({ avatar, name, text }: { avatar: string, name: string, tex
              <span className="font-bold font-headline text-primary mr-1.5 text-xs">{name}</span>
              <span className="break-words text-sm">{text}</span>
         </div>
-    </div>
+    </motion.div>
 );
 
 
 const FeatureDescription = ({ title, description, alignment = 'left' }: { title: string, description: string, alignment?: 'left' | 'right' }) => (
-  <div className={cn("w-full md:w-48 text-white text-center md:text-left", alignment === 'right' ? 'md:text-right' : 'md:text-left')}>
-    <h4 className="font-bold font-headline">{title}</h4>
-    <p className="text-xs text-stone-300 mt-1">{description}</p>
-  </div>
+  <motion.div 
+    initial={{ opacity: 0, y: 20 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true }}
+    transition={{ duration: 0.6 }}
+    className={cn("w-full md:w-48 text-white text-center md:text-left", alignment === 'right' ? 'md:text-right' : 'md:text-left')}
+  >
+    <h4 className="font-bold font-headline text-lg">{title}</h4>
+    <p className="text-xs text-stone-400 mt-1 leading-relaxed">{description}</p>
+  </motion.div>
 );
 
 const ConnectorLine = ({ className }: { className?: string }) => (
@@ -37,34 +47,46 @@ const ConnectorLine = ({ className }: { className?: string }) => (
 export default function ProductDemo() {
   
   return (
-    <section id="demo" className="relative min-h-screen w-full bg-[#0a0a0a] flex flex-col items-center justify-center p-4 overflow-hidden">
+    <section id="demo" className="relative min-h-screen w-full bg-[#0a0a0a] flex flex-col items-center justify-center p-4 overflow-hidden py-24">
         {/* Background elements */}
         <div className="absolute inset-0 bg-grid-zinc-800/20 [mask-image:linear-gradient(to_bottom,white_20%,transparent_100%)]"></div>
 
-        <div className="text-center z-10 px-4 mb-12">
-             <h2 className="text-4xl md:text-6xl font-bold font-headline text-white drop-shadow-xl">
+        <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            className="text-center z-10 px-4 mb-16"
+        >
+             <h2 className="text-4xl md:text-7xl font-bold font-headline text-white drop-shadow-xl tracking-tight">
                 Experience the Live Feed
             </h2>
-        </div>
+        </motion.div>
       
         {/* Phone Mockup and Feature Descriptions */}
-        <div className="relative flex flex-col md:flex-row items-stretch justify-center gap-4">
+        <div className="relative flex flex-col md:flex-row items-center justify-center gap-x-12 md:gap-x-8">
 
             {/* Left Descriptions */}
-            <div className="flex flex-col justify-center w-full md:w-48 items-center md:items-end">
+            <div className="flex md:flex-col justify-around w-full md:w-48 items-start md:items-end gap-12 md:gap-20">
               <FeatureDescription
-                title="Like Any Live Stream"
-                description="Like any live stream on your feed to show your support for the creator."
+                title="Ride On"
+                description="Show creators some love and let 'em know you're riding with them."
+                alignment="right"
+              />
+              <FeatureDescription
+                title="Deep Engagement"
+                description="Comment on any live stream on your feed with a suite of expressive tools."
                 alignment="right"
               />
             </div>
             
-            {/* Dashed Lines - Left */}
-            <div className="hidden md:flex flex-col justify-center w-12">
-               <ConnectorLine className="self-end" />
-            </div>
-
-             <div className="relative w-[280px] h-[560px] md:w-[320px] md:h-[640px] bg-black rounded-[40px] border-4 border-zinc-700 shadow-2xl z-20 my-8 md:my-0">
+            {/* Center Phone */}
+             <motion.div 
+                initial={{ opacity: 0, y: 50, rotateX: 10 }}
+                whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
+                viewport={{ once: true, amount: 0.3 }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                className="relative w-[280px] h-[560px] md:w-[320px] md:h-[640px] bg-black rounded-[40px] border-4 border-zinc-700 shadow-[0_0_50px_rgba(255,255,255,0.05)] z-20 my-8 md:my-0"
+             >
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-black rounded-b-xl z-30"></div>
                 <div className="relative w-full h-full bg-black rounded-[36px] overflow-hidden">
                     {/* Video Background */}
@@ -81,7 +103,7 @@ export default function ProductDemo() {
                     {/* UI Overlay */}
                     <div className="absolute inset-0 flex flex-col justify-between p-3 text-white z-10 pointer-events-none">
                         {/* Top: Host Info */}
-                        <div className="flex items-center gap-2 mt-4">
+                        <div className="flex items-center gap-2 mt-2">
                             <Avatar className="h-10 w-10">
                                 <AvatarImage src="https://picsum.photos/seed/demohost/200" alt="Host" />
                                 <AvatarFallback>H</AvatarFallback>
@@ -89,9 +111,9 @@ export default function ProductDemo() {
                             <div>
                                 <div className="flex items-center gap-2">
                                   <p className="font-bold font-headline text-base">StreamSavvy</p>
-                                  <Badge variant="destructive" className="px-2 py-0.5 text-xs h-5 blinking-text">LIVE</Badge>
+                                  <Badge variant="destructive" className="px-2 py-0.5 text-xs h-5">LIVE</Badge>
                                 </div>
-                                <p className="text-xs">Vibin' with the community!</p>
+                                <p className="text-[10px] opacity-80 uppercase tracking-wider">NYC Street Vibes</p>
                             </div>
                         </div>
 
@@ -99,38 +121,36 @@ export default function ProductDemo() {
                         <div className="relative h-1/2 flex flex-col justify-end">
                             {/* Chat Messages */}
                             <div className="space-y-1.5">
-                                <DemoComment avatar="https://picsum.photos/seed/user1/100" name="ChattyCathy" text="This is awesome! 🔥" />
-                                <DemoComment avatar="https://picsum.photos/seed/user2/100" name="LurkerLou" text="Let's goooo! 🚀" />
-                                <DemoComment avatar="https://picsum.photos/seed/user4/100" name="ArtFan" text="What a vibe!" />
+                                <DemoComment delay={0.4} avatar="https://picsum.photos/seed/user1/100" name="ChattyCathy" text="This is awesome! 🔥" />
+                                <DemoComment delay={0.6} avatar="https://picsum.photos/seed/user2/100" name="LurkerLou" text="Let's goooo! 🚀" />
+                                <DemoComment delay={0.8} avatar="https://picsum.photos/seed/user4/100" name="ArtFan" text="What a vibe!" />
                             </div>
                         </div>
                     </div>
 
                     {/* Right Side Action Bar */}
-                    <div className="absolute top-1/2 right-0 -translate-y-1/2 z-20 flex flex-col items-center gap-y-5 pointer-events-auto text-white p-2">
+                    <motion.div 
+                        initial={{ opacity: 0, x: 20 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 1, duration: 0.5 }}
+                        className="absolute top-1/2 right-0 -translate-y-1/2 z-20 flex flex-col items-center gap-y-6 pointer-events-auto text-white p-2"
+                    >
                         <div id="demo-like" className="flex flex-col items-center">
-                            <Heart className="h-7 w-7 drop-shadow-md text-red-500 fill-red-500" strokeWidth={1.5} />
-                            <span className="text-[10px] font-bold mt-1">1.2k</span>
+                            <Heart className="h-8 w-8 text-red-500 fill-red-500 drop-shadow-lg" strokeWidth={1.5} />
+                            <span className="text-xs font-bold mt-1">1.2k</span>
                         </div>
                         <div id="demo-comment" className="flex flex-col items-center">
-                            <MessageSquareMore className="h-7 w-7 drop-shadow-md" strokeWidth={1.5} />
-                            <span className="text-[10px] font-bold mt-1">345</span>
+                            <MessageSquareMore className="h-8 w-8 drop-shadow-lg" strokeWidth={1.5} />
+                            <span className="text-xs font-bold mt-1">345</span>
                         </div>
-                    </div>
+                    </motion.div>
                 </div>
-            </div>
+            </motion.div>
 
-            {/* Dashed Lines - Right */}
-            <div className="hidden md:flex flex-col justify-center w-12">
-               <ConnectorLine />
-            </div>
-            
             {/* Right Descriptions */}
-             <div className="flex flex-col justify-center w-full md:w-48 items-center md:items-start">
-               <FeatureDescription
-                title="Comment on Every Live"
-                description="Comment on any live stream on your feed using text, GIFs, and images to share your reactions."
-              />
+             <div className="flex md:flex-col justify-around w-full md:w-48 items-start gap-12 md:gap-20">
+               <ConnectorLine className="self-center"/>
+               <ConnectorLine className="self-center"/>
             </div>
         </div>
     </section>
