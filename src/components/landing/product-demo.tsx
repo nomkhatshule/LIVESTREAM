@@ -96,16 +96,10 @@ export default function ProductDemo() {
                 description="Like any live stream on your feed to show your support for the creator."
                 alignment="right"
               />
-               <FeatureDescription
-                title="send challenge"
-                description="Play Truth or Dare, or complete wild challenges with your followers."
-                alignment="right"
-              />
             </div>
             
             {/* Dashed Lines - Left */}
-            <div className="hidden md:flex flex-col gap-[8.5rem] w-12">
-               <ConnectorLine className="self-end" />
+            <div className="hidden md:flex flex-col h-[10rem] justify-start w-12">
                <ConnectorLine className="self-end" />
             </div>
 
@@ -164,29 +158,20 @@ export default function ProductDemo() {
                             <MessageSquareMore className="h-7 w-7 drop-shadow-md" strokeWidth={1.5} />
                             <span className="text-[10px] font-bold mt-1">345</span>
                         </div>
-                        <div id="demo-ai" className="flex flex-col items-center">
-                        <Search className="h-7 w-7 drop-shadow-md" strokeWidth={1.5} />
-                            <span className="text-[10px] font-bold mt-1">AI</span>
-                        </div>
                     </div>
                 </div>
             </div>
 
             {/* Dashed Lines - Right */}
-            <div className="hidden md:flex flex-col gap-[8.5rem] w-12">
-               <ConnectorLine className="self-start" />
+            <div className="hidden md:flex flex-col h-[10rem] justify-end w-12">
                <ConnectorLine className="self-start" />
             </div>
             
             {/* Right Descriptions */}
-             <div className="flex flex-col gap-8 md:gap-16 w-full md:w-48 items-center md:items-start">
+             <div className="flex flex-col w-full md:w-48 items-center md:items-start">
                <FeatureDescription
                 title="Comment on Every Live"
                 description="Comment on any live stream on your feed using text, GIFs, and images to share your reactions."
-              />
-               <FeatureDescription
-                title="Find Anything, Anywhere"
-                description="Find anything, anywhere in real-time with an AI assistant that can search the web for you."
               />
             </div>
         </div>
