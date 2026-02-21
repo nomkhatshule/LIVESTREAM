@@ -42,7 +42,7 @@ const aboutCards = [
 
 export default function AboutSection() {
   return (
-    <section className="w-full py-20 lg:py-32 bg-background">
+    <section id="features" className="w-full py-20 lg:py-32 bg-background">
       <div className="container mx-auto px-4 md:px-6">
         <Carousel
           opts={{

@@ -16,9 +16,9 @@ export default function LandingHeader() {
         
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-2">
-          <button className="px-4 py-1.5 rounded-full text-sm tracking-tight transition-all duration-300 hover:scale-105 active:scale-95 text-white/80 hover:bg-white/10">
+          <Link href="#features" className="px-4 py-1.5 rounded-full text-sm tracking-tight transition-all duration-300 hover:scale-105 active:scale-95 text-white/80 hover:bg-white/10">
             Features
-          </button>
+          </Link>
           <Link href="#demo" className="px-4 py-1.5 rounded-full text-sm tracking-tight transition-all duration-300 hover:scale-105 active:scale-95 text-white/80 hover:bg-white/10">
             Demo
           </Link>
@@ -49,8 +49,8 @@ export default function LandingHeader() {
                          <Link href="/" className="flex items-center gap-2 px-4">
                           <span className="font-logo font-black text-white text-4xl">LIVENET</span>
                         </Link>
-                        <button className="text-2xl">Features</button>
-                        <button className="text-2xl">About</button>
+                        <Link href="#features" className="text-2xl">Features</Link>
+                        <Link href="#demo" className="text-2xl">Demo</Link>
                         <div className="flex flex-col gap-4 w-full px-8 pt-8">
                              <Button variant="outline" className="w-full rounded-full border-white/50 bg-transparent" asChild>
                                 <Link href="/login">Log in</Link>

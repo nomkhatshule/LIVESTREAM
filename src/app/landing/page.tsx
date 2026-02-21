@@ -12,7 +12,7 @@ export default function LandingPage() {
   return (
     <>
       <LandingHeader />
-      <div className="relative h-screen w-full overflow-hidden flex items-center justify-center text-center p-8">
+      <div id="hero" className="relative h-screen w-full overflow-hidden flex items-center justify-center text-center p-8">
         <video
           autoPlay
           loop
@@ -38,7 +38,7 @@ export default function LandingPage() {
           </Button>
         </div>
       </div>
-      <section className="relative h-screen w-full bg-black flex flex-col items-center justify-center text-center p-8">
+      <section id="reality" className="relative h-screen w-full bg-black flex flex-col items-center justify-center text-center p-8">
         <Image
             src="https://cdn.pixabay.com/photo/2016/08/21/20/13/time-square-1610667_1280.jpg"
             alt="City street at night"
@@ -56,7 +56,7 @@ export default function LandingPage() {
       
       <ProductDemo />
 
-      <section className="relative w-full bg-black flex flex-col items-center justify-center p-8 py-20 lg:py-32">
+      <section id="manifesto" className="relative w-full bg-black flex flex-col items-center justify-center p-8 py-20 lg:py-32">
         <video
           autoPlay
           loop
