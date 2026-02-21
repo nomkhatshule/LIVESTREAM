@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -57,16 +58,8 @@ export default function LandingPage() {
       <ProductDemo />
 
       <section className="relative w-full bg-black flex flex-col items-center justify-center p-8 py-20 lg:py-32">
-        <Image
-          src="https://cdn.midjourney.com/36ee8fa8-29f4-46e0-be75-a695ae1c59e1/0_0.png"
-          alt="Pixel art background"
-          fill
-          className="object-cover"
-          data-ai-hint="pixel art landscape"
-        />
-        <div className="absolute inset-0 bg-black/50" />
         <div className="relative z-10 w-full max-w-3xl flex flex-col items-center gap-4">
-            <div className="bg-white/80 backdrop-blur-md border border-black/10 rounded-2xl p-8 shadow-xl max-w-2xl text-center">
+            <div className="bg-white/80 border border-black/10 rounded-2xl p-8 shadow-xl max-w-2xl text-center">
                <div className="inline-block bg-black text-white border-2 border-white/20 rounded-md px-3 py-1 mb-6">
                  <h3 className="text-sm font-bold font-headline uppercase tracking-widest">
                    OUR MANIFESTO
