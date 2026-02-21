@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -6,24 +5,8 @@ import { cn } from '@/lib/utils';
 import { Gamepad2, Heart, MessageSquareMore, Search, Send, Swords } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
+import { Badge } from '../ui/badge';
 
-// Simplified reaction type for the demo
-type DemoReaction = {
-  id: number;
-  emoji: string;
-  x: number;
-  key: number;
-};
-
-const FloatingReaction = ({ reaction }: { reaction: DemoReaction }) => (
-  <div
-    key={reaction.key}
-    className="animate-float-up absolute bottom-0 text-3xl opacity-0"
-    style={{ left: `${reaction.x}%` }}
-  >
-    {reaction.emoji}
-  </div>
-);
 
 const DemoComment = ({ avatar, name, text }: { avatar: string, name: string, text: string }) => (
     <div className="group flex items-start text-sm text-white pb-1">
@@ -52,27 +35,7 @@ const ConnectorLine = ({ className }: { className?: string }) => (
 
 
 export default function ProductDemo() {
-  const [reactions, setReactions] = useState<DemoReaction[]>([]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setReactions(prevReactions => {
-        const newReaction: DemoReaction = {
-          id: Date.now(),
-          emoji: Math.random() > 0.5 ? '❤️' : '👍',
-          x: Math.random() * 80 + 10,
-          key: Math.random(),
-        };
-        // Keep the array from growing indefinitely
-        const updatedReactions = [...prevReactions, newReaction].slice(-20);
-        return updatedReactions;
-      });
-    }, 1000); // Add a new reaction every second
-
-    return () => clearInterval(interval);
-  }, []);
-
-
+  
   return (
     <section id="demo" className="relative min-h-screen w-full bg-[#0a0a0a] flex flex-col items-center justify-center p-4 overflow-hidden">
         {/* Background elements */}
@@ -97,8 +60,8 @@ export default function ProductDemo() {
             </div>
             
             {/* Dashed Lines - Left */}
-            <div className="hidden md:flex flex-col w-12">
-               <ConnectorLine />
+            <div className="hidden md:flex flex-col justify-start w-12 h-40">
+               <ConnectorLine className="self-end" />
             </div>
 
              <div className="relative w-[280px] h-[560px] md:w-[320px] md:h-[640px] bg-black rounded-[40px] border-4 border-zinc-700 shadow-2xl z-20 my-8 md:my-0">
@@ -124,18 +87,16 @@ export default function ProductDemo() {
                                 <AvatarFallback>H</AvatarFallback>
                             </Avatar>
                             <div>
-                                <p className="font-bold font-headline text-base">StreamSavvy</p>
+                                <div className="flex items-center gap-2">
+                                  <p className="font-bold font-headline text-base">StreamSavvy</p>
+                                  <Badge variant="destructive" className="px-2 py-0.5 text-xs h-5 blinking-text">LIVE</Badge>
+                                </div>
                                 <p className="text-xs">Vibin' with the community!</p>
                             </div>
                         </div>
 
                         {/* Bottom: Chat and Reactions */}
                         <div className="relative h-1/2 flex flex-col justify-end">
-                            {/* Floating Reactions */}
-                            <div className="absolute bottom-16 left-0 h-64 w-48 z-20">
-                                {reactions.map((r) => <FloatingReaction key={r.key} reaction={r} />)}
-                            </div>
-
                             {/* Chat Messages */}
                             <div className="space-y-1.5">
                                 <DemoComment avatar="https://picsum.photos/seed/user1/100" name="ChattyCathy" text="This is awesome! 🔥" />
@@ -160,7 +121,7 @@ export default function ProductDemo() {
             </div>
 
             {/* Dashed Lines - Right */}
-            <div className="hidden md:flex flex-col w-12">
+            <div className="hidden md:flex flex-col justify-end w-12 h-40">
                <ConnectorLine />
             </div>
             
