@@ -20,7 +20,7 @@ export default function LandingPage() {
           playsInline
           className="absolute top-0 left-0 w-full h-full object-cover -z-10"
         >
-          <source src="https://cdn.midjourney.com/video/74dca46e-4efb-4400-bbc0-94587f904b8a/0.mp4" type="video/mp4" />
+          <source src="https://cdn.pixabay.com/video/2024/01/01/193231-905663189_large.mp4" type="video/mp4" />
         </video>
         <div className="absolute inset-0 bg-black/60" />
         <div className="relative z-10 flex flex-col items-center">
