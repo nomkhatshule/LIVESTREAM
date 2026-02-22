@@ -7,6 +7,7 @@ import {
   StreamVideoClient,
   useCallStateHooks,
   ParticipantView,
+  Call,
 } from '@stream-io/video-react-sdk';
 import type { BroadcastData } from '@/lib/types';
 import { useEffect, useState } from 'react';
@@ -48,8 +49,7 @@ function HostVideoPlayer({ broadcast }: { broadcast: BroadcastData }) {
                 participant={hostParticipant} 
                 ParticipantViewUI={null} 
                 className="w-full h-full"
-                // The style is now dynamically applied based on camera state
-                style={{ transform: isMirrored ? 'scaleX(-1)' : 'scaleX(1)' }}
+                mirror={isMirrored}
             />
             { !hostParticipant.isCameraEnabled && !hostParticipant.isScreenSharing && (
                  <div 
