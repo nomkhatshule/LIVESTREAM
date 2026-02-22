@@ -86,7 +86,7 @@ export default function ManifestoSection() {
                         initial={{ opacity: 0, y: 50 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         transition={{ duration: 1 }}
-                        className="bg-white/10 border border-white/20 rounded-full px-8 py-3 backdrop-blur-md shadow-2xl"
+                        className="bg-white/10 border border-white/20 rounded-full px-8 py-3 backdrop-blur-md"
                     >
                         <TextMaskReveal 
                             text="OUR MANIFESTO"

@@ -55,7 +55,7 @@ export default function ProductDemo() {
         <div className="text-center z-10 px-4 mb-16">
              <StaggeredLetterReveal 
                 text="Experience the Live Feed"
-                className="text-4xl md:text-7xl font-bold font-headline text-white drop-shadow-xl tracking-tight justify-center"
+                className="text-4xl md:text-7xl font-bold font-headline text-white tracking-tight justify-center"
              />
         </div>
       
@@ -88,7 +88,7 @@ export default function ProductDemo() {
                 whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
                 viewport={{ once: true, amount: 0.3 }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
-                className="relative w-[280px] h-[560px] md:w-[320px] md:h-[640px] bg-black rounded-[40px] border-4 border-zinc-700 shadow-[0_0_50px_rgba(255,255,255,0.05)] z-20 my-8 md:my-0"
+                className="relative w-[280px] h-[560px] md:w-[320px] md:h-[640px] bg-black rounded-[40px] border-4 border-zinc-700 z-20 my-8 md:my-0"
              >
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-black rounded-b-xl z-30"></div>
                 <div className="relative w-full h-full bg-black rounded-[36px] overflow-hidden">
@@ -139,11 +139,11 @@ export default function ProductDemo() {
                         className="absolute top-1/2 right-0 -translate-y-1/2 z-20 flex flex-col items-center gap-y-6 pointer-events-auto text-white p-2"
                     >
                         <div id="demo-like" className="flex flex-col items-center">
-                            <Heart className="h-8 w-8 drop-shadow-lg" strokeWidth={1.5} />
+                            <Heart className="h-8 w-8" strokeWidth={1.5} />
                             <span className="text-xs font-bold mt-1">1.2k</span>
                         </div>
                         <div id="demo-comment" className="flex flex-col items-center">
-                            <MessageSquareMore className="h-8 w-8 drop-shadow-lg" strokeWidth={1.5} />
+                            <MessageSquareMore className="h-8 w-8" strokeWidth={1.5} />
                             <span className="text-xs font-bold mt-1">345</span>
                         </div>
                     </motion.div>

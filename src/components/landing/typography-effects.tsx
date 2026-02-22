@@ -116,3 +116,27 @@ export const GradualSpacing = ({ text, className, delay = 0, once = true }: Text
     </div>
   );
 };
+
+export const MetadataLabel = ({ text, delay = 0 }: { text: string; delay?: number }) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -10 }}
+      whileInView={{ opacity: 1, x: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.6, delay }}
+      className="flex items-center gap-2 font-code text-[10px] uppercase tracking-[0.2em] text-primary/60 mb-2"
+    >
+      <div className="w-1 h-1 bg-primary rounded-full animate-pulse" />
+      {text}
+    </motion.div>
+  );
+};
+
+export const LivePulse = () => {
+  return (
+    <div className="flex items-center gap-2 px-3 py-1 bg-red-500/10 border border-red-500/20 rounded-full">
+      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+      <span className="font-code text-[10px] font-bold text-red-500 tracking-widest uppercase">Live Signal</span>
+    </div>
+  );
+};
