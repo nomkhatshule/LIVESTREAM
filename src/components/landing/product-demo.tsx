@@ -6,6 +6,7 @@ import { Heart, MessageSquareMore } from 'lucide-react';
 import React from 'react';
 import { Badge } from '../ui/badge';
 import { motion } from 'framer-motion';
+import { StaggeredLetterReveal } from './typography-effects';
 
 const DemoComment = ({ avatar, name, text, delay }: { avatar: string, name: string, text: string, delay: number }) => (
     <motion.div 
@@ -51,16 +52,12 @@ export default function ProductDemo() {
         {/* Background elements */}
         <div className="absolute inset-0 bg-grid-zinc-800/20 [mask-image:linear-gradient(to_bottom,white_20%,transparent_100%)]"></div>
 
-        <motion.div 
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            className="text-center z-10 px-4 mb-16"
-        >
-             <h2 className="text-4xl md:text-7xl font-bold font-headline text-white drop-shadow-xl tracking-tight">
-                Experience the Live Feed
-            </h2>
-        </motion.div>
+        <div className="text-center z-10 px-4 mb-16">
+             <StaggeredLetterReveal 
+                text="Experience the Live Feed"
+                className="text-4xl md:text-7xl font-bold font-headline text-white drop-shadow-xl tracking-tight justify-center"
+             />
+        </div>
       
         {/* Phone Mockup and Feature Descriptions */}
         <div className="relative flex flex-col md:flex-row items-center justify-center gap-x-4">

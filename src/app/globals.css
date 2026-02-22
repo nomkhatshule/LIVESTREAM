@@ -169,6 +169,29 @@ body {
         animation: float-up 5s ease-out forwards;
     }
 
+    .animate-text-shimmer {
+      background: linear-gradient(
+        to right,
+        #ffffff 20%,
+        #a8a8a8 40%,
+        #a8a8a8 60%,
+        #ffffff 80%
+      );
+      background-size: 200% auto;
+      color: #000;
+      background-clip: text;
+      text-fill-color: transparent;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: text-shimmer 3s linear infinite;
+    }
+
+    @keyframes text-shimmer {
+      to {
+        background-position: 200% center;
+      }
+    }
+
     .animate-breathing {
       animation: breathing 2s ease-out infinite;
     }

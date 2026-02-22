@@ -1,4 +1,3 @@
-
 'use client';
 
 import { usePathname } from 'next/navigation';
@@ -24,7 +23,7 @@ export default function Footer() {
               <Image src="/favicon.ico" alt="LIVENET Logo" width={42} height={42} />
               <span className="font-logo font-black text-white text-3xl">LIVENET</span>
             </Link>
-            <p className="mt-4 text-sm text-stone-300 max-w-md">
+            <p className="mt-4 text-sm text-white max-w-md">
               Real people, real moments, real connections.
             </p>
           </div>
