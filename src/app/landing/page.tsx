@@ -9,33 +9,7 @@ import AboutSection from '@/components/landing/about-section';
 import ProductDemo from '@/components/landing/product-demo';
 import ManifestoSection from '@/components/landing/ManifestoSection';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { StaggeredLetterReveal, TextMaskReveal, BlurIn, GradualSpacing, MetadataLabel, LivePulse } from '@/components/landing/typography-effects';
-
-const SectionHeader = ({ title, subtitle, metadata }: { title: string; subtitle?: string; metadata?: string }) => {
-  return (
-    <div className="flex flex-col items-center text-center mb-20 px-4">
-      {metadata && <MetadataLabel text={metadata} />}
-      <TextMaskReveal 
-        text={title}
-        className="text-4xl md:text-7xl font-bold font-headline text-white tracking-tighter"
-      />
-      {subtitle && (
-        <BlurIn
-          text={subtitle}
-          delay={0.4}
-          className="mt-6 text-lg md:text-xl text-stone-400 max-w-2xl mx-auto leading-relaxed font-light"
-        />
-      )}
-      <motion.div 
-        initial={{ scaleX: 0 }}
-        whileInView={{ scaleX: 1 }}
-        viewport={{ once: true }}
-        transition={{ duration: 1, delay: 0.8 }}
-        className="w-16 h-[2px] bg-primary rounded-full mt-10 origin-center opacity-50" 
-      />
-    </div>
-  );
-};
+import { StaggeredLetterReveal, MetadataLabel, LivePulse, TechnicalHeader, HUDCorners } from '@/components/landing/typography-effects';
 
 export default function LandingPage() {
   const { scrollY } = useScroll();
@@ -65,40 +39,42 @@ export default function LandingPage() {
         <div className="absolute inset-0 bg-black/30 z-10" />
         <motion.div 
           style={{ y: yHero, opacity: opacityHero }}
-          className="relative z-20 flex flex-col items-center"
+          className="relative z-20 flex flex-col items-center max-w-7xl"
         >
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.5 }}
-            className="mb-6"
-          >
-            <LivePulse />
-          </motion.div>
-          <StaggeredLetterReveal 
-            text="Share Every Moment" 
-            className="text-6xl md:text-9xl font-bold font-headline text-white mb-8 tracking-tighter leading-[0.9] animate-text-shimmer italic"
-          />
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 1.2 }}
-            className="text-xl md:text-2xl text-white max-w-2xl mb-12 font-light tracking-tight leading-relaxed px-4"
-          >
-            Experience the unfiltered world. Connect with creators in real-time as they explore, create, and push boundaries.
-          </motion.p>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 1.6 }}
-          >
-            <Button size="lg" className="bg-white text-black hover:bg-stone-200 h-16 px-10 rounded-full text-xl font-bold transition-all hover:scale-105 active:scale-95 group" asChild>
-              <Link href="/feed">
-                <Clapperboard className="mr-3 h-6 w-6 transition-transform group-hover:rotate-12" />
-                Start Your Journey
-              </Link>
-            </Button>
-          </motion.div>
+          <HUDCorners>
+            <motion.div 
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.5 }}
+              className="mb-10 flex justify-center"
+            >
+              <LivePulse />
+            </motion.div>
+            <StaggeredLetterReveal 
+              text="Share Every Moment" 
+              className="text-6xl md:text-[10rem] font-black font-headline text-white mb-8 tracking-[calc(-0.06em)] leading-[0.85] animate-text-shimmer italic"
+            />
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 1.2 }}
+              className="text-lg md:text-xl text-stone-300 max-w-3xl mb-12 font-light tracking-tight leading-relaxed px-4 mx-auto"
+            >
+              Go outside and be adventurous. Join a global community of explorers streaming their real-world adventures live from city streets to mountain peaks.
+            </motion.p>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 1.6 }}
+              className="flex justify-center"
+            >
+              <Button size="lg" className="bg-white text-black hover:bg-stone-200 h-16 px-12 rounded-none text-sm font-bold uppercase tracking-[0.3em] transition-all hover:scale-105 active:scale-95 group border border-white" asChild>
+                <Link href="/feed">
+                  Start Your Journey
+                </Link>
+              </Button>
+            </motion.div>
+          </HUDCorners>
         </motion.div>
 
         {/* Floating Metadata for Hero */}
@@ -133,17 +109,12 @@ export default function LandingPage() {
             />
         </motion.div>
         <div className="absolute inset-0 bg-black/40 z-10" />
-        <div className="relative z-10 max-w-5xl">
-             <MetadataLabel text="Location: New York City / 40.7128° N" />
-             <motion.h2 
-                initial={{ opacity: 0, scale: 0.95 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 1 }}
-                className="text-4xl md:text-8xl font-bold font-headline text-white tracking-tighter leading-[0.9] italic"
-             >
-                Reality social, <br/><span className="text-primary not-italic">by the people,</span> <br/>for the people
-             </motion.h2>
+        <div className="relative z-10 max-w-6xl">
+             <TechnicalHeader 
+                metadata="Location: New York City / 40.7128° N"
+                title="REALITY SOCIAL"
+                subtitle="Built by the people, for the people. A new era of connection where every street corner is a story waiting to be told."
+             />
         </div>
       </section>
 

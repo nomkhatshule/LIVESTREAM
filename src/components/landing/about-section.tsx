@@ -12,7 +12,7 @@ import { Clapperboard, Users } from 'lucide-react';
 import Image from 'next/image';
 import { Separator } from '../ui/separator';
 import { motion } from 'framer-motion';
-import { TextMaskReveal, BlurIn, MetadataLabel } from './typography-effects';
+import { TextMaskReveal, MetadataLabel } from './typography-effects';
 
 const aboutCards = [
   {
