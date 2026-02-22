@@ -85,7 +85,7 @@ export default function ChatPanel({
                     </div>
                 </ScrollArea>
             </div>
-             <div className="pt-2 pb-10 md:pb-2 pointer-events-auto">
+             <div className="pt-2 pb-16 md:pb-2 pointer-events-auto">
                  <ChatInputForm
                     onSubmit={handleSendMessage}
                     quickReactions={reactions}
