@@ -91,31 +91,6 @@ export type CompletedChallenge = {
     status: 'completed';
 }
 
-// Schema for Genkit Flow: generateGamePrompts
-export const GenerateGamePromptsInputSchema = z.object({
-  gameType: z
-    .enum(['truth', 'dare', 'challenge'])
-    .describe('The type of game prompt to generate.'),
-  category: z
-    .string()
-    .describe('The category or theme for the prompts (e.g., "Icebreaker", "Spicy", "Comedy").'),
-  count: z.number().describe('The number of prompts to generate.'),
-});
-export type GenerateGamePromptsInput = z.infer<
-  typeof GenerateGamePromptsInputSchema
->;
-
-export const GenerateGamePromptsOutputSchema = z.object({
-  prompts: z.array(z.object({
-    prompt: z.string().describe("The generated prompt text."),
-    duration: z.number().describe("The suggested duration in seconds for the prompt.")
-  })).describe('The list of generated prompts with their durations.'),
-});
-export type GenerateGamePromptsOutput = z.infer<
-  typeof GenerateGamePromptsOutputSchema
->;
-
-
 export const categories = [
     { name: 'Gaming' },
     { name: 'Music' },
@@ -205,5 +180,3 @@ export const dareChallenges = [
   { text: 'Speak only in questions for the next 3 minutes.', duration: 180 },
   { text: 'Try to lick your elbow.', duration: 30 },
 ];
-
-    

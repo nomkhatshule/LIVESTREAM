@@ -4,7 +4,6 @@
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { doc, setDoc, serverTimestamp, DocumentReference, collection, getDocs } from 'firebase/firestore';
-import { generateGamePrompts } from '@/ai/flows/generate-game-prompts';
 import type { BroadcastData, StagedChallenge } from '@/lib/types';
 import { useUser, useUserDocument } from '@/firebase';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
@@ -121,31 +120,6 @@ export function useGameFlow(broadcastDocRef: DocumentReference | null, broadcast
         toast({ title: 'Challenge Completed!' });
         setIsChallengeVisible(false);
     };
-
-    const handleGenerateNextChallenge = async (gameType: 'truth' | 'dare' | 'challenge') => {
-        if (!broadcastDocRef) return;
-        try {
-            const result = await generateGamePrompts({
-                gameType: gameType,
-                category: 'Live Stream Audience',
-                count: 1,
-            });
-
-            if (result.prompts && result.prompts.length > 0 && result.prompts[0].prompt && result.prompts[0].duration) {
-                await setDoc(broadcastDocRef, {
-                    activeChallenge: result.prompts[0].prompt,
-                    activeChallengeType: gameType,
-                    challengeDurationSeconds: result.prompts[0].duration,
-                    challengeStartTime: serverTimestamp(),
-                }, { merge: true });
-            } else {
-                throw new Error('AI could not generate a challenge.');
-            }
-        } catch(e) {
-            console.error(e);
-            toast({ variant: 'destructive', title: 'Error', description: 'Could not generate next challenge.' });
-        }
-    };
     
     return {
         stagedChallenge,
@@ -155,10 +129,7 @@ export function useGameFlow(broadcastDocRef: DocumentReference | null, broadcast
         handleChallengeSelect,
         handleStartStagedChallenge,
         handleCancelStagedChallenge,
-        handleGenerateNextChallenge,
         handleCompleteChallenge,
         setIsChallengeVisible,
     };
 }
-
-    

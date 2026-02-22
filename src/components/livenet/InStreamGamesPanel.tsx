@@ -1,7 +1,6 @@
 
 'use client';
 
-import { generateGamePrompts } from "@/ai/flows/generate-game-prompts";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { dareChallenges, truthQuestions } from "@/lib/data";
@@ -14,7 +13,7 @@ interface InStreamGamesPanelProps {
     onOpenChange: (open: boolean) => void
 }
 
-const generateNextChallengeLogic = async (type: 'truth' | 'dare' | 'ai' | 'challenge') => {
+const generateNextChallengeLogic = async (type: 'truth' | 'dare') => {
     let prompt = '';
     let duration = 60;
     
@@ -25,31 +24,19 @@ const generateNextChallengeLogic = async (type: 'truth' | 'dare' | 'ai' | 'chall
         const selectedDare = dareChallenges[Math.floor(Math.random() * dareChallenges.length)];
         prompt = selectedDare.text;
         duration = selectedDare.duration;
-    } else {
-         const result = await generateGamePrompts({
-            gameType: 'challenge',
-            category: 'Live Stream Audience',
-            count: 1,
-        });
-        if (result.prompts && result.prompts.length > 0) {
-            prompt = result.prompts[0];
-            duration = result.durationsInSeconds[0] || 120;
-        } else {
-            throw new Error('AI could not generate a challenge. Try again!');
-        }
     }
     return { prompt, duration };
 }
 
 export default function InStreamGamesPanel({ onSelectChallenge, open, onOpenChange }: InStreamGamesPanelProps) {
-    const [gameType, setGameType] = useState<'truth' | 'dare' | 'ai'>('ai');
+    const [gameType, setGameType] = useState<'truth' | 'dare'>('dare');
     const [prompt, setPrompt] = useState('');
     const [duration, setDuration] = useState(60); // Default duration
     const [isLoading, setIsLoading] = useState(false);
     const [isGameStarted, setIsGameStarted] = useState(false);
 
 
-    const handleGenerate = async (type: 'truth' | 'dare' | 'ai') => {
+    const handleGenerate = async (type: 'truth' | 'dare') => {
         setIsLoading(true);
         setPrompt('');
         setGameType(type);
@@ -67,20 +54,14 @@ export default function InStreamGamesPanel({ onSelectChallenge, open, onOpenChan
     };
     
     const handleStartChallenge = () => {
-        let challengeType: 'truth' | 'dare' | 'challenge';
-        if (gameType === 'ai') {
-            challengeType = 'challenge';
-        } else {
-            challengeType = gameType;
-        }
-        onSelectChallenge(prompt, challengeType, duration);
+        onSelectChallenge(prompt, gameType, duration);
         onOpenChange(false);
         setIsGameStarted(false); // Reset for next time
     };
 
     const handleStartClick = () => {
         setIsGameStarted(true);
-        handleGenerate('ai'); // Generate an initial AI challenge
+        handleGenerate('dare'); // Generate an initial dare challenge
     }
 
     return (
@@ -107,10 +88,9 @@ export default function InStreamGamesPanel({ onSelectChallenge, open, onOpenChan
                             )}
                         </div>
                         
-                        <div className="grid grid-cols-3 gap-2">
+                        <div className="grid grid-cols-2 gap-2">
                             <Button onClick={() => handleGenerate('truth')} disabled={isLoading}>Truth</Button>
                             <Button onClick={() => handleGenerate('dare')} disabled={isLoading}>Dare</Button>
-                            <Button onClick={() => handleGenerate('ai')} disabled={isLoading}>AI Challenge</Button>
                         </div>
 
                         <Button 
@@ -129,5 +109,4 @@ export default function InStreamGamesPanel({ onSelectChallenge, open, onOpenChan
     )
 }
 
-// Attach the logic to the component for 're-use' in the parent. A bit of a hack.
 (InStreamGamesPanel as any).generateNextChallengeLogic = generateNextChallengeLogic;
