@@ -111,7 +111,7 @@ export default function ManifestoSection() {
                         className="flex flex-col items-center gap-8"
                     >
                         <div className="w-24 h-[1px] bg-white/30" />
-                        <h4 className="text-white text-4xl md:text-6xl font-headline italic">The future is live.</h4>
+                        <h4 className="text-white text-4xl md:text-6xl font-headline italic">Be Adventures</h4>
                         <div className="w-24 h-[1px] bg-white/30" />
                     </motion.div>
                 </div>
