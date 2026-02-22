@@ -8,11 +8,11 @@ import { motion } from 'framer-motion';
 
 export default function LandingHeader() {
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 p-6">
+    <header className="fixed top-0 left-0 right-0 z-50 p-4 md:p-6">
       <nav className="flex items-center justify-between bg-black/40 backdrop-blur-xl border border-white/10 rounded-full py-2.5 px-3 max-w-5xl mx-auto">
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-2 px-4 group">
-            <span className="font-logo font-black text-white text-2xl tracking-tighter transition-all group-hover:tracking-normal">LIVENET</span>
+            <span className="font-logo font-black text-white text-xl md:text-2xl tracking-tighter transition-all group-hover:tracking-normal">LIVENET</span>
           </Link>
         </div>
         

@@ -43,7 +43,7 @@ function HostVideoPlayer({ broadcast }: { broadcast: BroadcastData }) {
     }
     
     return (
-        <div className="absolute inset-0 w-full h-full bg-black">
+        <div className="absolute inset-0 w-full h-full bg-black host-video-container">
             <ParticipantView 
                 participant={hostParticipant} 
                 ParticipantViewUI={null} 

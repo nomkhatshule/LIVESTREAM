@@ -48,22 +48,22 @@ const ConnectorLine = ({ className }: { className?: string }) => (
 export default function ProductDemo() {
   
   return (
-    <section id="demo" className="relative min-h-screen w-full bg-[#0a0a0a] flex flex-col items-center justify-center p-4 overflow-hidden py-24">
+    <section id="demo" className="relative min-h-screen w-full bg-[#0a0a0a] flex flex-col items-center justify-center p-4 overflow-hidden py-12 md:py-24">
         {/* Background elements */}
         <div className="absolute inset-0 bg-grid-zinc-800/20 [mask-image:linear-gradient(to_bottom,white_20%,transparent_100%)]"></div>
 
-        <div className="text-center z-10 px-4 mb-16">
+        <div className="text-center z-10 px-4 mb-10 md:mb-16">
              <StaggeredLetterReveal 
                 text="Experience the Live Feed"
-                className="text-4xl md:text-7xl font-bold font-headline text-white tracking-tight justify-center"
+                className="text-3xl sm:text-4xl md:text-7xl font-bold font-headline text-white tracking-tight justify-center"
              />
         </div>
       
         {/* Phone Mockup and Feature Descriptions */}
-        <div className="relative flex flex-col md:flex-row items-center justify-center gap-x-4">
+        <div className="relative flex flex-col md:flex-row items-center justify-center gap-y-8 md:gap-x-4 w-full max-w-6xl">
 
             {/* Left Descriptions */}
-            <div className="flex md:flex-col justify-around w-full md:w-auto items-center md:items-end gap-12 md:gap-20">
+            <div className="flex flex-col justify-center w-full md:w-auto items-center md:items-end gap-8 md:gap-20">
               <div className="flex items-center gap-4">
                 <FeatureDescription
                   title="Ride On"
@@ -88,7 +88,7 @@ export default function ProductDemo() {
                 whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
                 viewport={{ once: true, amount: 0.3 }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
-                className="relative w-[280px] h-[560px] md:w-[320px] md:h-[640px] bg-black rounded-[40px] border-4 border-zinc-700 z-20 my-8 md:my-0"
+                className="relative w-[260px] h-[520px] sm:w-[280px] sm:h-[560px] md:w-[320px] md:h-[640px] bg-black rounded-[40px] border-4 border-zinc-700 z-20 my-4 md:my-0 flex-shrink-0"
              >
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-black rounded-b-xl z-30"></div>
                 <div className="relative w-full h-full bg-black rounded-[36px] overflow-hidden">
@@ -151,7 +151,7 @@ export default function ProductDemo() {
             </motion.div>
 
             {/* Right Descriptions */}
-             <div className="flex md:flex-col justify-around w-full md:w-auto items-center md:items-start gap-12 md:gap-20">
+             <div className="flex flex-col justify-center w-full md:w-auto items-center md:items-start gap-8 md:gap-20">
               <div className="flex items-center gap-4">
                   <ConnectorLine />
                   <FeatureDescription

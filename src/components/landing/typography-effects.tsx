@@ -106,7 +106,7 @@ export const TechnicalHeader = ({ title, subtitle, metadata }: { title: string; 
         />
         <TextMaskReveal 
           text={title}
-          className="text-4xl md:text-8xl font-black font-headline text-white tracking-[calc(-0.05em)] leading-none pt-4 pb-2"
+          className="text-3xl sm:text-4xl md:text-8xl font-black font-headline text-white tracking-[calc(-0.05em)] leading-none pt-4 pb-2"
         />
          <motion.div 
             initial={{ width: 0 }}
@@ -120,7 +120,7 @@ export const TechnicalHeader = ({ title, subtitle, metadata }: { title: string; 
           initial={{ opacity: 0 }}
           animate={isInView ? { opacity: 1 } : {}}
           transition={{ duration: 1, delay: 0.8 }}
-          className="mt-8 text-lg md:text-xl text-stone-500 max-w-xl font-light leading-relaxed tracking-tight"
+          className="mt-8 text-base md:text-xl text-stone-500 max-w-xl font-light leading-relaxed tracking-tight"
         >
           {subtitle}
         </motion.p>
@@ -131,7 +131,7 @@ export const TechnicalHeader = ({ title, subtitle, metadata }: { title: string; 
 
 export const HUDCorners = ({ children }: { children: React.ReactNode }) => {
     return (
-        <div className="relative p-8">
+        <div className="relative p-6 md:p-12">
             <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-white/20" />
             <div className="absolute top-0 right-0 w-4 h-4 border-t border-r border-white/20" />
             <div className="absolute bottom-0 left-0 w-4 h-4 border-b border-l border-white/20" />

@@ -20,7 +20,7 @@ export default function LandingPage() {
   return (
     <>
       <LandingHeader />
-      <div id="hero" className="relative h-screen w-full overflow-hidden flex items-center justify-center text-center p-8">
+      <div id="hero" className="relative h-screen w-full overflow-hidden flex items-center justify-center text-center p-4 md:p-8">
         <div className="absolute inset-0 bg-black -z-10" />
         <motion.div 
           style={{ scale: scaleHero }}
@@ -39,26 +39,26 @@ export default function LandingPage() {
         <div className="absolute inset-0 bg-black/30 z-10" />
         <motion.div 
           style={{ y: yHero, opacity: opacityHero }}
-          className="relative z-20 flex flex-col items-center max-w-7xl"
+          className="relative z-20 flex flex-col items-center max-w-7xl w-full"
         >
           <HUDCorners>
             <motion.div 
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.5 }}
-              className="mb-10 flex justify-center"
+              className="mb-6 md:mb-10 flex justify-center"
             >
               <LivePulse />
             </motion.div>
             <StaggeredLetterReveal 
               text="Share Every Moment" 
-              className="text-6xl md:text-[10rem] font-black font-headline text-white mb-8 tracking-[calc(-0.06em)] leading-[0.85] animate-text-shimmer italic"
+              className="text-4xl sm:text-6xl md:text-[10rem] font-black font-headline text-white mb-6 md:mb-8 tracking-[calc(-0.06em)] leading-[0.85] animate-text-shimmer italic justify-center"
             />
             <motion.p 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 1.2 }}
-              className="text-lg md:text-xl text-stone-300 max-w-3xl mb-12 font-light tracking-tight leading-relaxed px-4 mx-auto"
+              className="text-base md:text-xl text-stone-300 max-w-3xl mb-8 md:mb-12 font-light tracking-tight leading-relaxed px-2 md:px-4 mx-auto"
             >
               Go outside and be adventurous. Join a global community of explorers streaming their real-world adventures live from city streets to mountain peaks.
             </motion.p>
@@ -68,7 +68,7 @@ export default function LandingPage() {
               transition={{ duration: 0.5, delay: 1.6 }}
               className="flex justify-center"
             >
-              <Button size="lg" className="bg-white text-black hover:bg-stone-200 h-16 px-12 rounded-none text-sm font-bold uppercase tracking-[0.3em] transition-all hover:scale-105 active:scale-95 group border border-white" asChild>
+              <Button size="lg" className="bg-white text-black hover:bg-stone-200 h-14 md:h-16 px-8 md:px-12 rounded-none text-[10px] md:text-sm font-bold uppercase tracking-[0.3em] transition-all hover:scale-105 active:scale-95 group border border-white" asChild>
                 <Link href="/feed">
                   Start Your Journey
                 </Link>
@@ -94,7 +94,7 @@ export default function LandingPage() {
       
       <ProductDemo />
 
-      <section id="reality" className="relative h-screen w-full bg-black flex flex-col items-center justify-center text-center p-8 overflow-hidden">
+      <section id="reality" className="relative h-screen w-full bg-black flex flex-col items-center justify-center text-center p-4 md:p-8 overflow-hidden">
         <motion.div
             initial={{ scale: 1.2 }}
             whileInView={{ scale: 1 }}
@@ -109,7 +109,7 @@ export default function LandingPage() {
             />
         </motion.div>
         <div className="absolute inset-0 bg-black/40 z-10" />
-        <div className="relative z-10 max-w-6xl">
+        <div className="relative z-10 max-w-6xl w-full">
              <TechnicalHeader 
                 metadata="Location: New York City / 40.7128° N"
                 title="REALITY SOCIAL"

@@ -15,7 +15,7 @@ const ManifestoLine = ({ children, index }: { children: React.ReactNode, index: 
             initial={{ opacity: 0.1, y: 10, filter: "blur(4px)" }}
             animate={isInView ? { opacity: 1, y: 0, filter: "blur(0px)" } : { opacity: 0.1, y: 10, filter: "blur(4px)" }}
             transition={{ duration: 0.8, ease: "easeOut", delay: index * 0.05 }}
-            className="mb-6 last:mb-0"
+            className="mb-4 md:mb-6 last:mb-0"
         >
             {children}
         </motion.div>
@@ -86,17 +86,17 @@ export default function ManifestoSection() {
                         initial={{ opacity: 0, y: 50 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         transition={{ duration: 1 }}
-                        className="bg-white/10 border border-white/20 rounded-full px-8 py-3 backdrop-blur-md"
+                        className="bg-white/10 border border-white/20 rounded-full px-6 md:px-8 py-2 md:py-3 backdrop-blur-md"
                     >
                         <TextMaskReveal 
                             text="OUR MANIFESTO"
-                            className="text-xs md:text-sm font-bold font-headline uppercase tracking-[0.4em] text-white"
+                            className="text-[10px] md:text-sm font-bold font-headline uppercase tracking-[0.4em] text-white"
                         />
                     </motion.div>
                 </div>
 
-                <div className="max-w-4xl px-8 pb-[50vh] text-center">
-                    <div className="text-3xl md:text-5xl lg:text-7xl font-headline text-white leading-tight font-bold space-y-12 tracking-tight">
+                <div className="max-w-4xl px-6 md:px-8 pb-[50vh] text-center">
+                    <div className="text-2xl sm:text-3xl md:text-5xl lg:text-7xl font-headline text-white leading-tight font-bold space-y-8 md:space-y-12 tracking-tight">
                         {lines.map((line, i) => (
                             <ManifestoLine key={i} index={i}>
                                 {line}
@@ -111,14 +111,14 @@ export default function ManifestoSection() {
                         initial={{ scale: 0.8, opacity: 0 }}
                         whileInView={{ scale: 1, opacity: 1 }}
                         transition={{ type: "spring", damping: 15 }}
-                        className="flex flex-col items-center gap-12"
+                        className="flex flex-col items-center gap-8 md:gap-12 w-full px-4"
                     >
-                        <div className="w-32 h-[1px] bg-gradient-to-r from-transparent via-white/50 to-transparent" />
+                        <div className="w-24 md:w-32 h-[1px] bg-gradient-to-r from-transparent via-white/50 to-transparent" />
                         <GradualSpacing 
                             text="Be Adventurous"
-                            className="text-white text-5xl md:text-8xl font-headline italic font-black uppercase tracking-tighter"
+                            className="text-white text-4xl sm:text-5xl md:text-8xl font-headline italic font-black uppercase tracking-tighter"
                         />
-                        <div className="w-32 h-[1px] bg-gradient-to-r from-transparent via-white/50 to-transparent" />
+                        <div className="w-24 md:w-32 h-[1px] bg-gradient-to-r from-transparent via-white/50 to-transparent" />
                     </motion.div>
                 </div>
             </div>

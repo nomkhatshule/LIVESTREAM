@@ -265,6 +265,10 @@ html {
     object-fit: cover !important;
 }
 
+.host-video-container .str-video__video {
+    object-fit: contain !important;
+}
+
 .gsi-material-button {
   -moz-user-select: none;
   -webkit-user-select: none;
