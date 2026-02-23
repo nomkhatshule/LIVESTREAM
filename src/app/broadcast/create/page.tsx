@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useUser, useUserDocument, useFirestore } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
-import { Video, Loader2, CameraOff, DoorOpen } from 'lucide-react';
+import { Video, Loader2, CameraOff, DoorOpen, X } from 'lucide-react';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { v4 as uuidv4 } from 'uuid';
 import { Separator } from '@/components/ui/separator';
@@ -212,6 +212,14 @@ function CreateBroadcastPageComponent() {
         )}
 
         <div className="relative z-10 w-full max-w-md space-y-6 rounded-2xl bg-card/80 backdrop-blur-lg p-8 shadow-2xl">
+            <Button
+                variant="ghost"
+                size="icon"
+                className="absolute top-4 right-4 h-8 w-8 rounded-full border border-white/50 text-white hover:bg-white/20"
+                onClick={() => router.push('/feed')}
+            >
+                <X className="h-5 w-5" />
+            </Button>
            {isAnySubmitting ? (
               <div className="flex flex-col items-center justify-center text-center h-48">
                   <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
