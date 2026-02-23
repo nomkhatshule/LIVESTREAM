@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useDoc, useFirestore, useMemoFirebase, useUserDocument, useStorage } from '@/firebase';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { doc, query, orderBy, limit, collection, serverTimestamp, setDoc } from 'firebase/firestore';
+import { doc, query, orderBy, limit, collection, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useCollection } from '@/firebase';
 import {
@@ -34,14 +34,16 @@ function LivenetStudioUI() {
   const { toast } = useToast();
   
   const [reactions, setReactions] = useState<Reaction[]>([]);
+  const [isChatVisible, setIsChatVisible] = useState(true);
   const [isFlippingCamera, setIsFlippingCamera] = useState(false);
 
   // Stream SDK Hooks
-  const { useParticipants, useCallCallingState, useCameraState, useMicrophoneState } = useCallStateHooks();
+  const { useParticipants, useCallCallingState, useCameraState, useMicrophoneState, useScreenShareState } = useCallStateHooks();
   const participants = useParticipants();
   const callingState = useCallCallingState();
   const { camera } = useCameraState();
   const { microphone } = useMicrophoneState();
+  const { isScreenSharing } = useScreenShareState();
   
   const viewerCount = Math.max(0, participants.length -1); // Exclude the host
   const isCallJoined = callingState === CallingState.JOINED;
@@ -62,7 +64,7 @@ function LivenetStudioUI() {
         // We only update if the new viewerCount is different from what's in Firestore
         // to avoid unnecessary writes.
         if (broadcastData?.viewerCount !== viewerCount) {
-             setDoc(broadcastDocRef, { viewerCount: viewerCount }, { merge: true });
+             updateDoc(broadcastDocRef, { viewerCount: viewerCount });
         }
     }
   }, [viewerCount, broadcastDocRef, isCallJoined, broadcastData?.viewerCount]);
@@ -107,17 +109,37 @@ function LivenetStudioUI() {
     }
   };
 
+  const handleToggleScreenShare = async () => {
+    if (!call || !call.screenShare) return;
+    const nextIsScreenSharing = !isScreenSharing;
+    try {
+        await call.screenShare.toggle();
+        if (broadcastDocRef) {
+            updateDoc(broadcastDocRef, { 'streamDetails.isScreenSharing': nextIsScreenSharing });
+        }
+    } catch (error) {
+        console.error('Error toggling screen share:', error);
+        toast({
+            variant: 'destructive',
+            title: 'Screen Share Failed',
+            description: 'Could not change screen sharing state.',
+        });
+        if (broadcastDocRef) {
+            updateDoc(broadcastDocRef, { 'streamDetails.isScreenSharing': isScreenSharing }); // Revert on error
+        }
+    }
+  };
+
   const handleEndStream = async () => {
     // Client-side attempt to end the stream. The webhook is the source of truth.
     if (broadcastDocRef) {
-        await setDoc(broadcastDocRef, { isLive: false }, { merge: true });
+        await updateDoc(broadcastDocRef, { isLive: false });
     }
-    if (call) {
-        await call.leave();
-    }
+    // We navigate away, and the unmount of the LivenetWrapper component will handle leaving the call.
+    // This prevents a "Cannot leave call that has already been left" error.
     router.push('/');
   };
-
+  
   const handleReaction = (emoji: React.ReactNode) => {
     const newReaction: Reaction = {
         id: Date.now() + Math.random(),
@@ -208,7 +230,7 @@ function LivenetStudioUI() {
             onEndStream={handleEndStream}
         >
         </StreamHeader>
-        
+
         <StreamControls 
             onToggleVideo={handleToggleVideo}
             onToggleMic={handleToggleMic}
@@ -221,12 +243,15 @@ function LivenetStudioUI() {
             isFlippingCamera={isFlippingCamera}
         />
 
-        <ChatPanel 
-            comments={comments}
-            isVisible={true}
-            onSendMessage={handleSendMessage}
-            onReaction={handleReaction}
-        />
+        <div className="absolute bottom-0 left-0 p-4 pb-4 md:pb-4 w-full md:w-96 flex flex-col justify-end max-h-[50%] pointer-events-none">
+
+          <ChatPanel 
+              comments={comments}
+              isVisible={isChatVisible}
+              onSendMessage={handleSendMessage}
+              onReaction={handleReaction}
+          />
+        </div>
     </div>
   );
 }

@@ -29,11 +29,64 @@ function HostVideoPlayer({ broadcast }: { broadcast: BroadcastData }) {
     const { useParticipants, useCameraState } = useCallStateHooks();
     const participants = useParticipants();
     const hostParticipant = participants.find(p => p.isLocalParticipant);
-
-    // Get camera state to determine if we should mirror the video
     const { camera } = useCameraState();
-    const isMirrored = camera?.facingMode === 'user';
-    
+
+    // Local state for more robust facing mode detection and orientation
+    const [realFacingMode, setRealFacingMode] = useState<string | undefined>(undefined);
+    const [rotation, setRotation] = useState(0);
+
+    // 1. Detect Facing Mode directly from the track for accuracy
+    useEffect(() => {
+        if (!hostParticipant?.videoStream) return;
+
+        const checkFacingMode = () => {
+            const videoTrack = hostParticipant.videoStream?.getVideoTracks()[0];
+            if (videoTrack) {
+                const settings = videoTrack.getSettings();
+                // If the browser provides facingMode, use it. 
+                if (settings.facingMode) {
+                    setRealFacingMode(settings.facingMode);
+                }
+            }
+        };
+
+        checkFacingMode();
+        // Re-check periodically or when tracks change (simple polling for robustness during flips)
+        const interval = setInterval(checkFacingMode, 1000);
+        return () => clearInterval(interval);
+    }, [hostParticipant?.videoStream, camera?.facingMode]);
+
+    // 2. Handle Orientation (Fix "Upside Down" issues)
+    useEffect(() => {
+        const handleOrientation = () => {
+            // Modern API
+            if (screen.orientation) {
+                const angle = screen.orientation.angle;
+                // If device is upside down (180), we might need to counter-rotate 
+                // depending on how the browser handles the camera stream in locked-portrait PWA.
+                // For now, we store the angle to apply fixes if needed.
+                setRotation(angle); 
+            } else if (typeof window !== 'undefined' && 'orientation' in window) {
+                 // Deprecated fallback
+                 setRotation(Number(window.orientation) || 0);
+            }
+        };
+
+        window.addEventListener('orientationchange', handleOrientation);
+        // Initial check
+        handleOrientation();
+        return () => window.removeEventListener('orientationchange', handleOrientation);
+    }, []);
+
+    // Logic: Default to 'user' (mirror) if unknown, but strictly NO mirror if 'environment'
+    // This solves the "rear camera is mirrored" bug.
+    const effectiveFacingMode = realFacingMode || camera?.facingMode || 'user';
+    const isMirrored = effectiveFacingMode === 'user';
+
+    // Style transform for rotation compensation
+    // If the device is upside down (180), we rotate the container to correct the view
+    const rotationStyle = rotation === 180 ? { transform: 'rotate(180deg)' } : {};
+
     if (!hostParticipant) {
         return (
             <div className="absolute inset-0 w-full h-full bg-black flex items-center justify-center">
@@ -44,7 +97,10 @@ function HostVideoPlayer({ broadcast }: { broadcast: BroadcastData }) {
     }
     
     return (
-        <div className="absolute inset-0 w-full h-full bg-black host-video-container">
+        <div 
+            className="absolute inset-0 w-full h-full bg-black host-video-container"
+            style={rotationStyle}
+        >
             <ParticipantView 
                 participant={hostParticipant} 
                 ParticipantViewUI={null} 

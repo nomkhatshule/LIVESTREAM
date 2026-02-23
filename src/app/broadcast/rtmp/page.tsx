@@ -6,13 +6,14 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Copy, Check, ArrowLeft } from 'lucide-react';
-import { doc } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import type { BroadcastData } from '@/lib/types';
 import Link from 'next/link';
+import { StreamVideoClient } from '@stream-io/video-react-sdk';
 
 function RtmpDetailsPageComponent() {
   const router = useRouter();
@@ -24,6 +25,7 @@ function RtmpDetailsPageComponent() {
   
   const [streamToken, setStreamToken] = useState<string | null>(null);
   const [isLoadingToken, setIsLoadingToken] = useState(true);
+  const [isCreatingCall, setIsCreatingCall] = useState(false);
   const [copiedKey, setCopiedKey] = useState(false);
   const [copiedUrl, setCopiedUrl] = useState(false);
   
@@ -35,35 +37,61 @@ function RtmpDetailsPageComponent() {
   const { data: broadcastData, isLoading: isBroadcastLoading } = useDoc<BroadcastData>(broadcastDocRef);
 
   useEffect(() => {
-    if (isUserLoading || !user) return;
+    if (isUserLoading || !user || !broadcastId) return;
     
-    // Once user is loaded, fetch the stream token
-    setIsLoadingToken(true);
-    fetch('/api/stream/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: user.uid, capabilities: ['ingest'] }),
-    })
-    .then(res => {
-      if (!res.ok) throw new Error('Failed to fetch stream token.');
-      return res.json();
-    })
-    .then(data => {
-      setStreamToken(data.token);
-    })
-    .catch(error => {
-      console.error(error);
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Could not generate your stream key. Please try again.',
-      });
-      router.push('/broadcast/create');
-    })
-    .finally(() => {
-      setIsLoadingToken(false);
-    });
-  }, [user, isUserLoading, router, toast]);
+    const initRtmpCall = async () => {
+      setIsLoadingToken(true);
+      try {
+        // 1. Fetch the stream token
+        const res = await fetch('/api/stream/token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: user.uid }),
+        });
+        
+        if (!res.ok) throw new Error('Failed to fetch stream token.');
+        const { token } = await res.json();
+        setStreamToken(token);
+
+        // 2. Create the call on Stream's servers so it's ready for ingestion
+        setIsCreatingCall(true);
+        const apiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY || '';
+        const videoClient = new StreamVideoClient({
+            apiKey,
+            user: { id: user.uid },
+            token,
+        });
+
+        const call = videoClient.call('livestream', broadcastId);
+        await call.getOrCreate();
+        
+        // Mark as live in Firebase since we are ready to receive the stream
+        if (broadcastDocRef) {
+          await setDoc(broadcastDocRef, { 
+            isLive: true,
+            streamStartedAt: serverTimestamp() 
+          }, { merge: true });
+        }
+
+        // Cleanup client connection
+        await videoClient.disconnectUser();
+        
+      } catch (error: any) {
+        console.error(error);
+        toast({
+          variant: 'destructive',
+          title: 'Setup Error',
+          description: error.message || 'Could not prepare your stream. Please try again.',
+        });
+        router.push('/broadcast/create');
+      } finally {
+        setIsLoadingToken(false);
+        setIsCreatingCall(false);
+      }
+    };
+
+    initRtmpCall();
+  }, [user, isUserLoading, broadcastId, broadcastDocRef, router, toast]);
 
   // Security check: ensure the current user is the host
   useEffect(() => {
@@ -85,15 +113,19 @@ function RtmpDetailsPageComponent() {
     toast({ title: 'Copied to clipboard!' });
   };
   
-  const isLoading = isUserLoading || isBroadcastLoading || isLoadingToken;
+  const isLoading = isUserLoading || isBroadcastLoading || isLoadingToken || isCreatingCall;
   const rtmpUrl = 'rtmps://global.v2.stream-io-video.com:443/live';
-  const streamKey = streamToken ? `livestream:${broadcastId}?key=${streamToken}` : '';
+  
+  // FIXED: The stream key MUST follow this format for GetStream Video
+  const apiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY || '';
+  const streamKey = streamToken ? `livestream:${broadcastId}?key=${apiKey}&token=${streamToken}` : '';
 
   if (isLoading) {
       return (
-        <div className="flex h-screen w-full items-center justify-center bg-background text-foreground">
-            <Loader2 className="mr-2 h-8 w-8 animate-spin" />
-            <p>Generating your stream credentials...</p>
+        <div className="flex h-screen w-full flex-col items-center justify-center bg-background text-foreground">
+            <Loader2 className="mb-4 h-12 w-12 animate-spin text-primary" />
+            <h2 className="text-xl font-semibold">Preparing Your Stream...</h2>
+            <p className="text-muted-foreground mt-2">Initializing the broadcast channel on our servers.</p>
         </div>
       )
   }
@@ -105,9 +137,9 @@ function RtmpDetailsPageComponent() {
         </Button>
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl font-headline">RTMP Stream Setup</CardTitle>
+          <CardTitle className="text-2xl font-headline">GoPro / External Stream Setup</CardTitle>
           <CardDescription>
-            Use these credentials in your streaming software (e.g., OBS, Streamlabs) to go live.
+            Use these credentials in your GoPro Quik app or OBS to go live.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -143,8 +175,8 @@ function RtmpDetailsPageComponent() {
             </p>
           </div>
           <div className="text-center pt-4">
-            <p className="text-lg font-semibold">Waiting for connection from OBS...</p>
-            <p className="text-muted-foreground">Once you start streaming, your broadcast will go live automatically.</p>
+            <p className="text-lg font-semibold">Waiting for connection...</p>
+            <p className="text-muted-foreground">Once you start streaming from your GoPro, your broadcast will go live automatically.</p>
             <Loader2 className="mx-auto mt-4 h-8 w-8 animate-spin text-primary" />
           </div>
         </CardContent>
