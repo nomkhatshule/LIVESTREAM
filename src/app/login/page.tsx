@@ -13,7 +13,7 @@ import Image from 'next/image';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Suspense } from 'react';
 import { Button } from '@/components/ui/button';
-import { X } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 
 function AuthPageContent() {
   const searchParams = useSearchParams();
@@ -34,10 +34,11 @@ function AuthPageContent() {
         <Button
             variant="ghost"
             size="icon"
-            className="absolute top-4 right-4 h-8 w-8 rounded-full border border-white/50 text-white hover:bg-white/20"
+            className="absolute top-4 left-4 h-8 w-8 rounded-full border border-white/50 text-white hover:bg-white/20"
             onClick={() => router.push('/landing')}
+            title="Back to Home"
         >
-            <X className="h-5 w-5" />
+            <ArrowLeft className="h-5 w-5" />
         </Button>
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">

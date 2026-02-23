@@ -8,6 +8,7 @@ import { FirebaseClientProvider } from '@/firebase';
 import { ChatProvider } from '@/components/chat/ChatProvider';
 import Footer from '@/components/layout/footer';
 import { ThemeProvider } from '@/components/theme-provider';
+import CookieBanner from '@/components/layout/CookieBanner';
 
 export const metadata: Metadata = {
   title: 'LIVENET',
@@ -40,6 +41,7 @@ export default function RootLayout({
                 <Footer />
               </div>
               <Toaster />
+              <CookieBanner />
             </ChatProvider>
           </FirebaseClientProvider>
         </ThemeProvider>

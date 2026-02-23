@@ -13,7 +13,8 @@ interface TextProps {
 }
 
 export const StaggeredLetterReveal = ({ text, className, delay = 0, duration = 0.5, once = true }: TextProps) => {
-  const letters = text.split("");
+  const words = text.split(" ");
+  
   const container: Variants = {
     hidden: { opacity: 0 },
     visible: (i: number = 1) => ({
@@ -52,10 +53,18 @@ export const StaggeredLetterReveal = ({ text, className, delay = 0, duration = 0
       animate={isInView ? "visible" : "hidden"}
       className={cn("flex flex-wrap perspective-1000", className)}
     >
-      {letters.map((letter, index) => (
-        <motion.span key={index} variants={child} className="inline-block origin-bottom">
-          {letter === " " ? "\u00A0" : letter}
-        </motion.span>
+      {words.map((word, wordIndex) => (
+        <span key={wordIndex} className="inline-flex whitespace-nowrap mr-[0.2em] last:mr-0">
+          {word.split("").map((letter, letterIndex) => (
+            <motion.span 
+              key={`${wordIndex}-${letterIndex}`} 
+              variants={child} 
+              className="inline-block origin-bottom"
+            >
+              {letter}
+            </motion.span>
+          ))}
+        </span>
       ))}
     </motion.h1>
   );
@@ -185,19 +194,24 @@ export const BlurIn = ({ text, className, delay = 0, duration = 1, once = true }
 export const GradualSpacing = ({ text, className, delay = 0, once = true }: TextProps) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once });
+  const words = text.split(" ");
 
   return (
-    <div ref={ref} className="flex justify-center space-x-1">
-      {text.split("").map((char, i) => (
-        <motion.span
-          key={i}
-          initial={{ opacity: 0, x: -18 }}
-          animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -18 }}
-          transition={{ duration: 0.5, delay: delay + i * 0.03 }}
-          className={cn("inline-block", className)}
-        >
-          {char === " " ? "\u00A0" : char}
-        </motion.span>
+    <div ref={ref} className="flex flex-wrap justify-center">
+      {words.map((word, wordIndex) => (
+        <span key={wordIndex} className="inline-flex whitespace-nowrap mr-[0.2em] last:mr-0">
+          {word.split("").map((char, i) => (
+            <motion.span
+              key={`${wordIndex}-${i}`}
+              initial={{ opacity: 0, x: -18 }}
+              animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -18 }}
+              transition={{ duration: 0.5, delay: delay + (wordIndex * 5 + i) * 0.03 }}
+              className={cn("inline-block", className)}
+            >
+              {char}
+            </motion.span>
+          ))}
+        </span>
       ))}
     </div>
   );

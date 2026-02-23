@@ -40,6 +40,7 @@ export default function Footer() {
             <ul className="space-y-3">
               <li><Link href="/privacy-policy" className="text-sm text-stone-300 hover:text-white">Privacy Policy</Link></li>
               <li><Link href="/terms-of-service" className="text-sm text-stone-300 hover:text-white">Terms of Service</Link></li>
+              <li><Link href="/cookie-policy" className="text-sm text-stone-300 hover:text-white">Cookie Policy</Link></li>
             </ul>
           </div>
         </div>

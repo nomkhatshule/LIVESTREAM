@@ -8,6 +8,7 @@ import LandingHeader from '@/components/landing/header';
 import AboutSection from '@/components/landing/about-section';
 import ProductDemo from '@/components/landing/product-demo';
 import ManifestoSection from '@/components/landing/ManifestoSection';
+import RealityValues from '@/components/landing/RealityValues';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { StaggeredLetterReveal, MetadataLabel, LivePulse, TechnicalHeader, HUDCorners } from '@/components/landing/typography-effects';
 
@@ -50,10 +51,17 @@ export default function LandingPage() {
             >
               <LivePulse />
             </motion.div>
-            <StaggeredLetterReveal 
-              text="Share Every Moment" 
-              className="text-4xl sm:text-6xl md:text-[10rem] font-black font-headline text-white mb-6 md:mb-8 tracking-[calc(-0.06em)] leading-[0.85] animate-text-shimmer italic justify-center"
-            />
+            <div className="flex flex-col items-center">
+              <StaggeredLetterReveal 
+                text="Share Every" 
+                className="text-4xl sm:text-6xl md:text-[10rem] font-black font-headline text-white tracking-[calc(-0.06em)] leading-[0.8] animate-text-shimmer italic justify-center"
+              />
+              <StaggeredLetterReveal 
+                text="Moment" 
+                className="text-4xl sm:text-6xl md:text-[10rem] font-black font-headline text-white mb-6 md:mb-8 tracking-[calc(-0.06em)] leading-[0.8] animate-text-shimmer italic justify-center"
+                delay={0.2}
+              />
+            </div>
             <motion.p 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -94,7 +102,7 @@ export default function LandingPage() {
       
       <ProductDemo />
 
-      <section id="reality" className="relative h-screen w-full bg-black flex flex-col items-center justify-center text-center p-4 md:p-8 overflow-hidden">
+      <section id="reality" className="relative min-h-screen w-full bg-black flex flex-col items-center justify-center text-center p-4 md:p-8 overflow-hidden py-24 md:py-32">
         <motion.div
             initial={{ scale: 1.2 }}
             whileInView={{ scale: 1 }}
@@ -111,10 +119,11 @@ export default function LandingPage() {
         <div className="absolute inset-0 bg-black/40 z-10" />
         <div className="relative z-10 max-w-6xl w-full">
              <TechnicalHeader 
-                metadata="Location: New York City / 40.7128° N"
+                metadata="Location: Global / 0.0000° N"
                 title="REALITY SOCIAL"
-                subtitle="Built by the people, for the people. A new era of connection where every street corner is a story waiting to be told."
+                subtitle="Built for the people, not the influencers. A new era of connection focused on movement, adventure, and pure inspiration."
              />
+             <RealityValues />
         </div>
       </section>
 
