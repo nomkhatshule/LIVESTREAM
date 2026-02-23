@@ -3,9 +3,9 @@
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { useUser, useDoc, useFirestore, useMemoFirebase, useUserDocument, useStorage } from '@/firebase';
+import { useUser, useDoc, useFirestore, useMemoFirebase, useUserDocument, useStorage, updateDocumentNonBlocking } from '@/firebase';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { doc, query, orderBy, limit, collection, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { doc, query, orderBy, limit, collection, serverTimestamp } from 'firebase/firestore';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useCollection } from '@/firebase';
 import {
@@ -64,7 +64,7 @@ function LivenetStudioUI() {
         // We only update if the new viewerCount is different from what's in Firestore
         // to avoid unnecessary writes.
         if (broadcastData?.viewerCount !== viewerCount) {
-             updateDoc(broadcastDocRef, { viewerCount: viewerCount });
+             updateDocumentNonBlocking(broadcastDocRef, { viewerCount: viewerCount });
         }
     }
   }, [viewerCount, broadcastDocRef, isCallJoined, broadcastData?.viewerCount]);
@@ -115,7 +115,7 @@ function LivenetStudioUI() {
     try {
         await call.screenShare.toggle();
         if (broadcastDocRef) {
-            updateDoc(broadcastDocRef, { 'streamDetails.isScreenSharing': nextIsScreenSharing });
+            updateDocumentNonBlocking(broadcastDocRef, { 'streamDetails.isScreenSharing': nextIsScreenSharing });
         }
     } catch (error) {
         console.error('Error toggling screen share:', error);
@@ -125,18 +125,18 @@ function LivenetStudioUI() {
             description: 'Could not change screen sharing state.',
         });
         if (broadcastDocRef) {
-            updateDoc(broadcastDocRef, { 'streamDetails.isScreenSharing': isScreenSharing }); // Revert on error
+            updateDocumentNonBlocking(broadcastDocRef, { 'streamDetails.isScreenSharing': isScreenSharing }); // Revert on error
         }
     }
   };
 
-  const handleEndStream = async () => {
+  const handleEndStream = () => {
     // Client-side attempt to end the stream. The webhook is the source of truth.
     if (broadcastDocRef) {
-        await updateDoc(broadcastDocRef, { isLive: false });
+        // This now happens in the background without blocking navigation
+        updateDocumentNonBlocking(broadcastDocRef, { isLive: false });
     }
     // We navigate away, and the unmount of the LivenetWrapper component will handle leaving the call.
-    // This prevents a "Cannot leave call that has already been left" error.
     router.push('/');
   };
   
@@ -243,7 +243,7 @@ function LivenetStudioUI() {
             isFlippingCamera={isFlippingCamera}
         />
 
-        <div className="absolute bottom-0 left-0 p-4 pb-4 md:pb-4 w-full md:w-96 flex flex-col justify-end max-h-[50%] pointer-events-none">
+        <div className="absolute bottom-0 left-0 p-4 pb-4 md:pb-2 w-full md:w-96 flex flex-col justify-end max-h-[50%] pointer-events-none">
 
           <ChatPanel 
               comments={comments}
