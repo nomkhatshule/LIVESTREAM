@@ -40,49 +40,52 @@ export default function LandingPage() {
         <div className="absolute inset-0 bg-black/30 z-10" />
         <motion.div 
           style={{ y: yHero, opacity: opacityHero }}
-          className="relative z-20 flex flex-col items-center max-w-7xl w-full"
+          className="relative z-20 flex flex-col items-center w-full mt-12 md:mt-16"
         >
-          <HUDCorners>
-            <motion.div 
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.5 }}
-              className="mb-6 md:mb-10 flex justify-center"
-            >
-              <LivePulse />
-            </motion.div>
-            <div className="flex flex-col items-center">
-              <StaggeredLetterReveal 
-                text="Share Every" 
-                className="text-4xl sm:text-6xl md:text-[10rem] font-black font-headline text-white tracking-[calc(-0.06em)] leading-[0.8] animate-text-shimmer italic justify-center"
-              />
-              <StaggeredLetterReveal 
-                text="Moment" 
-                className="text-4xl sm:text-6xl md:text-[10rem] font-black font-headline text-white mb-6 md:mb-8 tracking-[calc(-0.06em)] leading-[0.8] animate-text-shimmer italic justify-center"
-                delay={0.2}
-              />
-            </div>
-            <motion.p 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 1.2 }}
-              className="text-base md:text-xl text-stone-300 max-w-3xl mb-8 md:mb-12 font-light tracking-tight leading-relaxed px-2 md:px-4 mx-auto"
-            >
-              Go outside and be adventurous. Join a global community of explorers streaming their real-world adventures live from city streets to mountain peaks.
-            </motion.p>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 1.6 }}
-              className="flex justify-center"
-            >
-              <Button size="lg" className="bg-white text-black hover:bg-stone-200 h-14 md:h-16 px-8 md:px-12 rounded-none text-[10px] md:text-sm font-bold uppercase tracking-[0.3em] transition-all hover:scale-105 active:scale-95 group border border-white" asChild>
-                <Link href="/feed">
-                  Start Your Journey
-                </Link>
-              </Button>
-            </motion.div>
-          </HUDCorners>
+          <div className="w-fit mx-auto">
+            <HUDCorners>
+              <motion.div 
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.5 }}
+                className="mb-4 md:mb-6 flex justify-center"
+              >
+                <LivePulse />
+              </motion.div>
+              <div className="flex flex-col items-center">
+                <StaggeredLetterReveal 
+                  text="Share Every" 
+                  className="text-4xl sm:text-6xl md:text-[9rem] font-black font-headline text-white tracking-[calc(-0.06em)] leading-[0.8] animate-text-shimmer italic justify-center"
+                />
+                <StaggeredLetterReveal 
+                  text="Moment" 
+                  className="text-4xl sm:text-6xl md:text-[9rem] font-black font-headline text-white tracking-[calc(-0.06em)] leading-[0.8] animate-text-shimmer italic justify-center"
+                  delay={0.2}
+                />
+              </div>
+            </HUDCorners>
+          </div>
+
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 1.2 }}
+            className="text-base md:text-lg text-stone-300 max-w-2xl mt-4 mb-6 md:mb-8 font-light tracking-tight leading-relaxed px-4 mx-auto"
+          >
+            Go outside and be adventurous. Join a global community of explorers streaming their real-world adventures live from city streets to mountain peaks.
+          </motion.p>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 1.6 }}
+            className="flex justify-center"
+          >
+            <Button size="lg" className="bg-white text-black hover:bg-stone-200 h-14 md:h-16 px-8 md:px-12 rounded-none text-[10px] md:text-sm font-bold uppercase tracking-[0.3em] transition-all hover:scale-105 active:scale-95 group border border-white" asChild>
+              <Link href="/feed">
+                Start Your Journey
+              </Link>
+            </Button>
+          </motion.div>
         </motion.div>
 
         {/* Floating Metadata for Hero */}
@@ -102,28 +105,53 @@ export default function LandingPage() {
       
       <ProductDemo />
 
-      <section id="reality" className="relative min-h-screen w-full bg-black flex flex-col items-center justify-center text-center p-4 md:p-8 overflow-hidden py-24 md:py-32">
-        <motion.div
-            initial={{ scale: 1.2 }}
-            whileInView={{ scale: 1 }}
-            transition={{ duration: 1.5 }}
-            className="absolute inset-0"
-        >
-            <Image
-                src="https://cdn.pixabay.com/photo/2016/08/21/20/13/time-square-1610667_1280.jpg"
-                alt="City street at night"
-                fill
-                className="object-cover opacity-60"
+      <section id="reality" className="relative min-h-screen w-full bg-black flex flex-col items-center justify-center p-0 overflow-hidden py-32 md:py-48">
+        {/* Architectural Background */}
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="https://images.unsplash.com/photo-1548142813-c348350df52b"
+            alt="Gotham Architectural Style"
+            fill
+            className="object-cover opacity-20 scale-105 saturate-0 group-hover:scale-100 transition-all duration-3000 ease-out"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black via-transparent to-black" />
+        </div>
+        
+        <div className="relative z-10 w-full">
+          <div className="max-w-7xl mx-auto px-6 mb-24 md:mb-40 text-center">
+            <motion.span 
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              className="font-code text-primary text-xs md:text-sm tracking-[0.8em] uppercase block mb-6 md:mb-8 font-bold"
+            >
+              The Pillars of Truth
+            </motion.span>
+            
+            <div className="flex flex-col items-center gap-6">
+              <StaggeredLetterReveal 
+                text="REALITY SOCIAL"
+                className="text-7xl sm:text-[10rem] md:text-[14rem] font-black font-headline text-white tracking-[calc(-0.06em)] leading-[0.75] uppercase text-center drop-shadow-2xl"
+              />
+            </div>
+            
+            <motion.div
+              initial={{ width: 0 }}
+              whileInView={{ width: "200px" }}
+              className="h-1 bg-white/20 mx-auto mt-12 mb-12"
             />
-        </motion.div>
-        <div className="absolute inset-0 bg-black/40 z-10" />
-        <div className="relative z-10 max-w-6xl w-full">
-             <TechnicalHeader 
-                metadata="Location: Global / 0.0000° N"
-                title="REALITY SOCIAL"
-                subtitle="Built for the people, not the influencers. A new era of connection focused on movement, adventure, and pure inspiration."
-             />
-             <RealityValues />
+            
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="text-xl md:text-4xl text-stone-300 max-w-4xl mx-auto font-light tracking-tighter leading-tight italic"
+            >
+              "We aren't here for the fame. We are here for the journey."
+            </motion.p>
+          </div>
+          
+          <RealityValues />
         </div>
       </section>
 

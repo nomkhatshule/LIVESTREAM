@@ -54,12 +54,12 @@ export const StaggeredLetterReveal = ({ text, className, delay = 0, duration = 0
       className={cn("flex flex-wrap perspective-1000", className)}
     >
       {words.map((word, wordIndex) => (
-        <span key={wordIndex} className="inline-flex whitespace-nowrap mr-[0.2em] last:mr-0">
+        <span key={wordIndex} className="inline-flex whitespace-nowrap mr-[0.2em] last:mr-0 pr-[0.1em]">
           {word.split("").map((letter, letterIndex) => (
             <motion.span 
               key={`${wordIndex}-${letterIndex}`} 
               variants={child} 
-              className="inline-block origin-bottom"
+              className="inline-block origin-bottom pr-[0.02em]"
             >
               {letter}
             </motion.span>
@@ -140,11 +140,11 @@ export const TechnicalHeader = ({ title, subtitle, metadata }: { title: string; 
 
 export const HUDCorners = ({ children }: { children: React.ReactNode }) => {
     return (
-        <div className="relative p-6 md:p-12">
-            <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-white/20" />
-            <div className="absolute top-0 right-0 w-4 h-4 border-t border-r border-white/20" />
-            <div className="absolute bottom-0 left-0 w-4 h-4 border-b border-l border-white/20" />
-            <div className="absolute bottom-0 right-0 w-4 h-4 border-b border-r border-white/20" />
+        <div className="relative p-8 md:p-16">
+            <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-white/60 shadow-[0_0_15px_rgba(255,255,255,0.2)]" />
+            <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-white/60 shadow-[0_0_15px_rgba(255,255,255,0.2)]" />
+            <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-white/60 shadow-[0_0_15px_rgba(255,255,255,0.2)]" />
+            <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-white/60 shadow-[0_0_15px_rgba(255,255,255,0.2)]" />
             {children}
         </div>
     );
@@ -157,9 +157,9 @@ export const MetadataLabel = ({ text, delay = 0 }: { text: string; delay?: numbe
       whileInView={{ opacity: 1, x: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.6, delay }}
-      className="flex items-center gap-2 font-code text-[10px] uppercase tracking-[0.2em] text-primary/60 mb-2"
+      className="flex items-center gap-2 font-code text-[10px] uppercase tracking-[0.2em] text-primary mb-2"
     >
-      <div className="w-1 h-1 bg-primary rounded-full animate-pulse" />
+      <div className="w-1.5 h-1.5 bg-primary rounded-full shadow-[0_0_8px_rgba(var(--primary),0.5)] animate-pulse" />
       {text}
     </motion.div>
   );
@@ -167,9 +167,9 @@ export const MetadataLabel = ({ text, delay = 0 }: { text: string; delay?: numbe
 
 export const LivePulse = () => {
   return (
-    <div className="flex items-center gap-3 px-4 py-1.5 bg-red-500/5 border border-red-500/10 rounded-full backdrop-blur-sm">
-      <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
-      <span className="font-code text-[10px] font-bold text-red-500 tracking-[0.2em] uppercase">Signal Active</span>
+    <div className="flex items-center gap-3 px-5 py-2 bg-red-500/10 border border-red-500/40 rounded-full backdrop-blur-md shadow-[0_0_20px_rgba(239,68,68,0.15)]">
+      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_12px_rgba(239,68,68,0.8)]" />
+      <span className="font-code text-[11px] font-black text-red-500 tracking-[0.25em] uppercase">Signal Active</span>
     </div>
   );
 };

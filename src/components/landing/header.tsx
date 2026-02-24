@@ -17,10 +17,11 @@ export default function LandingHeader() {
         </div>
         
         {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center gap-1">
+        <div className="hidden md:flex items-center gap-2">
           <Link href="#features" className="px-5 py-2 rounded-full text-[11px] font-bold uppercase tracking-[0.2em] transition-all duration-300 text-white/60 hover:text-white hover:bg-white/5">
             Features
           </Link>
+          <div className="w-[1px] h-4 bg-white/10" />
           <Link href="#demo" className="px-5 py-2 rounded-full text-[11px] font-bold uppercase tracking-[0.2em] transition-all duration-300 text-white/60 hover:text-white hover:bg-white/5">
             Demo
           </Link>
@@ -55,6 +56,7 @@ export default function LandingHeader() {
                         </Link>
                         <div className="flex flex-col items-center gap-6">
                           <Link href="#features" className="text-sm font-bold uppercase tracking-[0.3em] text-white/60 hover:text-white">Features</Link>
+                          <div className="w-24 h-[1px] bg-white/10" />
                           <Link href="#demo" className="text-sm font-bold uppercase tracking-[0.3em] text-white/60 hover:text-white">Demo</Link>
                         </div>
                         <div className="flex flex-col gap-4 w-full px-12 pt-8">
