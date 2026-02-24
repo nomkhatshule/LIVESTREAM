@@ -1,4 +1,3 @@
-
 'use client';
 
 import { motion, useInView, Variants } from 'framer-motion';
@@ -55,14 +54,14 @@ export const StaggeredLetterReveal = ({ text, className, delay = 0, duration = 0
       className="flex flex-wrap justify-center gap-x-[0.1em]"
     >
       {words.map((word, wordIndex) => (
-        <span key={wordIndex} className={cn("inline-flex whitespace-nowrap pb-1 px-1 overflow-visible", className)}>
+        <span key={wordIndex} className={cn("inline-flex whitespace-nowrap pb-1 px-1 md:px-1 overflow-visible", className)}>
           {word.split("").map((letter, letterIndex) => (
             <motion.span 
               key={`${wordIndex}-${letterIndex}`} 
               variants={child} 
               className="inline-block origin-bottom"
             >
-              {letter === " " ? "\u00A0" : letter}
+              {letter === " " ? " " : letter}
             </motion.span>
           ))}
         </span>
@@ -141,7 +140,7 @@ export const TechnicalHeader = ({ title, subtitle, metadata }: { title: string; 
 
 export const HUDCorners = ({ children }: { children: React.ReactNode }) => {
     return (
-        <div className="relative p-8 md:p-16">
+        <div className="relative p-8 md:p-12">
             <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-white/60" />
             <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-white/60" />
             <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-white/60" />
@@ -168,9 +167,9 @@ export const MetadataLabel = ({ text, delay = 0 }: { text: string; delay?: numbe
 
 export const LivePulse = () => {
   return (
-    <div className="flex items-center gap-3 px-5 py-2 bg-red-500/10 border border-red-500/40 rounded-full backdrop-blur-md shadow-[0_0_20px_rgba(239,68,68,0.15)]">
-      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_12px_rgba(239,68,68,0.8)]" />
-      <span className="font-code text-[11px] font-black text-red-500 tracking-[0.25em] uppercase">Signal Active</span>
+    <div className="flex items-center gap-2 md:gap-3 px-4 py-1.5 md:px-5 md:py-2 bg-red-500/10 border border-red-500/40 rounded-full backdrop-blur-md shadow-[0_0_20px_rgba(239,68,68,0.15)]">
+      <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_12px_rgba(239,68,68,0.8)]" />
+      <span className="font-code text-[9px] md:text-[11px] font-black text-red-500 tracking-[0.25em] uppercase">Signal Active</span>
     </div>
   );
 };
@@ -209,7 +208,7 @@ export const GradualSpacing = ({ text, className, delay = 0, once = true }: Text
               transition={{ duration: 0.5, delay: delay + (wordIndex * 5 + i) * 0.03 }}
               className="inline-block"
             >
-              {char === " " ? "\u00A0" : char}
+              {char === " " ? " " : char}
             </motion.span>
           ))}
         </span>
