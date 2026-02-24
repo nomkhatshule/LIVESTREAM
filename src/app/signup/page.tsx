@@ -1,11 +1,10 @@
+
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-// This page just redirects to the main login page with a parameter
-// to show the signup form.
-export default function SignupPage() {
+function SignupRedirector() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -17,4 +16,14 @@ export default function SignupPage() {
   }, [router, searchParams]);
 
   return null; // Render nothing while redirecting
+}
+
+// This page just redirects to the main login page with a parameter
+// to show the signup form.
+export default function SignupPage() {
+  return (
+    <Suspense fallback={null}>
+        <SignupRedirector />
+    </Suspense>
+  );
 }
