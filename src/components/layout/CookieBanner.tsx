@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -11,21 +10,35 @@ export default function CookieBanner() {
     const [isVisible, setIsVisible] = useState(false);
 
     useEffect(() => {
-        const consent = localStorage.getItem('livenet-cookie-consent');
-        if (!consent) {
-            const timer = setTimeout(() => setIsVisible(true), 1500);
-            return () => clearTimeout(timer);
+        // We use a try-catch block in case localStorage is disabled (e.g., in private browsing).
+        try {
+            const consent = localStorage.getItem('livenet-cookie-consent');
+            // We only want to show the banner if no choice has been made yet.
+            if (consent === null) {
+                // Removed the timeout to show the banner immediately if needed.
+                setIsVisible(true);
+            }
+        } catch (error) {
+            console.error("Could not access localStorage:", error);
         }
-    }, []);
+    }, []); // Empty dependency array ensures this runs once on the client.
 
     const handleAccept = () => {
-        localStorage.setItem('livenet-cookie-consent', 'accepted');
-        setIsVisible(false);
+        try {
+            localStorage.setItem('livenet-cookie-consent', 'accepted');
+            setIsVisible(false);
+        } catch (error) {
+            console.error("Could not write to localStorage:", error);
+        }
     };
 
     const handleDecline = () => {
-        localStorage.setItem('livenet-cookie-consent', 'declined');
-        setIsVisible(false);
+        try {
+            localStorage.setItem('livenet-cookie-consent', 'declined');
+            setIsVisible(false);
+        } catch (error) {
+            console.error("Could not write to localStorage:", error);
+        }
     };
 
     return (
