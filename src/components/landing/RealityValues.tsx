@@ -47,19 +47,19 @@ export default function RealityValues() {
                 <InstitutionalPillar 
                     number="I"
                     title="THE DOCTRINE OF MOTION"
-                    description="LIVENET mandate movement.  We are a platform dedicated to the journey, capturing every step from the city sidewalk to the mountain peak. We are a community defined by movement and adventure."
+                    description="LIVENET mandate movement. We are a platform dedicated to the journey, capturing every step from the city sidewalk to the mountain peak. We are a community defined by movement and adventure."
                     delay={0.2}
                 />
                 <InstitutionalPillar 
                     number="II"
                     title="THE PURITY OF REALITY"
-                    description="LIVENET is a platform for radical authenticity. We empower bold individuals to share their unscripted stories with nothing more than the device in their pockets. We are championing the authentic truth of the moment through live streaming."
+                    description="LIVENET is a platform for radical authenticity. We empower bold individuals to share their unscripted stories with nothing more than the device in their pockets. We are championing the authentic truth of the moment trough live streaming."
                     delay={0.4}
                 />
                 <InstitutionalPillar 
                     number="III"
                     title="THE CHASE OF INTENT"
-                    description="We reject the incentive. No big checks, no artificial growth. We stream to fulfill the bucket list, to conquer the dream, and to inspire the next explorer for the sheer fucks of it."
+                    description="Stream to conquer the bucket list, chase the dream, and inspire the next explorer to stay bold and keep their inner child alive. Not for the incentives. Not for big checks. No artificial growth."
                     delay={0.6}
                 />
             </div>
