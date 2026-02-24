@@ -141,10 +141,10 @@ export const TechnicalHeader = ({ title, subtitle, metadata }: { title: string; 
 export const HUDCorners = ({ children }: { children: React.ReactNode }) => {
     return (
         <div className="relative p-8 md:p-16">
-            <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-white/60 shadow-[0_0_15px_rgba(255,255,255,0.2)]" />
-            <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-white/60 shadow-[0_0_15px_rgba(255,255,255,0.2)]" />
-            <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-white/60 shadow-[0_0_15px_rgba(255,255,255,0.2)]" />
-            <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-white/60 shadow-[0_0_15px_rgba(255,255,255,0.2)]" />
+            <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-white/60" />
+            <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-white/60" />
+            <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-white/60" />
+            <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-white/60" />
             {children}
         </div>
     );
