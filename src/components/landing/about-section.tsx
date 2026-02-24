@@ -114,8 +114,8 @@ export default function AboutSection() {
             ))}
           </CarouselContent>
           <div className="hidden md:block">
-            <CarouselPrevious className="-left-12 border-stone-200 text-black hover:bg-stone-100" />
-            <CarouselNext className="-right-12 border-stone-200 text-black hover:bg-stone-100" />
+            <CarouselPrevious className="-left-12 border-stone-200 text-black hover:bg-stone-100 bg-white" />
+            <CarouselNext className="-right-12 border-stone-200 text-black hover:bg-stone-100 bg-white" />
           </div>
         </Carousel>
       </div>

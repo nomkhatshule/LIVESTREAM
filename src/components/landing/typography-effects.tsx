@@ -46,27 +46,27 @@ export const StaggeredLetterReveal = ({ text, className, delay = 0, duration = 0
   const isInView = useInView(ref, { once });
 
   return (
-    <motion.h1
+    <motion.div
       ref={ref}
       variants={container}
       initial="hidden"
       animate={isInView ? "visible" : "hidden"}
-      className={cn("flex flex-wrap perspective-1000", className)}
+      className="flex flex-wrap justify-center gap-x-[0.3em]"
     >
       {words.map((word, wordIndex) => (
-        <span key={wordIndex} className="inline-flex whitespace-nowrap mr-[0.2em] last:mr-0 pr-[0.1em]">
+        <span key={wordIndex} className={cn("inline-flex whitespace-nowrap pb-4 px-4 overflow-visible", className)}>
           {word.split("").map((letter, letterIndex) => (
             <motion.span 
               key={`${wordIndex}-${letterIndex}`} 
               variants={child} 
-              className="inline-block origin-bottom pr-[0.02em]"
+              className="inline-block origin-bottom"
             >
-              {letter}
+              {letter === " " ? "\u00A0" : letter}
             </motion.span>
           ))}
         </span>
       ))}
-    </motion.h1>
+    </motion.div>
   );
 };
 
@@ -197,18 +197,18 @@ export const GradualSpacing = ({ text, className, delay = 0, once = true }: Text
   const words = text.split(" ");
 
   return (
-    <div ref={ref} className="flex flex-wrap justify-center">
+    <div ref={ref} className={cn("flex flex-wrap justify-center gap-x-[0.35em]", className)}>
       {words.map((word, wordIndex) => (
-        <span key={wordIndex} className="inline-flex whitespace-nowrap mr-[0.2em] last:mr-0">
+        <span key={wordIndex} className="inline-flex whitespace-nowrap">
           {word.split("").map((char, i) => (
             <motion.span
               key={`${wordIndex}-${i}`}
               initial={{ opacity: 0, x: -18 }}
               animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -18 }}
               transition={{ duration: 0.5, delay: delay + (wordIndex * 5 + i) * 0.03 }}
-              className={cn("inline-block", className)}
+              className="inline-block"
             >
-              {char}
+              {char === " " ? "\u00A0" : char}
             </motion.span>
           ))}
         </span>

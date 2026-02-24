@@ -116,7 +116,7 @@ export default function ManifestoSection() {
                         <div className="w-24 md:w-32 h-[1px] bg-gradient-to-r from-transparent via-white/50 to-transparent" />
                         <GradualSpacing 
                             text="Be Adventurous"
-                            className="text-white text-4xl sm:text-5xl md:text-8xl font-headline italic font-black uppercase tracking-tighter"
+                            className="text-white text-4xl sm:text-5xl md:text-8xl font-headline italic font-black uppercase tracking-tight md:tracking-tight"
                         />
                         <div className="w-24 md:w-32 h-[1px] bg-gradient-to-r from-transparent via-white/50 to-transparent" />
                     </motion.div>

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -5,12 +6,14 @@ import { Clapperboard } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import LandingHeader from '@/components/landing/header';
-import AboutSection from '@/components/landing/about-section';
-import ProductDemo from '@/components/landing/product-demo';
-import ManifestoSection from '@/components/landing/ManifestoSection';
-import RealityValues from '@/components/landing/RealityValues';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { StaggeredLetterReveal, MetadataLabel, LivePulse, TechnicalHeader, HUDCorners } from '@/components/landing/typography-effects';
+import dynamic from 'next/dynamic';
+
+const AboutSection = dynamic(() => import('@/components/landing/about-section'), { ssr: false });
+const ProductDemo = dynamic(() => import('@/components/landing/product-demo'), { ssr: false });
+const ManifestoSection = dynamic(() => import('@/components/landing/ManifestoSection'), { ssr: false });
+const RealityValues = dynamic(() => import('@/components/landing/RealityValues'), { ssr: false });
 
 export default function LandingPage() {
   const { scrollY } = useScroll();
@@ -109,10 +112,10 @@ export default function LandingPage() {
         {/* Architectural Background */}
         <div className="absolute inset-0 z-0">
           <Image
-            src="https://images.unsplash.com/photo-1548142813-c348350df52b"
-            alt="Gotham Architectural Style"
+            src="https://images.unsplash.com/photo-1634643172134-c9e93dec8b87?q=80&w=2070&auto=format&fit=crop"
+            alt="Gotham Architectural Pillars"
             fill
-            className="object-cover opacity-20 scale-105 saturate-0 group-hover:scale-100 transition-all duration-3000 ease-out"
+            className="object-cover opacity-25 scale-105 saturate-0 transition-all duration-3000 ease-out brightness-[0.7] contrast-[1.2]"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black" />
           <div className="absolute inset-0 bg-gradient-to-r from-black via-transparent to-black" />
@@ -161,3 +164,4 @@ export default function LandingPage() {
     </>
   );
 }
+

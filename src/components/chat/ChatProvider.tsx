@@ -76,15 +76,6 @@ export function ChatProvider({ children }: ChatProviderProps) {
     };
   }, [user, isUserLoading, client, toast]);
 
-  if (isUserLoading) {
-    return (
-      <div className="h-screen w-full flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
-        <p className="ml-2">Loading...</p>
-      </div>
-    );
-  }
-
   return (
     <ChatContext.Provider value={{ client, channel: activeChannel, setActiveChannel }}>
         {children}
