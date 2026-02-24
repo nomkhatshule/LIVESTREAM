@@ -53,7 +53,7 @@ export default function RealityValues() {
                 <InstitutionalPillar 
                     number="II"
                     title="THE PURITY OF REALITY"
-                    description="We have abolished the influencer. No professional rigs, no faked lives, no synthetic engagement. Just the ordinary citizen, a single device, and the absolute truth of the moment."
+                    description="LIVENET is a platform for radical authenticity. We empower bold individuals to share their unscripted stories with nothing more than the device in their pockets. We are championing the authentic truth of the moment through live streaming."
                     delay={0.4}
                 />
                 <InstitutionalPillar 
