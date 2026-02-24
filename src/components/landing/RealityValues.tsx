@@ -59,7 +59,7 @@ export default function RealityValues() {
                 <InstitutionalPillar 
                     number="III"
                     title="THE CHASE OF INTENT"
-                    description="Stream to conquer the bucket list, chase the dream, and inspire the next explorer to stay bold and keep their inner child alive. Not for the incentives. Not for big checks. No artificial growth."
+                    description="Stream to conquer the bucket list, chase the dream, and inspire the next explorer to stay bold and keep their inner child alive. Not for the incentives. Not for big checks. Not for artificial growth."
                     delay={0.6}
                 />
             </div>
