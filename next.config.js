@@ -20,13 +20,9 @@ const nextConfig = {
     // The SDK is not meant to be used on the server, so we need to tell Webpack to ignore it.
     if (isServer) {
       config.externals.push('@stream-io/video-react-sdk');
-    } else {
-      // This is to solve a bug with a dependency of a dependency.
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        "stream": false,
-      };
     }
+    // The previous client-side webpack fallback for `stream` was removed as it was a
+    // likely cause of ChunkLoadError issues.
     return config;
   },
 };
