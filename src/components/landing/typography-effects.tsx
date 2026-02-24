@@ -1,3 +1,4 @@
+
 'use client';
 
 import { motion, useInView, Variants } from 'framer-motion';
@@ -54,14 +55,14 @@ export const StaggeredLetterReveal = ({ text, className, delay = 0, duration = 0
       className="flex flex-wrap justify-center gap-x-[0.1em]"
     >
       {words.map((word, wordIndex) => (
-        <span key={wordIndex} className={cn("inline-flex whitespace-nowrap pb-1 px-1 md:px-1 overflow-visible", className)}>
+        <span key={wordIndex} className={cn("inline-flex whitespace-nowrap pb-1 px-1 md:px-2 overflow-visible", className)}>
           {word.split("").map((letter, letterIndex) => (
             <motion.span 
               key={`${wordIndex}-${letterIndex}`} 
               variants={child} 
               className="inline-block origin-bottom"
             >
-              {letter === " " ? " " : letter}
+              {letter === " " ? " " : letter}
             </motion.span>
           ))}
         </span>
@@ -208,7 +209,7 @@ export const GradualSpacing = ({ text, className, delay = 0, once = true }: Text
               transition={{ duration: 0.5, delay: delay + (wordIndex * 5 + i) * 0.03 }}
               className="inline-block"
             >
-              {char === " " ? " " : char}
+              {char === " " ? " " : char}
             </motion.span>
           ))}
         </span>
