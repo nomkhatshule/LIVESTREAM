@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -48,7 +47,7 @@ export default function RealityValues() {
                 <InstitutionalPillar 
                     number="I"
                     title="THE DOCTRINE OF MOTION"
-                    description="The chair is a relic. We mandate movement. Our lens is reserved for the city walk, the mountain peak, and the raw physical journey. If you aren't moving, you aren't here."
+                    description="LIVENET mandate movement.  We are a platform dedicated to the journey, capturing every step from the city sidewalk to the mountain peak. We are a community defined by movement and adventure."
                     delay={0.2}
                 />
                 <InstitutionalPillar 
