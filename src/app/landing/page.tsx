@@ -43,7 +43,7 @@ export default function LandingPage() {
         <div className="absolute inset-0 bg-black/30 z-10" />
         <motion.div 
           style={{ y: yHero, opacity: opacityHero }}
-          className="relative z-20 flex flex-col items-center w-full mt-12 md:mt-16"
+          className="relative z-20 flex flex-col items-center w-full mt-12 md:mt-0"
         >
           <div className="w-fit mx-auto">
             <HUDCorners>
@@ -58,11 +58,11 @@ export default function LandingPage() {
               <div className="flex flex-col items-center">
                 <StaggeredLetterReveal 
                   text="Share Every" 
-                  className="text-4xl sm:text-6xl md:text-[9rem] font-black font-headline text-white tracking-[calc(-0.06em)] leading-[0.8] animate-text-shimmer italic justify-center"
+                  className="text-4xl sm:text-6xl md:text-[9rem] font-black font-headline text-white tracking-[calc(-0.06em)] leading-[0.8] animate-text-shimmer italic"
                 />
                 <StaggeredLetterReveal 
                   text="Moment" 
-                  className="text-4xl sm:text-6xl md:text-[9rem] font-black font-headline text-white tracking-[calc(-0.06em)] leading-[0.8] animate-text-shimmer italic justify-center"
+                  className="text-4xl sm:text-6xl md:text-[9rem] font-black font-headline text-white tracking-[calc(-0.06em)] leading-[0.8] animate-text-shimmer italic"
                   delay={0.2}
                 />
               </div>
@@ -164,4 +164,3 @@ export default function LandingPage() {
     </>
   );
 }
-

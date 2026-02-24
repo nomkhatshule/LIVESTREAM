@@ -1,3 +1,4 @@
+
 'use client';
 
 import { motion, useInView, Variants } from 'framer-motion';
@@ -51,10 +52,10 @@ export const StaggeredLetterReveal = ({ text, className, delay = 0, duration = 0
       variants={container}
       initial="hidden"
       animate={isInView ? "visible" : "hidden"}
-      className="flex flex-wrap justify-center gap-x-[0.3em]"
+      className="flex flex-wrap justify-center gap-x-[0.1em]"
     >
       {words.map((word, wordIndex) => (
-        <span key={wordIndex} className={cn("inline-flex whitespace-nowrap pb-4 px-4 overflow-visible", className)}>
+        <span key={wordIndex} className={cn("inline-flex whitespace-nowrap pb-1 px-1 overflow-visible", className)}>
           {word.split("").map((letter, letterIndex) => (
             <motion.span 
               key={`${wordIndex}-${letterIndex}`} 

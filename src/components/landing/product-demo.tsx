@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -55,7 +56,7 @@ export default function ProductDemo() {
         <div className="text-center z-10 px-4 mb-10 md:mb-16">
              <StaggeredLetterReveal 
                 text="Experience the Live Feed"
-                className="text-3xl sm:text-4xl md:text-7xl font-bold font-headline text-white tracking-tight justify-center"
+                className="text-3xl sm:text-4xl md:text-7xl font-bold font-headline text-white tracking-tight"
              />
         </div>
       
