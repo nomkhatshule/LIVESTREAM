@@ -55,7 +55,7 @@ export const StaggeredLetterReveal = ({ text, className, delay = 0, duration = 0
       className="flex flex-wrap justify-center gap-x-[0.1em]"
     >
       {words.map((word, wordIndex) => (
-        <span key={wordIndex} className={cn("inline-flex whitespace-nowrap pb-1 px-1 md:px-2 overflow-visible", className)}>
+        <span key={wordIndex} className={cn("inline-flex whitespace-nowrap pb-1 px-1 sm:pr-4 md:pr-8 overflow-visible", className)}>
           {word.split("").map((letter, letterIndex) => (
             <motion.span 
               key={`${wordIndex}-${letterIndex}`} 

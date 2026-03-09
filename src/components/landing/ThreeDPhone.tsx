@@ -154,7 +154,7 @@ const PhoneModel = ({ videoUrl }: { videoUrl: string }) => {
 
 export default function ThreeDPhone() {
     return (
-        <div className="w-full h-[600px] md:h-[800px] cursor-grab active:cursor-grabbing">
+        <div className="w-full h-[450px] sm:h-[600px] md:h-[800px] cursor-grab active:cursor-grabbing">
             <Canvas shadow={{ enabled: true }} dpr={[1, 2]}>
                 <PerspectiveCamera makeDefault position={[0, 0, 5]} fov={45} />
                 <Suspense fallback={null}>

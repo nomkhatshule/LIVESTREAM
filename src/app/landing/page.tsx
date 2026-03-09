@@ -8,12 +8,11 @@ import Image from 'next/image';
 import LandingHeader from '@/components/landing/header';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { StaggeredLetterReveal, MetadataLabel, LivePulse, TechnicalHeader, HUDCorners } from '@/components/landing/typography-effects';
-import dynamic from 'next/dynamic';
 
-const AboutSection = dynamic(() => import('@/components/landing/about-section'), { ssr: false });
-const ProductDemo = dynamic(() => import('@/components/landing/product-demo'), { ssr: false });
-const ManifestoSection = dynamic(() => import('@/components/landing/ManifestoSection'), { ssr: false });
-const RealityValues = dynamic(() => import('@/components/landing/RealityValues'), { ssr: false });
+import AboutSection from '@/components/landing/about-section';
+import ProductDemo from '@/components/landing/product-demo';
+import ManifestoSection from '@/components/landing/ManifestoSection';
+import RealityValues from '@/components/landing/RealityValues';
 
 export default function LandingPage() {
   const { scrollY } = useScroll();
@@ -43,45 +42,68 @@ export default function LandingPage() {
         <div className="absolute inset-0 bg-black/30 z-10" />
         <motion.div 
           style={{ y: yHero, opacity: opacityHero }}
-          className="relative z-20 flex flex-col items-center w-full mt-12 md:mt-0"
+          className="relative z-20 flex flex-col items-center w-full mt-32 sm:mt-48 md:mt-56 px-4"
         >
-          <div className="w-fit mx-auto">
+          <div className="max-w-6xl w-full mx-auto">
             <HUDCorners>
-              <motion.div 
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.5 }}
-                className="mb-4 md:mb-6 flex justify-center"
-              >
-                <LivePulse />
-              </motion.div>
-              <div className="flex flex-col items-center">
-                <StaggeredLetterReveal 
-                  text="Share Every" 
-                  className="text-4xl sm:text-6xl md:text-[9rem] font-black font-headline text-white tracking-[calc(-0.06em)] leading-[0.8] animate-text-shimmer italic"
-                />
-                <StaggeredLetterReveal 
-                  text="Moment" 
-                  className="text-4xl sm:text-6xl md:text-[9rem] font-black font-headline text-white tracking-[calc(-0.06em)] leading-[0.8] animate-text-shimmer italic"
-                  delay={0.2}
-                />
+              <div className="flex flex-col items-center pb-8">
+                {/* Top Status */}
+                <motion.div 
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.5 }}
+                  className="mb-8 md:mb-12"
+                >
+                  <LivePulse />
+                </motion.div>
+
+                {/* Main Heading */}
+                <div className="flex flex-col items-center mb-8 md:mb-12">
+                  <StaggeredLetterReveal 
+                    text="Share Every" 
+                    className="text-4xl sm:text-7xl md:text-[10rem] font-black font-headline text-white tracking-[calc(-0.06em)] leading-[0.8] animate-text-shimmer italic"
+                  />
+                  <StaggeredLetterReveal 
+                    text="Moment" 
+                    className="text-4xl sm:text-7xl md:text-[10rem] font-black font-headline text-white tracking-[calc(-0.06em)] leading-[0.8] animate-text-shimmer italic"
+                    delay={0.2}
+                  />
+                </div>
+
+                {/* Sub-heading */}
+                <motion.p 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 1 }}
+                  className="text-sm md:text-xl text-stone-300 max-w-2xl font-light tracking-tight leading-relaxed text-center"
+                >
+                  Go outside and be adventurous. Join a global community of explorers streaming their real-world adventures live from city streets to mountain peaks.
+                </motion.p>
               </div>
             </HUDCorners>
+
+            {/* Bottom Metadata Readout - Outside HUD */}
+            <div className="grid grid-cols-2 gap-4 md:gap-0 w-full pt-8 px-4 md:px-12">
+              <div className="text-left">
+                <MetadataLabel text="Signal: High / 1080p" delay={1.4} />
+                <div className="font-code text-[8px] md:text-[10px] text-white/40 uppercase tracking-[0.2em] mt-1">
+                  Status: Broadcasting Global
+                </div>
+              </div>
+              <div className="text-right flex flex-col items-end">
+                <MetadataLabel text="System: LIVENET v2.0" delay={1.6} />
+                <div className="font-code text-[8px] md:text-[10px] text-white/40 uppercase tracking-[0.2em] mt-1">
+                  Connection: Encrypted
+                </div>
+              </div>
+            </div>
           </div>
 
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 1.2 }}
-            className="text-base md:text-lg text-stone-300 max-w-2xl mt-4 mb-6 md:mb-8 font-light tracking-tight leading-relaxed px-4 mx-auto"
-          >
-            Go outside and be adventurous. Join a global community of explorers streaming their real-world adventures live from city streets to mountain peaks.
-          </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 1.6 }}
-            className="flex justify-center"
+            transition={{ duration: 0.5, delay: 2 }}
+            className="flex justify-center mt-12 md:mt-16"
           >
             <Button size="lg" className="bg-white text-black hover:bg-stone-200 h-14 md:h-16 px-8 md:px-12 rounded-none text-[10px] md:text-sm font-bold uppercase tracking-[0.3em] transition-all hover:scale-105 active:scale-95 group border border-white" asChild>
               <Link href="/feed">
@@ -91,19 +113,7 @@ export default function LandingPage() {
           </motion.div>
         </motion.div>
 
-        {/* Floating Metadata for Hero */}
-        <div className="absolute bottom-12 left-12 z-20 hidden lg:block text-left">
-           <MetadataLabel text="Signal: High / 1080p" delay={2} />
-           <div className="font-code text-[10px] text-white/40 uppercase tracking-widest mt-1">
-             Status: Broadcasting Global
-           </div>
-        </div>
-        <div className="absolute bottom-12 right-12 z-20 hidden lg:block text-right">
-           <MetadataLabel text="System: LIVENET v2.0" delay={2.2} />
-           <div className="font-code text-[10px] text-white/40 uppercase tracking-widest mt-1">
-             Connection: Encrypted
-           </div>
-        </div>
+        {/* Removed redundant floating metadata labels */}
       </div>
       
       <ProductDemo />

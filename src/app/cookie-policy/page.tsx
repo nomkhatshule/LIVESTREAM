@@ -10,7 +10,7 @@ export default function CookiePolicyPage() {
             <CardTitle className="text-3xl font-headline text-center">
               Cookie Policy
             </CardTitle>
-            <p className="text-muted-foreground text-center">
+            <p className="text-white text-center">
               Last Updated: February 23, 2026
             </p>
           </CardHeader>
