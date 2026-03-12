@@ -16,13 +16,13 @@ const nextConfig = {
     ]
   },
   webpack: (config, { isServer }) => {
+    // Increase the timeout for loading chunks to 60 seconds
+    config.output.chunkLoadTimeout = 60000;
+
     // This is to solve a bug with the Stream SDK.
-    // The SDK is not meant to be used on the server, so we need to tell Webpack to ignore it.
     if (isServer) {
       config.externals.push('@stream-io/video-react-sdk');
     }
-    // The previous client-side webpack fallback for `stream` was removed as it was a
-    // likely cause of ChunkLoadError issues.
     return config;
   },
 };

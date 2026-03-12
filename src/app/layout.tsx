@@ -28,6 +28,25 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
         <link rel="stylesheet" href="https://use.typekit.net/try0cjy.css" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
+        {/* Recovery script for ChunkLoadErrors */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.addEventListener('error', function(event) {
+                if (event.message && (event.message.indexOf('ChunkLoadError') !== -1 || event.message.indexOf('Loading chunk') !== -1)) {
+                  console.warn('ChunkLoadError detected, reloading page...');
+                  window.location.reload();
+                }
+              }, true);
+              window.addEventListener('unhandledrejection', function(event) {
+                if (event.reason && (event.reason.name === 'ChunkLoadError' || (event.reason.message && event.reason.message.indexOf('Loading chunk') !== -1))) {
+                  console.warn('Unhandled ChunkLoadError detected, reloading page...');
+                  window.location.reload();
+                }
+              });
+            `,
+          }}
+        />
       </head>
       <body className={cn('min-h-screen bg-background font-body antialiased')}>
         <ThemeProvider
