@@ -1,3 +1,4 @@
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Use standalone output for better compatibility with App Hosting / Dockerized environments
