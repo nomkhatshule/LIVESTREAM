@@ -44,7 +44,6 @@ export function initiateEmailSignUp(authInstance: Auth, email: string, password:
           return setDoc(userDocRef, {
             id: user.uid,
             username: username,
-            email: user.email,
             createdAt: serverTimestamp(),
             profilePicture: randomAvatar.imageUrl, // Set default avatar
             bio: '', // Initialize with empty string
@@ -87,7 +86,6 @@ export async function initiateGoogleSignIn(authInstance: Auth): Promise<{ succes
         await setDoc(userDocRef, {
           id: user.uid,
           username: user.displayName, // Google provides a display name
-          email: user.email,
           createdAt: serverTimestamp(),
           profilePicture: user.photoURL || randomAvatar.imageUrl, // Use Google's photo if available, otherwise our default
           bio: '',

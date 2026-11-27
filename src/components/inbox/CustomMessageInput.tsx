@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useChatContext } from '@/components/chat/ChatProvider';
-import type { Message } from 'stream-chat';
+import type { FormatMessageResponse as Message } from 'stream-chat';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ArrowUp, Paperclip, X } from 'lucide-react';

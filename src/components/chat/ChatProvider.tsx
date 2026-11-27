@@ -6,6 +6,7 @@ import { StreamChat, Channel } from 'stream-chat';
 import { useUser } from '@/firebase';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { fetchStreamToken } from '@/lib/stream-token';
 
 interface ChatContextValue {
   client: StreamChat | null;
@@ -26,7 +27,7 @@ export function ChatProvider({ children }: ChatProviderProps) {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!user || isUserLoading || client) return;
+    if (!user || isUserLoading) return;
 
     const apiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY;
     if (!apiKey) {
@@ -36,20 +37,11 @@ export function ChatProvider({ children }: ChatProviderProps) {
     }
 
     const newClient = StreamChat.getInstance(apiKey);
+    let cancelled = false;
 
     const connectUser = async () => {
       try {
-        const response = await fetch('/api/stream/token', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: user.uid }),
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to get chat token.');
-        }
-
-        const { token } = await response.json();
+        const token = await fetchStreamToken(user);
 
         await newClient.connectUser(
           {
@@ -59,7 +51,7 @@ export function ChatProvider({ children }: ChatProviderProps) {
           },
           token
         );
-        setClient(newClient);
+        if (!cancelled) setClient(newClient);
       } catch (error) {
         console.error('Error connecting to Stream Chat:', error);
         toast({ variant: 'destructive', title: 'Chat Connection Failed' });
@@ -68,13 +60,13 @@ export function ChatProvider({ children }: ChatProviderProps) {
 
     connectUser();
 
+    // Disconnect when the user signs out or switches account.
     return () => {
-      if (client) {
-        client.disconnectUser();
-        setClient(null);
-      }
+      cancelled = true;
+      setClient(null);
+      newClient.disconnectUser().catch(() => {});
     };
-  }, [user, isUserLoading, client, toast]);
+  }, [user, isUserLoading, toast]);
 
   return (
     <ChatContext.Provider value={{ client, channel: activeChannel, setActiveChannel }}>

@@ -49,15 +49,13 @@ function AuthFormComponent() {
   const { toast } = useToast();
   const authType = searchParams.get('type') === 'signup' ? 'signup' : 'login';
 
+  // Both forms share one shape; the login schema simply doesn't require a username.
+  type FormSchema = { username?: string; email: string; password: string };
   const formSchema = authType === 'signup' ? signupSchema : loginSchema;
-  type FormSchema = z.infer<typeof formSchema>;
 
   const form = useForm<FormSchema>({
-    resolver: zodResolver(formSchema),
-    defaultValues:
-      authType === 'signup'
-        ? { username: '', email: '', password: '' }
-        : { email: '', password: '' },
+    resolver: zodResolver(formSchema as z.ZodType<FormSchema>),
+    defaultValues: { username: '', email: '', password: '' },
   });
   
   const handleAuthRedirect = (isNewUser: boolean) => {

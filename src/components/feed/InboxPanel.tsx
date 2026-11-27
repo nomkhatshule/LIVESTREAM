@@ -102,7 +102,7 @@ export default function InboxPanel() {
             setIsLoading(true);
             try {
                 const filters = { type: 'messaging' as const, members: { $in: [user.uid] } };
-                const sort = [{ last_message_at: -1 }];
+                const sort = [{ last_message_at: -1 as const }];
                 const userChannels = await client.queryChannels(filters, sort, { watch: true, state: true });
                 setChannels(userChannels);
             } catch (error) {

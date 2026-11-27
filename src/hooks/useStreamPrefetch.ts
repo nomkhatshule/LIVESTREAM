@@ -2,9 +2,10 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { StreamVideoClient } from '@stream-io/video-react-sdk';
+import type { StreamVideoClient } from '@stream-io/video-react-sdk';
 import type { User } from 'firebase/auth';
 import type { Broadcast } from '@/lib/data';
+import { fetchStreamToken } from '@/lib/stream-token';
 
 /**
  * A hook to pre-fetch Stream connection resources for a given user and broadcast.
@@ -57,17 +58,13 @@ export const useStreamPrefetch = (user: User | null, broadcast: Broadcast) => {
         }
 
         // 1. Fetch the token
-        const tokenResponse = await fetch('/api/stream/token', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: user.uid }),
-        });
-        if (!tokenResponse.ok) throw new Error('Failed to pre-fetch stream token');
-        const { token } = await tokenResponse.json();
+        const token = await fetchStreamToken(user);
 
         if (isCancelled) return;
         
         // 2. Initialize the client
+        // Load the (large) video SDK only when a stream is actually about to play.
+        const { StreamVideoClient } = await import('@stream-io/video-react-sdk');
         client = new StreamVideoClient({
             apiKey,
             user: {

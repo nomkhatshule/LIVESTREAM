@@ -1,43 +1,52 @@
-
 rules_version = '2';
 
+// LiveNet Storage security rules.
+// Files are public to read (profile pictures, covers, highlights, chat images),
+// but you can only upload into folders named with your own user id.
 service firebase.storage {
   match /b/{bucket}/o {
-    
-    // Allow anyone to read files (e.g., public profile pictures, highlight videos)
-    match /{allPaths=**} {
-      allow read: if true;
+
+    function isUser(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+    function under(mb) {
+      return request.resource.size < mb * 1024 * 1024;
+    }
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+    function isVideo() {
+      return request.resource.contentType.matches('video/.*');
     }
 
-    // Allow authenticated users to write to their own 'avatars' folder.
-    // Ensure the uploaded file is an image and not too large.
     match /avatars/{userId}/{fileName} {
-      allow write: if request.auth != null && request.auth.uid == userId
-                   && request.resource.size < 5 * 1024 * 1024 // Max 5MB
-                   && request.resource.contentType.matches('image/.*');
+      allow read: if true;
+      allow create, update: if isUser(userId) && under(5) && isImage();
+      allow delete: if isUser(userId);
     }
 
-    // Allow authenticated users to write to their own 'covers' folder.
-    // Allow images and short videos.
     match /covers/{userId}/{fileName} {
-       allow write: if request.auth != null && request.auth.uid == userId
-                   && request.resource.size < 20 * 1024 * 1024 // Max 20MB
-                   && (request.resource.contentType.matches('image/.*') || request.resource.contentType.matches('video/.*'));
+      allow read: if true;
+      allow create, update: if isUser(userId) && under(20) && (isImage() || isVideo());
+      allow delete: if isUser(userId);
     }
 
-    // Allow authenticated users to write to their own 'highlights' folder.
-    // Ensure the uploaded file is a video and not excessively large.
     match /highlights/{userId}/{fileName} {
-      allow write: if request.auth != null && request.auth.uid == userId
-                   && request.resource.size < 50 * 1024 * 1024 // Max 50MB
-                   && request.resource.contentType.matches('video/.*');
+      allow read: if true;
+      allow create, update: if isUser(userId) && under(50) && isVideo();
+      allow delete: if isUser(userId);
     }
 
-    // Allow authenticated users to upload images to a specific broadcast's chat
+    // Chat images: chat_images/{broadcastId}/{uploaderUid}/{file}
+    match /chat_images/{broadcastId}/{userId}/{fileName} {
+      allow read: if true;
+      allow create, update: if isUser(userId) && under(2) && isImage();
+      allow delete: if isUser(userId);
+    }
+
+    // Images uploaded before this change (no uploader folder) stay readable.
     match /chat_images/{broadcastId}/{fileName} {
-       allow write: if request.auth != null
-                    && request.resource.size < 2 * 1024 * 1024 // Max 2MB
-                    && request.resource.contentType.matches('image/.*');
+      allow read: if true;
     }
   }
 }

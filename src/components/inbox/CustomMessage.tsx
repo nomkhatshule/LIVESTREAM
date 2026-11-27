@@ -6,7 +6,7 @@ import { useUser, useUserDocument, useUserDocumentById } from '@/firebase';
 import { useChatContext } from '@/components/chat/ChatProvider';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import type { Message, Reaction as StreamReaction } from 'stream-chat';
+import type { FormatMessageResponse as Message, ReactionResponse as StreamReaction } from 'stream-chat';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -152,7 +152,9 @@ export default function CustomMessage({ message, onReply, isEditing, onStartEdit
     };
     
     const otherUser = Object.values(activeChannel?.state.members || {}).find(member => member.user_id !== currentUser?.uid);
-    const isRead = isCurrentUser && otherUser && (message.readBy || []).some(read => read.id === otherUser.user_id);
+    // Read receipt: the other person has read the chat up to (or past) this message.
+    const otherLastRead = otherUser?.user_id ? activeChannel?.state.read[otherUser.user_id]?.last_read : undefined;
+    const isRead = Boolean(isCurrentUser && otherLastRead && message.created_at && otherLastRead >= message.created_at);
     const ReadReceipt = isRead ? CheckCheck : Check;
 
     const handleReaction = async (emojiId: string) => {

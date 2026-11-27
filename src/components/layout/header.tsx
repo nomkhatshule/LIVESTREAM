@@ -28,7 +28,6 @@ export default function Header() {
     '/feed',
     '/broadcast/',
     '/live',
-    '/agora-test',
     '/cards',
     '/profile',
     '/inbox-page',

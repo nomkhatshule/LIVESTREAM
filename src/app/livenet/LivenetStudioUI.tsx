@@ -1,7 +1,7 @@
 'use client';
 
 import { Loader2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useDoc, useFirestore, useMemoFirebase, useUserDocument, useStorage, updateDocumentNonBlocking } from '@/firebase';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -41,14 +41,16 @@ function LivenetStudioUI() {
   const { useParticipants, useCallCallingState, useCameraState, useMicrophoneState, useScreenShareState } = useCallStateHooks();
   const participants = useParticipants();
   const callingState = useCallCallingState();
-  const { camera } = useCameraState();
-  const { microphone } = useMicrophoneState();
-  const { isScreenSharing } = useScreenShareState();
-  
+  // `isMute` is the live on/off state from the Stream SDK (true = off).
+  const { isMute: isCameraMuted } = useCameraState();
+  const { isMute: isMicMuted } = useMicrophoneState();
+  const { isMute: isScreenShareOff } = useScreenShareState();
+  const isScreenSharing = !isScreenShareOff;
+
   const viewerCount = Math.max(0, participants.length -1); // Exclude the host
   const isCallJoined = callingState === CallingState.JOINED;
-  const isVideoEnabled = camera ? !camera.isMute : false;
-  const isMicEnabled = microphone ? !microphone.isMute : false;
+  const isVideoEnabled = !isCameraMuted;
+  const isMicEnabled = !isMicMuted;
 
   // Real-time broadcast document
   const broadcastDocRef = useMemoFirebase(() => {
@@ -74,11 +76,13 @@ function LivenetStudioUI() {
     if (!broadcastId || !firestore) return null;
     return query(
         collection(firestore, `broadcasts/${broadcastId}/messages`),
-        orderBy('timestamp', 'asc'),
-        limit(100)
+        orderBy('timestamp', 'desc'), // newest 100 (with 'asc' the host stopped
+        limit(100)                    // seeing new comments after message 100)
     );
   }, [broadcastId, firestore]);
-  const { data: comments } = useCollection<Comment>(messagesQuery);
+  const { data: latestComments } = useCollection<Comment>(messagesQuery);
+  // Show oldest-to-newest in the chat panel.
+  const comments = useMemo(() => (latestComments ? [...latestComments].reverse() : null), [latestComments]);
 
   const handleToggleVideo = async () => {
     if (call && call.camera) {
@@ -161,7 +165,7 @@ function LivenetStudioUI() {
         if (attachment) {
             if ('file' in attachment) { // Image attachment
                 const imageFile = attachment.file;
-                const filePath = `chat_images/${broadcastId}/${Date.now()}-${imageFile.name}`;
+                const filePath = `chat_images/${broadcastId}/${user.uid}/${Date.now()}-${imageFile.name}`;
                 const fileRef = storageRef(storage, filePath);
                 await uploadBytes(fileRef, imageFile);
                 const downloadURL = await getDownloadURL(fileRef);

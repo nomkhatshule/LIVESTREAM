@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import type { BroadcastData } from '@/lib/types';
 import Link from 'next/link';
 import { StreamVideoClient } from '@stream-io/video-react-sdk';
+import { fetchStreamToken } from '@/lib/stream-token';
 
 function RtmpDetailsPageComponent() {
   const router = useRouter();
@@ -43,14 +44,7 @@ function RtmpDetailsPageComponent() {
       setIsLoadingToken(true);
       try {
         // 1. Fetch the stream token
-        const res = await fetch('/api/stream/token', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: user.uid }),
-        });
-        
-        if (!res.ok) throw new Error('Failed to fetch stream token.');
-        const { token } = await res.json();
+        const token = await fetchStreamToken(user);
         setStreamToken(token);
 
         // 2. Create the call on Stream's servers so it's ready for ingestion

@@ -5,9 +5,9 @@
 import { Suspense, useEffect, useState, useMemo } from 'react';
 import { useUser, useFirestore, useMemoFirebase, useUserDocument, useAuth } from '@/firebase';
 import { useCollection } from '@/firebase/firestore/use-collection';
-import { collection, query, where, writeBatch, doc, orderBy, getDocs, setDoc } from 'firebase/firestore';
+import { collection, query, where, writeBatch, doc, orderBy, limit, getCountFromServer } from 'firebase/firestore';
 import type { Broadcast, ChatMessage } from '@/lib/data';
-import { Clapperboard, Loader2, Mail, ChevronDownCircle, MessageCircleHeart, Film, RefreshCw, LogOut } from 'lucide-react';
+import { Clapperboard, Loader2, Mail, ChevronDownCircle, MessageCircleHeart, Film, LogOut } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useStreamStore } from '@/lib/stream-store';
 import { Button } from '@/components/ui/button';
@@ -32,7 +32,8 @@ import { useStreamPrefetch } from '@/hooks/useStreamPrefetch';
 import FeedItemHeader from '@/components/feed/FeedItemHeader';
 import FeedItemActions from '@/components/feed/FeedItemActions';
 import FeedItemChat from '@/components/feed/FeedItemChat';
-import VideoPlayer from '@/components/broadcast/video-player';
+// The video player pulls in Stream's large video SDK, so load it after the page shows.
+const VideoPlayer = dynamic(() => import('@/components/broadcast/video-player'), { ssr: false });
 import Image from 'next/image';
 import { signOut } from 'firebase/auth';
 
@@ -46,13 +47,17 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
     // PREFETCH HOOK - This will start fetching the stream token when the item is active
     const { prefetchedClient, prefetchedToken } = useStreamPrefetch(isActive ? user : null, broadcast);
 
-    const messagesQuery = useMemoFirebase(() => {
-        if (!broadcast.id || !firestore) return null;
-        return query(
-            collection(firestore, `broadcasts/${broadcast.id}/messages`)
-        );
-    }, [broadcast.id, firestore]);
-    const { data: comments } = useCollection<ChatMessage>(messagesQuery);
+    // Comment count: one cheap server-side count, only for the stream on screen
+    // (previously every stream in the feed downloaded its whole chat history).
+    const [commentsCount, setCommentsCount] = useState(0);
+    useEffect(() => {
+        if (!isActive || !broadcast.id || !firestore) return;
+        let cancelled = false;
+        getCountFromServer(collection(firestore, `broadcasts/${broadcast.id}/messages`))
+            .then((snap) => { if (!cancelled) setCommentsCount(snap.data().count); })
+            .catch(() => {});
+        return () => { cancelled = true; };
+    }, [isActive, broadcast.id, firestore]);
 
     useEffect(() => {
         if (inView) {
@@ -94,9 +99,9 @@ function BroadcastFeedItem({ broadcast, onVisible, isActive }: { broadcast: Broa
                     broadcastContext={broadcastContext}
                     isChatVisible={isChatVisible}
                     setIsChatVisible={setIsChatVisible}
-                    commentsCount={comments?.length || 0}
+                    commentsCount={commentsCount}
                 />
-                <FeedItemChat broadcast={broadcast} isChatVisible={isChatVisible} />
+                {isActive && <FeedItemChat broadcast={broadcast} isChatVisible={isChatVisible} />}
             </div>
         </div>
     );
@@ -114,7 +119,6 @@ function HomePageContent() {
     const [isMessagesOpen, setIsMessagesOpen] = useState(false);
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
     const { toast } = useToast();
-    const [isCleaning, setIsCleaning] = useState(false);
 
     
     const liveBroadcastsQuery = useMemoFirebase(() => {
@@ -125,7 +129,7 @@ function HomePageContent() {
     
     const notificationsQuery = useMemoFirebase(() => {
         if (!user) return null;
-        return query(collection(firestore, `users/${user.uid}/notifications`), orderBy('timestamp', 'desc'));
+        return query(collection(firestore, `users/${user.uid}/notifications`), orderBy('timestamp', 'desc'), limit(50));
     }, [user, firestore]);
     const { data: notifications, isLoading: areNotificationsLoading } = useCollection(notificationsQuery);
 
@@ -167,44 +171,6 @@ function HomePageContent() {
         await batch.commit().catch(err => console.error("Failed to mark notifications as read:", err));
     };
 
-    const handleCleanup = async () => {
-        setIsCleaning(true);
-        try {
-          const q = query(collection(firestore, 'broadcasts'), where('isLive', '==', true));
-          const querySnapshot = await getDocs(q);
-          
-          if (querySnapshot.empty) {
-            toast({ title: 'No active streams found', description: 'Your feed is already clean!' });
-            setIsCleaning(false);
-            return;
-          }
-    
-          const batch = writeBatch(firestore);
-          let count = 0;
-          querySnapshot.forEach((document) => {
-            batch.set(document.ref, { isLive: false }, { merge: true });
-            count++;
-          });
-    
-          await batch.commit();
-    
-          toast({
-            title: 'Feed Refreshed!',
-            description: `Successfully marked ${count} ghost stream(s) as offline.`,
-          });
-    
-        } catch (error) {
-          console.error('Error cleaning up feed:', error);
-          toast({
-            variant: 'destructive',
-            title: 'Refresh Failed',
-            description: 'Could not refresh the feed. Please check the console for errors.',
-          });
-        } finally {
-          setIsCleaning(false);
-        }
-    };
-    
     const isLoading = isUserLoading || areBroadcastsLoading || areNotificationsLoading || isUserDocLoading;
 
     if (isLoading || !user) {
@@ -273,11 +239,6 @@ function HomePageContent() {
                                     <ActivityPanel notifications={notifications || []} isLoading={areNotificationsLoading} />
                                 </SheetContent>
                             </Sheet>
-                            <DropdownMenuSeparator />
-                             <DropdownMenuItem onSelect={handleCleanup} disabled={isCleaning}>
-                                {isCleaning ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
-                                <span>Refresh</span>
-                            </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem asChild>
                                 <Link href={`/profile/${user.uid}`}>
