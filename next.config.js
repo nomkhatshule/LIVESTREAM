@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  /* config options here */
+  // Use standalone output for better compatibility with App Hosting / Dockerized environments
+  output: 'standalone',
   typescript: {
     ignoreBuildErrors: true,
   },
