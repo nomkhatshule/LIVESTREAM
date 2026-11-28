@@ -7,13 +7,13 @@ runConfig:
   minInstances: 0
   maxInstances: 10
 
-env:
-  - variable: NODE_ENV
-    value: production
-    availability: [BUILD, RUNTIME]
-
-  # API keys are configured outside this file (never commit real values).
-  # If you ever want App Hosting to read a secret from Secret Manager, add e.g.:
-  #   - variable: STREAM_API_SECRET
-  #     secret: STREAM_API_SECRET
-  #     availability: [RUNTIME]
+# Do NOT set NODE_ENV here: setting it to "production" during the build makes
+# `npm ci` skip devDependencies (TypeScript, Tailwind, PostCSS) and the build
+# fails. Next.js sets production mode itself for `next build` and `next start`.
+#
+# API keys are configured outside this file (never commit real values).
+# If you ever want App Hosting to read a secret from Secret Manager, add e.g.:
+# env:
+#   - variable: STREAM_API_SECRET
+#     secret: STREAM_API_SECRET
+#     availability: [RUNTIME]
