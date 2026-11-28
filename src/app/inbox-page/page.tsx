@@ -9,7 +9,7 @@ import { useUser } from '@/firebase';
 import { Loader2, ArrowLeft, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import type { Message, UserResponse } from 'stream-chat';
+import type { FormatMessageResponse as Message, UserResponse } from 'stream-chat';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import ChannelHeader from '@/components/inbox/ChannelHeader';
 import CustomMessage from '@/components/inbox/CustomMessage';
@@ -169,17 +169,15 @@ function InboxPageComponent() {
   }
   
   const handleSaveEdit = async (messageId: string, newText: string) => {
-      if (!activeChannel) return;
-      await activeChannel.updateMessage({
-          id: messageId,
-          text: newText,
-      });
+      if (!client) return;
+      // Editing and deleting are done through the chat client, not the channel.
+      await client.partialUpdateMessage(messageId, { set: { text: newText } });
       setEditingMessage(null);
   }
 
   const handleDelete = async (messageId: string) => {
-      if (!activeChannel) return;
-      await activeChannel.deleteMessage(messageId);
+      if (!client) return;
+      await client.deleteMessage(messageId);
   }
 
   const typingUserNames = typingUsers.map(u => u.name || 'Someone').join(', ');

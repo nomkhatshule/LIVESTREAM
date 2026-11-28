@@ -1,12 +1,12 @@
 
 'use client';
 
-import { useState, useMemo, useRef } from 'react';
+import { useState, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useUser, useUserDocument, useFirestore, useMemoFirebase, useStorage } from '@/firebase';
 import { useCollection } from '@/firebase/firestore/use-collection';
-import { collection, doc, orderBy, serverTimestamp, query } from 'firebase/firestore';
+import { collection, doc, orderBy, serverTimestamp, query, limit } from 'firebase/firestore';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useToast } from '@/hooks/use-toast';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
@@ -37,14 +37,15 @@ export default function FeedItemChat({ broadcast, isChatVisible }: FeedItemChatP
         if (!broadcast.id || !firestore) return null;
         return query(
             collection(firestore, `broadcasts/${broadcast.id}/messages`),
-            orderBy('timestamp', 'asc'),
+            orderBy('timestamp', 'desc'),
+            limit(50), // only the latest messages, not the whole history
         );
     }, [broadcast.id, firestore]);
     
     const { data: comments } = useCollection<ChatMessage>(messagesQuery);
     
-    // We reverse the comments for the flex-col-reverse layout
-    const reversedComments = useMemo(() => (comments || []).slice().reverse(), [comments]);
+    // Newest-first already suits the flex-col-reverse layout.
+    const reversedComments = comments || [];
 
     const handleSendMessage = async (message: string, attachment: GiphyResult | { file: File, url: string } | null) => {
         if ((!message.trim() && !attachment) || !user || !userDocument) return;
@@ -56,7 +57,7 @@ export default function FeedItemChat({ broadcast, isChatVisible }: FeedItemChatP
             if (attachment) {
                  if ('file' in attachment) {
                     const imageFile = attachment.file;
-                    const filePath = `chat_images/${broadcast.id}/${Date.now()}-${imageFile.name}`;
+                    const filePath = `chat_images/${broadcast.id}/${user.uid}/${Date.now()}-${imageFile.name}`;
                     const fileRef = storageRef(storage, filePath);
                     await uploadBytes(fileRef, imageFile);
                     const downloadURL = await getDownloadURL(fileRef);
@@ -74,7 +75,7 @@ export default function FeedItemChat({ broadcast, isChatVisible }: FeedItemChatP
                 }
             }
     
-            const newComment: Partial<ChatMessage> & { timestamp: any } = {
+            const newComment: Omit<Partial<ChatMessage>, 'timestamp'> & { timestamp: unknown } = {
                 userId: user.uid,
                 username: userDocument.username || "Anonymous",
                 userAvatar: userDocument.profilePicture || '',

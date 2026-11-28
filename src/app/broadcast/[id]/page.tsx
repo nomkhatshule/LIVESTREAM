@@ -1,7 +1,9 @@
 'use client';
 
 import { notFound, useParams } from 'next/navigation';
-import VideoPlayer from '@/components/broadcast/video-player';
+import dynamic from 'next/dynamic';
+// The video player pulls in Stream's large video SDK, so load it after the page shows.
+const VideoPlayer = dynamic(() => import('@/components/broadcast/video-player'), { ssr: false });
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Heart, MoreVertical, PlusCircle, Users, ArrowUp, MessageSquareMore, Clapperboard, User as UserIcon, CornerUpLeft } from 'lucide-react';

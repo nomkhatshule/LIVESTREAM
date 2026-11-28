@@ -1,113 +1,151 @@
-
 rules_version = '2';
 
-// Forcing deployment with correct rules on July 26, 2024, 10:30 AM
+// LiveNet Firestore security rules.
+//
+// Principles:
+//  - Public profile/stream data is readable by anyone.
+//  - You can only write data that belongs to you, and only in the shape the app expects.
+//  - Server-side code (the Stream webhook) uses the Admin SDK, which bypasses these rules.
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // ---------- helpers ----------
+    function signedIn() {
+      return request.auth != null;
+    }
+    function isUser(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+    function incoming() {
+      return request.resource.data;
+    }
+    // Only these fields change in this update.
+    function onlyChanges(fields) {
+      return incoming().diff(resource.data).affectedKeys().hasOnly(fields);
+    }
+    function shortString(value, max) {
+      return value is string && value.size() <= max;
+    }
+
+    // ---------- users ----------
     match /users/{userId} {
       allow read: if true;
-      allow create: if request.auth.uid == userId;
-      allow update: if request.auth.uid == userId;
+      allow create: if isUser(userId) && incoming().id == userId;
+      allow update: if isUser(userId) && incoming().get('id', userId) == userId;
+      allow delete: if isUser(userId);
 
-      // Following/Followers can be read by anyone, but only the owner can modify their own lists.
+      // Following: only I can change who I follow.
       match /following/{targetUserId} {
         allow read: if true;
-        allow write: if request.auth.uid == userId;
+        allow create: if isUser(userId) && targetUserId != userId && incoming().userId == userId;
+        allow delete: if isUser(userId);
       }
+
+      // Followers: I can add or remove *myself* from someone else's followers.
       match /followers/{followerUserId} {
         allow read: if true;
-        // Allow users to add/remove themselves from other users' followers list.
-        allow write: if request.auth.uid == followerUserId;
+        allow create: if isUser(followerUserId) && followerUserId != userId
+                      && incoming().userId == followerUserId;
+        allow delete: if isUser(followerUserId) || isUser(userId);
       }
 
-      // Statuses can be read by anyone, but only the user who owns them can write.
-      match /statuses/{statusId} {
-        allow read: if true;
-        allow write: if request.auth.uid == userId;
-      }
-
-      // Highlights can be read by anyone, but only the user who owns them can write.
+      // Owner-only content.
       match /highlights/{highlightId} {
         allow read: if true;
-        allow write: if request.auth.uid == userId;
+        allow write: if isUser(userId);
       }
-
-      // Gifts can be read by anyone, but only the user who owns them can write.
+      match /statuses/{statusId} {
+        allow read: if true;
+        allow write: if isUser(userId);
+      }
       match /gifts/{giftId} {
         allow read: if true;
-        allow write: if request.auth.uid == userId;
+        allow write: if isUser(userId);
       }
-
-      // Activities can be read by anyone, but only the user who owns them can write.
       match /activities/{activityId} {
         allow read: if true;
-        allow write: if request.auth.uid == userId;
+        allow write: if isUser(userId);
       }
-
-      // Notifications can be read/updated/deleted by the owner. Any authenticated user can create them.
-      match /notifications/{notificationId} {
-        allow read, update, delete: if request.auth.uid == userId;
-        allow create: if request.auth != null;
-      }
-      
-      // Allow any user to LIST and READ challenges for any user.
       match /challenges/{challengeId} {
-        allow list, read: if true;
-        allow update, delete: if request.auth.uid == userId;
-        allow create: if request.auth != null;
+        allow read: if true;
+        allow write: if isUser(userId);
+      }
+
+      // Notifications: private to the owner. Others can create one *about
+      // something they did* (like, comment, follow), signed with their own uid.
+      match /notifications/{notificationId} {
+        allow read, delete: if isUser(userId);
+        allow update: if isUser(userId) && onlyChanges(['isRead']);
+        allow create: if signedIn()
+                      && request.auth.uid != userId
+                      && incoming().actorId == request.auth.uid
+                      && incoming().userId == userId
+                      && incoming().type in ['like', 'comment', 'follow', 'gift', 'challenge']
+                      && incoming().isRead == false
+                      && (!('entityInfo' in incoming()) || shortString(incoming().entityInfo, 300));
       }
     }
 
-    // Allow anyone to query the list of broadcasts
-    match /broadcasts {
-      allow list: if true;
-    }
-
-    // Broadcasts can be read by anyone. Only the host can create, update or end their own stream.
+    // ---------- broadcasts (live streams) ----------
     match /broadcasts/{broadcastId} {
-      allow get, read: if true;
-      allow create: if request.auth.uid == request.resource.data.hostId;
-      // Host can update anything.
-      // Any authenticated user can update a document IF the only field changing is `isLive` from true to false.
-      // This allows the client-side "End Stream" button to work, but prevents a client from maliciously re-activating a stream.
-      // The server-side webhook is the ultimate authority for ending a stream.
-      allow update: if request.auth.uid == resource.data.hostId ||
-                    (request.auth != null && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isLive']) && resource.data.isLive == true && request.resource.data.isLive == false);
-      allow delete: if request.auth.uid == resource.data.hostId;
+      function isHost() {
+        return isUser(get(/databases/$(database)/documents/broadcasts/$(broadcastId)).data.hostId);
+      }
 
+      allow read: if true;
+      allow create: if signedIn()
+                    && incoming().hostId == request.auth.uid
+                    && shortString(incoming().title, 120);
+      // Only the host can change their stream, and they can't hand it to someone else.
+      // (Streams that end unexpectedly are switched off by the Stream webhook on the server.)
+      allow update: if isUser(resource.data.hostId)
+                    && incoming().hostId == resource.data.hostId;
+      allow delete: if isUser(resource.data.hostId);
 
-      // Messages can be read by anyone. Authenticated users can create messages.
+      // Live chat: signed-in users post as themselves, max 500 characters.
+      // Authors and the host (moderation) can delete.
       match /messages/{messageId} {
         allow read: if true;
-        allow create: if request.auth != null;
+        allow create: if signedIn()
+                      && incoming().userId == request.auth.uid
+                      && shortString(incoming().message, 500);
+        allow delete: if isUser(resource.data.userId) || isHost();
       }
 
-      // Likes can be read by anyone. Authenticated users can create/delete their own like.
+      // One like per user; document id is the user's uid.
       match /likes/{userId} {
         allow read: if true;
-        allow write: if request.auth.uid == userId;
+        allow create, update: if isUser(userId) && incoming().userId == userId;
+        allow delete: if isUser(userId);
       }
 
-      // Reactions can be written by any authenticated user.
       match /reactions/{reactionId} {
         allow read: if true;
-        allow create: if request.auth != null;
+        allow create: if signedIn();
       }
-      
-      // Guest status can be read by anyone, but only the host can update it.
+
+      // Guests: managed by the host; a guest may remove themselves.
       match /guests/{guestId} {
         allow read: if true;
-        allow write: if request.auth.uid == resource.data.hostId || request.auth.uid == guestId;
+        allow write: if isHost();
+        allow delete: if isUser(guestId);
       }
     }
-    
-    // Chats can be read and written by the participants of the.
+
+    // ---------- private chats ----------
     match /chats/{chatId} {
-      allow read, write: if request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
-      
+      function participants() {
+        return get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
+      }
+      allow read, update, delete: if signedIn() && request.auth.uid in resource.data.participants;
+      allow create: if signedIn() && request.auth.uid in incoming().participants;
+
       match /messages/{messageId} {
-        allow read, write: if request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
+        allow read: if signedIn() && request.auth.uid in participants();
+        allow create: if signedIn() && request.auth.uid in participants()
+                      && incoming().senderId == request.auth.uid;
+        allow update, delete: if signedIn() && request.auth.uid in participants()
+                      && resource.data.senderId == request.auth.uid;
       }
     }
   }

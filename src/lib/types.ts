@@ -1,7 +1,7 @@
 
 import { Timestamp } from 'firebase/firestore';
 
-// Type Definitions from agora-test/page.tsx
+// Shared types for the live studio and viewer pages.
 export interface Comment {
   id: string;
   userId: string;
@@ -25,6 +25,7 @@ export interface Reaction {
 }
 
 export interface BroadcastData {
+    id?: string;
     title: string;
     hostId: string;
     hostName: string;

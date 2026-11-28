@@ -1,16 +1,19 @@
-
-# Settings to manage and configure a Firebase App Hosting backend.
+# Settings for the Firebase App Hosting backend.
 # https://firebase.google.com/docs/app-hosting/configure
 
 runConfig:
-  # Increase this value if you'd like to automatically spin up
-  # more instances in response to increased traffic.
-  maxInstances: 1
+  # Lets App Hosting start extra servers when traffic spikes
+  # (was 1, which meant one server for everyone).
+  minInstances: 0
+  maxInstances: 10
 
-# Explicitly ensure build environment has proper configuration
 env:
   - variable: NODE_ENV
     value: production
-    availability:
-      - BUILD
-      - RUNTIME
+    availability: [BUILD, RUNTIME]
+
+  # API keys are configured outside this file (never commit real values).
+  # If you ever want App Hosting to read a secret from Secret Manager, add e.g.:
+  #   - variable: STREAM_API_SECRET
+  #     secret: STREAM_API_SECRET
+  #     availability: [RUNTIME]

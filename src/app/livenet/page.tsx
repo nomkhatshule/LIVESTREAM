@@ -15,6 +15,7 @@ import {
 import '@stream-io/video-react-sdk/dist/css/styles.css';
 import { Loader2 } from 'lucide-react';
 import LivenetStudioUI from '@/app/livenet/LivenetStudioUI';
+import { fetchStreamToken } from '@/lib/stream-token';
 
 // --- Wrapper Component for Initialization and Auth ---
 function LivenetWrapper() {
@@ -56,14 +57,7 @@ function LivenetWrapper() {
             try {
                 // The broadcast document should have been created by the /broadcast/create page.
                 // Now, we connect to it.
-                const response = await fetch('/api/stream/token', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ userId: user.uid }),
-                });
-                if (!response.ok) throw new Error('Failed to fetch stream token');
-                
-                const { token } = await response.json();
+                const token = await fetchStreamToken(user);
                 
                 videoClient = new StreamVideoClient({
                     apiKey,

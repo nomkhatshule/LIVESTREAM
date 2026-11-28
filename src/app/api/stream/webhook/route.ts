@@ -1,65 +1,55 @@
-
-import { headers } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { StreamChat } from 'stream-chat';
-import { doc, updateDoc } from 'firebase/firestore';
-import { initializeFirebaseForServer } from '@/firebase/server-init';
+import { adminDb } from '@/firebase/server';
 
-// Initialize firebase to get the firestore instance.
-const { firestore: db } = initializeFirebaseForServer();
+export const dynamic = 'force-dynamic';
 
+/**
+ * Receives events from Stream. When a livestream call ends (host closes the
+ * tab, loses connection, or ends it), mark the broadcast as no longer live.
+ *
+ * Uses the Admin SDK so the write is not blocked by Firestore security rules
+ * (the old version used the client SDK without a signed-in user, so every
+ * update was rejected and streams stayed "live" forever).
+ */
 export async function POST(req: NextRequest) {
   const apiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY;
   const apiSecret = process.env.STREAM_API_SECRET;
-
   if (!apiKey || !apiSecret) {
-    return NextResponse.json({ error: 'Stream API key or secret is not set.' }, { status: 500 });
+    return NextResponse.json({ error: 'Server is not configured.' }, { status: 500 });
   }
 
-  const serverClient = StreamChat.getInstance(apiKey, apiSecret);
-  
-  // 1. Verify the webhook signature
-  const signature = headers().get('x-stream-signature');
-  const body = await req.text(); // Read the raw body as text
-
+  const signature = req.headers.get('x-signature') ?? req.headers.get('x-stream-signature');
+  const body = await req.text();
   if (!signature) {
     return NextResponse.json({ error: 'Signature missing' }, { status: 400 });
   }
 
-  try {
-    // The StreamChat SDK can verify the webhook signature for us
-    if (!serverClient.verifyWebhook(body, signature)) {
-       return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
-    }
-  } catch (error) {
-     console.error('Webhook signature verification failed:', error);
-     return NextResponse.json({ error: 'Signature verification failed' }, { status: 400 });
+  const serverClient = StreamChat.getInstance(apiKey, apiSecret);
+  if (!serverClient.verifyWebhook(body, signature)) {
+    return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
   }
 
-  // 2. Parse the event and update Firestore
   try {
     const event = JSON.parse(body);
-
-    // We only care about when the livestream call ends
-    if (event.type === 'call.ended' && event.call_type === 'livestream') {
-      const broadcastId = event.call_cid.split(':')[1];
-      
-      if (broadcastId) {
-        // Use the client-side SDK to update the document.
-        const broadcastDocRef = doc(db, 'broadcasts', broadcastId);
-        await updateDoc(broadcastDocRef, {
-          isLive: false,
-          activeChallenge: null, // Also clear any active challenge
-          activeChallengeType: null,
-        });
-        console.log(`Successfully marked broadcast ${broadcastId} as not live.`);
+    const endedTypes = ['call.ended', 'call.live_ended', 'call.session_ended'];
+    if (endedTypes.includes(event.type) && typeof event.call_cid === 'string') {
+      const [callType, broadcastId] = event.call_cid.split(':');
+      if (callType === 'livestream' && broadcastId) {
+        const ref = adminDb().collection('broadcasts').doc(broadcastId);
+        const snap = await ref.get();
+        if (snap.exists) {
+          await ref.update({
+            isLive: false,
+            activeChallenge: null,
+            activeChallengeType: null,
+          });
+        }
       }
     }
-
     return NextResponse.json({ received: true });
-
   } catch (error) {
-    console.error('Error processing webhook event:', error);
+    console.error('Stream webhook: failed to process event', error);
     return NextResponse.json({ error: 'Failed to process event' }, { status: 500 });
   }
 }

@@ -1,46 +1,31 @@
+import type { MetadataRoute } from 'next';
+import { adminDb } from '@/firebase/server';
 
-import { MetadataRoute } from 'next';
-import { initializeFirebaseForServer } from '@/firebase/server-init';
-import { collection, getDocs, query, where } from 'firebase/firestore';
-
-// Initialize Firebase Admin SDK for server-side data fetching
-const { firestore: db } = initializeFirebaseForServer();
+// Rebuild the sitemap at most once an hour instead of on every request.
+export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  // It's best practice to use an environment variable for the base URL.
-  // For now, we'll hardcode it, but you can change this later.
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://livenetstream.com';
+  const now = new Date().toISOString();
 
-  // 1. Get static routes
-  const staticRoutes = [
-    '/',
-    '/landing',
-    '/login',
-    '/signup',
-    '/feed',
-    '/cards',
-    '/privacy-policy',
-    '/terms-of-service',
-  ].map((route) => ({
-    url: `${baseUrl}${route}`,
-    lastModified: new Date().toISOString(),
-  }));
+  // Public pages that search engines should index.
+  const staticRoutes = ['/landing', '/login', '/signup', '/privacy-policy', '/terms-of-service', '/cookie-policy'].map(
+    (route) => ({ url: `${baseUrl}${route}`, lastModified: now }),
+  );
 
-  // 2. Get dynamic routes for user profiles
-  const usersSnapshot = await getDocs(collection(db, 'users'));
-  const userPaths = usersSnapshot.docs.map((doc) => ({
-    url: `${baseUrl}/profile/${doc.id}`,
-    lastModified: new Date().toISOString(), // In a real app, you might use a 'lastUpdated' field from the doc
-  }));
-
-  // 3. Get dynamic routes for live broadcasts
-  const broadcastsQuery = query(collection(db, 'broadcasts'), where('isLive', '==', true));
-  const broadcastsSnapshot = await getDocs(broadcastsQuery);
-  const broadcastPaths = broadcastsSnapshot.docs.map((doc) => ({
-    url: `${baseUrl}/broadcast/${doc.id}`,
-    lastModified: doc.data().createdAt?.toDate().toISOString() || new Date().toISOString(),
-  }));
-
-  // 4. Combine all routes
-  return [...staticRoutes, ...userPaths, ...broadcastPaths];
+  // Profiles and live streams. If the database isn't reachable (for example
+  // during a local build without credentials) we still return the static pages.
+  try {
+    const db = adminDb();
+    const [users, live] = await Promise.all([
+      db.collection('users').select().limit(1000).get(),
+      db.collection('broadcasts').where('isLive', '==', true).limit(200).get(),
+    ]);
+    const userPaths = users.docs.map((d) => ({ url: `${baseUrl}/profile/${d.id}`, lastModified: now }));
+    const broadcastPaths = live.docs.map((d) => ({ url: `${baseUrl}/broadcast/${d.id}`, lastModified: now }));
+    return [...staticRoutes, ...userPaths, ...broadcastPaths];
+  } catch (error) {
+    console.warn('sitemap: could not load dynamic routes:', (error as Error).message);
+    return staticRoutes;
+  }
 }
