@@ -22,9 +22,8 @@ Stream (live video + chat) · Algolia (user search) · Giphy.
 
 ## Deploy (Firebase App Hosting)
 
-- Public settings live in `apphosting.yaml`.
-- The Stream secret is kept in Google Secret Manager:
-  `firebase apphosting:secrets:set STREAM_API_SECRET`
+- Scaling settings live in `apphosting.yaml`. API keys are configured outside
+  the repo; never commit them.
 - Deploy the security rules:
   `firebase deploy --only firestore:rules,storage`
 - In the Stream dashboard, set the webhook URL to

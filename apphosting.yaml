@@ -12,23 +12,8 @@ env:
     value: production
     availability: [BUILD, RUNTIME]
 
-  # Public values (also baked into the browser bundle at build time).
-  # Fill these in with your NEW keys after rotating the leaked ones.
-  - variable: NEXT_PUBLIC_STREAM_API_KEY
-    value: "REPLACE_WITH_NEW_STREAM_API_KEY"
-    availability: [BUILD, RUNTIME]
-  - variable: NEXT_PUBLIC_ALGOLIA_APP_ID
-    value: "REPLACE_WITH_ALGOLIA_APP_ID"
-    availability: [BUILD, RUNTIME]
-  - variable: NEXT_PUBLIC_ALGOLIA_SEARCH_API_KEY
-    value: "REPLACE_WITH_NEW_ALGOLIA_SEARCH_ONLY_KEY"
-    availability: [BUILD, RUNTIME]
-  - variable: NEXT_PUBLIC_GIPHY_API_KEY
-    value: "REPLACE_WITH_NEW_GIPHY_KEY"
-    availability: [BUILD, RUNTIME]
-
-  # Secret: stored in Google Secret Manager, never in this file. Create it with:
-  #   firebase apphosting:secrets:set STREAM_API_SECRET
-  - variable: STREAM_API_SECRET
-    secret: STREAM_API_SECRET
-    availability: [RUNTIME]
+  # API keys are configured outside this file (never commit real values).
+  # If you ever want App Hosting to read a secret from Secret Manager, add e.g.:
+  #   - variable: STREAM_API_SECRET
+  #     secret: STREAM_API_SECRET
+  #     availability: [RUNTIME]
